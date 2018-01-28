@@ -6,7 +6,7 @@ ZOLD is going to solve these problems:
 
   * Blockchain is slow and [doesn't scale](https://en.wikipedia.org/wiki/Bitcoin_scalability_problem)
   * Crypto mining makes strangers rich
-  * High volatility makes cryptos only sitable for the black market
+  * High volatility makes cryptos only suitable for the black market
 
 ZOLD is:
 
