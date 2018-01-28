@@ -77,6 +77,8 @@ lock a place in their queues and then compares their responses. If the versions
 they managed to lock are not exactly the same, it asks them
 to try to lock again. The process repeats, until all friends' replies are similar.
 
+To find the current balance of both wallets, each friend asks its friends around.
+
 **Phase II**.
 The node sends a confirmation request to its friends, which includes
 the payment ID.
