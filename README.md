@@ -8,6 +8,13 @@ ZOLD is going to solve these problems:
   * Crypto mining makes strangers rich
   * High volatility makes cryptos only sitable for the black market
 
+ZOLD is:
+
+  * Fast
+  * Scalable
+  * Anonymous
+  * As stable as USD
+
 The principles behind ZOLD:
 
   * There is only one issuer: [Zerocracy, Inc.](http://www.zerocracy.com)
