@@ -1,4 +1,5 @@
-**NOTICE**: It's a very early draft!
+**NOTICE**: It's an experiment and a very early draft! Please, feel free to
+submit your ideas or pull requests.
 
 ZOLD is a crypto currency.
 
