@@ -15,7 +15,7 @@ ZOLD is:
   * Anonymous
   * As stable as USD
 
-The principles behind ZOLD:
+ZOLD principles include:
 
   * There is only one issuer: [Zerocracy, Inc.](http://www.zerocracy.com)
   * The only way to get ZOLD is to earn it (or to buy from someone who earned it)
