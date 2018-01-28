@@ -1,3 +1,5 @@
+<img src="https://www.0crat.com/svg/logo.svg" width="64px" height="64px"/>
+
 **NOTICE**: It's an experiment and a very early draft! Please, feel free to
 submit your ideas or pull requests.
 
