@@ -110,5 +110,10 @@ for some period of time (quarantine).
 To avoid long-lasting locks of the queue, a payment is removed from the
 queue if it stays there for longer than 60 seconds.
 
+## Concerns
+
 A DoS attack to the distribution payment queue is a potential threat.
+
+Maybe it will be necessary to pay volunteers for the nodes they
+keep online 24x7.
 
