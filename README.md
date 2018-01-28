@@ -4,7 +4,7 @@ ZOLD is a crypto currency.
 
 ZOLD is going to solve these problems:
 
-  * Blockchain is slow and doesn't scale
+  * Blockchain is slow and [doesn't scale](https://en.wikipedia.org/wiki/Bitcoin_scalability_problem)
   * Crypto mining makes strangers rich
   * High volatility makes cryptos only sitable for the black market
 
