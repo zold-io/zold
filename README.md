@@ -16,6 +16,7 @@ The principles behind ZOLD:
   * No history of transactions
   * Consistency is guaranteed by protocols, not data
   * The entire code base is open source
+  * The wallet no.0 belongs to [Zerocracy](http://www.zerocracy.com) and may have a negative balance
 
 ## How to Use
 
