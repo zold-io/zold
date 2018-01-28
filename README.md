@@ -11,12 +11,11 @@ ZOLD is going to solve these problems:
 The principles behind ZOLD:
 
   * There is only one issuer: [Zerocracy, Inc.](http://www.zerocracy.com)
-  * The only way to get ZOLD is to earn it
+  * The only way to get ZOLD is to earn it (or to buy from someone who earned it)
   * [Zerocracy](http://www.zerocracy.com) guarantees to buy back for $1/ZOLD
   * No history of transactions
   * Consistency is guaranteed by protocols, not data
   * The entire code base is open source
-  * Each transaction must be approved by its sender and receiver
 
 ## How to Use
 
