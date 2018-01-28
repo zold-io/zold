@@ -18,7 +18,7 @@ ZOLD is:
 ZOLD principles include:
 
   * There is only one issuer: [Zerocracy, Inc.](http://www.zerocracy.com)
-  * The only way to get ZOLD is to earn it (or to buy from someone who earned it)
+  * The only way to get ZOLD is to earn it (or to buy from someone)
   * [Zerocracy](http://www.zerocracy.com) guarantees to buy back for $1/ZOLD
   * No history of transactions
   * Consistency is guaranteed by protocols, not data
@@ -57,12 +57,13 @@ Each running node contains a list of wallets; each wallet contains:
 
   * ID: unsigned 64-bit integer
   * Public PGP key of the owner: 256 bytes (2048 bits)
-  * Balance: signed 128-bit integer
+  * Balance: signed 128-bit integer (in 10<sup>-12</sup>)
   * Version: unsigned 64-bit integer
 
 The wallet with the largest `version` number contains the current balance.
 
-There is a [3PC](https://en.wikipedia.org/wiki/Three-phase_commit_protocol) protocol:
+There is a [3PC](https://en.wikipedia.org/wiki/Three-phase_commit_protocol)
+protocol to make payments:
 
   1. A node locks a place in a distributed payment queue.
 
@@ -71,7 +72,7 @@ There is a [3PC](https://en.wikipedia.org/wiki/Three-phase_commit_protocol) prot
   3. Other nodes modify balances of sender's and recepient's wallets.
 
 **Phase I**.
-Each node maintains a payment queue, where each payment includes:
+Each node maintains a queue of payments, where each payment includes:
 
   * Payment ID: unsigned 32-bit integer
   * Sender wallet ID and version
