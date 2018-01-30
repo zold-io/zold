@@ -4,13 +4,13 @@
 [![DevOps By Rultor.com](http://www.rultor.com/b/yegor256/Zold)](http://www.rultor.com/p/yegor256/Zold)
 [![We recommend RubyMine](http://img.teamed.io/rubymine-recommend.svg)](https://www.jetbrains.com/ruby/)
 
-[![Build Status](https://travis-ci.org/yegor256/zold.svg)](https://travis-ci.org/yegor256/zold)
-[![Build status](https://ci.appveyor.com/api/projects/status/orvfo2qgmd1d7a2i?svg=true)](https://ci.appveyor.com/project/yegor256/zold)
-[![PDD status](http://www.0pdd.com/svg?name=yegor256/zold)](http://www.0pdd.com/p?name=yegor256/zold)
+[![Build Status](https://travis-ci.org/zerocracy/zold.svg)](https://travis-ci.org/zerocracy/zold)
+[![Build status](https://ci.appveyor.com/api/projects/status/orvfo2qgmd1d7a2i?svg=true)](https://ci.appveyor.com/project/zerocracy/zold)
+[![PDD status](http://www.0pdd.com/svg?name=zerocracy/zold)](http://www.0pdd.com/p?name=zerocracy/zold)
 [![Gem Version](https://badge.fury.io/rb/zold.svg)](http://badge.fury.io/rb/zold)
-[![Dependency Status](https://gemnasium.com/yegor256/zold.svg)](https://gemnasium.com/yegor256/zold)
-[![Code Climate](http://img.shields.io/codeclimate/github/yegor256/zold.svg)](https://codeclimate.com/github/yegor256/zold)
-[![Test Coverage](https://img.shields.io/codecov/c/github/yegor256/zold.svg)](https://codecov.io/github/yegor256/zold?branch=master)
+[![Dependency Status](https://gemnasium.com/zerocracy/zold.svg)](https://gemnasium.com/zerocracy/zold)
+[![Code Climate](http://img.shields.io/codeclimate/github/zerocracy/zold.svg)](https://codeclimate.com/github/zerocracy/zold)
+[![Test Coverage](https://img.shields.io/codecov/c/github/zerocracy/zold.svg)](https://codecov.io/github/zerocracy/zold?branch=master)
 
 **NOTICE**: It's an experiment and a very early draft! Please, feel free to
 submit your ideas or pull requests.
