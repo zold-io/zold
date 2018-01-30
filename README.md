@@ -26,6 +26,12 @@ ZOLD principles include:
   * No history of transactions
   * Consistency is guaranteed by protocols, not data
   * The entire code base is open source
+  * The network of communicating nodes maintains wallets of users
+  * At least 16 redundant copies of each wallet must exist
+  * Each node has a trust level, as an integer (negatives mean no trust)
+  * Each node earns 0.16% of each transaction it processes
+  * Nodes lose trust when the information they provide can't be proven by other nodes
+  * The list of 16 highly trusted "backbone" nodes is hardcoded in this Git repository
   * The wallet no.0 belongs to [Zerocracy](http://www.zerocracy.com) and may have a negative balance
 
 ## How to Use
@@ -77,23 +83,24 @@ protocol to make payments:
 **Phase I**.
 Each node maintains a queue of payments, where each payment includes:
 
-  * Payment ID: unsigned 32-bit integer
+  * Payment ID: unsigned 32-bit integer unique for the node
   * Sender wallet ID and version
   * Recepient wallet ID and version
+  * Processor wallet ID and version
   * Amount
   * PGP sign of the sender
   * List of friend IPs and their payment IDs in their queues
 
-When a lock request arrives, the node asks its best "friends" (other nodes) to
-lock a place in their queues and then compares their responses. If the versions
+When a lock request arrives, the node asks its most trustable "friends" (other nodes) to
+lock a place in their queues and then compares their responses. If the three versions
 they managed to lock are not exactly the same, it asks them
 to try to lock again. The process repeats, until all friends' replies are similar.
 
-To find the current balance of both wallets, each friend asks its friends around.
+To find the current balance of three wallets, each friend asks its friends around.
 
 **Phase II**.
 The node sends a confirmation request to its friends, which includes
-the payment ID.
+their payment IDs.
 
 **Phase III**.
 Each node modifies the balances in its local list of wallets and responds
@@ -107,8 +114,7 @@ extended in runtime, using the statistics of the most actively contributing
 nodes.
 
 If, at Phase I, some node doesn't synchronize its responses with other
-nodes in more than eight attempts, it is excluded from the list of friends
-for some period of time (quarantine).
+nodes in more than eight attempts, it loses its trust level.
 
 To avoid long-lasting locks of the queue, a payment is removed from the
 queue if it stays there for longer than 60 seconds.
