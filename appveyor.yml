@@ -1,0 +1,21 @@
+version: '{build}'
+skip_tags: true
+clone_depth: 10
+branches:
+  only:
+    - master
+  except:
+    - gh-pages
+os: Windows Server 2012
+install:
+  - cmd: SET PATH=C:\Ruby23-x64\bin;%PATH%
+  - cmd: ruby --version
+  - cmd: git --version
+build_script:
+  - bundle update
+  - bundle install
+test_script:
+  - rake
+cache:
+  - C:\Ruby200\bin -> zold.gemspec
+  - C:\Ruby200\lib\ruby\gems\2.0.0 -> zold.gemspec

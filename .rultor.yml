@@ -1,0 +1,30 @@
+assets:
+  rubygems.yml: zerocracy/home#assets/rubygems.yml
+  s3cfg: zerocracy/home#assets/s3cfg
+install: |
+  sudo apt-get -y update
+  sudo gem install pdd
+release:
+  script: |-
+    bundle install
+    rake
+    rm -rf *.gem
+    sed -i "s/1\.0\.snapshot/${tag}/g" lib/zold/version.rb
+    git add lib/zold/version.rb
+    git commit -m "version set to ${tag}"
+    gem build zold.gemspec
+    chmod 0600 ../rubygems.yml
+    gem push *.gem --config-file ../rubygems.yml
+  commanders:
+  - yegor256
+architect:
+- yegor256
+merge:
+  script: |-
+    bundle install
+    rake
+    pdd
+deploy:
+  script: |-
+    echo "There is nothing to deploy"
+    exit -1

@@ -1,0 +1,49 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+#
+# Copyright (c) 2018 Zerocracy, Inc.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the 'Software'), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+STDOUT.sync = true
+
+require 'slop'
+require_relative '../lib/zold'
+require_relative '../lib/zold/version'
+
+opts = Slop.parse(ARGV, strict: true, help: true) do |o|
+  o.banner = "Usage (#{Zold::VERSION}): zold [options] command"
+  o.bool '-h', '--help', 'Show these instructions'
+  o.bool '-v', '--version', 'Show current version'
+end
+
+if opts.help?
+  puts opts
+  exit
+end
+
+if opts.version?
+  puts Zold::VERSION
+  exit
+end
+
+Encoding.default_external = Encoding::UTF_8
+Encoding.default_internal = Encoding::UTF_8
+
+# to be implemented...
