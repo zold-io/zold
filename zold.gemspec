@@ -1,5 +1,5 @@
 # encoding: utf-8
-#
+
 # Copyright (c) 2018 Zerocracy, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -54,7 +54,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rdoc', '4.2.0'
   s.add_development_dependency 'cucumber', '1.3.17'
   s.add_development_dependency 'minitest', '5.5.0'
-  s.add_development_dependency 'rubocop', '0.41.2'
+  s.add_development_dependency 'rubocop', '~>0.49.0'
   s.add_development_dependency 'rubocop-rspec', '1.5.1'
   s.add_development_dependency 'rspec-rails', '3.1.0'
 end

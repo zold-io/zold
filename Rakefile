@@ -1,5 +1,5 @@
 # encoding: utf-8
-#
+
 # Copyright (c) 2018 Zerocracy, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -33,7 +33,7 @@ def version
   Gem::Specification.load(Dir['*.gemspec'].first).version
 end
 
-task default: [:clean, :test, :features, :rubocop, :copyright]
+task default: %i[clean test features rubocop copyright]
 
 require 'rake/testtask'
 desc 'Run all unit tests'

@@ -1,5 +1,5 @@
 # encoding: utf-8
-#
+
 # Copyright (c) 2018 Zerocracy, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +20,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'nokogiri'
 require 'tmpdir'
 require 'slop'
 require 'English'
@@ -31,22 +30,11 @@ Before do
   @dir = Dir.mktmpdir('test')
   FileUtils.mkdir_p(@dir) unless File.exist?(@dir)
   Dir.chdir(@dir)
-  @opts = Slop.parse ['-v', '-s', @dir] do |o|
-    o.bool '-v', '--verbose'
-    o.string '-s', '--source'
-  end
 end
 
 After do
   Dir.chdir(@cwd)
   FileUtils.rm_rf(@dir) if File.exist?(@dir)
-end
-
-Given(/^I have a "([^"]*)" file with content:$/) do |file, text|
-  FileUtils.mkdir_p(File.dirname(file)) unless File.exist?(file)
-  File.open(file, 'w') do |f|
-    f.write(text.gsub(/\\xFF/, 0xFF.chr))
-  end
 end
 
 When(%r{^I run bin/zold with "([^"]*)"$}) do |arg|
@@ -66,23 +54,11 @@ Then(/^Stdout is empty$/) do
 end
 
 Then(/^Exit code is zero$/) do
-  raise "Non-zero exit code #{@exitstatus}:\n#{@stdout}" unless @exitstatus == 0
+  raise "Non-zero exit #{@exitstatus}:\n#{@stdout}" unless @exitstatus.zero?
 end
 
 Then(/^Exit code is not zero$/) do
-  raise 'Zero exit code' if @exitstatus == 0
-end
-
-When(/^I run bash with "([^"]*)"$/) do |text|
-  FileUtils.copy_entry(@cwd, File.join(@dir, 'zold'))
-  @stdout = `#{text}`
-  @exitstatus = $CHILD_STATUS.exitstatus
-end
-
-When(/^I run bash with:$/) do |text|
-  FileUtils.copy_entry(@cwd, File.join(@dir, 'zold'))
-  @stdout = `#{text}`
-  @exitstatus = $CHILD_STATUS.exitstatus
+  raise 'Zero exit code' if @exitstatus.zero?
 end
 
 Given(/^It is Unix$/) do
