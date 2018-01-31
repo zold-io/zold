@@ -31,15 +31,15 @@ ZOLD is:
 
 ZOLD principles include:
 
-  * There is only one issuer: [Zerocracy, Inc.](http://www.zerocracy.com)
-  * The only way to get ZOLD is to earn it (or to buy from someone)
-  * <del>[Zerocracy](http://www.zerocracy.com) guarantees to buy back for $1/ZOLD</del>
-  * No history of transactions
-  * Consistency is guaranteed by protocols, not immutability of data structures
   * The entire code base is open source
-  * The network of communicating nodes maintains wallets of users
-  * Each node has a Trust Rank (TR), as an integer (negatives mean no trust)
+  * There is only one issuer: [Zerocracy, Inc.](http://www.zerocracy.com)
+  * There is no mining; the only way to get ZOLD is to earn it
   * The wallet no.0 belongs to the issuer and may have a negative balance
+  * A wallet is an XML file
+  * There is no central ledger, each wallet has its own personal ledger
+  * The network of communicating nodes maintains wallets of users
+  * Anyone can add a node to the network
+  * A mediator, a node that processes a payment, gets 0.16% of it
 
 ## How to Use
 
@@ -58,8 +58,9 @@ $ zold start
 Or do one of the following:
 
   * `zold create` creates a new wallet (you have to provide PGP keys)
-  * `zold pay` sends a payment
-  * `zold check` checks the balance of a wallet
+  * `zold pull` pulls a wallet from the network
+  * `zold commit` creates and commits a new payment to the wallet
+  * `zold push` pushes a wallet to the network
 
 For more options just run:
 
@@ -69,71 +70,49 @@ $ zold --help
 
 ## Architecture
 
-Each running node contains a list of wallets; each wallet contains:
+The list of a few backbone nodes is hard-coded in this Git repository.
 
-  * ID: unsigned 64-bit integer
-  * Public PGP key of the owner: 256 bytes (2048 bits)
-  * Balance: signed 128-bit integer (in 10<sup>-12</sup>, where 5ZLD=5,000,000,000,000)
-  * Version: unsigned 64-bit integer
-  * Copies: list of 15 IP addresses
+Each node is an HTTP server with a RESTful API.
 
-The wallet with the largest `version` number contains the current balance.
+Each running node maintains some wallets; each wallet is an XML file, e.g.:
 
-There is a [3PC](https://en.wikipedia.org/wiki/Three-phase_commit_protocol)
-protocol to make payments:
+```xml
+<wallet>
+  <name>yegor256</name>
+  <pkey><!-- public PGP key, 256 bytes --></pkey>
+  <ledger>
+    [...]
+    <txn id="35">
+      <date>2017-07-19T21:24:51.136Z</date>
+      <amount>-560</amount>
+      <sign><!-- PGP signature of the payer --></sign>
+    </txn>
+  </ledger>
+</wallet>
+```
 
-  1. A user finds a mediator and asks it to lock
-  (16 for sender's, 16 for recipient's and 16 for mediator's wallets).
+All amounts are signed 128-bit integers in 10<sup>-12</sup>, where 5ZLD=5,000,000,000,000.
 
-  2. The user confirms the payment.
+**Pull**.
+The client connects to a random closest node and pulls a wallet. If the node
+doesn't have the wallet, it tries to find it in the network. Then, the
+client pulls all other wallets referenced in the main one, and validates
+their signatures. Then, it prints the balance to the user.
 
-  3. Other nodes modify balances of sender's and recepient's wallets.
+**Commit**.
+The user provides the amount and the destination wallet name. The client
+pulls the destination wallet and adds a new XML element `<txn>` to both of them
+together with the PGP signature received from the user.
 
-**Phase I**.
-Each node maintains a queue of payments, where each payment includes:
+**Push**.
+The client sends the wallet to a random closest node. The node propagates
+it to other nodes and obtains their acknowledgments.
 
-  * Payment ID: unsigned 32-bit integer unique for the node
-  * Sender wallet ID and version
-  * Recepient wallet ID and version
-  * Processor wallet ID and version
-  * Amount
-  * PGP sign of the sender
-  * List of friend IPs and their payment IDs in their queues
-
-When a lock request arrives, the node asks its most trustable "friends" (other nodes) to
-lock a place in their queues and then compares their responses. If the three versions
-they managed to lock are not exactly the same, it asks them
-to try to lock again. The process repeats, until all friends' replies are similar.
-
-To find the current balance of three wallets, each friend asks its friends around.
-
-**Phase II**.
-The node sends a confirmation request to its friends, which includes
-their payment IDs.
-
-**Phase III**.
-Each node modifies the balances in its local list of wallets and responds
-with a payment confirmation status. The payment gets removed from the queue.
-
-## Consistency and Security
-
-The list of friends is hard-coded in the software. It includes only the
-nodes that are trusted by the creators of this software. The list may be
-extended in runtime, using the statistics of the most actively contributing
-nodes.
-
-If, at Phase I, some node doesn't synchronize its responses with other
-nodes in more than eight attempts, it loses its trust level.
-
-To avoid long-lasting locks of the queue, a payment is removed from the
-queue if it stays there for longer than 60 seconds.
-
-## Concerns
-
-A DoS attack to the distribution payment queue is a potential threat.
-
-Maybe it will be necessary to pay volunteers for the nodes they
-keep online 24x7.
+**Merge**.
+If a node receives a wallet that contains transactions that are younger
+than transactions in its local copy, a merge operation is
+performed. If there are conflicts, like a negative balance, the node
+deletes recent transactions from the wallet and from other affected wallets.
 
 ## License (MIT)
 
