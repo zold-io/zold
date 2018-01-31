@@ -20,44 +20,39 @@ ZOLD is a crypto currency.
 ZOLD is going to solve these problems:
 
   * Blockchain is slow and [doesn't scale](https://en.wikipedia.org/wiki/Bitcoin_scalability_problem)
-  * Crypto mining makes strangers rich
-  * High volatility makes cryptos suitable only for the black market
+  * Crypto mining makes irrelevant strangers rich
+  * High volatility makes cryptos suitable mostly for the black market
 
 ZOLD is:
 
   * Fast
   * Scalable
   * Anonymous
-  * As stable as USD
 
 ZOLD principles include:
 
   * There is only one issuer: [Zerocracy, Inc.](http://www.zerocracy.com)
   * The only way to get ZOLD is to earn it (or to buy from someone)
-  * [Zerocracy](http://www.zerocracy.com) guarantees to buy back for $1/ZOLD
+  * <del>[Zerocracy](http://www.zerocracy.com) guarantees to buy back for $1/ZOLD</del>
   * No history of transactions
-  * Consistency is guaranteed by protocols, not data
+  * Consistency is guaranteed by protocols, not immutability of data structures
   * The entire code base is open source
   * The network of communicating nodes maintains wallets of users
-  * At least 16 redundant copies of each wallet must exist
-  * Each node has a trust level, as an integer (negatives mean no trust)
-  * Each node earns 0.16% of each transaction it processes
-  * Nodes lose trust when the information they provide can't be proven by other nodes
-  * The list of 16 highly trusted "backbone" nodes is hardcoded in this Git repository
-  * The wallet no.0 belongs to [Zerocracy](http://www.zerocracy.com) and may have a negative balance
+  * Each node has a Trust Rank (TR), as an integer (negatives mean no trust)
+  * The wallet no.0 belongs to the issuer and may have a negative balance
 
 ## How to Use
 
 Install [Rubygems](https://rubygems.org/pages/download) and then run:
 
 ```bash
-gem install zold
+$ gem install zold
 ```
 
 Then, either run it as a node:
 
 ```bash
-zold run
+$ zold start
 ```
 
 Or do one of the following:
@@ -69,7 +64,7 @@ Or do one of the following:
 For more options just run:
 
 ```bash
-zold --help
+$ zold --help
 ```
 
 ## Architecture
@@ -78,17 +73,19 @@ Each running node contains a list of wallets; each wallet contains:
 
   * ID: unsigned 64-bit integer
   * Public PGP key of the owner: 256 bytes (2048 bits)
-  * Balance: signed 128-bit integer (in 10<sup>-12</sup>)
+  * Balance: signed 128-bit integer (in 10<sup>-12</sup>, where 5ZLD=5,000,000,000,000)
   * Version: unsigned 64-bit integer
+  * Copies: list of 15 IP addresses
 
 The wallet with the largest `version` number contains the current balance.
 
 There is a [3PC](https://en.wikipedia.org/wiki/Three-phase_commit_protocol)
 protocol to make payments:
 
-  1. A node locks a place in a distributed payment queue.
+  1. A user finds a mediator and asks it to lock
+  (16 for sender's, 16 for recipient's and 16 for mediator's wallets).
 
-  2. The node confirms the payment.
+  2. The user confirms the payment.
 
   3. Other nodes modify balances of sender's and recepient's wallets.
 
