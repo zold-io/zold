@@ -112,7 +112,8 @@ together with the PGP signature received from the user.
 
 **Push**.
 The client sends the wallet to a random closest node. The node propagates
-it to other nodes and obtains their acknowledgments.
+it to other nodes in a [2PC](https://en.wikipedia.org/wiki/Two-phase_commit_protocol)
+manner: acknowledgment first, commit next.
 
 **Merge**.
 If a node receives a wallet that contains transactions that are younger
