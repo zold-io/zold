@@ -83,7 +83,7 @@ Each running node maintains some wallets; each wallet is an XML file, e.g.:
   <pkey><!-- public PGP key, 256 bytes --></pkey>
   <ledger>
     [...]
-    <txn id="35" after="34">
+    <txn id="35">
       <date>2017-07-19T21:24:51.136Z</date>
       <beneficiary>jeff</beneficiary>
       <amount>-560</amount>
@@ -97,7 +97,6 @@ All amounts are signed 128-bit integers in 10<sup>-12</sup>, where 5ZLD=5,000,00
 
 The `<sign>` contains the following text block, signed by the payer:
 
-  * `id` of the previous transaction or zero
   * `date` of the current transaction
   * `name` of the paying wallet
   * `name` of the receiving wallet
