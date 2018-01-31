@@ -57,7 +57,7 @@ $ zold start
 
 Or do one of the following:
 
-  * `zold create` creates a new wallet (you have to provide PGP keys)
+  * `zold init` creates a new wallet (you have to provide PGP keys)
   * `zold pull` pulls a wallet from the network
   * `zold commit` creates and commits a new payment to the wallet
   * `zold push` pushes a wallet to the network
@@ -84,6 +84,7 @@ Each running node maintains some wallets; each wallet is an XML file, e.g.:
     [...]
     <txn id="35">
       <date>2017-07-19T21:24:51.136Z</date>
+      <beneficiary>jeff</beneficiary>
       <amount>-560</amount>
       <sign><!-- PGP signature of the payer --></sign>
     </txn>
@@ -113,6 +114,9 @@ If a node receives a wallet that contains transactions that are younger
 than transactions in its local copy, a merge operation is
 performed. If there are conflicts, like a negative balance, the node
 deletes recent transactions from the wallet and from other affected wallets.
+
+**Init**.
+The client creates an empty wallet XML.
 
 ## License (MIT)
 
