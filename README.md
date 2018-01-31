@@ -96,12 +96,8 @@ Each running node maintains some wallets; each wallet is an XML file, e.g.:
 All amounts are signed 128-bit integers in 10<sup>-12</sup>, where 5ZLD=5,000,000,000,000.
 
 The `<sign>` contains the following text block, signed by the payer:
-
-  * `date` of the current transaction
-  * `name` of the paying wallet
-  * `name` of the receiving wallet
-  * `amount`
-  * 64 bytes of [salt](https://en.wikipedia.org/wiki/Salt_%28cryptography%29)
+`date`, payer's `name`, receiver's `name`, `amount`, and
+64 bytes of [salt](https://en.wikipedia.org/wiki/Salt_%28cryptography%29).
 
 **Pull**.
 The client connects to a random closest node and pulls a wallet. If the node
