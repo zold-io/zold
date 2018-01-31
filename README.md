@@ -119,6 +119,12 @@ deletes recent transactions from the wallet and from other affected wallets.
 **Init**.
 The client creates an empty wallet XML.
 
+**Start**.
+The node manifests itself to one of the backbone nodes, which
+propagates the manifestation to other nodes, they propagate further.
+When any node goes down, the node that detected such a situation,
+notifies other nodes and they exlude the failed node from the list.
+
 ## License (MIT)
 
 Copyright (c) 2018 Zerocracy, Inc.
