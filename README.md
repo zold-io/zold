@@ -100,11 +100,11 @@ A wallet may look like this:
 </wallet>
 ```
 
-Wallet `<id>` is a positive 32-bit integer.
+Wallet `<id>` is an unsigned 32-bit integer.
 
-Transaction `id` is a positive 16-bit integer.
+Transaction `id` is an unsigned 16-bit integer.
 
-Transaction `date` is a positive 32-bit integer, meaning
+Transaction `date` is an unsigned 32-bit integer, meaning
 milliseconds since
 [epoch](https://en.wikipedia.org/wiki/Epoch_%28reference_date%29).
 
