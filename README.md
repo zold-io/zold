@@ -100,7 +100,7 @@ A wallet may look like this:
 </wallet>
 ```
 
-Wallet `<id>` is positive 32-bit integer.
+Wallet `<id>` is a positive 32-bit integer.
 
 Transaction `id` is a positive 16-bit integer.
 
