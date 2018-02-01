@@ -40,11 +40,11 @@ ZOLD principles include:
   * There is no central ledger, each wallet has its own personal ledger
   * The network of communicating nodes maintains wallets of users
   * Anyone can add a node to the network
-  * A mediator, a node that processes a payment, gets 2<sup>-16</sup> (0.001525878%) of it
+  * A mediator, a node that processes a transaction, gets 2<sup>-16</sup> (0.001525878%) of it
 
 ## How to Use
 
-Install [Rubygems](https://rubygems.org/pages/download) and then run:
+Install Ruby 2.2+, [Rubygems](https://rubygems.org/pages/download), and then run:
 
 ```bash
 $ gem install zold
@@ -60,7 +60,7 @@ Or do one of the following:
 
   * `zold init` creates a new wallet (you have to provide PGP keys)
   * `zold pull` pulls a wallet from the network
-  * `zold commit` creates and commits a new payment to the wallet
+  * `zold commit` creates and commits a new transaction to the wallet
   * `zold push` pushes a wallet to the network
 
 For more options just run:
@@ -69,13 +69,19 @@ For more options just run:
 $ zold --help
 ```
 
-## Architecture
+## Glossary
 
-The list of a few backbone nodes is hard-coded in this Git repository.
+A **node** is an HTTP server with a RESTful API, a maitainer of wallets.
 
-Each node is an HTTP server with a RESTful API.
+A **client** is a command line Ruby gem [`zold`](https://rubygems.org/gems/zold).
 
-Each running node maintains some wallets; each wallet is an XML file, e.g.:
+A **wallet** is an XML file with a ledger of all transactions inside.
+
+A **transaction** is money transferring operation between two wallets.
+
+## Data
+
+A wallet may look like this:
 
 ```xml
 <wallet>
@@ -98,6 +104,10 @@ All amounts are signed 128-bit integers in 2<sup>-64</sup>, where 1ZLD=9,223,372
 The `<sign>` contains the following text block, signed by the payer:
 `date`, `amount`, `beneficiary`, and
 64 bytes of [salt](https://en.wikipedia.org/wiki/Salt_%28cryptography%29).
+
+The list of a few backbone nodes is hard-coded in this Git repository.
+
+## Architecture
 
 **Pull**.
 The client connects to a random closest node and pulls a wallet. If the node
