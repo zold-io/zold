@@ -34,13 +34,13 @@ ZOLD principles include:
 
   * The entire code base is open source
   * There is only one issuer: [Zerocracy, Inc.](http://www.zerocracy.com)
-  * There is no mining; the only way to get ZOLD is to earn it
+  * There is no mining; the only way to get ZOLD is to receive it from someone else
   * The wallet no.0 belongs to the issuer and may have a negative balance
   * A wallet is an XML file
   * There is no central ledger, each wallet has its own personal ledger
   * The network of communicating nodes maintains wallets of users
   * Anyone can add a node to the network
-  * A mediator, a node that processes a payment, gets 0.16% of it
+  * A mediator, a node that processes a payment, gets 2<sup>-16</sup> (0.001525878%) of it
 
 ## How to Use
 
@@ -93,7 +93,7 @@ Each running node maintains some wallets; each wallet is an XML file, e.g.:
 </wallet>
 ```
 
-All amounts are signed 128-bit integers in 10<sup>-12</sup>, where 5ZLD=5,000,000,000,000.
+All amounts are signed 128-bit integers in 2<sup>-64</sup>, where 1ZLD=9,223,372,036,854,775,807.
 
 The `<sign>` contains the following text block, signed by the payer:
 `date`, `amount`, `beneficiary`, and
@@ -114,12 +114,9 @@ together with the PGP signature received from the user.
 The client sends the wallet to a random closest node. The node propagates
 it to other nodes in a [2PC](https://en.wikipedia.org/wiki/Two-phase_commit_protocol)
 manner: acknowledgment first, commit next.
-
-**Merge**.
 If a node receives a wallet that contains transactions that are younger
 than transactions in its local copy, a merge operation is
-performed. If there are conflicts, like a negative balance, the node
-deletes recent transactions from the wallet and from other affected wallets.
+performed. If the balance after the merge is negative, the push is rejected.
 
 **Init**.
 The client creates an empty wallet XML.
