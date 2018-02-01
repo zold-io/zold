@@ -35,6 +35,7 @@ ZOLD principles include:
   * The entire code base is open source
   * There is only one issuer: [Zerocracy, Inc.](http://www.zerocracy.com)
   * There is no mining; the only way to get ZOLD is to receive it from someone else
+  * Only 2<sup>63</sup> numerals (no fractions) can technically be issued
   * The wallet no.0 belongs to the issuer and may have a negative balance
   * A wallet is an XML file
   * There is no central ledger, each wallet has its own personal ledger
@@ -99,7 +100,9 @@ A wallet may look like this:
 </wallet>
 ```
 
-All amounts are signed 128-bit integers in 2<sup>-64</sup>, where 1ZLD=9,223,372,036,854,775,807.
+All amounts are signed 64-bit integers, where 1ZLD by convention equals to
+in 2<sup>24</sup>, where 1ZLD=16,777,216. Thus, the technical capacity
+of the currency is 549,755,813,888 (half a trillion).
 
 The `<sign>` contains the following text block, signed by the payer:
 `date`, `amount`, `beneficiary`, and
