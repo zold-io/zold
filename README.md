@@ -78,7 +78,7 @@ A **client** is a command line Ruby gem [`zold`](https://rubygems.org/gems/zold)
 
 A **wallet** is an XML file with a ledger of all transactions inside.
 
-A **transaction** is money transferring operation between two wallets.
+A **transaction** is a money transferring operation between two wallets.
 
 ## Data
 
@@ -86,27 +86,37 @@ A wallet may look like this:
 
 ```xml
 <wallet>
-  <name>yegor256</name>
+  <id>123456</id>
   <pkey><!-- public PGP key, 256 bytes --></pkey>
   <ledger>
     [...]
     <txn id="35">
       <date>2017-07-19T21:24:51.136Z</date>
-      <beneficiary>jeff</beneficiary>
+      <beneficiary>927284</beneficiary>
       <amount>-560</amount>
-      <sign><!-- PGP signature of the payer --></sign>
+      <hash><!-- PGP signature of the payer --></hash>
     </txn>
   </ledger>
 </wallet>
 ```
 
+Wallet `<id>` is positive 32-bit integer.
+
+Transaction `id` is a positive 16-bit integer.
+
+Transaction `date` is a positive 32-bit integer, meaning
+milliseconds since
+[epoch](https://en.wikipedia.org/wiki/Epoch_%28reference_date%29).
+
 All amounts are signed 64-bit integers, where 1ZLD by convention equals to
 2<sup>24</sup> (16,777,216). Thus, the technical capacity
 of the currency is 549,755,813,888 (half a trillion).
 
-The `<sign>` contains the following text block, signed by the payer:
+The `<hash>` contains an [MD5](https://en.wikipedia.org/wiki/MD5) 16-bytes
+hash of the following text block, signed by the payer:
 `date`, `amount`, `beneficiary`, and
 64 bytes of [salt](https://en.wikipedia.org/wiki/Salt_%28cryptography%29).
+Thus, each transaction takes exactly 34 bytes.
 
 The list of a few backbone nodes is hard-coded in this Git repository.
 
@@ -132,7 +142,8 @@ than transactions in its local copy, a merge operation is
 performed. If the balance after the merge is negative, the push is rejected.
 
 **Init**.
-The client creates an empty wallet XML.
+The client creates an empty wallet XML and asks one of the backbone
+nodes to generate a new `id` for it.
 
 **Start**.
 The node manifests itself to one of the backbone nodes, which
