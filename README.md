@@ -101,7 +101,7 @@ A wallet may look like this:
 ```
 
 All amounts are signed 64-bit integers, where 1ZLD by convention equals to
-in 2<sup>24</sup>, where 1ZLD=16,777,216. Thus, the technical capacity
+2<sup>24</sup> (16,777,216). Thus, the technical capacity
 of the currency is 549,755,813,888 (half a trillion).
 
 The `<sign>` contains the following text block, signed by the payer:
