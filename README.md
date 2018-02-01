@@ -72,7 +72,7 @@ $ zold --help
 
 ## Glossary
 
-A **node** is an HTTP server with a RESTful API, a maitainer of wallets.
+A **node** is an HTTP server with a RESTful API, a maintainer of wallets.
 
 A **client** is a command line Ruby gem [`zold`](https://rubygems.org/gems/zold).
 
