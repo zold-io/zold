@@ -24,26 +24,85 @@
 STDOUT.sync = true
 
 require 'slop'
+require 'rainbow'
 require_relative '../lib/zold'
 require_relative '../lib/zold/version'
+require_relative '../lib/zold/wallet'
+require_relative '../lib/zold/log'
+require_relative '../lib/zold/commands/init'
+require_relative '../lib/zold/commands/send'
 
 opts = Slop.parse(ARGV, strict: true, help: true) do |o|
-  o.banner = "Usage (#{Zold::VERSION}): zold [options] command"
+  o.banner = "Usage: zold [options] command [arguments]
+Available commands:
+    #{Rainbow('init').green} [id]
+      Creates a new wallet with the required ID or a random one
+    #{Rainbow('pull').green} [id...]
+      Pulls all local wallets and new ones explicitly required
+    #{Rainbow('send').green} source target amount
+      Send ZOLD from one wallet to another
+    #{Rainbow('push').green} [id...]
+      Push all local wallets or the ones required
+Available options:"
+  o.string '-d', '--dir',
+    'The directory where wallets are stored (default: current directory)',
+    default: '.'
+  o.string '-p', '--private-key',
+    'The location of RSA private key (default: ~/.ssh/id_rsa)',
+    default: '~/.ssh/id_rsa'
+  o.string '-u', '--public-key',
+    'The location of RSA public key (default: ~/.ssh/id_rsa.pub)',
+    default: '~/.ssh/id_rsa.pub'
   o.bool '-h', '--help', 'Show these instructions'
-  o.bool '-v', '--version', 'Show current version'
+  o.on '-v', '--version', 'Show current version' do
+    puts Zold::VERSION
+    exit
+  end
 end
+
+log = Zold::Log.new
 
 if opts.help?
-  puts opts
-  exit
-end
-
-if opts.version?
-  puts Zold::VERSION
+  log.info(opts.to_s)
   exit
 end
 
 Encoding.default_external = Encoding::UTF_8
 Encoding.default_internal = Encoding::UTF_8
 
-# to be implemented...
+raise 'Command is required' if opts.arguments.empty?
+
+command = opts.arguments[0]
+
+if command == 'init'
+  id = opts.arguments[1] ? opts.arguments[1] : SecureRandom.uuid
+  Zold::Init.new(
+    wallet: Zold::Wallet.new(
+      File.join(opts['dir'], "#{id}.xml"),
+      File.read(File.expand_path(opts['private-key']))
+    ),
+    id: id,
+    pubkey: File.read(File.expand_path(opts['public-key'])),
+    log: log
+  ).run
+end
+
+if command == 'send'
+  Zold::Send.new(
+    payer: Zold::Wallet.new(
+      File.join(opts['dir'], "#{opts.arguments[1]}.xml"),
+      File.read(File.expand_path(opts['private-key']))
+    ),
+    receiver: Zold::Wallet.new(
+      File.join(opts['dir'], "#{opts.arguments[2]}.xml")
+    ),
+    amount: opts.arguments[3].to_f * 2 ** 24,
+    log: log
+  ).run
+end
+
+raise 'PULL is not implemented yet' if command == 'pull'
+raise 'PUSH is not implemented yet' if command == 'push'
+
+raise "Command '#{command}' is not supported"
+
