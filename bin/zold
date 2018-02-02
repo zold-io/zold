@@ -74,7 +74,8 @@ raise 'Command is required' if opts.arguments.empty?
 
 command = opts.arguments[0]
 
-if command == 'init'
+case command
+when 'init'
   id = opts.arguments[1] ? opts.arguments[1] : SecureRandom.uuid
   Zold::Init.new(
     wallet: Zold::Wallet.new(
@@ -85,9 +86,7 @@ if command == 'init'
     pubkey: File.read(File.expand_path(opts['public-key'])),
     log: log
   ).run
-end
-
-if command == 'send'
+when 'send'
   Zold::Send.new(
     payer: Zold::Wallet.new(
       File.join(opts['dir'], "#{opts.arguments[1]}.xml"),
@@ -99,10 +98,10 @@ if command == 'send'
     amount: opts.arguments[3].to_f * 2 ** 24,
     log: log
   ).run
+when 'pull'
+  raise 'PULL is not implemented yet'
+when 'push'
+  raise 'PUSH is not implemented yet'
+else
+  raise "Command '#{command}' is not supported"
 end
-
-raise 'PULL is not implemented yet' if command == 'pull'
-raise 'PUSH is not implemented yet' if command == 'push'
-
-raise "Command '#{command}' is not supported"
-
