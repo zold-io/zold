@@ -79,10 +79,7 @@ case command
 when 'init'
   id = opts.arguments[1] ? opts.arguments[1] : SecureRandom.uuid
   Zold::Init.new(
-    wallet: Zold::Wallet.new(
-      File.join(opts['dir'], "#{id}.xml"),
-      Zold::Key.new(opts['private-key'])
-    ),
+    wallet: Zold::Wallet.new(File.join(opts['dir'], "#{id}.xml")),
     id: id,
     pubkey: Zold::Key.new(opts['public-key']),
     log: log
@@ -90,13 +87,13 @@ when 'init'
 when 'send'
   Zold::Send.new(
     payer: Zold::Wallet.new(
-      File.join(opts['dir'], "#{opts.arguments[1]}.xml"),
-      Zold::Key.new(opts['private-key'])
+      File.join(opts['dir'], "#{opts.arguments[1]}.xml")
     ),
     receiver: Zold::Wallet.new(
       File.join(opts['dir'], "#{opts.arguments[2]}.xml")
     ),
     amount: opts.arguments[3].to_f * 2 ** 24,
+    pvtkey: Zold::Key.new(opts['private-key']),
     log: log
   ).run
 when 'pull'

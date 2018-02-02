@@ -35,12 +35,18 @@ module Zold
     end
 
     def to_s
+      rsa.to_s.strip
+    end
+
+    private
+
+    def rsa
       raise "Can't find RSA key at #{@file}" unless File.exist?(@file)
       text = File.read(File.expand_path(@file)).strip
       unless text.start_with?('-----BEGIN')
         text = OpenSSHKeyConverter.decode_pubkey(text.split[1])
       end
-      OpenSSL::PKey::RSA.new(text).to_s.strip
+      OpenSSL::PKey::RSA.new(text)
     end
   end
 end

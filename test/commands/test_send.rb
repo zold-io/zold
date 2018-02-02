@@ -33,19 +33,15 @@ require_relative '../../lib/zold/commands/send.rb'
 class TestSend < Minitest::Test
   def test_sends_from_wallet_to_wallet
     Dir.mktmpdir 'test' do |dir|
-      source = Zold::Wallet.new(
-        File.join(dir, 'source.xml'),
-        Zold::Key.new('fixtures/id_rsa')
-      )
+      source = Zold::Wallet.new(File.join(dir, 'source.xml'))
       source.init(1, Zold::Key.new('fixtures/id_rsa.pub'))
-      target = Zold::Wallet.new(
-        File.join(dir, 'target.xml')
-      )
+      target = Zold::Wallet.new(File.join(dir, 'target.xml'))
       target.init(2, Zold::Key.new('fixtures/id_rsa.pub'))
       Zold::Send.new(
         payer: source,
         receiver: target,
-        amount: 100
+        amount: 100,
+        pvtkey: Zold::Key.new('fixtures/id_rsa')
       ).run
     end
   end

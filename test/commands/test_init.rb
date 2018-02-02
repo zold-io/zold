@@ -33,10 +33,7 @@ require_relative '../../lib/zold/commands/init.rb'
 class TestInit < Minitest::Test
   def test_initializes_wallet
     Dir.mktmpdir 'test' do |dir|
-      wallet = Zold::Wallet.new(
-        File.join(dir, 'source.xml'),
-        Zold::Key.new('fixtures/id_rsa')
-      )
+      wallet = Zold::Wallet.new(File.join(dir, 'source.xml'))
       Zold::Init.new(
         wallet: wallet,
         id: 1,

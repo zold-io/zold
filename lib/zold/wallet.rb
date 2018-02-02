@@ -30,9 +30,8 @@ require 'time'
 module Zold
   # A single wallet
   class Wallet
-    def initialize(file, pvtkey = nil)
+    def initialize(file)
       @file = file
-      @pvtkey = pvtkey
     end
 
     def to_s
@@ -45,7 +44,7 @@ module Zold
         Nokogiri::XML::Builder.new do |xml|
           xml.wallet do
             xml.id_ id
-            xml.pkey pubkey
+            xml.pkey pubkey.to_s
             xml.ledger {}
           end
         end.to_xml
@@ -56,7 +55,7 @@ module Zold
       Nokogiri::XML(File.read(@file)).xpath('/wallet/id/text()').to_s.to_i
     end
 
-    def sub(amount, target)
+    def sub(amount, target, pvtkey)
       txn = 1
       date = Time.now.iso8601
       Nokogiri::XML(File.read(@file)).xpath('/wallet/ledger')[0].add_child(
@@ -66,7 +65,7 @@ module Zold
             xml.date date
             xml.amount amount
             xml.beneficiary target
-            xml.sign '???'
+            xml.sign pvtkey.to_s
           end
         end.to_s
       )
