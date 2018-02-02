@@ -71,7 +71,9 @@ module Zold
       t.add_child('<date/>')[0].content = date
       t.add_child('<amount/>')[0].content = -amount
       t.add_child('<beneficiary/>')[0].content = target
-      t.add_child('<sign/>')[0].content = pvtkey.to_s
+      t.add_child('<sign/>')[0].content = pvtkey.encrypt(
+        "#{date} #{amount} #{target}"
+      )
       File.write(@file, doc.to_s)
       { id: txn, date: date, amount: amount, beneficiary: id }
     end

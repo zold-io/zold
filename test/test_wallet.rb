@@ -32,10 +32,11 @@ require_relative '../lib/zold/wallet.rb'
 class TestWallet < Minitest::Test
   def test_adds_transaction
     Dir.mktmpdir 'test' do |dir|
-      wallet = Zold::Wallet.new(File.join(dir, 'source.xml'))
+      file = File.join(dir, 'source.xml')
+      wallet = Zold::Wallet.new(file)
       wallet.init(1, Zold::Key.new('fixtures/id_rsa.pub'))
       amount = 123
-      wallet.sub(amount, 100, Zold::Key.new('fixtures/id_rsa.pub'))
+      wallet.sub(amount, 100, Zold::Key.new('fixtures/id_rsa'))
       assert wallet.balance == -amount
     end
   end

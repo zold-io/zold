@@ -38,6 +38,10 @@ module Zold
       rsa.to_s.strip
     end
 
+    def encrypt(text)
+      Base64.encode64(rsa.private_encrypt(text))
+    end
+
     private
 
     def rsa
