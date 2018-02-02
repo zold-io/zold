@@ -52,37 +52,44 @@ module Zold
     end
 
     def id
-      Nokogiri::XML(File.read(@file)).xpath('/wallet/id/text()').to_s.to_i
+      xml.xpath('/wallet/id/text()').to_s.to_i
+    end
+
+    def balance
+      xml.xpath('/wallet/ledger/txn/amount/text()')
+        .map(&:to_s)
+        .map(&:to_i)
+        .inject(0) { |sum, n| sum + n }
     end
 
     def sub(amount, target, pvtkey)
       txn = 1
       date = Time.now.iso8601
-      Nokogiri::XML(File.read(@file)).xpath('/wallet/ledger')[0].add_child(
-        Nokogiri::XML::Builder.new do |xml|
-          xml.txn do
-            xml.id_ txn
-            xml.date date
-            xml.amount amount
-            xml.beneficiary target
-            xml.sign pvtkey.to_s
-          end
-        end.to_s
-      )
+      doc = xml
+      t = doc.xpath('/wallet/ledger')[0].add_child('<txn/>')[0]
+      t['id'] = txn
+      t.add_child('<date/>')[0].content = date
+      t.add_child('<amount/>')[0].content = -amount
+      t.add_child('<beneficiary/>')[0].content = target
+      t.add_child('<sign/>')[0].content = pvtkey.to_s
+      File.write(@file, doc.to_s)
       { id: txn, date: date, amount: amount, beneficiary: id }
     end
 
     def add(txn)
-      Nokogiri::XML(File.read(@file)).xpath('/wallet/ledger')[0].add_child(
-        Nokogiri::XML::Builder.new do |xml|
-          xml.txn do
-            xml.id_ "/#{txn[:id]}"
-            xml.date txn[:date]
-            xml.amount txn[:amount]
-            xml.beneficiary txn[:beneficiary]
-          end
-        end.to_s
-      )
+      doc = xml
+      t = doc.xpath('/wallet/ledger')[0].add_child('<txn/>')[0]
+      t['id'] = "/#{txn[:id]}"
+      t.add_child('<date/>')[0].content = txn[:date]
+      t.add_child('<amount/>')[0].content = txn[:amount]
+      t.add_child('<beneficiary/>')[0].content = txn[:beneficiary]
+      File.write(@file, doc.to_s)
+    end
+
+    private
+
+    def xml
+      Nokogiri::XML(File.read(@file))
     end
   end
 end

@@ -39,6 +39,7 @@ class TestInit < Minitest::Test
         id: 1,
         pubkey: Zold::Key.new('fixtures/id_rsa.pub')
       ).run
+      assert wallet.balance.zero?
     end
   end
 end

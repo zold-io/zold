@@ -22,29 +22,21 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
-require_relative '../../lib/zold/wallet.rb'
-require_relative '../../lib/zold/key.rb'
-require_relative '../../lib/zold/commands/send.rb'
+require_relative '../lib/zold/key.rb'
+require_relative '../lib/zold/wallet.rb'
 
-# SEND test.
+# Wallet test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Zerocracy, Inc.
 # License:: MIT
-class TestSend < Minitest::Test
-  def test_sends_from_wallet_to_wallet
+class TestWallet < Minitest::Test
+  def test_adds_transaction
     Dir.mktmpdir 'test' do |dir|
-      source = Zold::Wallet.new(File.join(dir, 'source.xml'))
-      source.init(1, Zold::Key.new('fixtures/id_rsa.pub'))
-      target = Zold::Wallet.new(File.join(dir, 'target.xml'))
-      target.init(2, Zold::Key.new('fixtures/id_rsa.pub'))
-      Zold::Send.new(
-        payer: source,
-        receiver: target,
-        amount: 100,
-        pvtkey: Zold::Key.new('fixtures/id_rsa')
-      ).run
-      assert source.balance == -100
-      assert target.balance == 100
+      wallet = Zold::Wallet.new(File.join(dir, 'source.xml'))
+      wallet.init(1, Zold::Key.new('fixtures/id_rsa.pub'))
+      amount = 123
+      wallet.sub(amount, 100, Zold::Key.new('fixtures/id_rsa.pub'))
+      assert wallet.balance == -amount
     end
   end
 end
