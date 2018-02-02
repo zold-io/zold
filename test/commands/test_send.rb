@@ -23,6 +23,7 @@
 require 'minitest/autorun'
 require 'tmpdir'
 require_relative '../../lib/zold/wallet.rb'
+require_relative '../../lib/zold/key.rb'
 require_relative '../../lib/zold/commands/send.rb'
 
 # SEND test.
@@ -34,13 +35,13 @@ class TestSend < Minitest::Test
     Dir.mktmpdir 'test' do |dir|
       source = Zold::Wallet.new(
         File.join(dir, 'source.xml'),
-        File.read(File.expand_path('fixtures/id_rsa'))
+        Zold::Key.new('fixtures/id_rsa')
       )
-      source.init(1, File.read(File.expand_path('fixtures/id_rsa.pub')))
+      source.init(1, Zold::Key.new('fixtures/id_rsa.pub'))
       target = Zold::Wallet.new(
         File.join(dir, 'target.xml')
       )
-      target.init(2, File.read(File.expand_path('fixtures/id_rsa.pub')))
+      target.init(2, Zold::Key.new('fixtures/id_rsa.pub'))
       Zold::Send.new(
         payer: source,
         receiver: target,

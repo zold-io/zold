@@ -22,26 +22,22 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
-require_relative '../../lib/zold/wallet.rb'
-require_relative '../../lib/zold/key.rb'
-require_relative '../../lib/zold/commands/init.rb'
+require_relative '../lib/zold/key.rb'
 
-# INIT test.
+# Key test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Zerocracy, Inc.
 # License:: MIT
-class TestInit < Minitest::Test
-  def test_initializes_wallet
-    Dir.mktmpdir 'test' do |dir|
-      wallet = Zold::Wallet.new(
-        File.join(dir, 'source.xml'),
-        Zold::Key.new('fixtures/id_rsa')
-      )
-      Zold::Init.new(
-        wallet: wallet,
-        id: 1,
-        pubkey: Zold::Key.new('fixtures/id_rsa.pub')
-      ).run
-    end
+class TestKey < Minitest::Test
+  def test_reads_public_rsa
+    key = Zold::Key.new('fixtures/id_rsa.pub')
+    assert key.to_s.start_with?("-----BEGIN PUBLIC KEY-----\nMIICI")
+    assert key.to_s.end_with?("EAAQ==\n-----END PUBLIC KEY-----")
+  end
+
+  def test_reads_private_rsa
+    key = Zold::Key.new('fixtures/id_rsa')
+    assert key.to_s.start_with?("-----BEGIN RSA PRIVATE KEY-----\nMIIJJ")
+    assert key.to_s.end_with?("Sg==\n-----END RSA PRIVATE KEY-----")
   end
 end
