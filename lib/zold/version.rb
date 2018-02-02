@@ -25,5 +25,5 @@
 # Copyright:: Copyright (c) 2018 Zerocracy, Inc.
 # License:: MIT
 module Zold
-  VERSION = '1.0.snapshot'.freeze
+  VERSION = '0.0.3'.freeze
 end
