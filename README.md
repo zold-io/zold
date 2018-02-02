@@ -33,10 +33,9 @@ ZOLD is:
 ZOLD principles include:
 
   * The entire code base is open source
-  * There is only one issuer: [Zerocracy, Inc.](http://www.zerocracy.com)
   * There is no mining; the only way to get ZOLD is to receive it from someone else
   * Only 2<sup>63</sup> numerals (no fractions) can technically be issued
-  * The wallet no.0 belongs to the issuer and may have a negative balance
+  * The first wallet belongs to the issuer and may have a negative balance
   * A wallet is an XML file
   * There is no central ledger, each wallet has its own personal ledger
   * Each transaction in the ledger is confirmed by [RSA](https://simple.wikipedia.org/wiki/RSA_%28algorithm%29) encryption
