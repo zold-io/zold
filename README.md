@@ -154,7 +154,11 @@ notifies other nodes and they exlude the failed node from the list.
 
 **Too long wallet**.
 If a wallet has too many transactions, its validation will take too long, since
-will require
+will require many cross-wallet checks. How to solve this?
+
+**DDoS**.
+We may have too many simultaneous `push` operations to the network,
+which may/will cause troubles. What to do?
 
 ## License (MIT)
 
