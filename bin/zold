@@ -29,6 +29,7 @@ require_relative '../lib/zold'
 require_relative '../lib/zold/version'
 require_relative '../lib/zold/wallet'
 require_relative '../lib/zold/log'
+require_relative '../lib/zold/key'
 require_relative '../lib/zold/commands/init'
 require_relative '../lib/zold/commands/send'
 
@@ -80,17 +81,17 @@ when 'init'
   Zold::Init.new(
     wallet: Zold::Wallet.new(
       File.join(opts['dir'], "#{id}.xml"),
-      File.read(File.expand_path(opts['private-key']))
+      Zold::Key.new(opts['private-key'])
     ),
     id: id,
-    pubkey: File.read(File.expand_path(opts['public-key'])),
+    pubkey: Zold::Key.new(opts['public-key']),
     log: log
   ).run
 when 'send'
   Zold::Send.new(
     payer: Zold::Wallet.new(
       File.join(opts['dir'], "#{opts.arguments[1]}.xml"),
-      File.read(File.expand_path(opts['private-key']))
+      Zold::Key.new(opts['private-key'])
     ),
     receiver: Zold::Wallet.new(
       File.join(opts['dir'], "#{opts.arguments[2]}.xml")
