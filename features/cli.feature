@@ -12,6 +12,6 @@ Feature: Command Line Processing
     Then Exit code is zero
 
   Scenario: Wallet can be created
-    When I run bin/zold with "create"
+    When I run bin/zold with "create --private-key id_rsa --public-key id_rsa.pub"
     Then Exit code is zero
 

@@ -26,6 +26,8 @@ require_relative '../../lib/zold'
 Before do
   @cwd = Dir.pwd
   @dir = Dir.mktmpdir('test')
+  FileUtils.copy('fixtures/id_rsa', @dir)
+  FileUtils.copy('fixtures/id_rsa.pub', @dir)
   FileUtils.mkdir_p(@dir) unless File.exist?(@dir)
   Dir.chdir(@dir)
 end

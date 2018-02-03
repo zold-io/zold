@@ -64,10 +64,10 @@ Available options:"
     o.string '-d', '--dir',
       'The directory where wallets are stored (default: current directory)',
       default: '.'
-    o.string '-p', '--private-key',
+    o.string '--private-key',
       'The location of RSA private key (default: ~/.ssh/id_rsa)',
       default: '~/.ssh/id_rsa'
-    o.string '-u', '--public-key',
+    o.string '--public-key',
       'The location of RSA public key (default: ~/.ssh/id_rsa.pub)',
       default: '~/.ssh/id_rsa.pub'
     o.bool '-h', '--help', 'Show these instructions'

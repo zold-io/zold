@@ -31,7 +31,7 @@ module Zold
     def initialize(file: nil, text: nil)
       unless file.nil?
         path = File.expand_path(file)
-        raise "Can't find RSA key at #{file}" unless File.exist?(path)
+        raise "Can't find RSA key at #{file} (#{path})" unless File.exist?(path)
         @body = File.read(path)
       end
       @body = text unless text.nil?
