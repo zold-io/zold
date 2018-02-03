@@ -59,7 +59,8 @@ RuboCop::RakeTask.new(:rubocop) do |task|
 end
 
 require 'cucumber/rake/task'
-Cucumber::Rake::Task.new(:features) do
+Cucumber::Rake::Task.new(:features) do |t|
+  t.cucumber_opts = 'features --format progress'
   Rake::Cleaner.cleanup_files(['coverage'])
 end
 Cucumber::Rake::Task.new(:'features:html') do |t|

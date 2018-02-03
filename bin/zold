@@ -72,6 +72,9 @@ Available options:"
       default: '~/.ssh/id_rsa.pub'
     o.bool '-h', '--help', 'Show these instructions'
     o.bool '--trace', 'Show full stack trace in case of a problem'
+    o.on '--no-colors', 'Disable colors in the ouput' do
+      Rainbow.enabled = false
+    end
     o.on '-v', '--version', 'Show current version' do
       puts Zold::VERSION
       exit
