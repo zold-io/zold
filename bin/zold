@@ -36,6 +36,8 @@ require_relative '../lib/zold/commands/create'
 require_relative '../lib/zold/commands/send'
 require_relative '../lib/zold/commands/balance'
 require_relative '../lib/zold/commands/check'
+require_relative '../lib/zold/commands/pull'
+require_relative '../lib/zold/commands/push'
 
 Encoding.default_external = Encoding::UTF_8
 Encoding.default_internal = Encoding::UTF_8
@@ -50,6 +52,10 @@ Available commands:
       Creates a new wallet with a random ID
     #{Rainbow('pull').green} [id...]
       Pulls all local wallets and new ones explicitly required
+    #{Rainbow('check').green} id
+      Checks the validity of the wallet
+    #{Rainbow('balance').green} id
+      Prints the balance of the wallet
     #{Rainbow('send').green} source target amount
       Send ZOLD from one wallet to another
     #{Rainbow('push').green} [id...]
@@ -119,7 +125,10 @@ Available options:"
       log: log
     ).run
   when 'push'
-    raise 'PUSH is not implemented yet'
+    Zold::Push.new(
+      wallet: wallets.find(Zold::Id.new(opts.arguments[1])),
+      log: log
+    ).run
   else
     raise "Command '#{command}' is not supported"
   end

@@ -1,5 +1,3 @@
-# encoding: utf-8
-#
 # Copyright (c) 2018 Zerocracy, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,21 +18,23 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-if Gem.win_platform? then
-  SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter[
-    SimpleCov::Formatter::HTMLFormatter
-  ]
-  SimpleCov.start do
-    add_filter "/test/"
-    add_filter "/features/"
-  end
-else
-  SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new(
-    [SimpleCov::Formatter::HTMLFormatter]
-  )
-  SimpleCov.start do
-    add_filter "/test/"
-    add_filter "/features/"
-    minimum_coverage 60
+require_relative '../log.rb'
+
+# PUSH command.
+# Author:: Yegor Bugayenko (yegor256@gmail.com)
+# Copyright:: Copyright (c) 2018 Zerocracy, Inc.
+# License:: MIT
+module Zold
+  # Wallet pushing command
+  class Push
+    def initialize(wallet:, log: Log::Quiet.new)
+      @wallet = wallet
+      @log = log
+    end
+
+    def run
+      raise 'The wallet is absent' unless @wallet.exists?
+      raise 'PUSH is not implemented yet'
+    end
   end
 end
