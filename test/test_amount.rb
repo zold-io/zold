@@ -18,47 +18,28 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# The amount.
+require 'minitest/autorun'
+require 'tmpdir'
+require_relative '../lib/zold/amount.rb'
+
+# Amount test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Zerocracy, Inc.
 # License:: MIT
-module Zold
-  # Amount
-  class Amount
-    def initialize(coins: nil, zld: nil)
-      raise 'You can\'t specify both coints and zld' if !coins.nil? && !zld.nil?
-      @coins = coins unless coins.nil?
-      @coins = (zld * 2**24).to_i unless zld.nil?
-    end
+class TestAmount < Minitest::Test
+  def test_parses_zld
+    amount = Zold::Amount.new(zld: 14.95)
+    assert(
+      amount.to_s == '14.95ZLD',
+      "#{amount} is not equal to '14.95ZLD'"
+    )
+  end
 
-    def to_i
-      @coins
-    end
-
-    def to_zld
-      format('%0.2f', @coins.to_f / 2**24)
-    end
-
-    def to_s
-      "#{to_zld}ZLD"
-    end
-
-    def ==(other)
-      @coins == other.to_i
-    end
-
-    def zero?
-      @coins.zero?
-    end
-
-    def negative?
-      @coins < 0
-    end
-
-    def mul(m)
-      c = @coins * m
-      raise "Overflow, can't multiply #{@coins} by #{m}" if c > 2**63
-      Amount.new(coins: c)
-    end
+  def test_parses_coins
+    amount = Zold::Amount.new(coins: 900_000_000)
+    assert(
+      amount.to_s == '53.64ZLD',
+      "#{amount} is not equal to '53.64ZLD'"
+    )
   end
 end
