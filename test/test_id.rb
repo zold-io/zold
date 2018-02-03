@@ -18,19 +18,27 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# The ID of the wallet.
+require 'minitest/autorun'
+require 'tmpdir'
+require_relative '../lib/zold/id.rb'
+
+# ID test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Zerocracy, Inc.
 # License:: MIT
-module Zold
-  # Id of the wallet
-  class Id
-    def initialize
-      @id = rand(2**32..2**64 - 1)
+class TestId < Minitest::Test
+  def test_generates_new_id
+    50.times do
+      id = Zold::Id.new
+      assert id.to_s.length == 16
     end
+  end
 
-    def to_s
-      format('%016x', @id)
+  def test_generates_id_only_once
+    id = Zold::Id.new
+    before = id.to_s
+    5.times do
+      assert id.to_s == before
     end
   end
 end

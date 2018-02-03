@@ -37,7 +37,7 @@ module Zold
 
     def run
       id = Id.new
-      file = File.join(@dir, "#{id.to_i}.xml")
+      file = File.join(@dir, "#{id}.xml")
       wallet = Wallet.new(file)
       wallet.init(id, @pubkey)
       @log.info("#{wallet} created at #{file}")

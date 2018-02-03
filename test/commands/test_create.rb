@@ -36,7 +36,10 @@ class TestCreate < Minitest::Test
         pubkey: Zold::Key.new('fixtures/id_rsa.pub')
       ).run
       assert wallet.balance.zero?
-      assert File.exist?(File.join(dir, "#{wallet.id}.xml"))
+      assert(
+        File.exist?(File.join(dir, "#{wallet.id}.xml")),
+        "Wallet file not found: #{wallet.id}.xml"
+      )
     end
   end
 end

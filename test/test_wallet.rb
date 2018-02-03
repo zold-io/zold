@@ -38,4 +38,14 @@ class TestWallet < Minitest::Test
       assert wallet.balance == -amount
     end
   end
+
+  def test_initializes_it
+    Dir.mktmpdir 'test' do |dir|
+      file = File.join(dir, 'source.xml')
+      wallet = Zold::Wallet.new(file)
+      id = 'da34'
+      wallet.init(id, Zold::Key.new('fixtures/id_rsa.pub'))
+      assert wallet.id == id
+    end
+  end
 end

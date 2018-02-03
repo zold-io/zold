@@ -41,7 +41,7 @@ module Zold
         @file,
         Nokogiri::XML::Builder.new do |xml|
           xml.wallet do
-            xml.id_ id.to_i
+            xml.id_ id.to_s
             xml.pkey pubkey.to_s
             xml.ledger {}
           end
@@ -50,7 +50,7 @@ module Zold
     end
 
     def id
-      xml.xpath('/wallet/id/text()').to_s.to_i
+      xml.xpath('/wallet/id/text()').to_s
     end
 
     def balance
