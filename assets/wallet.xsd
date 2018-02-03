@@ -38,7 +38,7 @@ SOFTWARE.
     <xs:all>
       <xs:element name="beneficiary" type="wallet" minOccurs="1" maxOccurs="1"/>
       <xs:element name="date" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
-      <xs:element name="sign" type="xs:string" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="sign" type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element name="amount" type="amount" minOccurs="1" maxOccurs="1"/>
     </xs:all>
     <xs:attribute name="id" use="required">
@@ -51,7 +51,7 @@ SOFTWARE.
   </xs:complexType>
   <xs:complexType name="ledger">
     <xs:sequence>
-      <xs:element name="txn" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="txn" type="txn" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
   <xs:element name="wallet">

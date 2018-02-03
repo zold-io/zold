@@ -34,6 +34,8 @@ require_relative '../lib/zold/key'
 require_relative '../lib/zold/amount'
 require_relative '../lib/zold/commands/create'
 require_relative '../lib/zold/commands/send'
+require_relative '../lib/zold/commands/balance'
+require_relative '../lib/zold/commands/check'
 
 Encoding.default_external = Encoding::UTF_8
 Encoding.default_internal = Encoding::UTF_8
@@ -85,31 +87,42 @@ Available options:"
   when 'create'
     Zold::Create.new(
       wallets: wallets,
-      pubkey: Zold::Key.new(opts['public-key']),
+      pubkey: Zold::Key.new(file: opts['public-key']),
       log: log
     ).run
   when 'send'
     raise "Payer wallet ID is required" if opts.arguments[1].nil?
     raise "Recepient wallet ID is required" if opts.arguments[2].nil?
     Zold::Send.new(
-      payer: wallets.find(opts.arguments[1]),
-      receiver: wallets.find(opts.arguments[2]),
+      payer: wallets.find(Zold::Id.new(opts.arguments[1])),
+      receiver: wallets.find(Zold::Id.new(opts.arguments[2])),
       amount: Zold::Amount.new(zld: opts.arguments[3].to_f),
-      pvtkey: Zold::Key.new(opts['private-key']),
+      pvtkey: Zold::Key.new(file: opts['private-key']),
       log: log
     ).run
   when 'balance'
     raise "Wallet ID is required" if opts.arguments[1].nil?
-    wallet = wallets.find(opts.arguments[1])
-    log.info("The balance of #{wallet} is #{wallet.balance}")
+    Zold::Balance.new(
+      wallet: wallets.find(Zold::Id.new(opts.arguments[1])),
+      log: log
+    ).run
+  when 'check'
+    raise "Wallet ID is required" if opts.arguments[1].nil?
+    Zold::Check.new(
+      wallet: wallets.find(Zold::Id.new(opts.arguments[1])),
+      wallets: wallets,
+      log: log
+    ).run
   when 'pull'
-    raise 'PULL is not implemented yet'
+    Zold::Pull.new(
+      wallet: wallets.find(Zold::Id.new(opts.arguments[1])),
+      log: log
+    ).run
   when 'push'
     raise 'PUSH is not implemented yet'
   else
     raise "Command '#{command}' is not supported"
   end
-
 rescue StandardError => ex
   log.error(ex.message)
   puts ex.backtrace if opts['trace']

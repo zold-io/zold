@@ -41,4 +41,10 @@ class TestId < Minitest::Test
       assert id.to_s == before
     end
   end
+
+  def test_parses_id
+    hex = 'ff01889402fe0954'
+    id = Zold::Id.new(hex)
+    assert(id.to_s == hex, "#{id} is not equal to #{hex}")
+  end
 end

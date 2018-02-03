@@ -18,61 +18,24 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'rainbow'
+require_relative '../log.rb'
 
-# The amount.
+# PULL command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Zerocracy, Inc.
 # License:: MIT
 module Zold
-  # Amount
-  class Amount
-    def initialize(coins: nil, zld: nil)
-      raise 'You can\'t specify both coints and zld' if !coins.nil? && !zld.nil?
-      @coins = coins unless coins.nil?
-      @coins = (zld * 2**24).to_i unless zld.nil?
-      raise "Integer is required: #{@coins.class}" unless @coins.is_a?(Integer)
+  # Wallet pulling command
+  class Pull
+    def initialize(wallet:, log: Log::Quiet.new)
+      @wallet = wallet
+      @log = log
     end
 
-    ZERO = Amount.new(coins: 0)
-
-    def to_i
-      @coins
-    end
-
-    def to_zld
-      format('%0.2f', @coins.to_f / 2**24)
-    end
-
-    def to_s
-      text = "#{to_zld}ZLD"
-      if negative?
-        Rainbow(text).red
-      else
-        Rainbow(text).green
-      end
-    end
-
-    def ==(other)
-      @coins == other.to_i
-    end
-
-    def +(other)
-      Amount.new(coins: @coins + other.to_i)
-    end
-
-    def zero?
-      @coins.zero?
-    end
-
-    def negative?
-      @coins < 0
-    end
-
-    def mul(m)
-      c = @coins * m
-      raise "Overflow, can't multiply #{@coins} by #{m}" if c > 2**63
-      Amount.new(coins: c)
+    def run
+      raise 'PULL doesn\'t work and the wallet is absent' unless @wallet.exists?
+      @log.info("The #{@wallet} is here")
+      @wallet
     end
   end
 end

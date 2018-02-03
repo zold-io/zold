@@ -33,15 +33,15 @@ class TestSend < Minitest::Test
   def test_sends_from_wallet_to_wallet
     Dir.mktmpdir 'test' do |dir|
       source = Zold::Wallet.new(File.join(dir, 'source.xml'))
-      source.init(Zold::Id.new, Zold::Key.new('fixtures/id_rsa.pub'))
+      source.init(Zold::Id.new, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
       target = Zold::Wallet.new(File.join(dir, 'target.xml'))
-      target.init(Zold::Id.new, Zold::Key.new('fixtures/id_rsa.pub'))
+      target.init(Zold::Id.new, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
       amount = Zold::Amount.new(zld: 14.95)
       Zold::Send.new(
         payer: source,
         receiver: target,
         amount: amount,
-        pvtkey: Zold::Key.new('fixtures/id_rsa')
+        pvtkey: Zold::Key.new(file: 'fixtures/id_rsa')
       ).run
       assert source.balance == amount.mul(-1)
       assert target.balance == amount

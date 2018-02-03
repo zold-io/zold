@@ -28,23 +28,31 @@ require 'base64'
 module Zold
   # A key
   class Key
-    def initialize(file)
-      @file = File.expand_path(file)
+    def initialize(file: nil, text: nil)
+      unless file.nil?
+        path = File.expand_path(file)
+        raise "Can't find RSA key at #{file}" unless File.exist?(path)
+        @body = File.read(path)
+      end
+      @body = text unless text.nil?
     end
 
     def to_s
       rsa.to_s.strip
     end
 
-    def encrypt(text)
-      Base64.encode64(rsa.private_encrypt(text))
+    def sign(text)
+      Base64.encode64(rsa.sign(OpenSSL::Digest::SHA256.new, text)).delete("\n")
+    end
+
+    def verify(signature, text)
+      rsa.verify(OpenSSL::Digest::SHA256.new, Base64.decode64(signature), text)
     end
 
     private
 
     def rsa
-      raise "Can't find RSA key at #{@file}" unless File.exist?(@file)
-      text = File.read(@file).strip
+      text = @body.strip
       unless text.start_with?('-----BEGIN')
         text = OpenSSHKeyConverter.decode_pubkey(text.split[1])
       end

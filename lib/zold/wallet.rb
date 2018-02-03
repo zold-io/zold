@@ -36,6 +36,10 @@ module Zold
       id
     end
 
+    def exists?
+      File.exist?(@file)
+    end
+
     def init(id, pubkey)
       raise "File '#{@file}' already exists" if File.exist?(@file)
       File.write(
@@ -66,16 +70,19 @@ module Zold
     end
 
     def sub(amount, target, pvtkey)
-      txn = 1
-      date = Time.now.iso8601
       xml = load
+      txn = 1
+      unless xml.xpath('/wallet/ledger[txn]').empty?
+        txn = xml.xpath('/wallet/ledger/txn/@id').map(&:to_i).max + 1
+      end
+      date = Time.now
       t = xml.xpath('/wallet/ledger')[0].add_child('<txn/>')[0]
       t['id'] = txn
-      t.add_child('<date/>')[0].content = date
+      t.add_child('<date/>')[0].content = date.iso8601
       t.add_child('<amount/>')[0].content = -amount.to_i
       t.add_child('<beneficiary/>')[0].content = target
-      t.add_child('<sign/>')[0].content = pvtkey.encrypt(
-        "#{id} #{date} #{amount.to_i} #{target}"
+      t.add_child('<sign/>')[0].content = pvtkey.sign(
+        "#{txn} #{amount.to_i} #{target}"
       )
       save(xml)
       { id: txn, date: date, amount: amount, beneficiary: id }
@@ -85,10 +92,33 @@ module Zold
       xml = load
       t = xml.xpath('/wallet/ledger')[0].add_child('<txn/>')[0]
       t['id'] = "/#{txn[:id]}"
-      t.add_child('<date/>')[0].content = txn[:date]
+      t.add_child('<date/>')[0].content = txn[:date].iso8601
       t.add_child('<amount/>')[0].content = txn[:amount].to_i
       t.add_child('<beneficiary/>')[0].content = txn[:beneficiary]
       save(xml).to_s
+    end
+
+    def check(id, amount, beneficiary)
+      xml = load
+      txn = xml.xpath("/wallet/ledger/txn[@id='#{id}']")[0]
+      Amount.new(coins: txn.xpath('amount/text()')[0].to_s.to_i).mul(-1) ==
+        amount &&
+        txn.xpath('beneficiary/text()')[0].to_s == beneficiary &&
+        Key.new(text: xml.xpath('/wallet/pkey/text()')[0].to_s).verify(
+          txn.xpath('sign/text()')[0].to_s,
+          "#{id} #{amount.to_i} #{beneficiary}"
+        )
+    end
+
+    def income
+      load.xpath('/wallet/ledger/txn[amount > 0]').each do |txn|
+        hash = {
+          id: txn['id'][1..-1].to_i,
+          beneficiary: Id.new(txn.xpath('beneficiary/text()')[0].to_s),
+          amount: Amount.new(coins: txn.xpath('amount/text()')[0].to_s.to_i)
+        }
+        yield hash
+      end
     end
 
     private

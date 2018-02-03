@@ -18,61 +18,27 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'rainbow'
+require 'minitest/autorun'
+require 'tmpdir'
+require_relative '../../lib/zold/wallet.rb'
+require_relative '../../lib/zold/key.rb'
+require_relative '../../lib/zold/id.rb'
+require_relative '../../lib/zold/commands/balance.rb'
 
-# The amount.
+# BALANCE test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Zerocracy, Inc.
 # License:: MIT
-module Zold
-  # Amount
-  class Amount
-    def initialize(coins: nil, zld: nil)
-      raise 'You can\'t specify both coints and zld' if !coins.nil? && !zld.nil?
-      @coins = coins unless coins.nil?
-      @coins = (zld * 2**24).to_i unless zld.nil?
-      raise "Integer is required: #{@coins.class}" unless @coins.is_a?(Integer)
-    end
-
-    ZERO = Amount.new(coins: 0)
-
-    def to_i
-      @coins
-    end
-
-    def to_zld
-      format('%0.2f', @coins.to_f / 2**24)
-    end
-
-    def to_s
-      text = "#{to_zld}ZLD"
-      if negative?
-        Rainbow(text).red
-      else
-        Rainbow(text).green
-      end
-    end
-
-    def ==(other)
-      @coins == other.to_i
-    end
-
-    def +(other)
-      Amount.new(coins: @coins + other.to_i)
-    end
-
-    def zero?
-      @coins.zero?
-    end
-
-    def negative?
-      @coins < 0
-    end
-
-    def mul(m)
-      c = @coins * m
-      raise "Overflow, can't multiply #{@coins} by #{m}" if c > 2**63
-      Amount.new(coins: c)
+class TestBalance < Minitest::Test
+  def test_checks_wallet_balance
+    Dir.mktmpdir 'test' do |dir|
+      id = Zold::Id.new
+      wallet = Zold::Wallets.new(dir).find(id)
+      wallet.init(Zold::Id.new, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+      balance = Zold::Balance.new(
+        wallet: wallet
+      ).run
+      assert balance == Zold::Amount::ZERO
     end
   end
 end

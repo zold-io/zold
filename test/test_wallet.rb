@@ -24,6 +24,7 @@ require_relative '../lib/zold/key.rb'
 require_relative '../lib/zold/id.rb'
 require_relative '../lib/zold/wallet.rb'
 require_relative '../lib/zold/amount.rb'
+require_relative '../lib/zold/commands/send.rb'
 
 # Wallet test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -32,11 +33,9 @@ require_relative '../lib/zold/amount.rb'
 class TestWallet < Minitest::Test
   def test_adds_transaction
     Dir.mktmpdir 'test' do |dir|
-      file = File.join(dir, 'source.xml')
-      wallet = Zold::Wallet.new(file)
-      wallet.init(Zold::Id.new, Zold::Key.new('fixtures/id_rsa.pub'))
+      wallet = wallet(dir)
       amount = Zold::Amount.new(zld: 39.99)
-      wallet.sub(amount, 100, Zold::Key.new('fixtures/id_rsa'))
+      wallet.sub(amount, Zold::Id.new, Zold::Key.new(file: 'fixtures/id_rsa'))
       assert(
         wallet.balance == amount.mul(-1),
         "#{wallet.balance} is not equal to #{amount.mul(-1)}"
@@ -46,7 +45,7 @@ class TestWallet < Minitest::Test
 
   def test_initializes_it
     Dir.mktmpdir 'test' do |dir|
-      pkey = Zold::Key.new('fixtures/id_rsa.pub')
+      pkey = Zold::Key.new(file: 'fixtures/id_rsa.pub')
       Dir.chdir(dir) do
         file = File.join(dir, 'source.xml')
         wallet = Zold::Wallet.new(file)
@@ -58,5 +57,53 @@ class TestWallet < Minitest::Test
         )
       end
     end
+  end
+
+  def test_iterates_income_transactions
+    Dir.mktmpdir 'test' do |dir|
+      wallet = wallet(dir)
+      wallet.add(
+        id: 1,
+        date: Time.now, amount: Zold::Amount.new(zld: 39.99),
+        beneficiary: Zold::Id.new
+      )
+      wallet.add(
+        id: 2,
+        date: Time.now, amount: Zold::Amount.new(zld: 14.95),
+        beneficiary: Zold::Id.new
+      )
+      sum = Zold::Amount::ZERO
+      wallet.income do |t|
+        sum += t[:amount]
+      end
+      assert(
+        sum == Zold::Amount.new(coins: 921_740_246),
+        "#{sum} is not equal to #{Zold::Amount.new(zld: 54.94)}"
+      )
+    end
+  end
+
+  def test_checks_transaction
+    Dir.mktmpdir 'test' do |dir|
+      payer = wallet(dir)
+      receiver = wallet(dir)
+      amount = Zold::Amount.new(zld: 14.95)
+      txn = Zold::Send.new(
+        payer: payer, receiver: receiver,
+        amount: amount,
+        pvtkey: Zold::Key.new(file: 'fixtures/id_rsa')
+      ).run
+      assert payer.check(txn, amount, receiver.id)
+    end
+  end
+
+  private
+
+  def wallet(dir)
+    id = Zold::Id.new
+    file = File.join(dir, "#{id}.xml")
+    wallet = Zold::Wallet.new(file)
+    wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+    wallet
   end
 end

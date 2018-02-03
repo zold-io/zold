@@ -25,8 +25,8 @@
 module Zold
   # Id of the wallet
   class Id
-    def initialize
-      @id = rand(2**32..2**64 - 1)
+    def initialize(id = nil)
+      @id = id.nil? ? rand(2**32..2**64 - 1) : Integer("0x#{id}", 16)
     end
 
     def to_s

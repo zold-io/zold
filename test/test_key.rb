@@ -28,14 +28,31 @@ require_relative '../lib/zold/key.rb'
 # License:: MIT
 class TestKey < Minitest::Test
   def test_reads_public_rsa
-    key = Zold::Key.new('fixtures/id_rsa.pub')
+    key = Zold::Key.new(file: 'fixtures/id_rsa.pub')
     assert key.to_s.start_with?("-----BEGIN PUBLIC KEY-----\nMIICI")
     assert key.to_s.end_with?("EAAQ==\n-----END PUBLIC KEY-----")
   end
 
   def test_reads_private_rsa
-    key = Zold::Key.new('fixtures/id_rsa')
+    key = Zold::Key.new(file: 'fixtures/id_rsa')
     assert key.to_s.start_with?("-----BEGIN RSA PRIVATE KEY-----\nMIIJJ")
     assert key.to_s.end_with?("Sg==\n-----END RSA PRIVATE KEY-----")
+  end
+
+  def test_signs_and_verifies
+    pub = Zold::Key.new(file: 'fixtures/id_rsa.pub')
+    pvt = Zold::Key.new(file: 'fixtures/id_rsa')
+    text = 'How are you, my friend?'
+    signature = pvt.sign(text)
+    assert pub.verify(signature, text)
+  end
+
+  def test_signs_and_verifies_with_random_key
+    key = OpenSSL::PKey::RSA.new(2048)
+    pub = Zold::Key.new(text: key.public_key.to_s)
+    pvt = Zold::Key.new(text: key.to_s)
+    text = 'How are you doing, dude?'
+    signature = pvt.sign(text)
+    assert pub.verify(signature, text)
   end
 end
