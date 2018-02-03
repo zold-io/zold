@@ -33,8 +33,14 @@ require_relative '../lib/zold/key'
 require_relative '../lib/zold/commands/create'
 require_relative '../lib/zold/commands/send'
 
-opts = Slop.parse(ARGV, strict: true, help: true) do |o|
-  o.banner = "Usage: zold [options] command [arguments]
+Encoding.default_external = Encoding::UTF_8
+Encoding.default_internal = Encoding::UTF_8
+
+log = Zold::Log.new
+
+begin
+  opts = Slop.parse(ARGV, strict: true, help: true) do |o|
+    o.banner = "Usage: zold [options] command [arguments]
 Available commands:
     #{Rainbow('create').green}
       Creates a new wallet with a random ID
@@ -45,59 +51,59 @@ Available commands:
     #{Rainbow('push').green} [id...]
       Push all local wallets or the ones required
 Available options:"
-  o.string '-d', '--dir',
-    'The directory where wallets are stored (default: current directory)',
-    default: '.'
-  o.string '-p', '--private-key',
-    'The location of RSA private key (default: ~/.ssh/id_rsa)',
-    default: '~/.ssh/id_rsa'
-  o.string '-u', '--public-key',
-    'The location of RSA public key (default: ~/.ssh/id_rsa.pub)',
-    default: '~/.ssh/id_rsa.pub'
-  o.bool '-h', '--help', 'Show these instructions'
-  o.on '-v', '--version', 'Show current version' do
-    puts Zold::VERSION
+    o.string '-d', '--dir',
+      'The directory where wallets are stored (default: current directory)',
+      default: '.'
+    o.string '-p', '--private-key',
+      'The location of RSA private key (default: ~/.ssh/id_rsa)',
+      default: '~/.ssh/id_rsa'
+    o.string '-u', '--public-key',
+      'The location of RSA public key (default: ~/.ssh/id_rsa.pub)',
+      default: '~/.ssh/id_rsa.pub'
+    o.bool '-h', '--help', 'Show these instructions'
+    o.on '-v', '--version', 'Show current version' do
+      puts Zold::VERSION
+      exit
+    end
+  end
+
+  if opts.help?
+    log.info(opts.to_s)
     exit
   end
-end
 
-log = Zold::Log.new
+  raise 'Command is required' if opts.arguments.empty?
 
-if opts.help?
-  log.info(opts.to_s)
-  exit
-end
+  command = opts.arguments[0]
 
-Encoding.default_external = Encoding::UTF_8
-Encoding.default_internal = Encoding::UTF_8
+  case command
+  when 'create'
+    Zold::Create.new(
+      dir: opts['dir'],
+      pubkey: Zold::Key.new(opts['public-key']),
+      log: log
+    ).run
+  when 'send'
+    Zold::Send.new(
+      payer: Zold::Wallet.new(
+        File.join(opts['dir'], "#{opts.arguments[1]}.xml")
+      ),
+      receiver: Zold::Wallet.new(
+        File.join(opts['dir'], "#{opts.arguments[2]}.xml")
+      ),
+      amount: opts.arguments[3].to_f * 2 ** 24,
+      pvtkey: Zold::Key.new(opts['private-key']),
+      log: log
+    ).run
+  when 'pull'
+    raise 'PULL is not implemented yet'
+  when 'push'
+    raise 'PUSH is not implemented yet'
+  else
+    raise "Command '#{command}' is not supported"
+  end
 
-raise 'Command is required' if opts.arguments.empty?
-
-command = opts.arguments[0]
-
-case command
-when 'create'
-  Zold::Create.new(
-    dir: opts['dir'],
-    pubkey: Zold::Key.new(opts['public-key']),
-    log: log
-  ).run
-when 'send'
-  Zold::Send.new(
-    payer: Zold::Wallet.new(
-      File.join(opts['dir'], "#{opts.arguments[1]}.xml")
-    ),
-    receiver: Zold::Wallet.new(
-      File.join(opts['dir'], "#{opts.arguments[2]}.xml")
-    ),
-    amount: opts.arguments[3].to_f * 2 ** 24,
-    pvtkey: Zold::Key.new(opts['private-key']),
-    log: log
-  ).run
-when 'pull'
-  raise 'PULL is not implemented yet'
-when 'push'
-  raise 'PUSH is not implemented yet'
-else
-  raise "Command '#{command}' is not supported"
+rescue StandardError => ex
+  log.error(ex.message)
+  exit -1
 end

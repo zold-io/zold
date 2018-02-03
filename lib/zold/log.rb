@@ -28,7 +28,7 @@ module Zold
   # Logging
   class Log
     def info(msg)
-      puts "#{Rainbow('OK').green}: #{msg}"
+      puts msg
     end
 
     def error(msg)
