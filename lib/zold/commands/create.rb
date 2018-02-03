@@ -18,26 +18,29 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'minitest/autorun'
-require 'tmpdir'
-require_relative '../../lib/zold/wallet.rb'
-require_relative '../../lib/zold/key.rb'
-require_relative '../../lib/zold/commands/init.rb'
+require_relative '../wallet.rb'
+require_relative '../log.rb'
+require_relative '../id.rb'
 
-# INIT test.
+# CREATE command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Zerocracy, Inc.
 # License:: MIT
-class TestInit < Minitest::Test
-  def test_initializes_wallet
-    Dir.mktmpdir 'test' do |dir|
-      wallet = Zold::Wallet.new(File.join(dir, 'source.xml'))
-      Zold::Init.new(
-        wallet: wallet,
-        id: 1,
-        pubkey: Zold::Key.new('fixtures/id_rsa.pub')
-      ).run
-      assert wallet.balance.zero?
+module Zold
+  # Create command
+  class Create
+    def initialize(dir:, pubkey:, log: Log.new)
+      @dir = dir
+      @pubkey = pubkey
+      @log = log
+    end
+
+    def run
+      id = Id.new
+      wallet = Wallet.new(File.join(@dir, "#{id}.xml"))
+      wallet.init(id, @pubkey)
+      @log.info("#{wallet} initialized as #{wallet.id}")
+      wallet
     end
   end
 end

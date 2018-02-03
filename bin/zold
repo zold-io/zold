@@ -30,14 +30,14 @@ require_relative '../lib/zold/version'
 require_relative '../lib/zold/wallet'
 require_relative '../lib/zold/log'
 require_relative '../lib/zold/key'
-require_relative '../lib/zold/commands/init'
+require_relative '../lib/zold/commands/create'
 require_relative '../lib/zold/commands/send'
 
 opts = Slop.parse(ARGV, strict: true, help: true) do |o|
   o.banner = "Usage: zold [options] command [arguments]
 Available commands:
-    #{Rainbow('init').green} [id]
-      Creates a new wallet with the required ID or a random one
+    #{Rainbow('create').green}
+      Creates a new wallet with a random ID
     #{Rainbow('pull').green} [id...]
       Pulls all local wallets and new ones explicitly required
     #{Rainbow('send').green} source target amount
@@ -77,10 +77,8 @@ command = opts.arguments[0]
 
 case command
 when 'init'
-  id = opts.arguments[1] ? opts.arguments[1] : SecureRandom.uuid
-  Zold::Init.new(
-    wallet: Zold::Wallet.new(File.join(opts['dir'], "#{id}.xml")),
-    id: id,
+  Zold::Create.new(
+    dir: opts['dir'],
     pubkey: Zold::Key.new(opts['public-key']),
     log: log
   ).run

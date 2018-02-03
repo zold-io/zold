@@ -63,7 +63,7 @@ Or do one of the following:
   * `zold send` creates a new transaction
   * `zold push` pushes a wallet to the network
 
-For more options just run:
+For more options and commands just run:
 
 ```bash
 $ zold --help
@@ -126,23 +126,21 @@ doesn't have the wallet, it tries to find it in the network.
 Then, it calculates and prints the balance to the user.
 
 **Commit**.
-The user provides the amount and the destination wallet name. The client
-finds the mediator node in the network. The client
-pulls the destination wallet and adds
-a new XML element `<txn>` to both wallets.
+The user provides the amount and the destination wallet name.
+The client pulls the destination wallet and adds
+a new XML element `<txn/>` to both wallets.
 
 **Push**.
-The client sends two wallets to the mediator, which checks
+The client sends two wallets to a random closest node, which checks
 the validity of the deduction and propagates
-both wallets to other nodes in a [2PC](https://en.wikipedia.org/wiki/Two-phase_commit_protocol)
+both wallets to _all_ other nodes in a [2PC](https://en.wikipedia.org/wiki/Two-phase_commit_protocol)
 manner: acknowledgment first, commit next.
 If a node receives a wallet that contains transactions that are younger
 than transactions in its local copy, a merge operation is
 performed. If the balance after the merge is negative, the push is rejected.
 
 **Init**.
-The client creates an empty wallet XML and asks one of the backbone
-nodes to generate a new `id` for it.
+The client creates an empty wallet XML and assigns a random `id` for it.
 
 **Start**.
 The node manifests itself to one of the backbone nodes, which

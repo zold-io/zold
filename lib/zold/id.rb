@@ -18,25 +18,19 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative '../log.rb'
-
-# INIT command.
+# The ID of the wallet.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Zerocracy, Inc.
 # License:: MIT
 module Zold
-  # Init command
-  class Init
-    def initialize(wallet:, id:, pubkey:, log: Log.new)
-      @wallet = wallet
-      @id = id
-      @pubkey = pubkey
-      @log = log
+  # Id of the wallet
+  class Id
+    def initialize
+      @id = rand(2**32..2**64 - 1)
     end
 
-    def run
-      @wallet.init(@id, @pubkey)
-      @log.info("#{@wallet} initialized as #{@id}")
+    def to_i
+      @id
     end
   end
 end
