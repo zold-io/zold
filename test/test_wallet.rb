@@ -35,10 +35,12 @@ class TestWallet < Minitest::Test
     Dir.mktmpdir 'test' do |dir|
       wallet = wallet(dir)
       amount = Zold::Amount.new(zld: 39.99)
-      wallet.sub(amount, Zold::Id.new, Zold::Key.new(file: 'fixtures/id_rsa'))
+      key = Zold::Key.new(file: 'fixtures/id_rsa')
+      wallet.sub(amount, Zold::Id.new, key)
+      wallet.sub(amount, Zold::Id.new, key)
       assert(
-        wallet.balance == amount.mul(-1),
-        "#{wallet.balance} is not equal to #{amount.mul(-1)}"
+        wallet.balance == amount.mul(-2),
+        "#{wallet.balance} is not equal to #{amount.mul(-2)}"
       )
     end
   end

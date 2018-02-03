@@ -73,7 +73,10 @@ module Zold
       xml = load
       txn = 1
       unless xml.xpath('/wallet/ledger[txn]').empty?
-        txn = xml.xpath('/wallet/ledger/txn/@id').map(&:to_i).max + 1
+        txn = xml.xpath('/wallet/ledger/txn/@id')
+          .map(&:to_s)
+          .map(&:to_i)
+          .max + 1
       end
       date = Time.now
       t = xml.xpath('/wallet/ledger')[0].add_child('<txn/>')[0]
