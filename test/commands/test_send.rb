@@ -35,14 +35,15 @@ class TestSend < Minitest::Test
       source.init(1, Zold::Key.new('fixtures/id_rsa.pub'))
       target = Zold::Wallet.new(File.join(dir, 'target.xml'))
       target.init(2, Zold::Key.new('fixtures/id_rsa.pub'))
+      amount = Zold::Amount.new(zld: 14.95)
       Zold::Send.new(
         payer: source,
         receiver: target,
-        amount: 100,
+        amount: amount,
         pvtkey: Zold::Key.new('fixtures/id_rsa')
       ).run
-      assert source.balance == -100
-      assert target.balance == 100
+      assert source.balance == amount.mul(-1)
+      assert target.balance == amount
     end
   end
 end

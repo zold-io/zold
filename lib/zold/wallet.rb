@@ -33,7 +33,7 @@ module Zold
     end
 
     def to_s
-      "Z#{id}"
+      id
     end
 
     def init(id, pubkey)
@@ -54,10 +54,12 @@ module Zold
     end
 
     def balance
-      xml.xpath('/wallet/ledger/txn/amount/text()')
-        .map(&:to_s)
-        .map(&:to_i)
-        .inject(0) { |sum, n| sum + n }
+      Amount.new(
+        coins: xml.xpath('/wallet/ledger/txn/amount/text()')
+          .map(&:to_s)
+          .map(&:to_i)
+          .inject(0) { |sum, n| sum + n }
+      )
     end
 
     def sub(amount, target, pvtkey)
@@ -67,7 +69,7 @@ module Zold
       t = doc.xpath('/wallet/ledger')[0].add_child('<txn/>')[0]
       t['id'] = txn
       t.add_child('<date/>')[0].content = date
-      t.add_child('<amount/>')[0].content = -amount
+      t.add_child('<amount/>')[0].content = -amount.to_i
       t.add_child('<beneficiary/>')[0].content = target
       t.add_child('<sign/>')[0].content = pvtkey.encrypt(
         "#{date} #{amount} #{target}"
@@ -81,7 +83,7 @@ module Zold
       t = doc.xpath('/wallet/ledger')[0].add_child('<txn/>')[0]
       t['id'] = "/#{txn[:id]}"
       t.add_child('<date/>')[0].content = txn[:date]
-      t.add_child('<amount/>')[0].content = txn[:amount]
+      t.add_child('<amount/>')[0].content = txn[:amount].to_i
       t.add_child('<beneficiary/>')[0].content = txn[:beneficiary]
       File.write(@file, doc.to_s)
     end

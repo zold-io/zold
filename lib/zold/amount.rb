@@ -18,38 +18,47 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'minitest/autorun'
-require 'tmpdir'
-require_relative '../lib/zold/key.rb'
-require_relative '../lib/zold/wallet.rb'
-require_relative '../lib/zold/amount.rb'
-
-# Wallet test.
+# The amount.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Zerocracy, Inc.
 # License:: MIT
-class TestWallet < Minitest::Test
-  def test_adds_transaction
-    Dir.mktmpdir 'test' do |dir|
-      file = File.join(dir, 'source.xml')
-      wallet = Zold::Wallet.new(file)
-      wallet.init(1, Zold::Key.new('fixtures/id_rsa.pub'))
-      amount = Zold::Amount.new(zld: 39.99)
-      wallet.sub(amount, 100, Zold::Key.new('fixtures/id_rsa'))
-      assert(
-        wallet.balance == amount.mul(-1),
-        "#{wallet.balance} is not equal to #{amount.mul(-1)}"
-      )
+module Zold
+  # Amount
+  class Amount
+    def initialize(coins: nil, zld: nil)
+      raise 'You can\'t specify both coints and zld' if !coins.nil? && !zld.nil?
+      @coins = coins unless coins.nil?
+      @coins = (zld * 2**24).to_i unless zld.nil?
     end
-  end
 
-  def test_initializes_it
-    Dir.mktmpdir 'test' do |dir|
-      file = File.join(dir, 'source.xml')
-      wallet = Zold::Wallet.new(file)
-      id = 'da34'
-      wallet.init(id, Zold::Key.new('fixtures/id_rsa.pub'))
-      assert wallet.id == id
+    def to_i
+      @coins
+    end
+
+    def to_zld
+      @coins / 2**24
+    end
+
+    def to_s
+      "#{to_zld}ZLD"
+    end
+
+    def ==(other)
+      @coins == other.to_i
+    end
+
+    def zero?
+      @coins.zero?
+    end
+
+    def negative?
+      @coins < 0
+    end
+
+    def mul(m)
+      c = @coins * m
+      raise "Overflow, can't multiply #{@coins} by #{m}" if c > 2**63
+      Amount.new(coins: c)
     end
   end
 end

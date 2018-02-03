@@ -36,6 +36,7 @@ module Zold
     end
 
     def run
+      raise "The amount can't be negative: #{@amount}" if @amount.negative?
       @receiver.add(@payer.sub(@amount, @receiver.id, @pvtkey))
       @log.info("#{@amount} sent from #{@payer} to #{@receiver}")
     end

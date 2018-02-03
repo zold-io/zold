@@ -91,7 +91,7 @@ Available options:"
       receiver: Zold::Wallet.new(
         File.join(opts['dir'], "#{opts.arguments[2]}.xml")
       ),
-      amount: opts.arguments[3].to_f * 2 ** 24,
+      amount: Zold::Amount.new(zld: opts.arguments[3].to_f),
       pvtkey: Zold::Key.new(opts['private-key']),
       log: log
     ).run
