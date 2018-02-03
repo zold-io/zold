@@ -23,12 +23,23 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:simpleType name="amount">
+    <xs:restriction base="xs:integer">
+      <xs:minInclusive value="-9223372036854775808"/>
+      <xs:maxInclusive value="9223372036854775807"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="wallet">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[0-9a-f]{16}"/>
+    </xs:restriction>
+  </xs:simpleType>
   <xs:complexType name="txn">
     <xs:all>
-      <xs:element name="beneficiary" type="xs:integer" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="beneficiary" type="wallet" minOccurs="1" maxOccurs="1"/>
       <xs:element name="date" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
       <xs:element name="sign" type="xs:string" minOccurs="1" maxOccurs="1"/>
-      <xs:element name="amount" type="xs:integer" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="amount" type="amount" minOccurs="1" maxOccurs="1"/>
     </xs:all>
     <xs:attribute name="id" use="required">
       <xs:simpleType>
@@ -46,13 +57,7 @@ SOFTWARE.
   <xs:element name="wallet">
     <xs:complexType>
       <xs:all>
-        <xs:element name="id" minOccurs="1" maxOccurs="1">
-          <xs:simpleType>
-            <xs:restriction base="xs:string">
-              <xs:pattern value="[0-9a-f]{16}"/>
-            </xs:restriction>
-          </xs:simpleType>
-        </xs:element>
+        <xs:element name="id" type="wallet" minOccurs="1" maxOccurs="1"/>
         <xs:element name="pkey" type="xs:string" minOccurs="1" maxOccurs="1"/>
         <xs:element name="ledger" type="ledger" minOccurs="1" maxOccurs="1">
           <xs:unique name="txnUnique">
