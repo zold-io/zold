@@ -11,3 +11,7 @@ Feature: Command Line Processing
     When I run bin/zold with "--version"
     Then Exit code is zero
 
+  Scenario: Wallet can be created
+    When I run bin/zold with "create"
+    Then Exit code is zero
+

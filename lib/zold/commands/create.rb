@@ -29,18 +29,17 @@ require_relative '../id.rb'
 module Zold
   # Create command
   class Create
-    def initialize(dir:, pubkey:, log: Log::Quiet.new)
-      @dir = dir
+    def initialize(wallets:, pubkey:, log: Log::Quiet.new)
+      @wallets = wallets
       @pubkey = pubkey
       @log = log
     end
 
     def run
       id = Id.new
-      file = File.join(@dir, "#{id}.xml")
-      wallet = Wallet.new(file)
+      wallet = @wallets.find(id)
       wallet.init(id, @pubkey)
-      @log.info("#{wallet} created at #{file}")
+      @log.info("#{wallet} created at #{@wallets}")
       wallet
     end
   end

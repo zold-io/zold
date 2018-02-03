@@ -60,6 +60,7 @@ Or do one of the following:
 
   * `zold init` creates a new wallet (you have to provide PGP keys)
   * `zold pull` pulls a wallet from the network
+  * `zold balance` checks the balance of a wallet
   * `zold send` creates a new transaction
   * `zold push` pushes a wallet to the network
 

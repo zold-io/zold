@@ -18,28 +18,25 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'minitest/autorun'
-require 'tmpdir'
-require_relative '../../lib/zold/wallets.rb'
-require_relative '../../lib/zold/key.rb'
-require_relative '../../lib/zold/commands/create.rb'
+require_relative 'wallet.rb'
 
-# CREATE test.
+# The local collection of wallets.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Zerocracy, Inc.
 # License:: MIT
-class TestCreate < Minitest::Test
-  def test_creates_wallet
-    Dir.mktmpdir 'test' do |dir|
-      wallet = Zold::Create.new(
-        wallets: Zold::Wallets.new(dir),
-        pubkey: Zold::Key.new('fixtures/id_rsa.pub')
-      ).run
-      assert wallet.balance.zero?
-      assert(
-        File.exist?(File.join(dir, "z-#{wallet.id}.xml")),
-        "Wallet file not found: #{wallet.id}.xml"
-      )
+module Zold
+  # Collection of local wallets
+  class Wallets
+    def initialize(dir)
+      @dir = dir
+    end
+
+    def to_s
+      @dir
+    end
+
+    def find(id)
+      Zold::Wallet.new(File.join(@dir, "z-#{id}.xml"))
     end
   end
 end

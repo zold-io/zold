@@ -37,6 +37,7 @@ module Zold
     end
 
     def init(id, pubkey)
+      raise "File '#{@file}' already exists" if File.exist?(@file)
       File.write(
         @file,
         valid(
@@ -93,6 +94,7 @@ module Zold
     private
 
     def load
+      raise "File '#{@file}' is absent" unless File.exist?(@file)
       valid(Nokogiri::XML(File.read(@file)))
     end
 
@@ -101,7 +103,14 @@ module Zold
     end
 
     def valid(xml)
-      xsd = Nokogiri::XML::Schema(File.open('assets/wallet.xsd'))
+      xsd = Nokogiri::XML::Schema(
+        File.open(
+          File.join(
+            File.dirname(__FILE__),
+            '../../assets/wallet.xsd'
+          )
+        )
+      )
       errors = xsd.validate(xml)
       unless errors.empty?
         errors.each do |error|

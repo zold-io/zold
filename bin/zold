@@ -28,6 +28,7 @@ require 'rainbow'
 require_relative '../lib/zold'
 require_relative '../lib/zold/version'
 require_relative '../lib/zold/wallet'
+require_relative '../lib/zold/wallets'
 require_relative '../lib/zold/log'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/amount'
@@ -78,25 +79,29 @@ Available options:"
 
   command = opts.arguments[0]
 
+  wallets = Zold::Wallets.new(opts['dir'])
+
   case command
   when 'create'
     Zold::Create.new(
-      dir: opts['dir'],
+      wallets: wallets,
       pubkey: Zold::Key.new(opts['public-key']),
       log: log
     ).run
   when 'send'
+    raise "Payer wallet ID is required" if opts.arguments[1].nil?
+    raise "Recepient wallet ID is required" if opts.arguments[2].nil?
     Zold::Send.new(
-      payer: Zold::Wallet.new(
-        File.join(opts['dir'], "#{opts.arguments[1]}.xml")
-      ),
-      receiver: Zold::Wallet.new(
-        File.join(opts['dir'], "#{opts.arguments[2]}.xml")
-      ),
+      payer: wallets.find(opts.arguments[1]),
+      receiver: wallets.find(opts.arguments[2]),
       amount: Zold::Amount.new(zld: opts.arguments[3].to_f),
       pvtkey: Zold::Key.new(opts['private-key']),
       log: log
     ).run
+  when 'balance'
+    raise "Wallet ID is required" if opts.arguments[1].nil?
+    wallet = wallets.find(opts.arguments[1])
+    log.info("The balance of #{wallet} is #{wallet.balance}")
   when 'pull'
     raise 'PULL is not implemented yet'
   when 'push'

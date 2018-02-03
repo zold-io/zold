@@ -46,14 +46,17 @@ class TestWallet < Minitest::Test
 
   def test_initializes_it
     Dir.mktmpdir 'test' do |dir|
-      file = File.join(dir, 'source.xml')
-      wallet = Zold::Wallet.new(file)
-      id = Zold::Id.new.to_s
-      wallet.init(id, Zold::Key.new('fixtures/id_rsa.pub'))
-      assert(
-        wallet.id == id,
-        "#{wallet.id} is not equal to #{id}"
-      )
+      pkey = Zold::Key.new('fixtures/id_rsa.pub')
+      Dir.chdir(dir) do
+        file = File.join(dir, 'source.xml')
+        wallet = Zold::Wallet.new(file)
+        id = Zold::Id.new.to_s
+        wallet.init(id, pkey)
+        assert(
+          wallet.id == id,
+          "#{wallet.id} is not equal to #{id}"
+        )
+      end
     end
   end
 end

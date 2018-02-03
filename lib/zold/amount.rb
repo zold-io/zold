@@ -18,6 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'rainbow'
+
 # The amount.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Zerocracy, Inc.
@@ -40,7 +42,12 @@ module Zold
     end
 
     def to_s
-      "#{to_zld}ZLD"
+      text = "#{to_zld}ZLD"
+      if negative?
+        Rainbow(text).red
+      else
+        Rainbow(text).green
+      end
     end
 
     def ==(other)
