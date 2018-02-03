@@ -55,4 +55,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rspec-rails', '3.1.0'
   s.add_development_dependency 'rubocop', '~>0.52.0'
   s.add_development_dependency 'rubocop-rspec', '1.5.1'
+  s.add_development_dependency 'xcop', '~>0.5'
 end

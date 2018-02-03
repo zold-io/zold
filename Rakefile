@@ -31,7 +31,7 @@ def version
   Gem::Specification.load(Dir['*.gemspec'].first).version
 end
 
-task default: %i[clean test features rubocop copyright]
+task default: %i[clean test features rubocop xcop copyright]
 
 require 'rake/testtask'
 desc 'Run all unit tests'
@@ -64,6 +64,14 @@ Cucumber::Rake::Task.new(:features) do
 end
 Cucumber::Rake::Task.new(:'features:html') do |t|
   t.profile = 'html_report'
+end
+
+require 'xcop/rake_task'
+desc 'Validate all XML/XSL/XSD/HTML files for formatting'
+Xcop::RakeTask.new :xcop do |task|
+  task.license = 'LICENSE.txt'
+  task.includes = ['**/*.xml', '**/*.xsl', '**/*.xsd', '**/*.html']
+  task.excludes = ['target/**/*', 'coverage/**/*']
 end
 
 task :copyright do

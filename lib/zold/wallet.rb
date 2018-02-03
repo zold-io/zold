@@ -39,23 +39,25 @@ module Zold
     def init(id, pubkey)
       File.write(
         @file,
-        Nokogiri::XML::Builder.new do |xml|
-          xml.wallet do
-            xml.id_ id.to_s
-            xml.pkey pubkey.to_s
-            xml.ledger {}
-          end
-        end.to_xml
+        valid(
+          Nokogiri::XML::Builder.new do |xml|
+            xml.wallet do
+              xml.id_ id.to_s
+              xml.pkey pubkey.to_s
+              xml.ledger {}
+            end
+          end.to_xml
+        )
       )
     end
 
     def id
-      xml.xpath('/wallet/id/text()').to_s
+      load.xpath('/wallet/id/text()').to_s
     end
 
     def balance
       Amount.new(
-        coins: xml.xpath('/wallet/ledger/txn/amount/text()')
+        coins: load.xpath('/wallet/ledger/txn/amount/text()')
           .map(&:to_s)
           .map(&:to_i)
           .inject(0) { |sum, n| sum + n }
@@ -65,33 +67,50 @@ module Zold
     def sub(amount, target, pvtkey)
       txn = 1
       date = Time.now.iso8601
-      doc = xml
-      t = doc.xpath('/wallet/ledger')[0].add_child('<txn/>')[0]
+      xml = load
+      t = xml.xpath('/wallet/ledger')[0].add_child('<txn/>')[0]
       t['id'] = txn
       t.add_child('<date/>')[0].content = date
       t.add_child('<amount/>')[0].content = -amount.to_i
       t.add_child('<beneficiary/>')[0].content = target
       t.add_child('<sign/>')[0].content = pvtkey.encrypt(
-        "#{date} #{amount} #{target}"
+        "#{id} #{date} #{amount.to_i} #{target}"
       )
-      File.write(@file, doc.to_s)
+      save(xml)
       { id: txn, date: date, amount: amount, beneficiary: id }
     end
 
     def add(txn)
-      doc = xml
-      t = doc.xpath('/wallet/ledger')[0].add_child('<txn/>')[0]
+      xml = load
+      t = xml.xpath('/wallet/ledger')[0].add_child('<txn/>')[0]
       t['id'] = "/#{txn[:id]}"
       t.add_child('<date/>')[0].content = txn[:date]
       t.add_child('<amount/>')[0].content = txn[:amount].to_i
       t.add_child('<beneficiary/>')[0].content = txn[:beneficiary]
-      File.write(@file, doc.to_s)
+      save(xml).to_s
     end
 
     private
 
-    def xml
-      Nokogiri::XML(File.read(@file))
+    def load
+      valid(Nokogiri::XML(File.read(@file)))
+    end
+
+    def save(xml)
+      File.write(@file, valid(xml).to_s)
+    end
+
+    def valid(xml)
+      xsd = Nokogiri::XML::Schema(File.open('assets/wallet.xsd'))
+      errors = xsd.validate(xml)
+      unless errors.empty?
+        errors.each do |error|
+          puts "#{p} #{error.line}: #{error.message}"
+        end
+        puts xml
+        raise 'XML is not valid'
+      end
+      xml
     end
   end
 end
