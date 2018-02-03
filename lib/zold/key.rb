@@ -29,7 +29,7 @@ module Zold
   # A key
   class Key
     def initialize(file)
-      @file = file
+      @file = File.expand_path(file)
     end
 
     def to_s
@@ -44,7 +44,7 @@ module Zold
 
     def rsa
       raise "Can't find RSA key at #{@file}" unless File.exist?(@file)
-      text = File.read(File.expand_path(@file)).strip
+      text = File.read(@file).strip
       unless text.start_with?('-----BEGIN')
         text = OpenSSHKeyConverter.decode_pubkey(text.split[1])
       end

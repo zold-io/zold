@@ -27,7 +27,7 @@ require_relative '../log.rb'
 module Zold
   # Money sending command
   class Send
-    def initialize(payer:, receiver:, amount:, pvtkey:, log: Log.new)
+    def initialize(payer:, receiver:, amount:, pvtkey:, log: Log::Quiet.new)
       @payer = payer
       @receiver = receiver
       @amount = amount

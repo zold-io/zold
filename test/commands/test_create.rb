@@ -29,13 +29,14 @@ require_relative '../../lib/zold/commands/create.rb'
 # Copyright:: Copyright (c) 2018 Zerocracy, Inc.
 # License:: MIT
 class TestCreate < Minitest::Test
-  def test_initializes_wallet
+  def test_creates_wallet
     Dir.mktmpdir 'test' do |dir|
       wallet = Zold::Create.new(
         dir: dir,
         pubkey: Zold::Key.new('fixtures/id_rsa.pub')
       ).run
       assert wallet.balance.zero?
+      assert File.exist?(File.join(dir, "#{wallet.id}.xml"))
     end
   end
 end

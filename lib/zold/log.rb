@@ -28,7 +28,22 @@ module Zold
   # Logging
   class Log
     def info(msg)
-      puts msg
+      puts "#{Rainbow('OK').green}: #{msg}"
+    end
+
+    def error(msg)
+      puts "#{Rainbow('ERROR').red}: #{msg}"
+    end
+
+    # Log that doesn't log anything
+    class Quiet
+      def info(msg)
+        # nothing to do here
+      end
+
+      def error(msg)
+        # nothing to do here
+      end
     end
   end
 end

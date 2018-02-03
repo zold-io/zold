@@ -76,7 +76,7 @@ raise 'Command is required' if opts.arguments.empty?
 command = opts.arguments[0]
 
 case command
-when 'init'
+when 'create'
   Zold::Create.new(
     dir: opts['dir'],
     pubkey: Zold::Key.new(opts['public-key']),
