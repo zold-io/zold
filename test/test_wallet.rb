@@ -21,6 +21,7 @@
 require 'minitest/autorun'
 require 'tmpdir'
 require_relative '../lib/zold/key.rb'
+require_relative '../lib/zold/id.rb'
 require_relative '../lib/zold/wallet.rb'
 require_relative '../lib/zold/amount.rb'
 
@@ -33,7 +34,7 @@ class TestWallet < Minitest::Test
     Dir.mktmpdir 'test' do |dir|
       file = File.join(dir, 'source.xml')
       wallet = Zold::Wallet.new(file)
-      wallet.init(1, Zold::Key.new('fixtures/id_rsa.pub'))
+      wallet.init(Zold::Id.new, Zold::Key.new('fixtures/id_rsa.pub'))
       amount = Zold::Amount.new(zld: 39.99)
       wallet.sub(amount, 100, Zold::Key.new('fixtures/id_rsa'))
       assert(
@@ -47,9 +48,12 @@ class TestWallet < Minitest::Test
     Dir.mktmpdir 'test' do |dir|
       file = File.join(dir, 'source.xml')
       wallet = Zold::Wallet.new(file)
-      id = 'da34'
+      id = Zold::Id.new.to_s
       wallet.init(id, Zold::Key.new('fixtures/id_rsa.pub'))
-      assert wallet.id == id
+      assert(
+        wallet.id == id,
+        "#{wallet.id} is not equal to #{id}"
+      )
     end
   end
 end

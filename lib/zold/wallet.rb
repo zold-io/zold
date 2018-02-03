@@ -46,7 +46,7 @@ module Zold
               xml.pkey pubkey.to_s
               xml.ledger {}
             end
-          end.to_xml
+          end.doc
         )
       )
     end
