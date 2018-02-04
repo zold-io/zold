@@ -36,8 +36,10 @@ class TestWallet < Minitest::Test
       wallet = wallet(dir)
       amount = Zold::Amount.new(zld: 39.99)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
+      assert wallet.version.zero?
       wallet.sub(amount, Zold::Id.new, key)
       wallet.sub(amount, Zold::Id.new, key)
+      assert wallet.version == 2
       assert(
         wallet.balance == amount.mul(-2),
         "#{wallet.balance} is not equal to #{amount.mul(-2)}"

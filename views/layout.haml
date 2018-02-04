@@ -1,0 +1,26 @@
+%html
+  %head
+    %title
+      =title
+    %meta{charset:'UTF-8'}
+    %meta{name:'viewport', content:'width=device-width, initial-scale=1.0'}
+    %meta{name:'keywords', content:'cryptocurrency, zold'}
+    %meta{name:'description', content:'Non-Blockchain Decentralized Cryptocurrency'}
+    %link{type:'text/css', href:url('http://cdn.rawgit.com/yegor256/tacit/gh-pages/tacit-css-1.2.8.min.css'), rel:'stylesheet'}
+  %body
+    %header
+      %nav
+        %ul
+          %li
+            %a{href: 'http://www.zold.io'}
+              %img{src: 'http://www.zold.io/logo.svg', style: 'width:64px;height:64px;'}
+    %section
+      = yield
+    %footer{style: 'font-size:80%; color:gray;'}
+      %nav
+        %ul
+          %li
+            =Zold::VERSION
+          %li
+            %a{href: 'https://github.com/zerocracy/zold'}
+              GitHub

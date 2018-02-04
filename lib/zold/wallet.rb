@@ -40,6 +40,10 @@ module Zold
       File.exist?(@file)
     end
 
+    def path
+      @file
+    end
+
     def init(id, pubkey)
       raise "File '#{@file}' already exists" if File.exist?(@file)
       File.write(
@@ -54,6 +58,18 @@ module Zold
           end.doc
         )
       )
+    end
+
+    def version
+      xml = load
+      ver = 0
+      unless xml.xpath('/wallet/ledger[txn]').empty?
+        ver = xml.xpath('/wallet/ledger/txn/@id')
+          .map(&:to_s)
+          .map(&:to_i)
+          .max
+      end
+      ver
     end
 
     def id
@@ -71,14 +87,8 @@ module Zold
 
     def sub(amount, target, pvtkey)
       xml = load
-      txn = 1
-      unless xml.xpath('/wallet/ledger[txn]').empty?
-        txn = xml.xpath('/wallet/ledger/txn/@id')
-          .map(&:to_s)
-          .map(&:to_i)
-          .max + 1
-      end
       date = Time.now
+      txn = version + 1
       t = xml.xpath('/wallet/ledger')[0].add_child('<txn/>')[0]
       t['id'] = txn
       t.add_child('<date/>')[0].content = date.iso8601

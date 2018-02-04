@@ -35,6 +35,10 @@ module Zold
       @dir
     end
 
+    def total
+      Dir.new(@dir).select { |f| File.file? f }.size
+    end
+
     def find(id)
       Zold::Wallet.new(File.join(@dir, "z-#{id}.xml"))
     end
