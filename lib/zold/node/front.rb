@@ -39,6 +39,7 @@ module Zold
   class Front < Sinatra::Base
     configure do
       Haml::Options.defaults[:format] = :xhtml
+      set :lock, Mutex.new
       set :views, (proc { File.join(root, '../../../views') })
       set :show_exceptions, false
       set :wallets, Wallets.new(Dir.mktmpdir('zold-', '/tmp'))
@@ -67,28 +68,30 @@ module Zold
     end
 
     put %r{/wallets/(?<id>[a-f0-9]{16})/?} do
-      id = Id.new(params[:id])
-      wallet = settings.wallets.find(id)
-      temp = before = nil
-      if wallet.exists?
-        before = wallet.version
-        temp = Tempfile.new('z')
-        FileUtils.cp(wallet.path, temp)
-      end
-      begin
-        request.body.rewind
-        File.write(wallet.path, request.body.read)
-        unless before.nil?
-          after = wallet.version
-          error 403 if after < before
+      settings.lock.synchronize do
+        id = Id.new(params[:id])
+        wallet = settings.wallets.find(id)
+        temp = before = nil
+        if wallet.exists?
+          before = wallet.version
+          temp = Tempfile.new('z')
+          FileUtils.cp(wallet.path, temp)
         end
-        unless Check.new(wallet: wallet, wallets: settings.wallets).run
-          error 403
-        end
-      ensure
-        unless temp.nil?
-          FileUtils.cp(temp, wallet.path)
-          temp.unlink
+        begin
+          request.body.rewind
+          File.write(wallet.path, request.body.read)
+          unless before.nil?
+            after = wallet.version
+            error 403 if after < before
+          end
+          unless Check.new(wallet: wallet, wallets: settings.wallets).run
+            error 403
+          end
+        ensure
+          unless temp.nil?
+            FileUtils.cp(temp, wallet.path)
+            temp.unlink
+          end
         end
       end
     end
