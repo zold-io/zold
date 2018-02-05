@@ -18,6 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'net/http'
 require_relative '../log.rb'
 
 # PUSH command.
@@ -34,7 +35,15 @@ module Zold
 
     def run
       raise 'The wallet is absent' unless @wallet.exists?
-      raise 'PUSH is not implemented yet'
+      request = Net::HTTP::Put.new("/wallets/#{@wallet.id}")
+      request.body = File.read(@wallet.path)
+      response = Net::HTTP.new('b1.zold.io', 80).start do |http|
+        http.request(request)
+      end
+      unless response.code.to_i == 200
+        raise "Failed to push to the node, code=#{response.code}"
+      end
+      @log.info("The #{@wallet.id} pushed to the server")
     end
   end
 end

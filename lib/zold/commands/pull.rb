@@ -33,8 +33,15 @@ module Zold
     end
 
     def run
-      raise 'PULL doesn\'t work and the wallet is absent' unless @wallet.exists?
-      @log.info("The #{@wallet} is here")
+      request = Net::HTTP::Get.new("/wallets/#{@wallet.id}")
+      response = Net::HTTP.new('b1.zold.io', 80).start do |http|
+        http.request(request)
+      end
+      unless response.code.to_i == 200
+        raise "Failed to pull from the the node, code=#{response.code}"
+      end
+      File.write(@wallet.path, response.body)
+      @log.info("The #{@wallet} pulled from the server")
       @wallet
     end
   end
