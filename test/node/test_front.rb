@@ -55,11 +55,11 @@ class FrontTest < Minitest::Test
       file = File.join(dir, "#{id}.xml")
       wallet = Zold::Wallet.new(file)
       wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-      put("/push?id=#{id}", File.read(file))
+      put("/wallets/#{id}", File.read(file))
       assert(last_response.ok?, last_response.body)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       wallet.sub(Zold::Amount.new(zld: 39.99), Zold::Id.new, key)
-      put("/push?id=#{id}", File.read(file))
+      put("/wallets/#{id}", File.read(file))
       assert(last_response.ok?, last_response.body)
     end
   end
@@ -70,9 +70,9 @@ class FrontTest < Minitest::Test
       file = File.join(dir, "#{id}.xml")
       wallet = Zold::Wallet.new(file)
       wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-      put("/push?id=#{id}", File.read(file))
+      put("/wallets/#{id}", File.read(file))
       assert(last_response.ok?, last_response.body)
-      get("/pull?id=#{id}")
+      get("/wallets/#{id}")
       assert(last_response.ok?, last_response.body)
       File.write(file, last_response.body)
       assert wallet.balance.zero?
@@ -80,7 +80,7 @@ class FrontTest < Minitest::Test
   end
 
   def test_pulls_an_absent_wallet
-    get('/pull?id=ffffeeeeddddcccc')
+    get('/wallets/ffffeeeeddddcccc')
     assert(last_response.status == 404)
   end
 end

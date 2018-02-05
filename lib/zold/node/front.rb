@@ -52,14 +52,14 @@ get '/version' do
   Zold::VERSION
 end
 
-get '/pull' do
+get %r{/wallets/(?<id>[a-f0-9]{16})/?} do
   id = Zold::Id.new(params[:id])
   wallet = settings.wallets.find(id)
   error 404 unless wallet.exists?
   File.read(wallet.path)
 end
 
-put '/push' do
+put %r{/wallets/(?<id>[a-f0-9]{16})/?} do
   id = Zold::Id.new(params[:id])
   wallet = settings.wallets.find(id)
   temp = before = nil
