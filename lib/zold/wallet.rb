@@ -114,13 +114,18 @@ module Zold
     def check(id, amount, beneficiary)
       xml = load
       txn = xml.xpath("/wallet/ledger/txn[@id='#{id}']")[0]
-      Amount.new(coins: txn.xpath('amount/text()')[0].to_s.to_i).mul(-1) ==
-        amount &&
-        txn.xpath('beneficiary/text()')[0].to_s == beneficiary &&
-        Key.new(text: xml.xpath('/wallet/pkey/text()')[0].to_s).verify(
-          txn.xpath('sign/text()')[0].to_s,
-          "#{id} #{amount.to_i} #{beneficiary}"
-        )
+      xamount = Amount.new(
+        coins: txn.xpath('amount/text()')[0].to_s.to_i
+      ).mul(-1)
+      raise "#{xamount} != #{amount}" if xamount != amount
+      xbeneficiary = txn.xpath('beneficiary/text()')[0].to_s
+      raise "#{xbeneficiary} != #{beneficiary}" if xbeneficiary != beneficiary
+      data = "#{id} #{amount.to_i} #{beneficiary}"
+      valid = Key.new(text: xml.xpath('/wallet/pkey/text()')[0].to_s).verify(
+        txn.xpath('sign/text()')[0].to_s, data
+      )
+      raise "Signature is not confirming this data: '#{data}'" unless valid
+      true
     end
 
     def income

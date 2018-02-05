@@ -36,23 +36,15 @@ module Zold
     end
 
     def run
-      clean = true
       @wallet.income do |t|
         bnf = Pull.new(
           wallet: @wallets.find(Id.new(t[:beneficiary])),
           log: @log
         ).run
-        clean = bnf.check(t[:id], t[:amount], @wallet.id)
-        next if clean
-        @log.error("Txn ##{t[:id]} for #{t[:amount]} is absent at #{bnf.id}")
-        break
+        bnf.check(t[:id], t[:amount], @wallet.id)
       end
-      if clean
-        @log.info("The #{@wallet} is clean")
-      else
-        @log.error("The #{@wallet} is compromised")
-      end
-      clean
+      @log.info("The #{@wallet} is clean")
+      true
     end
   end
 end
