@@ -29,6 +29,12 @@ module Zold
       @id = id.nil? ? rand(2**32..2**64 - 1) : Integer("0x#{id}", 16)
     end
 
+    ROOT = Id.new('0000000000000000')
+
+    def==(other)
+      to_s == other.to_s
+    end
+
     def to_s
       format('%016x', @id)
     end

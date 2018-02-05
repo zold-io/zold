@@ -72,8 +72,12 @@ module Zold
       ver
     end
 
+    def root?
+      id == Id::ROOT
+    end
+
     def id
-      load.xpath('/wallet/id/text()').to_s
+      Id.new(load.xpath('/wallet/id/text()').to_s)
     end
 
     def balance
@@ -118,7 +122,7 @@ module Zold
         coins: txn.xpath('amount/text()')[0].to_s.to_i
       ).mul(-1)
       raise "#{xamount} != #{amount}" if xamount != amount
-      xbeneficiary = txn.xpath('beneficiary/text()')[0].to_s
+      xbeneficiary = Id.new(txn.xpath('beneficiary/text()')[0].to_s)
       raise "#{xbeneficiary} != #{beneficiary}" if xbeneficiary != beneficiary
       data = "#{id} #{amount.to_i} #{beneficiary}"
       valid = Key.new(text: xml.xpath('/wallet/pkey/text()')[0].to_s).verify(

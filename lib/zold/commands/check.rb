@@ -43,6 +43,10 @@ module Zold
         ).run
         bnf.check(t[:id], t[:amount], @wallet.id)
       end
+      balance = @wallet.balance
+      if balance.negative? && !@wallet.root?
+        raise "Negative balance of #{@wallet} is not allowed: #{balance}"
+      end
       @log.info("The #{@wallet} is clean")
       true
     end
