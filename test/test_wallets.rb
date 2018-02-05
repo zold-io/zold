@@ -18,29 +18,25 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative 'wallet.rb'
+require 'minitest/autorun'
+require 'tmpdir'
+require_relative '../lib/zold/key.rb'
+require_relative '../lib/zold/id.rb'
+require_relative '../lib/zold/wallets.rb'
+require_relative '../lib/zold/amount.rb'
 
-# The local collection of wallets.
+# Wallets test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Zerocracy, Inc.
 # License:: MIT
-module Zold
-  # Collection of local wallets
-  class Wallets
-    def initialize(dir)
-      @dir = dir
-    end
-
-    def to_s
-      @dir
-    end
-
-    def total
-      Dir.new(@dir).select { |f| File.file?(File.join(@dir, f)) }.count
-    end
-
-    def find(id)
-      Zold::Wallet.new(File.join(@dir, "z-#{id}.xml"))
+class TestWallets < Minitest::Test
+  def test_adds_wallet
+    Dir.mktmpdir 'test' do |dir|
+      wallets = Zold::Wallets.new(dir)
+      id = Zold::Id.new
+      wallet = wallets.find(id)
+      wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+      assert(wallets.total == 1, "#{wallets.total} is not equal to 1")
     end
   end
 end
