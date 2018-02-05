@@ -38,6 +38,7 @@ require_relative '../lib/zold/commands/balance'
 require_relative '../lib/zold/commands/check'
 require_relative '../lib/zold/commands/pull'
 require_relative '../lib/zold/commands/push'
+require_relative '../lib/zold/node/front'
 
 Encoding.default_external = Encoding::UTF_8
 Encoding.default_internal = Encoding::UTF_8
@@ -60,6 +61,8 @@ Available commands:
       Send ZOLD from one wallet to another
     #{Rainbow('push').green} [id...]
       Push all local wallets or the ones required
+    #{Rainbow('node').green} port
+      Run node at the given TCP port
 Available options:"
     o.string '-d', '--dir',
       'The directory where wallets are stored (default: current directory)',
@@ -93,6 +96,9 @@ Available options:"
   wallets = Zold::Wallets.new(opts['dir'])
 
   case command
+  when 'node'
+    raise 'TCP port is required' if opts.arguments[1].nil?
+    Zold::Front.run!(port: opts.arguments[1].to_i)
   when 'create'
     Zold::Create.new(
       wallets: wallets,

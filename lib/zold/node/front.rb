@@ -22,7 +22,7 @@ STDOUT.sync = true
 
 require 'haml'
 require 'json'
-require 'sinatra'
+require 'sinatra/base'
 
 require_relative '../version'
 require_relative '../wallet'
@@ -30,71 +30,80 @@ require_relative '../wallets'
 require_relative '../id'
 require_relative '../commands/check'
 
-configure do
-  Haml::Options.defaults[:format] = :xhtml
-  set :views, (proc { File.join(root, '../../../views') })
-  set :show_exceptions, false
-  set :wallets, Zold::Wallets.new(Dir.mktmpdir('zold-', '/tmp'))
-end
+# The web front of the node.
+# Author:: Yegor Bugayenko (yegor256@gmail.com)
+# Copyright:: Copyright (c) 2018 Zerocracy, Inc.
+# License:: MIT
+module Zold
+  # Web front
+  class Front < Sinatra::Base
+    configure do
+      Haml::Options.defaults[:format] = :xhtml
+      set :views, (proc { File.join(root, '../../../views') })
+      set :show_exceptions, false
+      set :wallets, Wallets.new(Dir.mktmpdir('zold-', '/tmp'))
+    end
 
-get '/' do
-  haml :index, layout: :layout, locals: {
-    title: 'zold',
-    total: settings.wallets.total
-  }
-end
+    get '/' do
+      haml :index, layout: :layout, locals: {
+        title: 'zold',
+        total: settings.wallets.total
+      }
+    end
 
-get '/robots.txt' do
-  'User-agent: *'
-end
+    get '/robots.txt' do
+      'User-agent: *'
+    end
 
-get '/version' do
-  Zold::VERSION
-end
+    get '/version' do
+      VERSION
+    end
 
-get %r{/wallets/(?<id>[a-f0-9]{16})/?} do
-  id = Zold::Id.new(params[:id])
-  wallet = settings.wallets.find(id)
-  error 404 unless wallet.exists?
-  File.read(wallet.path)
-end
+    get %r{/wallets/(?<id>[a-f0-9]{16})/?} do
+      id = Id.new(params[:id])
+      wallet = settings.wallets.find(id)
+      error 404 unless wallet.exists?
+      File.read(wallet.path)
+    end
 
-put %r{/wallets/(?<id>[a-f0-9]{16})/?} do
-  id = Zold::Id.new(params[:id])
-  wallet = settings.wallets.find(id)
-  temp = before = nil
-  if wallet.exists?
-    before = wallet.version
-    temp = Tempfile.new('z')
-    FileUtils.cp(wallet.path, temp)
+    put %r{/wallets/(?<id>[a-f0-9]{16})/?} do
+      id = Id.new(params[:id])
+      wallet = settings.wallets.find(id)
+      temp = before = nil
+      if wallet.exists?
+        before = wallet.version
+        temp = Tempfile.new('z')
+        FileUtils.cp(wallet.path, temp)
+      end
+      begin
+        request.body.rewind
+        File.write(wallet.path, request.body.read)
+        unless before.nil?
+          after = wallet.version
+          error 403 if after < before
+        end
+        unless Check.new(wallet: wallet, wallets: settings.wallets).run
+          error 403
+        end
+      ensure
+        unless temp.nil?
+          FileUtils.cp(temp, wallet.path)
+          temp.unlink
+        end
+      end
+    end
+
+    not_found do
+      status 404
+      haml :not_found, layout: :layout, locals: {
+        title: 'Page not found'
+      }
+    end
+
+    error do
+      status 503
+      e = env['sinatra.error']
+      "#{e.message}\n\t#{e.backtrace.join("\n\t")}"
+    end
   end
-  begin
-    request.body.rewind
-    File.write(wallet.path, request.body.read)
-    unless before.nil?
-      after = wallet.version
-      error 403 if after < before
-    end
-    unless Zold::Check.new(wallet: wallet, wallets: settings.wallets).run
-      error 403
-    end
-  ensure
-    unless temp.nil?
-      FileUtils.cp(temp, wallet.path)
-      temp.unlink
-    end
-  end
-end
-
-not_found do
-  status 404
-  haml :not_found, layout: :layout, locals: {
-    title: 'Page not found'
-  }
-end
-
-error do
-  status 503
-  e = env['sinatra.error']
-  "#{e.message}\n\t#{e.backtrace.join("\n\t")}"
 end

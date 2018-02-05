@@ -30,7 +30,7 @@ class FrontTest < Minitest::Test
   include Rack::Test::Methods
 
   def app
-    Sinatra::Application
+    Zold::Front.new
   end
 
   def test_renders_version
