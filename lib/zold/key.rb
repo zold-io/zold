@@ -37,7 +37,7 @@ module Zold
       return if text.nil?
       @body = [
         '-----BEGIN PUBLIC KEY-----',
-        text.gsub(/(?<=\\G.{64})/, "\n"),
+        text.gsub(/(?<=\G.{64})/, "\n"),
         '-----END PUBLIC KEY-----'
       ].join("\n")
     end
