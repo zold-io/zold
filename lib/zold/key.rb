@@ -35,7 +35,11 @@ module Zold
         @body = File.read(path)
       end
       return if text.nil?
-      @body = "-----BEGIN PUBLIC KEY-----\n#{text}\n-----END PUBLIC KEY-----\n"
+      @body = [
+        '-----BEGIN PUBLIC KEY-----',
+        text.gsub(/(?<=\\G.{64})/, "\n"),
+        '-----END PUBLIC KEY-----'
+      ].join("\n")
     end
 
     def to_s
