@@ -88,7 +88,9 @@ A wallet may look like this:
 12345678abcdef
 AAAAB3NzaC1yc2EAAAADAQABAAABAQCuLuVr4Tl2sXoN5Zb7b6SKMPrVjLxb...
 
-35;2017-07-19T21:24:51.136Z;-560;98bb82c81735c4ee;SKMPrVjLxbM5oDm0IhniQQy3shF...
+34;2017-07-19T21:24:51.136Z;-560700;98bb82c81735c4ee;SKMPrVjLxbM5oDm0IhniQQy3shF...
+35;2017-07-19T21:25:07Z;-56990;98bb82c81735c4ee;SKMPrVjLxbM5oDm0IhniQQy3shF...
+/134;2017-07-19T21:29:11Z;647388;98bb82c81735c4ee
 ```
 
 Lines are separated by either CR or CRLF, doesn't matter. There is a
@@ -106,6 +108,9 @@ contains fiels separated by a semi-colon:
   * Amount
   * Wallet ID of the beneficiary
   * RSA signature of "ID;beneficiary;amount" text
+
+Transactions with positive amount start with a forward slash and don't
+have RSA signatures.
 
 1ZLD by convention equals to 2<sup>24</sup> (16,777,216).
 Thus, the technical capacity of the currency is
