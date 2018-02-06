@@ -36,7 +36,7 @@ ZOLD principles include:
   * There is no mining; the only way to get ZOLD is to receive it from someone else
   * Only 2<sup>63</sup> numerals (no fractions) can technically be issued
   * The first wallet belongs to the issuer and may have a negative balance
-  * A wallet is an XML file
+  * A wallet is an plain text file
   * There is no central ledger, each wallet has its own personal ledger
   * Each transaction in the ledger is confirmed by [RSA](https://simple.wikipedia.org/wiki/RSA_%28algorithm%29) encryption
   * The network of communicating nodes maintains wallets of users
@@ -84,40 +84,36 @@ A **transaction** is a money transferring operation between two wallets.
 
 A wallet may look like this:
 
-```xml
-<wallet>
-  <id>123456</id>
-  <pkey><!-- public RSA key, 256 bytes --></pkey>
-  <ledger>
-    [...]
-    <txn id="35">
-      <date>2017-07-19T21:24:51.136Z</date>
-      <beneficiary>927284</beneficiary>
-      <amount>-560</amount>
-      <sign><!-- RSA signature of the payer --></sign>
-    </txn>
-  </ledger>
-</wallet>
+```text
+12345678abcdef
+AAAAB3NzaC1yc2EAAAADAQABAAABAQCuLuVr4Tl2sXoN5Zb7b6SKMPrVjLxb...
+
+35;2017-07-19T21:24:51.136Z;98bb82c81735c4ee;-560;SKMPrVjLxbM5oDm0IhniQQy3shF...
 ```
 
-Wallet `<id>` is an unsigned 32-bit integer.
+Lines are separated by either CR or CRLF, doesn't matter.
 
-Transaction `id` is an unsigned 16-bit integer.
+The fist line is wallet ID, a 64-bit unsigned integer.
 
-Transaction `date` is an unsigned 32-bit integer, meaning
-milliseconds since
-[epoch](https://en.wikipedia.org/wiki/Epoch_%28reference_date%29).
+The second line is a public RSA key of the wallet owner.
 
-All amounts are signed 64-bit integers, where 1ZLD by convention equals to
-2<sup>24</sup> (16,777,216). Thus, the technical capacity
-of the currency is 549,755,813,888 (half a trillion).
+The third line is empty.
 
-The `<sign>` exists only in transactions with negative `amount`.
-It contains an RSA signature of a data block, created by the wallet owner:
-`date`, `amount`, `beneficiary` and
-64 bytes of [salt](https://en.wikipedia.org/wiki/Salt_%28cryptography%29).
+Each next line is a transaction and it has four or five fields separated by a semi-colon.
 
-The list of a few backbone nodes is hard-coded in this Git repository.
+The first field is transaction ID, an unsigned 16-bit integer.
+
+The second field is its date, in ISO 8601 format.
+
+The third field is the wallet ID of the beneficiary.
+
+The forth field is the amount.
+
+The fifth field is an RSA signature of "ID;beneficiary;amount" text.
+
+1ZLD by convention equals to 2<sup>24</sup> (16,777,216).
+Thus, the technical capacity of the currency is
+549,755,813,888 (half a trillion).
 
 ## Architecture
 

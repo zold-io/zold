@@ -34,11 +34,16 @@ module Zold
         raise "Can't find RSA key at #{file} (#{path})" unless File.exist?(path)
         @body = File.read(path)
       end
-      @body = text unless text.nil?
+      return if text.nil?
+      @body = "-----BEGIN PUBLIC KEY-----\n#{text}\n-----END PUBLIC KEY-----"
     end
 
     def to_s
-      rsa.to_s.strip
+      rsa.to_s.strip.delete("\n").gsub(/-{5}[ A-Z]+-{5}/, '')
+    end
+
+    def to_pub
+      rsa.to_s.strip.delete("\n").gsub(/-{5}[ A-Z]+-{5}/, '')
     end
 
     def sign(text)

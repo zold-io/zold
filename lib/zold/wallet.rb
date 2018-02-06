@@ -18,7 +18,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'nokogiri'
 require 'time'
 
 # The wallet.
@@ -33,7 +32,7 @@ module Zold
     end
 
     def to_s
-      id
+      id.to_s
     end
 
     def exists?
@@ -46,30 +45,12 @@ module Zold
 
     def init(id, pubkey)
       raise "File '#{@file}' already exists" if File.exist?(@file)
-      File.write(
-        @file,
-        valid(
-          Nokogiri::XML::Builder.new do |xml|
-            xml.wallet do
-              xml.id_ id.to_s
-              xml.pkey pubkey.to_s
-              xml.ledger {}
-            end
-          end.doc
-        )
-      )
+      File.write(@file, "#{id}\n#{pubkey}\n\n")
     end
 
     def version
-      xml = load
-      ver = 0
-      unless xml.xpath('/wallet/ledger[txn]').empty?
-        ver = xml.xpath('/wallet/ledger/txn/@id')
-          .map(&:to_s)
-          .map(&:to_i)
-          .max
-      end
-      ver
+      all = txns
+      all.empty? ? 0 : all.map { |t| t[0] }.map(&:to_i).max
     end
 
     def root?
@@ -77,67 +58,63 @@ module Zold
     end
 
     def id
-      Id.new(load.xpath('/wallet/id/text()').to_s)
+      Id.new(lines[0])
     end
 
     def balance
       Amount.new(
-        coins: load.xpath('/wallet/ledger/txn/amount/text()')
-          .map(&:to_s)
-          .map(&:to_i)
-          .inject(0) { |sum, n| sum + n }
+        coins: txns.map { |t| t[2] }.map(&:to_i).inject(0) { |sum, n| sum + n }
       )
     end
 
     def sub(amount, target, pvtkey)
-      xml = load
       date = Time.now
       txn = version + 1
-      t = xml.xpath('/wallet/ledger')[0].add_child('<txn/>')[0]
-      t['id'] = txn
-      t.add_child('<date/>')[0].content = date.iso8601
-      t.add_child('<amount/>')[0].content = -amount.to_i
-      t.add_child('<beneficiary/>')[0].content = target
-      t.add_child('<sign/>')[0].content = pvtkey.sign(
-        "#{txn} #{amount.to_i} #{target}"
-      )
-      save(xml)
-      { id: txn, date: date, amount: amount, beneficiary: id }
+      line = [
+        txn,
+        date.iso8601,
+        -amount.to_i,
+        target,
+        pvtkey.sign("#{txn};#{amount.to_i};#{target}")
+      ].join(';') + "\n"
+      File.write(@file, (lines << line).join(''))
+      {
+        id: txn,
+        date: date,
+        amount: amount,
+        beneficiary: id
+      }
     end
 
     def add(txn)
-      xml = load
-      t = xml.xpath('/wallet/ledger')[0].add_child('<txn/>')[0]
-      t['id'] = "/#{txn[:id]}"
-      t.add_child('<date/>')[0].content = txn[:date].iso8601
-      t.add_child('<amount/>')[0].content = txn[:amount].to_i
-      t.add_child('<beneficiary/>')[0].content = txn[:beneficiary]
-      save(xml).to_s
+      line = [
+        "/#{txn[:id]}",
+        txn[:date].iso8601,
+        txn[:amount].to_i,
+        txn[:beneficiary]
+      ].join(';') + "\n"
+      File.write(@file, (lines << line).join(''))
     end
 
     def check(id, amount, beneficiary)
-      xml = load
-      txn = xml.xpath("/wallet/ledger/txn[@id='#{id}']")[0]
-      xamount = Amount.new(
-        coins: txn.xpath('amount/text()')[0].to_s.to_i
-      ).mul(-1)
+      txn = txns.find { |t| t[0].to_i == id }
+      raise "Transaction ##{id} not found" if txn.nil?
+      xamount = Amount.new(coins: txn[2].to_i).mul(-1)
       raise "#{xamount} != #{amount}" if xamount != amount
-      xbeneficiary = Id.new(txn.xpath('beneficiary/text()')[0].to_s)
+      xbeneficiary = Id.new(txn[3].to_s)
       raise "#{xbeneficiary} != #{beneficiary}" if xbeneficiary != beneficiary
-      data = "#{id} #{amount.to_i} #{beneficiary}"
-      valid = Key.new(text: xml.xpath('/wallet/pkey/text()')[0].to_s).verify(
-        txn.xpath('sign/text()')[0].to_s, data
-      )
+      data = "#{id};#{amount.to_i};#{beneficiary}"
+      valid = Key.new(text: lines[1].strip).verify(txn[4], data)
       raise "Signature is not confirming this data: '#{data}'" unless valid
       true
     end
 
     def income
-      load.xpath('/wallet/ledger/txn[amount > 0]').each do |txn|
+      txns.select { |t| t[2].to_i > 0 }.each do |t|
         hash = {
-          id: txn['id'][1..-1].to_i,
-          beneficiary: Id.new(txn.xpath('beneficiary/text()')[0].to_s),
-          amount: Amount.new(coins: txn.xpath('amount/text()')[0].to_s.to_i)
+          id: t[0][1..-1].to_i,
+          beneficiary: Id.new(t[3]),
+          amount: Amount.new(coins: t[2].to_i)
         }
         yield hash
       end
@@ -145,33 +122,13 @@ module Zold
 
     private
 
-    def load
+    def txns
+      lines.drop(3).map { |t| t.split(';') }
+    end
+
+    def lines
       raise "File '#{@file}' is absent" unless File.exist?(@file)
-      valid(Nokogiri::XML(File.read(@file)))
-    end
-
-    def save(xml)
-      File.write(@file, valid(xml).to_s)
-    end
-
-    def valid(xml)
-      xsd = Nokogiri::XML::Schema(
-        File.open(
-          File.join(
-            File.dirname(__FILE__),
-            '../../assets/wallet.xsd'
-          )
-        )
-      )
-      errors = xsd.validate(xml)
-      unless errors.empty?
-        errors.each do |error|
-          puts "#{p} #{error.line}: #{error.message}"
-        end
-        puts xml
-        raise 'XML is not valid'
-      end
-      xml
+      File.readlines(@file)
     end
   end
 end

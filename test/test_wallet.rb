@@ -36,13 +36,28 @@ class TestWallet < Minitest::Test
       wallet = wallet(dir)
       amount = Zold::Amount.new(zld: 39.99)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
-      assert wallet.version.zero?
-      wallet.sub(amount, Zold::Id.new, key)
-      wallet.sub(amount, Zold::Id.new, key)
-      assert wallet.version == 2
       assert(
-        wallet.balance == amount.mul(-2),
-        "#{wallet.balance} is not equal to #{amount.mul(-2)}"
+        wallet.version.zero?,
+        "Wallet version #{wallet.version} is not equal to zero"
+      )
+      wallet.sub(amount, Zold::Id.new, key)
+      assert(
+        wallet.version == 1,
+        "Wallet version #{wallet.version} is not equal to 1"
+      )
+      wallet.sub(amount, Zold::Id.new, key)
+      assert(
+        wallet.version == 2,
+        "Wallet version #{wallet.version} is not equal to 2"
+      )
+      wallet.sub(amount, Zold::Id.new, key)
+      assert(
+        wallet.version == 3,
+        "Wallet version #{wallet.version} is not equal to 3"
+      )
+      assert(
+        wallet.balance == amount.mul(-3),
+        "#{wallet.balance} is not equal to #{amount.mul(-3)}"
       )
     end
   end
@@ -51,7 +66,7 @@ class TestWallet < Minitest::Test
     Dir.mktmpdir 'test' do |dir|
       pkey = Zold::Key.new(file: 'fixtures/id_rsa.pub')
       Dir.chdir(dir) do
-        file = File.join(dir, 'source.xml')
+        file = File.join(dir, 'source')
         wallet = Zold::Wallet.new(file)
         id = Zold::Id.new.to_s
         wallet.init(id, pkey)
@@ -105,7 +120,7 @@ class TestWallet < Minitest::Test
 
   def wallet(dir)
     id = Zold::Id.new
-    file = File.join(dir, "#{id}.xml")
+    file = File.join(dir, id.to_s)
     wallet = Zold::Wallet.new(file)
     wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
     wallet

@@ -29,14 +29,16 @@ require_relative '../lib/zold/key.rb'
 class TestKey < Minitest::Test
   def test_reads_public_rsa
     key = Zold::Key.new(file: 'fixtures/id_rsa.pub')
-    assert key.to_s.start_with?("-----BEGIN PUBLIC KEY-----\nMIICI")
-    assert key.to_s.end_with?("EAAQ==\n-----END PUBLIC KEY-----")
+    assert key.to_s.start_with?('MIICI')
+    assert key.to_s.end_with?('EAAQ==')
+    assert !key.to_s.include?("\n")
+    assert Zold::Key.new(text: key.to_s).to_s.start_with?('MIICI')
   end
 
   def test_reads_private_rsa
     key = Zold::Key.new(file: 'fixtures/id_rsa')
-    assert key.to_s.start_with?("-----BEGIN RSA PRIVATE KEY-----\nMIIJJ")
-    assert key.to_s.end_with?("Sg==\n-----END RSA PRIVATE KEY-----")
+    assert key.to_s.start_with?('MIIJJ')
+    assert key.to_s.end_with?('Sg==')
   end
 
   def test_signs_and_verifies
@@ -48,11 +50,16 @@ class TestKey < Minitest::Test
   end
 
   def test_signs_and_verifies_with_random_key
-    key = OpenSSL::PKey::RSA.new(2048)
-    pub = Zold::Key.new(text: key.public_key.to_s)
-    pvt = Zold::Key.new(text: key.to_s)
-    text = 'How are you doing, dude?'
-    signature = pvt.sign(text)
-    assert pub.verify(signature, text)
+    Dir.mktmpdir 'test' do |dir|
+      key = OpenSSL::PKey::RSA.new(2048)
+      file = File.join(dir, 'temp')
+      File.write(file, key.public_key.to_s)
+      pub = Zold::Key.new(file: file)
+      File.write(file, key.to_s)
+      pvt = Zold::Key.new(file: file)
+      text = 'How are you doing, dude?'
+      signature = pvt.sign(text)
+      assert pub.verify(signature, text)
+    end
   end
 end

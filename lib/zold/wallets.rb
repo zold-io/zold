@@ -40,7 +40,7 @@ module Zold
     end
 
     def find(id)
-      Zold::Wallet.new(File.join(@dir, "z-#{id}.xml"))
+      Zold::Wallet.new(File.join(@dir, id.to_s))
     end
   end
 end
