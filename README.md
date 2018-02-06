@@ -88,28 +88,24 @@ A wallet may look like this:
 12345678abcdef
 AAAAB3NzaC1yc2EAAAADAQABAAABAQCuLuVr4Tl2sXoN5Zb7b6SKMPrVjLxb...
 
-35;2017-07-19T21:24:51.136Z;98bb82c81735c4ee;-560;SKMPrVjLxbM5oDm0IhniQQy3shF...
+35;2017-07-19T21:24:51.136Z;-560;98bb82c81735c4ee;SKMPrVjLxbM5oDm0IhniQQy3shF...
 ```
 
-Lines are separated by either CR or CRLF, doesn't matter.
+Lines are separated by either CR or CRLF, doesn't matter. There is a
+header and a ledger, separated by an empty line.
+The header includes two lines:
 
-The fist line is wallet ID, a 64-bit unsigned integer.
+  * Wallet ID, a 64-bit unsigned integer
+  * Public RSA key of the wallet owner
 
-The second line is a public RSA key of the wallet owner.
+The ledger includes transactions, one per line. Each transaction line
+contains fiels separated by a semi-colon:
 
-The third line is empty.
-
-Each next line is a transaction and it has four or five fields separated by a semi-colon.
-
-The first field is transaction ID, an unsigned 16-bit integer.
-
-The second field is its date, in ISO 8601 format.
-
-The third field is the wallet ID of the beneficiary.
-
-The forth field is the amount.
-
-The fifth field is an RSA signature of "ID;beneficiary;amount" text.
+  * Transaction ID, an unsigned 16-bit integer
+  * Date, in ISO 8601 format
+  * Amount
+  * Wallet ID of the beneficiary
+  * RSA signature of "ID;beneficiary;amount" text
 
 1ZLD by convention equals to 2<sup>24</sup> (16,777,216).
 Thus, the technical capacity of the currency is
