@@ -35,7 +35,7 @@ module Zold
         @body = File.read(path)
       end
       return if text.nil?
-      @body = "-----BEGIN PUBLIC KEY-----\n#{text}\n-----END PUBLIC KEY-----"
+      @body = "-----BEGIN PUBLIC KEY-----\n#{text}\n-----END PUBLIC KEY-----\n"
     end
 
     def to_s
