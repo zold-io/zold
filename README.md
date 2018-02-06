@@ -80,6 +80,8 @@ A **wallet** is an XML file with a ledger of all transactions inside.
 
 A **transaction** is a money transferring operation between two wallets.
 
+A **cluster** is a list of 16 nodes that maintain a copy of wallet.
+
 ## Data
 
 A wallet may look like this:
@@ -118,43 +120,30 @@ Thus, the technical capacity of the currency is
 
 ## Architecture
 
-**Pull**.
-The client connects to a random closest node and pulls a wallet. If the node
-doesn't have the wallet, it tries to find it in the network.
-Then, it calculates and prints the balance to the user.
+**Pull**:
 
-**Commit**.
-The user provides the amount and the destination wallet name.
-The client pulls the destination wallet and adds
-a new XML element `<txn/>` to both wallets.
+  * The client retrieves the list of cluster nodes.
+  * The client sends `GET` request to all nodes.
+  * The client compares received files and picks the most popular one.
 
-**Push**.
-The client sends two wallets to a random closest node, which checks
-the validity of the deduction and propagates
-both wallets to _all_ other nodes in a [2PC](https://en.wikipedia.org/wiki/Two-phase_commit_protocol)
-manner: acknowledgment first, commit next.
-If a node receives a wallet that contains transactions that are younger
-than transactions in its local copy, a merge operation is
-performed. If the balance after the merge is negative, the push is rejected.
+**Push**:
 
-**Init**.
-The client creates an empty wallet XML and assigns a random `id` for it.
+  * The user modifies its local version of the wallet file.
+  * The client retrieves the list of cluster nodes.
+  * The client sends `LOCK` request to all 16 nodes of the cluster.
+  * They check the wallet and reply with `ACK` response.
+  * The client sends `COMMIT` request to all 16 nodes.
+  * They switch to the new version of the wallet and reply with `DONE` response.
 
-**Start**.
-The node manifests itself to one of the backbone nodes, which
-propagates the manifestation to other nodes, they propagate further.
-When any node goes down, the node that detected such a situation,
-notifies other nodes and they exlude the failed node from the list.
+**Start**:
 
-## Corner Cases
+  * The node retrieves the list of online nodes.
+  * The node sends `MANIFEST` request to all of them.
 
-**Too long wallet**.
-If a wallet has too many transactions, its validation will take too long, since
-will require many cross-wallet checks. How to solve this?
+**Rotate**:
 
-**DDoS**.
-We may have too many simultaneous `push` operations to the network,
-which may/will cause troubles. What to do?
+  * _Somehow_ the node is elected for a place in a cluster.
+  * The node sends `GET` request to other nodes in the cluster.
 
 ## License (MIT)
 
