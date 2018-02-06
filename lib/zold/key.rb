@@ -61,7 +61,11 @@ module Zold
       unless text.start_with?('-----BEGIN')
         text = OpenSSHKeyConverter.decode_pubkey(text.split[1])
       end
-      OpenSSL::PKey::RSA.new(text)
+      begin
+        OpenSSL::PKey::RSA.new(text)
+      rescue OpenSSL::PKey::RSAError => e
+        raise "Can't read RSA key (#{e.message}): #{text}"
+      end
     end
   end
 end
