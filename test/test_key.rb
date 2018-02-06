@@ -29,16 +29,16 @@ require_relative '../lib/zold/key.rb'
 class TestKey < Minitest::Test
   def test_reads_public_rsa
     key = Zold::Key.new(file: 'fixtures/id_rsa.pub')
-    assert key.to_s.start_with?('MIICI')
-    assert key.to_s.end_with?('EAAQ==')
-    assert !key.to_s.include?("\n")
-    assert Zold::Key.new(text: key.to_s).to_s.start_with?('MIICI')
+    assert key.to_pub.start_with?('MIICI')
+    assert key.to_pub.end_with?('EAAQ==')
+    assert !key.to_pub.include?("\n")
+    assert Zold::Key.new(text: key.to_pub).to_pub.start_with?('MIICI')
   end
 
   def test_reads_private_rsa
     key = Zold::Key.new(file: 'fixtures/id_rsa')
-    assert key.to_s.start_with?('MIIJJ')
-    assert key.to_s.end_with?('Sg==')
+    assert key.to_pub.start_with?('MIIJJ')
+    assert key.to_pub.end_with?('Sg==')
   end
 
   def test_signs_and_verifies

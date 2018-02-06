@@ -45,7 +45,7 @@ module Zold
 
     def init(id, pubkey)
       raise "File '#{@file}' already exists" if File.exist?(@file)
-      File.write(@file, "#{id}\n#{pubkey}\n\n")
+      File.write(@file, "#{id}\n#{pubkey.to_pub}\n\n")
     end
 
     def version

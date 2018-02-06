@@ -39,11 +39,11 @@ module Zold
     end
 
     def to_s
-      rsa.to_s.strip.delete("\n").gsub(/-{5}[ A-Z]+-{5}/, '')
+      rsa.to_s.strip
     end
 
     def to_pub
-      rsa.to_s.strip.delete("\n").gsub(/-{5}[ A-Z]+-{5}/, '')
+      to_s.delete("\n").gsub(/-{5}[ A-Z]+-{5}/, '')
     end
 
     def sign(text)
