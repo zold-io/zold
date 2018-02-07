@@ -42,7 +42,7 @@ module Zold
       set :lock, Mutex.new
       set :views, (proc { File.join(root, '../../../views') })
       set :show_exceptions, false
-      set :wallets, Wallets.new(Dir.mktmpdir('zold-', '/tmp'))
+      set :wallets, Wallets.new(Dir.mktmpdir('zold-'))
     end
 
     get '/' do
