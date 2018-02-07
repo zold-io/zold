@@ -109,7 +109,7 @@ contains fields separated by a semi-colon:
   * Date, in ISO 8601 format
   * Amount
   * Wallet ID of the beneficiary
-  * RSA signature of "ID;beneficiary;amount" text
+  * RSA signature of "ID;amount;beneficiary" text
 
 Transactions with positive amount start with a forward slash and don't
 have RSA signatures.
