@@ -116,9 +116,9 @@ Transactions with positive amount start with a forward slash and don't
 have RSA signatures. Their IDs point to ID fields of corresponding
 beneficiaries' wallets.
 
-1ZLD by convention equals to 2<sup>24</sup> (16,777,216).
+1 ZLD by convention equals to 2<sup>24</sup> (16,777,216).
 Thus, the technical capacity of the currency is
-549,755,813,888 (half a trillion).
+549,755,813,888 ZLD (half a trillion).
 
 ## Architecture
 
