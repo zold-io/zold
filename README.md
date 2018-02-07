@@ -103,7 +103,7 @@ The header includes two lines:
   * Public RSA key of the wallet owner
 
 The ledger includes transactions, one per line. Each transaction line
-contains fiels separated by a semi-colon:
+contains fields separated by a semi-colon:
 
   * Transaction ID, an unsigned 16-bit integer
   * Date, in ISO 8601 format
