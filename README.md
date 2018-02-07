@@ -112,7 +112,8 @@ contains fields separated by a semi-colon:
   * RSA signature of "ID;amount;beneficiary" text
 
 Transactions with positive amount start with a forward slash and don't
-have RSA signatures.
+have RSA signatures. Their IDs point to ID fields of corresponding
+beneficiaries' wallets.
 
 1ZLD by convention equals to 2<sup>24</sup> (16,777,216).
 Thus, the technical capacity of the currency is
