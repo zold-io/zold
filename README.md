@@ -135,15 +135,13 @@ Thus, the technical capacity of the currency is
   * The client sends `COMMIT` request to all 16 nodes.
   * They switch to the new version of the wallet and reply with `DONE` response.
 
-**Start**:
-
-  * The node retrieves the list of online nodes.
-  * The node sends `MANIFEST` request to all of them.
-
 **Rotate**:
 
-  * _Somehow_ the node is elected for a place in a cluster.
-  * The node sends `GET` request to other nodes in the cluster.
+  * At any time any node can send `POLL` request to all cluster nodes.
+  * The request may suggest to either invite a new node to a cluster or reject an existing one.
+  * Each node in the cluster votes and returns `VOTE` response.
+  * If the summary vote is positive, the node sends `ROTATE` request to all cluster nodes.
+  * All cluster nodes update their lists of cluster members.
 
 ## License (MIT)
 
