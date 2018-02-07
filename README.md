@@ -131,7 +131,7 @@ Thus, the technical capacity of the currency is
   * The user modifies its local version of the wallet file.
   * The client retrieves the list of cluster nodes.
   * The client sends `LOCK` request to all 16 nodes of the cluster.
-  * They check the wallet and reply with `ACK` response.
+  * They check the "diff" of the wallet and reply with `ACK` response.
   * The client sends `COMMIT` request to all 16 nodes.
   * They switch to the new version of the wallet and reply with `DONE` response.
 
