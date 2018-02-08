@@ -27,19 +27,21 @@ require_relative '../log.rb'
 module Zold
   # Money sending command
   class Send
-    def initialize(payer:, receiver:, amount:, pvtkey:, log: Log::Quiet.new)
+    def initialize(payer:, receiver:, amount:,
+      pvtkey:, details: '', log: Log::Quiet.new)
       @payer = payer
       @receiver = receiver
       @amount = amount
       @pvtkey = pvtkey
+      @details = details
       @log = log
     end
 
     def run
       raise "The amount can't be negative: #{@amount}" if @amount.negative?
-      txn = @payer.sub(@amount, @receiver.id, @pvtkey)
+      txn = @payer.sub(@amount, @receiver.id, @pvtkey, @details)
       @receiver.add(txn)
-      @log.info("#{@amount} sent from #{@payer} to #{@receiver}")
+      @log.info("#{@amount} sent from #{@payer} to #{@receiver}: '#{@details}'")
       txn[:id]
     end
   end

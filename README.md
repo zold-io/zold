@@ -90,10 +90,10 @@ A wallet may look like this:
 12345678abcdef
 AAAAB3NzaC1yc2EAAAADAQABAAABAQCuLuVr4Tl2sXoN5Zb7b6SKMPrVjLxb...
 
-34;2017-07-19T21:24:51.136Z;-560700;98bb82c81735c4ee;SKMPrVjLxbM5oDm0IhniQQy3shF...
-35;2017-07-19T21:25:07Z;-56990;98bb82c81735c4ee;QCuLuVr4Tl2sXoN5Zb7b6SKMPrVjLxb...
-/134;2017-07-19T21:29:11Z;647388;18bb82dd1735b6e9
-36;2017-07-19T22:18:43Z;-884733;38ab8fc8e735c4fc;2sXoN5Zb7b6SKMPrVjLxb7b6SKMPrVjLx...
+34;2017-07-19T21:24:51Z;-560700;98bb82c81735c4ee;for services;SKMPrVjLxbM5oDm0IhniQQy3shF...
+35;2017-07-19T21:25:07Z;-56990;98bb82c81735c4ee;;QCuLuVr4Tl2sXoN5Zb7b6SKMPrVjLxb...
+134;2017-07-19T21:29:11Z;647388;18bb82dd1735b6e9;;
+36;2017-07-19T22:18:43Z;-884733;38ab8fc8e735c4fc;for fun;2sXoN5Zb7b6SKMPrVjLxb7b6SKMPrVjLx...
 ```
 
 Lines are separated by either CR or CRLF, doesn't matter. There is a
@@ -107,12 +107,13 @@ The ledger includes transactions, one per line. Each transaction line
 contains fields separated by a semi-colon:
 
   * Transaction ID, an unsigned 16-bit integer
-  * Date, in ISO 8601 format
+  * Date and time, in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601)
   * Amount
   * Wallet ID of the beneficiary
-  * RSA signature of "ID;amount;beneficiary" text
+  * Details: `/[a-zA-Z0-9 -.]{0,128}/`
+  * RSA signature of "ID;amount;beneficiary;details" text
 
-Transactions with positive amount start with a forward slash and don't
+Transactions with positive amount don't
 have RSA signatures. Their IDs point to ID fields of corresponding
 beneficiaries' wallets.
 

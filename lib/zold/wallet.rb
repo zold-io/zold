@@ -50,7 +50,7 @@ module Zold
 
     def version
       all = txns
-      all.empty? ? 0 : all.map { |t| t[0] }.map(&:to_i).max
+      all.empty? ? 0 : all.map { |t| t[:id] }.max
     end
 
     def root?
@@ -62,68 +62,87 @@ module Zold
     end
 
     def balance
-      Amount.new(
-        coins: txns.map { |t| t[2] }.map(&:to_i).inject(0) { |sum, n| sum + n }
-      )
+      txns.inject(Amount::ZERO) { |sum, t| sum + t[:amount] }
     end
 
-    def sub(amount, target, pvtkey)
-      date = Time.now
-      txn = version + 1
-      line = [
-        txn,
-        date.iso8601,
-        -amount.to_i,
-        target,
-        pvtkey.sign("#{txn};#{amount.to_i};#{target}")
-      ].join(';') + "\n"
-      File.write(@file, (lines << line).join(''))
-      {
-        id: txn,
-        date: date,
-        amount: amount,
-        beneficiary: id
+    def sub(amount, target, pvtkey, details = '')
+      txn = {
+        id: version + 1,
+        date: Time.now,
+        amount: amount.mul(-1),
+        beneficiary: target,
+        details: details
       }
+      txn[:sign] = pvtkey.sign(signature(txn))
+      File.write(@file, (lines << to_line(txn)).join)
+      txn[:amount] = amount
+      txn
     end
 
     def add(txn)
-      line = [
-        "/#{txn[:id]}",
-        txn[:date].iso8601,
-        txn[:amount].to_i,
-        txn[:beneficiary]
-      ].join(';') + "\n"
-      File.write(@file, (lines << line).join(''))
+      File.write(@file, (lines << to_line(txn)).join)
     end
 
     def check(id, amount, beneficiary)
-      txn = txns.find { |t| t[0].to_i == id }
-      raise "Transaction ##{id} not found" if txn.nil?
-      xamount = Amount.new(coins: txn[2].to_i).mul(-1)
+      txn = txns.find { |t| t[:id] == id }
+      raise "Transaction #{id} not found" if txn.nil?
+      xamount = txn[:amount].mul(-1)
       raise "#{xamount} != #{amount}" if xamount != amount
-      xbeneficiary = Id.new(txn[3].to_s)
+      xbeneficiary = txn[:beneficiary]
       raise "#{xbeneficiary} != #{beneficiary}" if xbeneficiary != beneficiary
-      data = "#{id};#{amount.to_i};#{beneficiary}"
-      valid = Key.new(text: lines[1].strip).verify(txn[4], data)
-      raise "Signature is not confirming this data: '#{data}'" unless valid
+      valid = Key.new(text: lines[1].strip).verify(txn[:sign], signature(txn))
+      raise "Signature is not valid for '#{signature(txn)}'" unless valid
       true
     end
 
     def income
-      txns.select { |t| t[2].to_i > 0 }.each do |t|
-        hash = {
-          id: t[0][1..-1].to_i,
-          beneficiary: Id.new(t[3]),
-          amount: Amount.new(coins: t[2].to_i)
-        }
-        yield hash
+      txns.each do |t|
+        yield t unless t[:amount].negative?
       end
     end
 
     private
 
+    def to_line(txn)
+      [
+        txn[:id],
+        txn[:date].utc.iso8601,
+        txn[:amount].to_i,
+        txn[:beneficiary],
+        txn[:details],
+        txn[:sign]
+      ].join(';') + "\n"
+    end
+
+    def fields(line)
+      regex = Regexp.new(
+        '(' + [
+          '[0-9]+',
+          '[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z',
+          '-?[0-9]+',
+          '[a-f0-9]{16}',
+          '[a-zA-Z0-9 -.]{0,128}',
+          '[A-Za-z0-9+/]*={0,3}'
+        ].join(');(') + ')'
+      )
+      raise "Invalid line: #{line}" unless regex.match?(line)
+      parts = line.split(';')
+      {
+        id: parts[0].to_i,
+        date: Time.parse(parts[1]),
+        amount: Amount.new(coins: parts[2].to_i),
+        beneficiary: Id.new(parts[3]),
+        details: parts[4],
+        sign: parts[5]
+      }
+    end
+
+    def signature(txn)
+      "#{txn[:id]};#{txn[:amount].to_i};#{txn[:beneficiary]};#{txn[:details]}"
+    end
+
     def txns
-      lines.drop(3).map { |t| t.split(';') }
+      lines.drop(3).map { |t| fields(t) }
     end
 
     def lines

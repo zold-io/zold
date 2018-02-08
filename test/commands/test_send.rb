@@ -44,7 +44,10 @@ class TestSend < Minitest::Test
         pvtkey: Zold::Key.new(file: 'fixtures/id_rsa')
       ).run
       assert source.balance == amount.mul(-1)
-      assert target.balance == amount
+      assert(
+        target.balance == amount,
+        "#{target.balance} is not equal to #{amount}"
+      )
     end
   end
 end

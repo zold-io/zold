@@ -57,7 +57,7 @@ Available commands:
       Checks the validity of the wallet
     #{Rainbow('balance').green} id
       Prints the balance of the wallet
-    #{Rainbow('send').green} source target amount
+    #{Rainbow('send').green} source target amount details
       Send ZOLD from one wallet to another
     #{Rainbow('push').green} [id...]
       Push all local wallets or the ones required
@@ -108,10 +108,12 @@ Available options:"
   when 'send'
     raise "Payer wallet ID is required" if opts.arguments[1].nil?
     raise "Recepient wallet ID is required" if opts.arguments[2].nil?
+    raise "Amount is required" if opts.arguments[3].nil?
     Zold::Send.new(
       payer: wallets.find(Zold::Id.new(opts.arguments[1])),
       receiver: wallets.find(Zold::Id.new(opts.arguments[2])),
       amount: Zold::Amount.new(zld: opts.arguments[3].to_f),
+      details: opts.arguments[4],
       pvtkey: Zold::Key.new(file: opts['private-key']),
       log: log
     ).run

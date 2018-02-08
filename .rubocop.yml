@@ -19,3 +19,7 @@ Metrics/ClassLength:
   Max: 200
 Style/EndOfLine:
   EnforcedStyle: lf
+Metrics/ParameterLists:
+  Max: 10
+Layout/AlignParameters:
+  Enabled: false
