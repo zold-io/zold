@@ -72,10 +72,10 @@ A **transaction** is a money transferring operation between two wallets.
 
 ## Score
 
-Each node calculates its own score. First, it takes a current timestamp
+Each node calculates its own score. First, it takes the current timestamp
 in UTC [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601),
 for example `2017-07-19T21:24:51Z`. Then, it attempts to append any
-arbitrary text to the end of it and calculate SHA-256 in hexadecimal format,
+arbitrary text to the end of it and to calculate SHA-256 in the hexadecimal format,
 for example:
 
 ```
@@ -146,25 +146,31 @@ beneficiaries' wallets.
 Thus, the technical capacity of the currency is
 549,755,813,888 ZLD (half a trillion).
 
-## End-to-end use case
+## End-to-end positive use case
 
 Let's say a user has a wallet on his laptop and its ID is `0123456789abcdef`.
 
-First, the user makes a new transaction,
-sending 5 ZLD to another wallet `4567456745674567`:
+The user pulls the receiving wallet:
+
+```bash
+zold pull 4567456745674567
+```
+
+The client downloads the public list of root nodes.
+The client downloads lists of top-score nodes from each root node, and
+sorts all nodes by their scores ("uplinks").
+The client attempts to pull the wallet `4567456745674567` from the first
+randomly selected uplink. If the wallet is there, it is delivered together
+with the score of the node. The client validates the score and goes
+to the next node. The client considers the wallet valid when the summary
+score is over _X_.
+
+Then, the user makes a new transaction,
+sending 5 ZLD to the receiving wallet:
 
 ```bash
 zold send 0123456789abcdef 4567456745674567 5
 ```
-
-The client downloads the public list of root nodes. (__where from?__)
-
-The client downloads lists of top-score nodes from each root node, and
-selects 16 nodes with the highest score out of all lists ("uplinks").
-
-The client attempts to pull the wallet `4567456745674567` from all uplinks.
-
-Each uplink
 
 The content of both files get changed. An outgoing transaction with a negative
 amount gets added to the end of the paying wallet `0123456789abcdef`:
@@ -180,13 +186,19 @@ The incoming transaction gets appended to the end of the receiving wallet
 500;2017-07-19T22:18:43Z;83886080;0123456789abcdef;-
 ```
 
-The client pushes both wallets to a node:
+The user pushes both wallets:
 
 ```
 zold push
 ```
 
-The node receives both wallets
+The client picks a random uplink and sends both wallets to it. The uplink
+responds with a confirmation. The client picks the next random node and sends
+both wallets to it too. The client goes from node to node until the
+summary score is above _X_.
+
+A node, when its score is changed, announces itself to all root nodes and
+other nodes known to them.
 
 ## License (MIT)
 
