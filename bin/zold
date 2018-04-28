@@ -113,7 +113,7 @@ Available options:"
       payer: wallets.find(Zold::Id.new(opts.arguments[1])),
       receiver: wallets.find(Zold::Id.new(opts.arguments[2])),
       amount: Zold::Amount.new(zld: opts.arguments[3].to_f),
-      details: opts.arguments[4],
+      details: opts.arguments[4] ? opts.arguments[4] : '-',
       pvtkey: Zold::Key.new(file: opts['private-key']),
       log: log
     ).run

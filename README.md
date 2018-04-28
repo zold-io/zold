@@ -19,29 +19,17 @@ submit your ideas or pull requests.
 
 ZOLD is a crypto currency.
 
-ZOLD is going to solve these problems:
-
-  * Blockchain is slow and [doesn't scale](https://en.wikipedia.org/wiki/Bitcoin_scalability_problem)
-  * Crypto mining makes irrelevant strangers rich
-  * High volatility makes cryptos suitable mostly for the black market
-
-ZOLD is:
-
-  * Fast
-  * Scalable
-  * Anonymous
-
 ZOLD principles include:
 
-  * The entire code base is open source
-  * There is no mining; the only way to get ZOLD is to receive it from someone else
-  * Only 2<sup>63</sup> numerals (no fractions) can technically be issued
-  * The first wallet belongs to the issuer and may have a negative balance
-  * A wallet is an plain text file
-  * There is no central ledger, each wallet has its own personal ledger
-  * Each transaction in the ledger is confirmed by [RSA](https://simple.wikipedia.org/wiki/RSA_%28algorithm%29) encryption
-  * The network of communicating nodes maintains wallets of users
-  * Anyone can add a node to the network
+  * The entire code base is open source;
+  * There is no mining, the only way to get ZOLD is to receive it from someone else;
+  * Only 2<sup>63</sup> numerals (no fractions) can technically be issued;
+  * The first wallet belongs to the issuer and may have a negative balance;
+  * A wallet is a plain text file;
+  * There is no central ledger, each wallet has its own personal ledger;
+  * Each transaction in the ledger is confirmed by [RSA](https://simple.wikipedia.org/wiki/RSA_%28algorithm%29) encryption;
+  * The network of communicating nodes maintains wallets of users;
+  * Anyone can add a node to the network.
 
 ## How to Use
 
@@ -59,11 +47,11 @@ $ zold start
 
 Or do one of the following:
 
-  * `zold init` creates a new wallet (you have to provide PGP keys)
-  * `zold pull` pulls a wallet from the network
-  * `zold balance` checks the balance of a wallet
-  * `zold send` creates a new transaction
-  * `zold push` pushes a wallet to the network
+  * `zold init` creates a new wallet (you have to provide PGP keys);
+  * `zold pull` pulls a wallet from a random node;
+  * `zold show` prints out all known details of a wallet (incl. its balance);
+  * `zold send` creates a new transaction;
+  * `zold push` pushes a wallet to all known nodes.
 
 For more options and commands just run:
 
@@ -73,15 +61,51 @@ $ zold --help
 
 ## Glossary
 
-A **node** is an HTTP server with a RESTful API, a maintainer of wallets.
+A **node** is an HTTP server with a RESTful API, a maintainer of wallets
+and a command line Ruby gem [`zold`](https://rubygems.org/gems/zold).
 
-A **client** is a command line Ruby gem [`zold`](https://rubygems.org/gems/zold).
+A **score** is the amount of hash prefixes a node has at any given moment of time.
 
-A **wallet** is an XML file with a ledger of all transactions inside.
+A **wallet** is a text file with a ledger of all transactions inside.
 
 A **transaction** is a money transferring operation between two wallets.
 
-A **cluster** is a list of 16 nodes that maintain a copy of wallet.
+## Score
+
+Each node calculates its own score. First, it takes a current timestamp
+in UTC [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601),
+for example `2017-07-19T21:24:51Z`. Then, it attempts to append any
+arbitrary text to the end of it and calculate SHA-256 in hexadecimal format,
+for example:
+
+```
+Input: "2017-07-19T21:24:51Z the suffix"
+SHA-256: "eba36e52e1ee674d198f486e07c8496853ffc8879e7fe25329523177646a96a0"
+```
+
+The node attempts to try different sufficies until one of them produces
+SHA-256 hash that ends with `00000000` (eight zeros). For example, this
+suffix may work:
+
+```
+Input: "2017-07-19T21:24:51Z "
+SHA-256: "eba36e52e1ee674d198f486e07c8496853ffc8879e7fe25329523177646a96a0"
+```
+
+When the first suffix is found, the score of the node is 1. Then, to
+increase the score by one, the node has to find the next suffix, which
+can be added to the hash in order to obtain a new hash with trailing zeros,
+for example:
+
+```
+Input: "eba36e52e1ee674d198f486e07c8496853ffc8879e7fe25329523177646a96a0 "
+SHA-256: "eba36e52e1ee674d198f486e07c8496853ffc8879e7fe25329523177646a96a0"
+```
+
+And so on.
+
+The score is valid only when the starting time point is earlier than
+current time, but not earlier than 24 hours ago.
 
 ## Data
 
@@ -101,51 +125,68 @@ Lines are separated by either CR or CRLF, doesn't matter. There is a
 header and a ledger, separated by an empty line.
 The header includes two lines:
 
-  * Wallet ID, a 64-bit unsigned integer
-  * Public RSA key of the wallet owner
+  * Wallet ID, a 64-bit unsigned integer;
+  * Public RSA key of the wallet owner.
 
 The ledger includes transactions, one per line. Each transaction line
 contains fields separated by a semi-colon:
 
-  * Transaction ID, an unsigned 16-bit integer
-  * Date and time, in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601)
-  * Amount
-  * Wallet ID of the beneficiary
-  * Details: `/[a-zA-Z0-9 -.]{0,128}/`
-  * RSA signature of "ID;amount;beneficiary;details" text
+  * Transaction ID, an unsigned 16-bit integer;
+  * Date and time, in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601);
+  * Amount;
+  * Wallet ID of the beneficiary;
+  * Details: `/[a-zA-Z0-9 -.]{1,128}/`;
+  * RSA signature of the sender of "ID;amount;beneficiary;details" text.
 
 Transactions with positive amount don't
 have RSA signatures. Their IDs point to ID fields of corresponding
 beneficiaries' wallets.
 
-1 ZLD by convention equals to 2<sup>24</sup> (16,777,216).
+1 ZLD by convention equals to 2<sup>24</sup> (16,777,216) __zents__.
 Thus, the technical capacity of the currency is
 549,755,813,888 ZLD (half a trillion).
 
-## Architecture
+## End-to-end use case
 
-**Pull**:
+Let's say a user has a wallet on his laptop and its ID is `0123456789abcdef`.
 
-  * The client retrieves the list of cluster nodes.
-  * The client sends `GET` request to all nodes.
-  * The client compares received files and picks the most popular one.
+First, the user makes a new transaction,
+sending 5 ZLD to another wallet `4567456745674567`:
 
-**Push**:
+```bash
+zold send 0123456789abcdef 4567456745674567 5
+```
 
-  * The user modifies its local version of the wallet file.
-  * The client retrieves the list of cluster nodes.
-  * The client sends `LOCK` request to all 16 nodes of the cluster.
-  * They check the "diff" of the wallet and reply with `ACK` response.
-  * The client sends `COMMIT` request to all 16 nodes.
-  * They switch to the new version of the wallet and reply with `DONE` response.
+The client downloads the public list of root nodes. (__where from?__)
 
-**Rotate**:
+The client downloads lists of top-score nodes from each root node, and
+selects 16 nodes with the highest score out of all lists ("uplinks").
 
-  * At any time any node can send `POLL` request to all cluster nodes.
-  * The request may suggest to either invite a new node to a cluster or reject an existing one.
-  * Each node in the cluster votes and returns `VOTE` response.
-  * If the summary vote is positive, the node sends `ROTATE` request to all cluster nodes.
-  * All cluster nodes update their lists of cluster members.
+The client attempts to pull the wallet `4567456745674567` from all uplinks.
+
+Each uplink
+
+The content of both files get changed. An outgoing transaction with a negative
+amount gets added to the end of the paying wallet `0123456789abcdef`:
+
+```text
+500;2017-07-19T22:18:43Z;-83886080;4567456745674567;-;b6SKMPrVjLx...
+```
+
+The incoming transaction gets appended to the end of the receiving wallet
+`4567456745674567`:
+
+```text
+500;2017-07-19T22:18:43Z;83886080;0123456789abcdef;-
+```
+
+The client pushes both wallets to a node:
+
+```
+zold push
+```
+
+The node receives both wallets
 
 ## License (MIT)
 

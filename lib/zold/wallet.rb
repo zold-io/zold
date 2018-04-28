@@ -21,6 +21,11 @@
 require 'time'
 
 # The wallet.
+#
+# It is a text file with a name equal to the wallet ID, which is
+# a hexadecimal number of 16 digits, for example: "0123456789abcdef".
+# More details about its format is in README.md.
+#
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Zerocracy, Inc.
 # License:: MIT
@@ -121,7 +126,7 @@ module Zold
           '[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z',
           '-?[0-9]+',
           '[a-f0-9]{16}',
-          '[a-zA-Z0-9 -.]{0,128}',
+          '[a-zA-Z0-9 -.]{1,128}',
           '[A-Za-z0-9+/]*={0,3}'
         ].join(');(') + ')'
       )
