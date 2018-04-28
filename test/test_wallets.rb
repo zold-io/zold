@@ -1,4 +1,4 @@
-# Copyright (c) 2018 Zerocracy, Inc.
+# Copyright (c) 2018 Yegor Bugayenko
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the 'Software'), to deal
@@ -27,7 +27,7 @@ require_relative '../lib/zold/amount.rb'
 
 # Wallets test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Zerocracy, Inc.
+# Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class TestWallets < Minitest::Test
   def test_adds_wallet
