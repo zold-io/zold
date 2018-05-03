@@ -48,7 +48,7 @@ $ zold start
 Or do one of the following:
 
   * `zold remote` manipulates the list off remote nodes;
-  * `zold init` creates a new wallet (you have to provide PGP keys);
+  * `zold create` creates a new wallet (you have to provide PGP keys);
   * `zold fetch` downloads all versions of the wallet from the network;
   * `zold merge` merges all versions of the wallet;
   * `zold pull` does `fetch` and `merge`;
@@ -250,3 +250,18 @@ The remote requests all available nodes to pull from it.
 They must do it for free, if their score is lower or equal to the score
 of the requesting node.
 
+## RESTful API
+
+The full list of RESTful resources:
+
+  * `/index.(html|json|xml)` (GET): status page of the node
+
+  * `/score.(html|json|xml)` (GET): score data
+
+  * `/remotes.(html|json|xml)` (GET): load all known remotes
+
+  * `/wallet/<ID>` (GET): fetch wallet
+
+  * `/wallet/<ID>` (PUT): push wallet
+
+Each HTTP response contains `Content-type` header.

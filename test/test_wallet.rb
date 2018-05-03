@@ -24,7 +24,7 @@ require_relative '../lib/zold/key.rb'
 require_relative '../lib/zold/id.rb'
 require_relative '../lib/zold/wallet.rb'
 require_relative '../lib/zold/amount.rb'
-require_relative '../lib/zold/commands/send.rb'
+require_relative '../lib/zold/commands/pay.rb'
 
 # Wallet test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -109,7 +109,7 @@ class TestWallet < Minitest::Test
       payer = wallet(dir)
       receiver = wallet(dir)
       amount = Zold::Amount.new(zld: 14.95)
-      txn = Zold::Send.new(
+      txn = Zold::Pay.new(
         payer: payer, receiver: receiver,
         amount: amount,
         pvtkey: Zold::Key.new(file: 'fixtures/id_rsa')

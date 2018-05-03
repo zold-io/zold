@@ -33,7 +33,7 @@ require_relative '../lib/zold/log'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/amount'
 require_relative '../lib/zold/commands/create'
-require_relative '../lib/zold/commands/send'
+require_relative '../lib/zold/commands/pay'
 require_relative '../lib/zold/commands/balance'
 require_relative '../lib/zold/commands/check'
 require_relative '../lib/zold/commands/pull'
@@ -49,16 +49,22 @@ begin
   opts = Slop.parse(ARGV, strict: true, help: true) do |o|
     o.banner = "Usage: zold [options] command [arguments]
 Available commands:
+    #{Rainbow('remote').green}
+      Manage remote nodes
     #{Rainbow('create').green}
       Creates a new wallet with a random ID
+    #{Rainbow('fetch').green} [id...]
+      Fetch wallet copies from remote nodes
+    #{Rainbow('merge').green} [id...]
+      Merge remote copies with the HEAD
     #{Rainbow('pull').green} [id...]
-      Pulls all local wallets and new ones explicitly required
-    #{Rainbow('check').green} id
-      Checks the validity of the wallet
-    #{Rainbow('balance').green} id
-      Prints the balance of the wallet
-    #{Rainbow('send').green} source target amount details
-      Send ZOLD from one wallet to another
+      Fetch and then merge
+    #{Rainbow('show').green} id
+      Show all available information about the wallet
+    #{Rainbow('pay').green} source target amount details
+      Pay ZOLD from one wallet to another
+    #{Rainbow('status').green}
+      Show status of local copies
     #{Rainbow('push').green} [id...]
       Push all local wallets or the ones required
     #{Rainbow('node').green} port
@@ -105,11 +111,11 @@ Available options:"
       pubkey: Zold::Key.new(file: opts['public-key']),
       log: log
     ).run
-  when 'send'
+  when 'pay'
     raise "Payer wallet ID is required" if opts.arguments[1].nil?
     raise "Recepient wallet ID is required" if opts.arguments[2].nil?
     raise "Amount is required" if opts.arguments[3].nil?
-    Zold::Send.new(
+    Zold::Pay.new(
       payer: wallets.find(Zold::Id.new(opts.arguments[1])),
       receiver: wallets.find(Zold::Id.new(opts.arguments[2])),
       amount: Zold::Amount.new(zld: opts.arguments[3].to_f),

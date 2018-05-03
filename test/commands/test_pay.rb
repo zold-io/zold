@@ -23,13 +23,13 @@ require 'tmpdir'
 require_relative '../../lib/zold/wallet.rb'
 require_relative '../../lib/zold/key.rb'
 require_relative '../../lib/zold/id.rb'
-require_relative '../../lib/zold/commands/send.rb'
+require_relative '../../lib/zold/commands/pay.rb'
 
-# SEND test.
+# PAY test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestSend < Minitest::Test
+class TestPay < Minitest::Test
   def test_sends_from_wallet_to_wallet
     Dir.mktmpdir 'test' do |dir|
       source = Zold::Wallet.new(File.join(dir, 'source.xml'))
@@ -37,7 +37,7 @@ class TestSend < Minitest::Test
       target = Zold::Wallet.new(File.join(dir, 'target.xml'))
       target.init(Zold::Id.new, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
       amount = Zold::Amount.new(zld: 14.95)
-      Zold::Send.new(
+      Zold::Pay.new(
         payer: source,
         receiver: target,
         amount: amount,

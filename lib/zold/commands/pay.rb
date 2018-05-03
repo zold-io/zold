@@ -20,13 +20,13 @@
 
 require_relative '../log.rb'
 
-# SEND command.
+# PAY command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
   # Money sending command
-  class Send
+  class Pay
     def initialize(payer:, receiver:, amount:,
       pvtkey:, details: '-', log: Log::Quiet.new)
       @payer = payer
