@@ -160,15 +160,15 @@ Thus, the technical capacity of the currency is
 Each node maintains a list of visible "remote" nodes.
 The gem is shipped together with a hard-coded list of them.
 
-`remote update` goes through the list of all remote nodes,
-checks their availability, and either removes them from the list or
-adds new nodes to the list, which are returned via check requests.
+  * `remote update` goes through the list of all remote nodes,
+    checks their availability, and either removes them from the list or
+    adds new nodes to the list, which are returned via check requests.
 
-`remote add <IP>` adds a new remote node to the list.
+  * `remote add <IP>` adds a new remote node to the list.
 
-`remote remove <IP>` removes a remote node.
+  * `remote remove <IP>` removes a remote node.
 
-`remote show` prints the entire list of remote nodes.
+  * `remote show` prints the entire list of remote nodes.
 
 The node always tries to make sure the summary of all scores in the
 list of remote nodes is right above the MSS, but not more.
