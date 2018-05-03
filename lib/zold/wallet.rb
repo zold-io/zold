@@ -70,7 +70,7 @@ module Zold
       txns.inject(Amount::ZERO) { |sum, t| sum + t[:amount] }
     end
 
-    def sub(amount, target, pvtkey, details = '')
+    def sub(amount, target, pvtkey, details = '-')
       txn = {
         id: version + 1,
         date: Time.now,

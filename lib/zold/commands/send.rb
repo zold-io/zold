@@ -28,7 +28,7 @@ module Zold
   # Money sending command
   class Send
     def initialize(payer:, receiver:, amount:,
-      pvtkey:, details: '', log: Log::Quiet.new)
+      pvtkey:, details: '-', log: Log::Quiet.new)
       @payer = payer
       @receiver = receiver
       @amount = amount

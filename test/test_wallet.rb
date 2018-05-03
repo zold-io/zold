@@ -84,12 +84,14 @@ class TestWallet < Minitest::Test
       wallet.add(
         id: 1,
         date: Time.now, amount: Zold::Amount.new(zld: 39.99),
-        beneficiary: Zold::Id.new
+        beneficiary: Zold::Id.new,
+        details: '-'
       )
       wallet.add(
         id: 2,
         date: Time.now, amount: Zold::Amount.new(zld: 14.95),
-        beneficiary: Zold::Id.new
+        beneficiary: Zold::Id.new,
+        details: '-'
       )
       sum = Zold::Amount::ZERO
       wallet.income do |t|
