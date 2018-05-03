@@ -34,6 +34,7 @@ require_relative '../lib/zold/key'
 require_relative '../lib/zold/amount'
 require_relative '../lib/zold/commands/create'
 require_relative '../lib/zold/commands/pay'
+require_relative '../lib/zold/commands/remote'
 require_relative '../lib/zold/commands/balance'
 require_relative '../lib/zold/commands/check'
 require_relative '../lib/zold/commands/pull'
@@ -111,6 +112,11 @@ Available options:"
       pubkey: Zold::Key.new(file: opts['public-key']),
       log: log
     ).run
+  when 'remote'
+    Zold::Remote.new(
+      wallets: wallets,
+      log: log
+    ).run(opts.arguments[1..-1])
   when 'pay'
     raise "Payer wallet ID is required" if opts.arguments[1].nil?
     raise "Recepient wallet ID is required" if opts.arguments[2].nil?
