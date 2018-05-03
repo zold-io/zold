@@ -83,8 +83,8 @@ and a command line Ruby gem [`zold`](https://rubygems.org/gems/zold).
 
 Each node calculates its own score. First, it takes the current timestamp
 in UTC [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601),
-for example `2017-07-19T21:24:51Z`. Then, it attempts to append any
-arbitrary text to the end of it and to calculate SHA-256 of the text
+for example `2017-07-19T21:24:51Z ` (with a trailing space). Then, it attempts to append any
+arbitrary text (has to match `[a-zA-Z0-9]+`) to the end of it and to calculate SHA-256 of the text
 in the hexadecimal format, for example:
 
 ```
@@ -107,7 +107,7 @@ can be added to the first 20 characters of the previous hash
 in order to obtain a new hash with trailing zeros, for example:
 
 ```
-Input: "eba36e52e1ee674d198f "
+Input: "34f48e0eee1ed12ad74c "
 SHA-256: "..."
 ```
 
