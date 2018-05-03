@@ -194,9 +194,11 @@ If not, the node attempts the next remote in the list.
 
 ## Merge
 
-If the wallet doesn't exist locally, all remote copies are identical,
-and their summary score is above the MSS, the remote copy is accepted "as is,"
-without verifications.
+The remote copy is accepted "as is" without verifications if:
+
+  * The wallet doesn't exist locally _and_
+  * All remote copies are identical _and_
+  * Their summary score is above the MSS.
 
 Otherwise, the node goes through the entire list of transactions visible in all
 remote copies and merges them one by one into the "head" copy.
