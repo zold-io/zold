@@ -47,11 +47,14 @@ $ zold start
 
 Or do one of the following:
 
+  * `zold remote` manipulates the list off remote nodes;
   * `zold init` creates a new wallet (you have to provide PGP keys);
-  * `zold pull` pulls a wallet from a random node;
+  * `zold fetch` downloads all versions of the wallet from the network;
+  * `zold merge` merges all versions of the wallet;
+  * `zold pull` does `fetch` and `merge`;
   * `zold show` prints out all known details of a wallet (incl. its balance);
-  * `zold send` creates a new transaction;
-  * `zold push` pushes a wallet to all known nodes.
+  * `zold pay` creates a new transaction;
+  * `zold push` pushes a wallet to the network.
 
 For more options and commands just run:
 
@@ -61,22 +64,28 @@ $ zold --help
 
 ## Glossary
 
-A **node** is an HTTP server with a RESTful API, a maintainer of wallets
+**Node** is an HTTP server with a RESTful API, a maintainer of wallets
 and a command line Ruby gem [`zold`](https://rubygems.org/gems/zold).
 
-A **score** is the amount of hash prefixes a node has at any given moment of time.
+**Network** is a set of all nodes available online.
 
-A **wallet** is a text file with a ledger of all transactions inside.
+**Score** is the amount of "hash sufficies" a node has at any given moment of time.
 
-A **transaction** is a money transferring operation between two wallets.
+**Wallet** is a text file with a ledger of all transactions inside.
+
+**Transaction** is a money transferring operation between two wallets.
+
+**MSS** (minimum summary score) is a summary of all scores required to trust a wallet.
+
+**Size** of the network is the total number of nodes in it.
 
 ## Score
 
 Each node calculates its own score. First, it takes the current timestamp
 in UTC [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601),
 for example `2017-07-19T21:24:51Z`. Then, it attempts to append any
-arbitrary text to the end of it and to calculate SHA-256 in the hexadecimal format,
-for example:
+arbitrary text to the end of it and to calculate SHA-256 of the text
+in the hexadecimal format, for example:
 
 ```
 Input: "2017-07-19T21:24:51Z the suffix"
@@ -85,21 +94,21 @@ SHA-256: "eba36e52e1ee674d198f486e07c8496853ffc8879e7fe25329523177646a96a0"
 
 The node attempts to try different sufficies until one of them produces
 SHA-256 hash that ends with `00000000` (eight zeros). For example, this
-suffix may work:
+suffix `11edb424c` works (it took 212 minutes to find it on 2.3GHz Intel Core i7):
 
 ```
-Input: "2017-07-19T21:24:51Z "
-SHA-256: "eba36e52e1ee674d198f486e07c8496853ffc8879e7fe25329523177646a96a0"
+Input: "2017-07-19T21:24:51Z 11edb424c"
+SHA-256: "34f48e0eee1ed12ad74cb39418f2f6e7442a776a7b6182697957650e00000000"
 ```
 
 When the first suffix is found, the score of the node is 1. Then, to
 increase the score by one, the node has to find the next suffix, which
-can be added to the hash in order to obtain a new hash with trailing zeros,
-for example:
+can be added to the first 20 characters of the previous hash
+in order to obtain a new hash with trailing zeros, for example:
 
 ```
-Input: "eba36e52e1ee674d198f486e07c8496853ffc8879e7fe25329523177646a96a0 "
-SHA-256: "eba36e52e1ee674d198f486e07c8496853ffc8879e7fe25329523177646a96a0"
+Input: "eba36e52e1ee674d198f "
+SHA-256: "..."
 ```
 
 And so on.
@@ -146,27 +155,67 @@ beneficiaries' wallets.
 Thus, the technical capacity of the currency is
 549,755,813,888 ZLD (half a trillion).
 
-## End-to-end positive use case
+## Remote
 
-Let's say a user has a wallet on his laptop and its ID is `0123456789abcdef`.
+Each node maintains a list of visible "remote" nodes.
+The gem is shipped together with a hard-coded list of them.
 
-The user pulls the receiving wallet:
+`remote update` goes through the list of all remote nodes,
+checks their availability, and either removes them from the list or
+adds new nodes to the list, which are returned via check requests.
 
-```bash
-zold pull 4567456745674567
-```
+`remote add <IP>` adds a new remote node to the list.
 
-The client downloads the public list of root nodes.
-The client downloads lists of top-score nodes from each root node, and
-sorts all nodes by their scores ("uplinks").
-The client attempts to pull the wallet `4567456745674567` from the first
-randomly selected uplink. If the wallet is there, it is delivered together
-with the score of the node. The client validates the score and goes
-to the next node. The client considers the wallet valid when the summary
-score is over _X_.
+`remote remove <IP>` removes a remote node.
 
-Then, the user makes a new transaction,
-sending 5 ZLD to the receiving wallet:
+`remote show` prints the entire list of remote nodes.
+
+The node always tries to make sure the summary of all scores in the
+list of remote nodes is right above the MSS, but not more.
+
+## Fetch
+
+The node attempts to pull the wallet from the first remote.
+The remote returns the wallet, if it exists. Otherwise, rejects the request
+and returns the list of all remotes known to it.
+
+The node stores the content of the wallet and the score of the remote
+to the local storage.
+The local storage doesn't keep all remote copies, but only their unique
+versions and summary scores for each version.
+
+Fetching stops when:
+
+  * Total score is above MSS _or_
+  * There is only one version and the total score is above ⅛ MSS _or_
+  * The amount of nodes requested is bigger than ½ Size.
+
+If not, the node attempts the next remote in the list.
+
+## Merge
+
+If the wallet doesn't exist locally, all remote copies are identical,
+and their summary score is above the MSS, the remote copy is accepted "as is,"
+without verifications.
+
+Otherwise, the node goes through the entire list of transactions visible in all
+remote copies and merges them one by one into the "head" copy.
+The decision is made per each transaction.
+
+If a transaction exists in the head, it remains there.
+
+Otherwise, if it's a positive transaction that increases the balance of the head copy,
+the signature is validated (in the paying wallet, which is pulled first)
+and it goes into the head. The transaction gets a new ID.
+
+If it's a negative transaction, it must exist in as many remote copies,
+as the MSS. If their cumulative score is lower than the MSS, the
+node rejects the transaction.
+
+## Pay
+
+The node pulls both wallets. Then, say, the user makes a payment
+from the wallet `0123456789abcdef` to the wallet `4567456745674567`:
 
 ```bash
 zold send 0123456789abcdef 4567456745674567 5
@@ -186,16 +235,12 @@ The incoming transaction gets appended to the end of the receiving wallet
 500;2017-07-19T22:18:43Z;83886080;0123456789abcdef;-
 ```
 
-The user pushes both wallets:
+## Push
 
-```
-zold push
-```
+The node sends a package of a few wallets to the first remote.
 
-The client picks a random uplink and sends both wallets to it. The uplink
-responds with a confirmation. The client picks the next random node and sends
-both wallets to it too. The client goes from node to node until the
-summary score is above _X_.
+The remote stores them as remote copies and performs _pull_.
 
-A node, when its score is changed, announces itself to all root nodes and
-other nodes known to them.
+The node goes to the next remote in the list, until the total score
+of all remotes that accepted the package is above MSS.
+
