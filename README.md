@@ -239,10 +239,14 @@ The incoming transaction gets appended to the end of the receiving wallet
 
 ## Push
 
-The node sends a package of a few wallets to the first remote.
+The node sends a package of a few wallets to the biggest remote available
+(with the highest score).
+The package must also include a fee to the wallet that belongs to the
+remote.
 
 The remote stores them as remote copies and performs _pull_.
 
-The node goes to the next remote in the list, until the total score
-of all remotes that accepted the package is above MSS.
+The remote requests all available nodes to pull from it.
+They must do it for free, if their score is lower or equal to the score
+of the requesting node.
 
