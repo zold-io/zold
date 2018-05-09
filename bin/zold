@@ -50,7 +50,7 @@ Encoding.default_internal = Encoding::UTF_8
 log = Zold::Log.new
 
 begin
-  opts = Slop.parse(ARGV, strict: true, help: true) do |o|
+  opts = Slop.parse(ARGV, strict: false, help: true) do |o|
     o.banner = "Usage: zold [options] command [arguments]
 Available commands:
     #{Rainbow('remote').green}
@@ -94,12 +94,12 @@ Available options:"
     end
   end
 
-  if opts.help?
+  raise 'Try --help' if opts.arguments.empty? && !opts.help?
+
+  if opts.help? && opts.arguments.empty?
     log.info(opts.to_s)
     exit
   end
-
-  raise 'Command is required' if opts.arguments.empty?
 
   command = opts.arguments[0]
 

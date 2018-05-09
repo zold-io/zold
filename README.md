@@ -50,9 +50,9 @@ Or do one of the following:
 
   * `zold remote` manipulates the list off remote nodes;
   * `zold create` creates a new wallet (you have to provide PGP keys);
-  * `zold fetch` downloads all versions of the wallet from the network;
-  * `zold merge` merges all versions of the wallet;
-  * `zold pull` does `fetch` and `merge`;
+  * `zold fetch` downloads all copies of the wallet from the network;
+  * `zold merge` merges all copies of the wallet into the local one;
+  * `zold pull` first `fetch`, then `merge`;
   * `zold show` prints out all known details of a wallet (incl. its balance);
   * `zold pay` creates a new transaction;
   * `zold push` pushes a wallet to the network.
