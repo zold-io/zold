@@ -45,7 +45,7 @@ class TestRemotes < Minitest::Test
       remotes = Zold::Remotes.new(file)
       remotes.add('127.0.0.1')
       remotes.add('localhost', 433)
-      remotes.remove('localhost')
+      remotes.remove('localhost', 433)
       assert(remotes.total == 1, "#{remotes.total} is not equal to 1")
     end
   end
@@ -55,8 +55,8 @@ class TestRemotes < Minitest::Test
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
       remotes = Zold::Remotes.new(file)
-      remotes.add('127.0.0.1')
-      remotes.rescore('127.0.0.1', 15)
+      remotes.add('127.0.0.1', 80)
+      remotes.rescore('127.0.0.1', 80, 15)
       assert_equal(remotes.score('127.0.0.1'), 15)
     end
   end

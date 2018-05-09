@@ -34,15 +34,6 @@ require_relative '../lib/zold/key'
 require_relative '../lib/zold/amount'
 require_relative '../lib/zold/copies'
 require_relative '../lib/zold/remotes'
-require_relative '../lib/zold/commands/create'
-require_relative '../lib/zold/commands/pay'
-require_relative '../lib/zold/commands/remote'
-require_relative '../lib/zold/commands/show'
-require_relative '../lib/zold/commands/list'
-require_relative '../lib/zold/commands/fetch'
-require_relative '../lib/zold/commands/merge'
-require_relative '../lib/zold/commands/push'
-require_relative '../lib/zold/node/front'
 
 Encoding.default_external = Encoding::UTF_8
 Encoding.default_internal = Encoding::UTF_8
@@ -112,14 +103,17 @@ Available options:"
   case command
   when 'node'
     raise 'TCP port is required' if args[0].nil?
+    require_relative '../lib/zold/node/front'
     Zold::Front.run!(port: args[0].to_i)
   when 'create'
+    require_relative '../lib/zold/commands/create'
     Zold::Create.new(
       wallets: wallets,
       pubkey: Zold::Key.new(file: opts['public-key']),
       log: log
     ).run(args)
   when 'remote'
+    require_relative '../lib/zold/commands/remote'
     Zold::Remote.new(
       remotes: remotes,
       log: log
@@ -128,6 +122,7 @@ Available options:"
     raise "Payer wallet ID is required" if args[0].nil?
     raise "Recepient wallet ID is required" if args[1].nil?
     raise "Amount is required (in Zolds)" if args[2].nil?
+    require_relative '../lib/zold/commands/pay'
     Zold::Pay.new(
       payer: wallets.find(Zold::Id.new(args[0])),
       receiver: wallets.find(Zold::Id.new(args[1])),
@@ -138,11 +133,13 @@ Available options:"
     ).run(args)
   when 'show'
     if args[0].nil?
+      require_relative '../lib/zold/commands/list'
       Zold::List.new(
         wallets: wallets,
         log: log
       ).run(args)
     else
+      require_relative '../lib/zold/commands/show'
       args.each do |id|
         Zold::Show.new(
           wallet: wallets.find(Zold::Id.new(id)),
@@ -151,6 +148,7 @@ Available options:"
       end
     end
   when 'fetch'
+    require_relative '../lib/zold/commands/fetch'
     args.each do |id|
       Zold::Fetch.new(
         wallet: wallets.find(Zold::Id.new(id)),
@@ -160,6 +158,7 @@ Available options:"
       ).run(args)
     end
   when 'merge'
+    require_relative '../lib/zold/commands/merge'
     args.each do |id|
       Zold::Merge.new(
         wallet: wallets.find(Zold::Id.new(id)),
@@ -168,6 +167,8 @@ Available options:"
       ).run(args)
     end
   when 'pull'
+    require_relative '../lib/zold/commands/fetch'
+    require_relative '../lib/zold/commands/merge'
     args.each do |id|
       Zold::Fetch.new(
         wallet: wallets.find(Zold::Id.new(id)),
@@ -181,6 +182,7 @@ Available options:"
       ).run(args)
     end
   when 'push'
+    require_relative '../lib/zold/commands/push'
     Zold::Push.new(
       wallet: wallets.find(Zold::Id.new(args[0])),
       log: log

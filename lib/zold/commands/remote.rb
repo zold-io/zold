@@ -74,17 +74,20 @@ module Zold
           http.read_timeout = 500
           http.request_get(uri.path) do |response|
             json = JSON.parse(response.body)
-            score = Score.new(json['date'], json['suffixes'])
+            score = Score.new(
+              json['date'], r[:address],
+              r[:port], json['suffixes']
+            )
             if score.valid?
-              @remotes.rescore(r[:address], score.value)
+              @remotes.rescore(r[:address], r[:port], score.value)
               @log.info("#{r[:address]}: #{Rainbow(score.value).green}")
             else
-              @remotes.remove(r[:address])
+              @remotes.remove(r[:address], r[:port])
               @log.info("#{r[:address]}: score is #{Rainbow('invalid').red}")
             end
           end
         rescue StandardError => e
-          @remotes.remove(r[:address])
+          @remotes.remove(r[:address], r[:port])
           @log.info(
             "#{r[:address]} #{Rainbow('removed').red}: \
 #{e.class.name} #{e.message[0..200].gsub(/[^a-zA-Z0-9 -+<>]/, '.')}"

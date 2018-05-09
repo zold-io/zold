@@ -37,26 +37,28 @@ module Zold
       load
     end
 
-    def add(address, port = '80')
+    def add(address, port = 80)
       list = load
       list << { address: address, port: port, score: 0 }
-      list.uniq! { |r| r[:address] }
+      list.uniq! { |r| "#{r[:address]}:#{r[:port]}" }
       save(list)
     end
 
-    def remove(address)
+    def remove(address, port = 80)
       list = load
-      list.reject! { |r| r[:address] == address }
+      list.reject! { |r| r[:address] == address && r[:port] == port }
       save(list)
     end
 
-    def score(address)
-      load.find { |r| r[:address] == address }[:score]
+    def score(address, port = 80)
+      load.find { |r| r[:address] == address && r[:port] == port }[:score]
     end
 
-    def rescore(address, score)
+    def rescore(address, port, score)
       list = load
-      list.find { |r| r[:address] == address }[:score] = score
+      list.find do |r|
+        r[:address] == address && r[:port] == port
+      end[:score] = score
       save(list)
     end
 
