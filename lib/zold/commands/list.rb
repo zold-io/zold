@@ -20,29 +20,28 @@
 
 require_relative '../log.rb'
 
-# PULL command.
+# LIST command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # Wallet pulling command
-  class Pull
-    def initialize(wallet:, log: Log::Quiet.new)
-      @wallet = wallet
+  # LIST command
+  class List
+    def initialize(wallets:, log: Log::Quiet.new)
+      @wallets = wallets
       @log = log
     end
 
-    def run
-      request = Net::HTTP::Get.new("/wallets/#{@wallet.id}")
-      response = Net::HTTP.new('b1.zold.io', 80).start do |http|
-        http.request(request)
+    def run(_ = [])
+      all = @wallets.all
+      if all.empty?
+        @log.info("There are #{Rainbow('no wallets').red} here.")
+      else
+        @wallets.all.each do |id|
+          wallet = Wallet.new(File.join(@wallets.path, id))
+          @log.info("#{id}: #{wallet.balance}")
+        end
       end
-      unless response.code.to_i == 200
-        raise "Failed to pull from the the node, code=#{response.code}"
-      end
-      File.write(@wallet.path, response.body)
-      @log.info("The #{@wallet} pulled from the server")
-      @wallet
     end
   end
 end

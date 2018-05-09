@@ -36,6 +36,10 @@ module Zold
       @file = file
     end
 
+    def ==(other)
+      to_s == other.to_s
+    end
+
     def to_s
       id.to_s
     end
@@ -106,6 +110,10 @@ module Zold
       end
     end
 
+    def txns
+      lines.drop(3).map { |t| fields(t) }.sort_by { |a| a[:date] }
+    end
+
     private
 
     def to_line(txn)
@@ -130,7 +138,7 @@ module Zold
           '[A-Za-z0-9+/]*={0,3}'
         ].join(');(') + ')'
       )
-      raise "Invalid line: #{line}" unless regex.match?(line)
+      raise "Invalid line: #{line}" unless regex.match(line)
       parts = line.split(';')
       {
         id: parts[0].to_i,
@@ -144,10 +152,6 @@ module Zold
 
     def signature(txn)
       "#{txn[:id]};#{txn[:amount].to_i};#{txn[:beneficiary]};#{txn[:details]}"
-    end
-
-    def txns
-      lines.drop(3).map { |t| fields(t) }
     end
 
     def lines

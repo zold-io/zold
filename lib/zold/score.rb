@@ -18,6 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'digest'
+
 # The score.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
@@ -25,16 +27,35 @@
 module Zold
   # Score
   class Score
-    def initialize(date, suffixes)
+    def initialize(date, host, port, suffixes = [], strength: 8)
       @date = date
+      @host = host
+      @port = port
       @suffixes = suffixes
+      @strength = strength
+    end
+
+    def to_s
+      "#{@date} #{@host} #{@port} #{@suffixes.join(' ')}"
+    end
+
+    def next
+      idx = 0
+      loop do
+        suffix = idx.to_s(16)
+        score = Score.new(
+          @date, @host, @port, @suffixes + [suffix],
+          strength: @strength
+        )
+        return score if score.valid?
+        idx += 1
+      end
     end
 
     def valid?
-      require 'digest'
-      @suffixes.reduce(@date) do |prefix, suffix|
+      @suffixes.reduce("#{@date} #{@host} #{@port}") do |prefix, suffix|
         hex = Digest::SHA256.hexdigest(prefix + ' ' + suffix)
-        return false unless hex.end_with?('00000000')
+        return false unless hex.end_with?('0' * @strength)
         hex[0, 19]
       end
       true

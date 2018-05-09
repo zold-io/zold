@@ -28,7 +28,7 @@ require_relative '../version'
 require_relative '../wallet'
 require_relative '../wallets'
 require_relative '../id'
-require_relative '../commands/check'
+require_relative '../commands/show'
 
 # The web front of the node.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -42,13 +42,13 @@ module Zold
       set :lock, Mutex.new
       set :views, (proc { File.join(root, '../../../views') })
       set :show_exceptions, false
-      set :wallets, Wallets.new(Dir.mktmpdir('zold-'))
+      set :wallets, Wallets.new(Dir.pwd)
     end
 
     get '/' do
       haml :index, layout: :layout, locals: {
         title: 'zold',
-        total: settings.wallets.total
+        total: settings.wallets.all.count
       }
     end
 
@@ -83,9 +83,6 @@ module Zold
           unless before.nil?
             after = wallet.version
             error 403 if after < before
-          end
-          unless Check.new(wallet: wallet, wallets: settings.wallets).run
-            error 403
           end
         ensure
           unless temp.nil?

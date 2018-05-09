@@ -32,12 +32,15 @@ require_relative '../lib/zold/wallets'
 require_relative '../lib/zold/log'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/amount'
+require_relative '../lib/zold/copies'
+require_relative '../lib/zold/remotes'
 require_relative '../lib/zold/commands/create'
 require_relative '../lib/zold/commands/pay'
 require_relative '../lib/zold/commands/remote'
-require_relative '../lib/zold/commands/balance'
-require_relative '../lib/zold/commands/check'
-require_relative '../lib/zold/commands/pull'
+require_relative '../lib/zold/commands/show'
+require_relative '../lib/zold/commands/list'
+require_relative '../lib/zold/commands/fetch'
+require_relative '../lib/zold/commands/merge'
 require_relative '../lib/zold/commands/push'
 require_relative '../lib/zold/node/front'
 
@@ -54,20 +57,20 @@ Available commands:
       Manage remote nodes
     #{Rainbow('create').green}
       Creates a new wallet with a random ID
-    #{Rainbow('fetch').green} [id...]
+    #{Rainbow('fetch').green} [ID...]
       Fetch wallet copies from remote nodes
-    #{Rainbow('merge').green} [id...]
+    #{Rainbow('merge').green} [ID...]
       Merge remote copies with the HEAD
-    #{Rainbow('pull').green} [id...]
+    #{Rainbow('pull').green} [ID...]
       Fetch and then merge
-    #{Rainbow('show').green} id
+    #{Rainbow('show').green} [ID...]
       Show all available information about the wallet
     #{Rainbow('pay').green} source target amount details
       Pay ZOLD from one wallet to another
     #{Rainbow('status').green}
       Show status of local copies
-    #{Rainbow('push').green} [id...]
-      Push all local wallets or the ones required
+    #{Rainbow('push').green} [ID...]
+      Push all/some local wallets or the ones required
     #{Rainbow('node').green} port
       Run node at the given TCP port
 Available options:"
@@ -100,63 +103,93 @@ Available options:"
 
   command = opts.arguments[0]
 
+  args = opts.arguments[1..-1]
+
   wallets = Zold::Wallets.new(opts['dir'])
+  remotes = Zold::Remotes.new(File.join(opts['dir'], '.zold/remotes'))
+  copies = File.join(opts['dir'], '.zold/copies')
 
   case command
   when 'node'
-    raise 'TCP port is required' if opts.arguments[1].nil?
-    Zold::Front.run!(port: opts.arguments[1].to_i)
+    raise 'TCP port is required' if args[0].nil?
+    Zold::Front.run!(port: args[0].to_i)
   when 'create'
     Zold::Create.new(
       wallets: wallets,
       pubkey: Zold::Key.new(file: opts['public-key']),
       log: log
-    ).run
+    ).run(args)
   when 'remote'
     Zold::Remote.new(
-      wallets: wallets,
+      remotes: remotes,
       log: log
-    ).run(opts.arguments[1..-1])
+    ).run(args)
   when 'pay'
-    raise "Payer wallet ID is required" if opts.arguments[1].nil?
-    raise "Recepient wallet ID is required" if opts.arguments[2].nil?
-    raise "Amount is required" if opts.arguments[3].nil?
+    raise "Payer wallet ID is required" if args[0].nil?
+    raise "Recepient wallet ID is required" if args[1].nil?
+    raise "Amount is required (in Zolds)" if args[2].nil?
     Zold::Pay.new(
-      payer: wallets.find(Zold::Id.new(opts.arguments[1])),
-      receiver: wallets.find(Zold::Id.new(opts.arguments[2])),
-      amount: Zold::Amount.new(zld: opts.arguments[3].to_f),
-      details: opts.arguments[4] ? opts.arguments[4] : '-',
+      payer: wallets.find(Zold::Id.new(args[0])),
+      receiver: wallets.find(Zold::Id.new(args[1])),
+      amount: Zold::Amount.new(zld: args[2].to_f),
+      details: opts.arguments[4] ? args[3] : '-',
       pvtkey: Zold::Key.new(file: opts['private-key']),
       log: log
-    ).run
-  when 'balance'
-    raise "Wallet ID is required" if opts.arguments[1].nil?
-    Zold::Balance.new(
-      wallet: wallets.find(Zold::Id.new(opts.arguments[1])),
-      log: log
-    ).run
-  when 'check'
-    raise "Wallet ID is required" if opts.arguments[1].nil?
-    Zold::Check.new(
-      wallet: wallets.find(Zold::Id.new(opts.arguments[1])),
-      wallets: wallets,
-      log: log
-    ).run
+    ).run(args)
+  when 'show'
+    if args[0].nil?
+      Zold::List.new(
+        wallets: wallets,
+        log: log
+      ).run(args)
+    else
+      args.each do |id|
+        Zold::Show.new(
+          wallet: wallets.find(Zold::Id.new(id)),
+          log: log
+        ).run(args)
+      end
+    end
+  when 'fetch'
+    args.each do |id|
+      Zold::Fetch.new(
+        wallet: wallets.find(Zold::Id.new(id)),
+        remotes: remotes,
+        copies: Zold::Copies.new(File.join(copies, id)),
+        log: log
+      ).run(args)
+    end
+  when 'merge'
+    args.each do |id|
+      Zold::Merge.new(
+        wallet: wallets.find(Zold::Id.new(id)),
+        copies: Zold::Copies.new(File.join(copies, id)),
+        log: log
+      ).run(args)
+    end
   when 'pull'
-    Zold::Pull.new(
-      wallet: wallets.find(Zold::Id.new(opts.arguments[1])),
-      log: log
-    ).run
+    args.each do |id|
+      Zold::Fetch.new(
+        wallet: wallets.find(Zold::Id.new(id)),
+        copies: Zold::Copies.new(File.join(copies, id)),
+        log: log
+      ).run(args)
+      Zold::Merge.new(
+        wallet: wallets.find(Zold::Id.new(id)),
+        copies: Zold::Copies.new(File.join(copies, id)),
+        log: log
+      ).run(args)
+    end
   when 'push'
     Zold::Push.new(
-      wallet: wallets.find(Zold::Id.new(opts.arguments[1])),
+      wallet: wallets.find(Zold::Id.new(args[0])),
       log: log
-    ).run
+    ).run(args)
   else
     raise "Command '#{command}' is not supported"
   end
 rescue StandardError => ex
-  log.error(ex.message)
+  log.error("#{ex.message} (#{ex.class.name})")
   puts ex.backtrace if opts['trace']
   exit -1
 end

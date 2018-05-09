@@ -19,36 +19,22 @@
 # SOFTWARE.
 
 require_relative '../log.rb'
-require_relative '../id.rb'
-require_relative 'pull.rb'
 
-# CHECK command.
+# FETCH command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # Wallet checking command
-  class Check
-    def initialize(wallet:, wallets:, log: Log::Quiet.new)
+  # FETCH pulling command
+  class Fetch
+    def initialize(wallet:, remotes:, log: Log::Quiet.new)
       @wallet = wallet
-      @wallets = wallets
+      @remotes = remotes
       @log = log
     end
 
-    def run
-      @wallet.income do |t|
-        bnf = Pull.new(
-          wallet: @wallets.find(Id.new(t[:beneficiary])),
-          log: @log
-        ).run
-        bnf.check(t[:id], t[:amount], @wallet.id)
-      end
-      balance = @wallet.balance
-      if balance.negative? && !@wallet.root?
-        raise "Negative balance of #{@wallet} is not allowed: #{balance}"
-      end
-      @log.info("The #{@wallet} is clean")
-      true
+    def run(_ = [])
+      @log.ierror('FETCH is not implemented yet')
     end
   end
 end

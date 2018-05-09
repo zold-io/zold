@@ -113,7 +113,7 @@ class TestWallet < Minitest::Test
         payer: payer, receiver: receiver,
         amount: amount,
         pvtkey: Zold::Key.new(file: 'fixtures/id_rsa')
-      ).run
+      ).run(['--force'])
       assert payer.check(txn, amount, receiver.id)
     end
   end

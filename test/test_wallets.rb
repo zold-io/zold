@@ -36,7 +36,18 @@ class TestWallets < Minitest::Test
       id = Zold::Id.new
       wallet = wallets.find(id)
       wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-      assert(wallets.total == 1, "#{wallets.total} is not equal to 1")
+      assert(wallets.all.count == 1, "#{wallets.all.count} is not equal to 1")
+    end
+  end
+
+  def test_lists_wallets
+    Dir.mktmpdir 'z1' do |dir|
+      wallets = Zold::Wallets.new(dir)
+      FileUtils.touch(File.join(dir, 'hello'))
+      id = Zold::Id.new
+      wallet = wallets.find(id)
+      wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+      assert(wallets.all.count == 1, "#{wallets.all.count} is not equal to 1")
     end
   end
 end

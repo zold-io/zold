@@ -33,7 +33,7 @@ module Zold
       @log = log
     end
 
-    def run
+    def run(_ = [])
       raise 'The wallet is absent' unless @wallet.exists?
       request = Net::HTTP::Put.new("/wallets/#{@wallet.id}")
       request.body = File.read(@wallet.path)

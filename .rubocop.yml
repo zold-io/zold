@@ -23,3 +23,5 @@ Metrics/ParameterLists:
   Max: 10
 Layout/AlignParameters:
   Enabled: false
+Metrics/PerceivedComplexity:
+  Max: 12

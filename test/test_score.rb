@@ -28,13 +28,30 @@ require_relative '../lib/zold/score.rb'
 # License:: MIT
 class TestScore < Minitest::Test
   def test_validates_score
-    score = Zold::Score.new('2017-07-19T21:24:51Z', ['11edb424c'])
+    score = Zold::Score.new(
+      '2017-07-19T21:24:51Z',
+      'localhost', 443,
+      %w[9a81d5 40296e], strength: 6
+    )
     assert(score.valid?)
-    assert_equal(score.value, 1)
+    assert_equal(score.value, 2)
   end
 
   def test_validates_wrong_score
-    score = Zold::Score.new('2017-07-19T21:24:51Z', ['xxxxxxxx', 'zzzzzzzz'])
+    score = Zold::Score.new(
+      '2017-07-19T21:24:51Z',
+      'localhost', 443, %w[xxx yyy zzz]
+    )
+    assert_equal(score.value, 3)
     assert(!score.valid?)
+  end
+
+  def test_finds_next_score
+    score = Zold::Score.new(
+      '2017-07-19T21:24:51Z', 'localhost', 443, strength: 4
+    ).next
+    assert_equal(score.value, 1)
+    assert_equal(score.to_s, '2017-07-19T21:24:51Z localhost 443 1169e')
+    assert(score.valid?)
   end
 end

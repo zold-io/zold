@@ -26,7 +26,12 @@ module Zold
   # Id of the wallet
   class Id
     def initialize(id = nil)
-      @id = id.nil? ? rand(2**32..2**64 - 1) : Integer("0x#{id}", 16)
+      if id.nil?
+        @id = rand(2**32..2**64 - 1)
+      else
+        raise "Invalid wallet ID '#{id}'" unless id =~ /[0-9a-fA-F]{16}/
+        @id = Integer("0x#{id}", 16)
+      end
     end
 
     ROOT = Id.new('0000000000000000')

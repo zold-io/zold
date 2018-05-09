@@ -18,27 +18,23 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'minitest/autorun'
-require 'tmpdir'
-require_relative '../../lib/zold/wallet.rb'
-require_relative '../../lib/zold/key.rb'
-require_relative '../../lib/zold/id.rb'
-require_relative '../../lib/zold/commands/balance.rb'
+require_relative '../log.rb'
 
-# BALANCE test.
+# MERGE command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestBalance < Minitest::Test
-  def test_checks_wallet_balance
-    Dir.mktmpdir 'test' do |dir|
-      id = Zold::Id.new
-      wallet = Zold::Wallets.new(dir).find(id)
-      wallet.init(Zold::Id.new, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-      balance = Zold::Balance.new(
-        wallet: wallet
-      ).run
-      assert balance == Zold::Amount::ZERO
+module Zold
+  # MERGE pulling command
+  class Merge
+    def initialize(wallet:, remotes:, log: Log::Quiet.new)
+      @wallet = wallet
+      @remotes = remotes
+      @log = log
+    end
+
+    def run(_ = [])
+      @log.ierror('MERGE is not implemented yet')
     end
   end
 end

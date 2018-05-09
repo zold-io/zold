@@ -20,16 +20,44 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
-require_relative '../lib/zold'
+require 'English'
 
 # Zold main module test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class TestZold < Minitest::Test
-  def test_basic
+  def test_help
+    stdout = exec('--help')
+    assert(stdout.include?('Usage: zold'))
+  end
+
+  def test_show_version
+    stdout = exec('--version')
+    assert(stdout.include?('1.0.snapshot'))
+  end
+
+  def test_create_new_wallet
     Dir.mktmpdir 'test' do |dir|
-      # tbd...
+      FileUtils.cp('fixtures/id_rsa.pub', dir)
+      FileUtils.cp('fixtures/id_rsa', dir)
+      stdout = exec(
+        'create --private-key id_rsa --public-key id_rsa.pub --trace',
+        dir
+      )
+      assert(stdout.include?('created at'))
     end
+  end
+
+  private
+
+  def exec(tail, dir = Dir.pwd)
+    bin = File.expand_path(File.join(Dir.pwd, 'bin/zold'))
+    stdout = `cd #{dir} && #{bin} #{tail} 2>&1`
+    unless $CHILD_STATUS.exitstatus.zero?
+      puts stdout
+      assert_equal($CHILD_STATUS.exitstatus, 0)
+    end
+    stdout
   end
 end

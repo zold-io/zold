@@ -20,13 +20,13 @@
 
 require_relative '../log.rb'
 
-# BALANCE command.
+# SHOW command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # Balance checking command
-  class Balance
+  # Show command
+  class Show
     def initialize(wallet:, log: Log::Quiet.new)
       @wallet = wallet
       @log = log
@@ -34,7 +34,11 @@ module Zold
 
     def run
       balance = @wallet.balance
-      @log.info("The balance of #{@wallet} is #{balance}")
+      @log.info("The balance of #{@wallet} is #{balance}:")
+      @wallet.txns.each do |t|
+        @log.info("  ##{t[:id]} #{t[:date].utc.iso8601} \
+#{t[:amount]} #{t[:beneficiary]} #{t[:details]}")
+      end
       balance
     end
   end

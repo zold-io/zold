@@ -18,6 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require_relative 'id.rb'
 require_relative 'wallet.rb'
 
 # The local collection of wallets.
@@ -31,12 +32,18 @@ module Zold
       @dir = dir
     end
 
-    def to_s
-      @dir
+    def path
+      File.expand_path(@dir)
     end
 
-    def total
-      Dir.new(@dir).select { |f| File.file?(File.join(@dir, f)) }.count
+    def all
+      Dir.new(@dir).select do |f|
+        file = File.join(@dir, f)
+        File.file?(file) &&
+          !File.directory?(file) &&
+          f =~ /[0-9a-fA-F]{16}/ &&
+          Id.new(f).to_s == f
+      end
     end
 
     def find(id)

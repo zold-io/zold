@@ -20,34 +20,25 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
-require_relative '../lib/zold/amount.rb'
+require_relative '../../lib/zold/wallet.rb'
+require_relative '../../lib/zold/key.rb'
+require_relative '../../lib/zold/id.rb'
+require_relative '../../lib/zold/commands/show.rb'
 
-# Amount test.
+# SHOW test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestAmount < Minitest::Test
-  def test_parses_zld
-    amount = Zold::Amount.new(zld: 14.95)
-    assert(
-      amount.to_s.include?('14.95ZLD'),
-      "#{amount} is not equal to '14.95ZLD'"
-    )
-  end
-
-  def test_parses_coins
-    amount = Zold::Amount.new(coins: 900_000_000)
-    assert(
-      amount.to_s.include?('53.64ZLD'),
-      "#{amount} is not equal to '53.64ZLD'"
-    )
-  end
-
-  def test_compares_amounts
-    amount = Zold::Amount.new(coins: 700_000_000)
-    assert(
-      amount > Zold::Amount::ZERO,
-      "#{amount} is not greater than zero"
-    )
+class TestShow < Minitest::Test
+  def test_checks_wallet_balance
+    Dir.mktmpdir 'test' do |dir|
+      id = Zold::Id.new
+      wallet = Zold::Wallets.new(dir).find(id)
+      wallet.init(Zold::Id.new, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+      balance = Zold::Show.new(
+        wallet: wallet
+      ).run
+      assert balance == Zold::Amount::ZERO
+    end
   end
 end

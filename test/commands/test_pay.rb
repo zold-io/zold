@@ -21,6 +21,7 @@
 require 'minitest/autorun'
 require 'tmpdir'
 require_relative '../../lib/zold/wallet.rb'
+require_relative '../../lib/zold/amount.rb'
 require_relative '../../lib/zold/key.rb'
 require_relative '../../lib/zold/id.rb'
 require_relative '../../lib/zold/commands/pay.rb'
@@ -42,7 +43,7 @@ class TestPay < Minitest::Test
         receiver: target,
         amount: amount,
         pvtkey: Zold::Key.new(file: 'fixtures/id_rsa')
-      ).run
+      ).run(['--force'])
       assert source.balance == amount.mul(-1)
       assert(
         target.balance == amount,

@@ -57,6 +57,14 @@ module Zold
       @coins == other.to_i
     end
 
+    def >(other)
+      @coins > other.to_i
+    end
+
+    def <(other)
+      @coins < other.to_i
+    end
+
     def +(other)
       Amount.new(coins: @coins + other.to_i)
     end

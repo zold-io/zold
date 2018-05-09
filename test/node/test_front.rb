@@ -20,11 +20,17 @@
 
 require 'minitest/autorun'
 require 'rack/test'
+require 'tmpdir'
 require_relative '../../lib/zold/key.rb'
 require_relative '../../lib/zold/id.rb'
 require_relative '../../lib/zold/amount.rb'
 require_relative '../../lib/zold/wallet.rb'
+
+home = Dir.pwd
+temp = Dir.mktmpdir
+FileUtils.chdir(temp)
 require_relative '../../lib/zold/node/front.rb'
+FileUtils.chdir(home)
 
 class FrontTest < Minitest::Test
   include Rack::Test::Methods
@@ -69,7 +75,9 @@ class FrontTest < Minitest::Test
       id = Zold::Id.new
       file = File.join(dir, "#{id}.xml")
       wallet = Zold::Wallet.new(file)
-      wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+      wallet.init(
+        id, Zold::Key.new(file: 'fixtures/id_rsa.pub')
+      )
       put("/wallets/#{id}", File.read(file))
       assert(last_response.ok?, last_response.body)
       get("/wallets/#{id}")

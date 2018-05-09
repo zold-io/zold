@@ -19,8 +19,10 @@
 # SOFTWARE.
 
 require 'rainbow'
+require 'net/http'
 require_relative '../log.rb'
 require_relative '../remotes.rb'
+require_relative '../score.rb'
 
 # REMOTE command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -29,12 +31,12 @@ require_relative '../remotes.rb'
 module Zold
   # Remote command
   class Remote
-    def initialize(wallets:, log: Log::Quiet.new)
-      @remotes = Remotes.new(File.join(wallets.to_s, 'remotes'))
+    def initialize(remotes:, log: Log::Quiet.new)
+      @remotes = remotes
       @log = log
     end
 
-    def run(args)
+    def run(args = [])
       command = args[0]
       case command
       when 'show'
@@ -52,17 +54,42 @@ module Zold
         @log.info("Remote removed: #{host}")
       when 'update'
         update
+        total = @remotes.all.size
+        if total.zero?
+          @log.info("The list of remotes is #{Rainbow('empty').red}!")
+          @log.info("Run 'zold remote add b1.zold.io` and then `zold update`")
+        else
+          @log.info("There are #{total} known remotes")
+        end
       else
         raise "Command '#{command}' is not supported"
       end
     end
 
     def update
-      require 'net/http'
       @remotes.all.each do |r|
-        uri = URI("http://#{r[:address]}:#{r[:port]}/score.json")
-        body = Net::HTTP.get(uri)
-        json = JSON.parse(body)
+        begin
+          uri = URI("http://#{r[:address]}:#{r[:port]}/score.json")
+          http = Net::HTTP.new(uri.host, uri.port)
+          http.read_timeout = 500
+          http.request_get(uri.path) do |response|
+            json = JSON.parse(response.body)
+            score = Score.new(json['date'], json['suffixes'])
+            if score.valid?
+              @remotes.rescore(r[:address], score.value)
+              @log.info("#{r[:address]}: #{Rainbow(score.value).green}")
+            else
+              @remotes.remove(r[:address])
+              @log.info("#{r[:address]}: score is #{Rainbow('invalid').red}")
+            end
+          end
+        rescue StandardError => e
+          @remotes.remove(r[:address])
+          @log.info(
+            "#{r[:address]} #{Rainbow('removed').red}: \
+#{e.class.name} #{e.message[0..200].gsub(/[^a-zA-Z0-9 -+<>]/, '.')}"
+          )
+        end
       end
     end
   end

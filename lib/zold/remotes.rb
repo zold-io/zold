@@ -63,15 +63,14 @@ module Zold
     private
 
     def load
-      if !File.exists?(@file)
+      unless File.exist?(@file)
         FileUtils.copy(
           File.join(File.dirname(__FILE__), '../../resources/remotes'),
           @file
         )
       end
-      File.readlines(@file).map(&:strip).reject(&:empty?).map do |r|
-        address, port, score = r.split(/\s*,\s*/)
-        { address: address, port: port.to_i, score: score.to_i }
+      CSV.read(@file).map do |r|
+        { address: r[0], port: r[1].to_i, score: r[2].to_i }
       end
     end
 
