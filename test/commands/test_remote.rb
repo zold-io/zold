@@ -18,49 +18,41 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'uri'
-require 'json'
-require_relative '../log.rb'
-require_relative '../http.rb'
-require_relative '../score.rb'
+require 'minitest/autorun'
+require 'tmpdir'
+require 'webmock/minitest'
+require_relative '../../lib/zold/wallets.rb'
+require_relative '../../lib/zold/remotes.rb'
+require_relative '../../lib/zold/key.rb'
+require_relative '../../lib/zold/commands/remote.rb'
 
-# FETCH command.
+# REMOTE test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # FETCH pulling command
-  class Fetch
-    def initialize(wallet:, remotes:, copies:, log: Log::Quiet.new)
-      @wallet = wallet
-      @remotes = remotes
-      @copies = copies
-      @log = log
-    end
-
-    def run(_ = [])
-      @remotes.all.each do |r|
-        res = Http.new(URI("#{r[:home]}/wallet/#{@wallet.id}.json")).get
-        if res.code == '200'
-          json = JSON.parse(res.body)
-          score = Score.new(
-            json['score']['date'], r[:host],
-            r[:port], json['score']['suffixes']
-          )
-          if score.valid?
-            @copies.add(json['body'], r[:host], r[:port], score.value)
-            @log.info(
-              "#{r[:host]}:#{r[:port]} #{json['body'].length}b/\
-#{Rainbow(score.value).green}"
-            )
-          else
-            @log.error("#{r[:host]}:#{r[:port]} invalid score")
-          end
-        else
-          @log.error("#{r[:host]}:#{r[:port]} \
-#{Rainbow(res.code).red}/#{res.message}")
-        end
-      end
+class TestRemote < Minitest::Test
+  def test_updates_remote
+    Dir.mktmpdir 'test' do |dir|
+      remotes = Zold::Remotes.new(File.join(dir, 'a/b/c/remotes'))
+      cmd = Zold::Remote.new(remotes: remotes)
+      cmd.run(['clean'])
+      cmd.run(%w[add localhost 1])
+      stub_request(:get, 'http://localhost:1/score.json').to_return(
+        status: 200,
+        body: {
+          'score': {
+            'date': Time.now.utc.iso8601,
+            'suffixes': []
+          }
+        }.to_json
+      )
+      cmd.run(%w[add localhost 2])
+      stub_request(:get, 'http://localhost:2/score.json').to_return(
+        status: 404
+      )
+      assert_equal(remotes.all.count, 2)
+      cmd.run(['update'])
+      assert_equal(1, remotes.all.count)
     end
   end
 end

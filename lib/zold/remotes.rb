@@ -18,6 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'csv'
+
 # The list of remotes.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
@@ -37,27 +39,31 @@ module Zold
       load
     end
 
-    def add(address, port = 80)
+    def clean
+      save([])
+    end
+
+    def add(host, port = 80)
       list = load
-      list << { address: address, port: port, score: 0 }
-      list.uniq! { |r| "#{r[:address]}:#{r[:port]}" }
+      list << { host: host, port: port, score: 0 }
+      list.uniq! { |r| "#{r[:host]}:#{r[:port]}" }
       save(list)
     end
 
-    def remove(address, port = 80)
+    def remove(host, port = 80)
       list = load
-      list.reject! { |r| r[:address] == address && r[:port] == port }
+      list.reject! { |r| r[:host] == host && r[:port] == port }
       save(list)
     end
 
-    def score(address, port = 80)
-      load.find { |r| r[:address] == address && r[:port] == port }[:score]
+    def score(host, port = 80)
+      load.find { |r| r[:host] == host && r[:port] == port }[:score]
     end
 
-    def rescore(address, port, score)
+    def rescore(host, port, score)
       list = load
       list.find do |r|
-        r[:address] == address && r[:port] == port
+        r[:host] == host && r[:port] == port
       end[:score] = score
       save(list)
     end
@@ -65,22 +71,32 @@ module Zold
     private
 
     def load
-      unless File.exist?(@file)
-        FileUtils.copy(
-          File.join(File.dirname(__FILE__), '../../resources/remotes'),
-          @file
-        )
-      end
-      CSV.read(@file).map do |r|
-        { address: r[0], port: r[1].to_i, score: r[2].to_i }
+      CSV.read(file).map do |r|
+        {
+          host: r[0],
+          port: r[1].to_i,
+          score: r[2].to_i,
+          home: "http://#{r[0]}:#{r[1]}"
+        }
       end
     end
 
     def save(list)
       File.write(
-        @file,
-        list.map { |r| "#{r[:address]},#{r[:port]},#{r[:score]}" }.join("\n")
+        file,
+        list.map { |r| "#{r[:host]},#{r[:port]},#{r[:score]}" }.join("\n")
       )
+    end
+
+    def file
+      unless File.exist?(@file)
+        FileUtils.mkdir_p(File.dirname(@file))
+        FileUtils.copy(
+          File.join(File.dirname(__FILE__), '../../resources/remotes'),
+          @file
+        )
+      end
+      @file
     end
   end
 end

@@ -18,49 +18,28 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'uri'
-require 'json'
-require_relative '../log.rb'
-require_relative '../http.rb'
-require_relative '../score.rb'
+require 'rainbow'
+require 'net/http'
 
-# FETCH command.
+# HTTP page.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # FETCH pulling command
-  class Fetch
-    def initialize(wallet:, remotes:, copies:, log: Log::Quiet.new)
-      @wallet = wallet
-      @remotes = remotes
-      @copies = copies
-      @log = log
+  # Http page
+  class Http
+    def initialize(uri)
+      @uri = uri
     end
 
-    def run(_ = [])
-      @remotes.all.each do |r|
-        res = Http.new(URI("#{r[:home]}/wallet/#{@wallet.id}.json")).get
-        if res.code == '200'
-          json = JSON.parse(res.body)
-          score = Score.new(
-            json['score']['date'], r[:host],
-            r[:port], json['score']['suffixes']
-          )
-          if score.valid?
-            @copies.add(json['body'], r[:host], r[:port], score.value)
-            @log.info(
-              "#{r[:host]}:#{r[:port]} #{json['body'].length}b/\
-#{Rainbow(score.value).green}"
-            )
-          else
-            @log.error("#{r[:host]}:#{r[:port]} invalid score")
-          end
-        else
-          @log.error("#{r[:host]}:#{r[:port]} \
-#{Rainbow(res.code).red}/#{res.message}")
-        end
+    def get
+      http = Net::HTTP.new(@uri.host, @uri.port)
+      http.read_timeout = 500
+      http.request_get(@uri.path) do |response|
+        return response
       end
+    rescue StandardError => e
+      return Net::HTTPServerError.new('1.1', 500, e.message)
     end
   end
 end

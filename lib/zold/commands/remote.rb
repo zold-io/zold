@@ -20,7 +20,9 @@
 
 require 'rainbow'
 require 'net/http'
+require 'uri'
 require_relative '../log.rb'
+require_relative '../http.rb'
 require_relative '../remotes.rb'
 require_relative '../score.rb'
 
@@ -42,16 +44,21 @@ module Zold
       when 'show'
         @remotes.all.each do |r|
           score = Rainbow("/#{r[:score]}").color(r[:score] > 0 ? :green : :red)
-          @log.info(r[:address] + Rainbow(":#{r[:port]}").gray + score)
+          @log.info(r[:host] + Rainbow(":#{r[:port]}").gray + score)
         end
+      when 'clean'
+        @remotes.clean
+        @log.info('All remote nodes deleted')
       when 'add'
         host = args[1]
-        @remotes.add(host)
-        @log.info("Remote added: #{host}")
+        port = args[2]
+        @remotes.add(host, port)
+        @log.info("Remote added: #{host}:#{port}")
       when 'remove'
         host = args[1]
-        @remotes.remove(host)
-        @log.info("Remote removed: #{host}")
+        port = args[2]
+        @remotes.remove(host, port)
+        @log.info("Remote removed: #{host}:#{port}")
       when 'update'
         update
         total = @remotes.all.size
@@ -68,29 +75,24 @@ module Zold
 
     def update
       @remotes.all.each do |r|
-        begin
-          uri = URI("http://#{r[:address]}:#{r[:port]}/score.json")
-          http = Net::HTTP.new(uri.host, uri.port)
-          http.read_timeout = 500
-          http.request_get(uri.path) do |response|
-            json = JSON.parse(response.body)
-            score = Score.new(
-              json['date'], r[:address],
-              r[:port], json['suffixes']
-            )
-            if score.valid?
-              @remotes.rescore(r[:address], r[:port], score.value)
-              @log.info("#{r[:address]}: #{Rainbow(score.value).green}")
-            else
-              @remotes.remove(r[:address], r[:port])
-              @log.info("#{r[:address]}: score is #{Rainbow('invalid').red}")
-            end
+        res = Http.new(URI("#{r[:home]}/score.json")).get
+        if res.code == '200'
+          json = JSON.parse(res.body)['score']
+          score = Score.new(
+            json['date'], r[:host],
+            r[:port], json['suffixes']
+          )
+          if score.valid?
+            @remotes.rescore(r[:host], r[:port], score.value)
+            @log.info("#{r[:host]}: #{Rainbow(score.value).green}")
+          else
+            @remotes.remove(r[:host], r[:port])
+            @log.info("#{r[:host]}: score is #{Rainbow('invalid').red}")
           end
-        rescue StandardError => e
-          @remotes.remove(r[:address], r[:port])
+        else
+          @remotes.remove(r[:host], r[:port])
           @log.info(
-            "#{r[:address]} #{Rainbow('removed').red}: \
-#{e.class.name} #{e.message[0..200].gsub(/[^a-zA-Z0-9 -+<>]/, '.')}"
+            "#{r[:host]} #{Rainbow('removed').red}: #{res.message}"
           )
         end
       end

@@ -57,4 +57,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'minitest', '5.5.0'
   s.add_development_dependency 'rdoc', '4.2.0'
   s.add_development_dependency 'rspec-rails', '3.1.0'
+  s.add_development_dependency 'webmock', '3.4.1'
 end

@@ -60,10 +60,10 @@ module Zold
       else
         name = target[:name]
       end
-      list.reject! { |s| s[:address] == host && s[:port] == port }
+      list.reject! { |s| s[:host] == host && s[:port] == port }
       list << {
         name: name,
-        address: host,
+        host: host,
         port: port,
         score: score,
         time: time
@@ -89,7 +89,7 @@ module Zold
       CSV.read(file).map do |s|
         {
           name: s[0],
-          address: s[1],
+          host: s[1],
           port: s[2].to_i,
           score: s[3].to_i,
           time: Time.parse(s[4])
@@ -102,7 +102,7 @@ module Zold
         file,
         list.map do |r|
           [
-            r[:name], r[:address],
+            r[:name], r[:host],
             r[:port], r[:score],
             r[:time].utc.iso8601
           ].join(',')
