@@ -24,6 +24,7 @@ require 'webmock/minitest'
 require_relative '../../lib/zold/wallets.rb'
 require_relative '../../lib/zold/remotes.rb'
 require_relative '../../lib/zold/key.rb'
+require_relative '../../lib/zold/score.rb'
 require_relative '../../lib/zold/commands/remote.rb'
 
 # REMOTE test.
@@ -40,10 +41,7 @@ class TestRemote < Minitest::Test
       stub_request(:get, 'http://localhost:1/score.json').to_return(
         status: 200,
         body: {
-          'score': {
-            'date': Time.now.utc.iso8601,
-            'suffixes': []
-          }
+          'score': Zold::Score.new(Time.now.utc.iso8601, 'localhost', 80).to_h
         }.to_json
       )
       cmd.run(%w[add localhost 2])

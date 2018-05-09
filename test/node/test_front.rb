@@ -61,11 +61,11 @@ class FrontTest < Minitest::Test
       file = File.join(dir, "#{id}.xml")
       wallet = Zold::Wallet.new(file)
       wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-      put("/wallets/#{id}", File.read(file))
+      put("/wallet/#{id}", File.read(file))
       assert(last_response.ok?, last_response.body)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       wallet.sub(Zold::Amount.new(zld: 39.99), Zold::Id.new, key)
-      put("/wallets/#{id}", File.read(file))
+      put("/wallet/#{id}", File.read(file))
       assert(last_response.ok?, last_response.body)
     end
   end
@@ -78,11 +78,11 @@ class FrontTest < Minitest::Test
       wallet.init(
         id, Zold::Key.new(file: 'fixtures/id_rsa.pub')
       )
-      put("/wallets/#{id}", File.read(file))
+      put("/wallet/#{id}", File.read(file))
       assert(last_response.ok?, last_response.body)
-      get("/wallets/#{id}")
+      get("/wallet/#{id}.json")
       assert(last_response.ok?, last_response.body)
-      File.write(file, last_response.body)
+      File.write(file, JSON.parse(last_response.body)['body'])
       assert wallet.balance.zero?
     end
   end

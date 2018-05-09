@@ -28,6 +28,7 @@ require_relative '../../lib/zold/remotes.rb'
 require_relative '../../lib/zold/id.rb'
 require_relative '../../lib/zold/copies.rb'
 require_relative '../../lib/zold/key.rb'
+require_relative '../../lib/zold/score.rb'
 require_relative '../../lib/zold/commands/fetch.rb'
 
 # FETCH test.
@@ -47,10 +48,7 @@ class TestFetch < Minitest::Test
       stub_request(:get, "http://fake-1/wallet/#{id}.json").to_return(
         status: 200,
         body: {
-          'score': {
-            'date': Time.now.utc.iso8601,
-            'suffixes': []
-          },
+          'score': Zold::Score.new(Time.now.utc.iso8601, 'localhost', 80).to_h,
           'body': File.read(wallet.path)
         }.to_json
       )

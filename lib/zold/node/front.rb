@@ -24,6 +24,7 @@ require 'haml'
 require 'json'
 require 'sinatra/base'
 
+require_relative 'farm'
 require_relative '../version'
 require_relative '../wallet'
 require_relative '../wallets'
@@ -43,6 +44,7 @@ module Zold
       set :views, (proc { File.join(root, '../../../views') })
       set :show_exceptions, false
       set :wallets, Wallets.new(Dir.pwd)
+      set :farm, Farm.new(`hostname`, settings.port)
     end
 
     get '/' do
@@ -60,14 +62,17 @@ module Zold
       VERSION
     end
 
-    get %r{/wallets/(?<id>[a-f0-9]{16})/?} do
+    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.json} do
       id = Id.new(params[:id])
       wallet = settings.wallets.find(id)
       error 404 unless wallet.exists?
-      File.read(wallet.path)
+      {
+        'score': settings.farm.best.to_h,
+        'body': File.read(wallet.path)
+      }.to_json
     end
 
-    put %r{/wallets/(?<id>[a-f0-9]{16})/?} do
+    put %r{/wallet/(?<id>[A-Fa-f0-9]{16})/?} do
       settings.lock.synchronize do
         id = Id.new(params[:id])
         wallet = settings.wallets.find(id)

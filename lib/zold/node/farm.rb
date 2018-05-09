@@ -18,62 +18,23 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'digest'
+require 'time'
+require_relative '../score'
 
-# The score.
+# The farm of scores.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # Score
-  class Score
-    # date: UTC ISO 8601 string
-    def initialize(date, host, port, suffixes = [], strength: 8)
-      @date = date
+  # Farm
+  class Farm
+    def initialize(host, port)
       @host = host
       @port = port
-      @suffixes = suffixes
-      @strength = strength
     end
 
-    def to_s
-      "#{@date} #{@host} #{@port} #{@suffixes.join(' ')}"
-    end
-
-    def to_h
-      {
-        host: @host,
-        port: @port,
-        date: @date,
-        suffixes: @suffixes,
-        strength: @strength
-      }
-    end
-
-    def next
-      idx = 0
-      loop do
-        suffix = idx.to_s(16)
-        score = Score.new(
-          @date, @host, @port, @suffixes + [suffix],
-          strength: @strength
-        )
-        return score if score.valid?
-        idx += 1
-      end
-    end
-
-    def valid?
-      @suffixes.reduce("#{@date} #{@host} #{@port}") do |prefix, suffix|
-        hex = Digest::SHA256.hexdigest(prefix + ' ' + suffix)
-        return false unless hex.end_with?('0' * @strength)
-        hex[0, 19]
-      end
-      true
-    end
-
-    def value
-      @suffixes.length
+    def best
+      Score.new(Time.now, @host, @port)
     end
   end
 end
