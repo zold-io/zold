@@ -62,10 +62,18 @@ module Zold
       VERSION
     end
 
+    get '/score.json' do
+      content_type 'application/json'
+      {
+        'score': settings.farm.best.to_h
+      }.to_json
+    end
+
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.json} do
       id = Id.new(params[:id])
       wallet = settings.wallets.find(id)
       error 404 unless wallet.exists?
+      content_type 'application/json'
       {
         'score': settings.farm.best.to_h,
         'body': File.read(wallet.path)

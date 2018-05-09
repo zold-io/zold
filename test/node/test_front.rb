@@ -55,6 +55,12 @@ class FrontTest < Minitest::Test
     assert(last_response.body.include?('zold'))
   end
 
+  def test_fetches_score
+    get('/score.json')
+    assert(last_response.ok?)
+    assert(last_response.body.include?('date'))
+  end
+
   def test_pushes_a_wallet
     Dir.mktmpdir 'test' do |dir|
       id = Zold::Id::ROOT
