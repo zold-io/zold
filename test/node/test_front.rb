@@ -63,7 +63,7 @@ class FrontTest < Minitest::Test
   def test_fetches_score
     get('/score.json')
     assert(last_response.ok?)
-    assert(last_response.body.include?('date'))
+    assert(last_response.body.include?('time'))
   end
 
   def test_pushes_a_wallet

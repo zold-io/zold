@@ -35,11 +35,21 @@ module Zold
     end
 
     def run(args = [])
-      opts = Slop.parse(args, strict: true, help: true) do |o|
-        o.integer '--port', 'TCP port to open for the Net', default: 80
-        o.integer '--bind-port', 'TCP port to listen on', default: 80
-        o.string '--host', 'Host name', required: true
-        o.string '--home', 'Home directory', default: Dir.pwd
+      opts = Slop.parse(args, help: true) do |o|
+        o.banner = 'Usage: zold node [options]'
+        o.integer '--port', 'TCP port to open for the Net (default: 80)',
+          default: 80
+        o.integer '--bind-port', 'TCP port to listen on (default: 80)',
+          default: 80
+        o.string '--host', 'Host name (default: 127.0.0.1)',
+          default: '127.0.0.1'
+        o.string '--home', 'Home directory (default: current directory)',
+          default: Dir.pwd
+        o.bool '--help', 'Print instructions'
+      end
+      if opts.help?
+        @log.info(opts.to_s)
+        return
       end
       Zold::Front.set(:port, opts['bind-port'])
       Zold::Front.set(:wallets, Wallets.new(opts[:home]))

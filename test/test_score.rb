@@ -20,6 +20,7 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
+require 'time'
 require_relative '../lib/zold/score.rb'
 
 # Score test.
@@ -29,7 +30,7 @@ require_relative '../lib/zold/score.rb'
 class TestScore < Minitest::Test
   def test_validates_score
     score = Zold::Score.new(
-      '2017-07-19T21:24:51Z',
+      Time.parse('2017-07-19T21:24:51Z'),
       'localhost', 443,
       %w[9a81d5 40296e], strength: 6
     )
@@ -39,7 +40,7 @@ class TestScore < Minitest::Test
 
   def test_validates_wrong_score
     score = Zold::Score.new(
-      '2017-07-19T21:24:51Z',
+      Time.parse('2017-07-19T21:24:51Z'),
       'localhost', 443, %w[xxx yyy zzz]
     )
     assert_equal(score.value, 3)
@@ -48,7 +49,7 @@ class TestScore < Minitest::Test
 
   def test_finds_next_score
     score = Zold::Score.new(
-      '2017-07-19T21:24:51Z', 'localhost', 443, strength: 4
+      Time.parse('2017-07-19T21:24:51Z'), 'localhost', 443, strength: 4
     ).next
     assert_equal(score.value, 1)
     assert_equal(score.to_s, '2017-07-19T21:24:51Z localhost 443 1169e')

@@ -20,6 +20,7 @@
 
 require 'uri'
 require 'json'
+require 'time'
 require_relative '../log.rb'
 require_relative '../http.rb'
 require_relative '../score.rb'
@@ -44,7 +45,7 @@ module Zold
         if res.code == '200'
           json = JSON.parse(res.body)
           score = Score.new(
-            json['score']['date'], r[:host],
+            Time.parse(json['score']['time']), r[:host],
             r[:port], json['score']['suffixes']
           )
           if score.valid?

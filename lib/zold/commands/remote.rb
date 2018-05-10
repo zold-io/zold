@@ -22,6 +22,7 @@ require 'rainbow'
 require 'net/http'
 require 'uri'
 require 'json'
+require 'time'
 require_relative '../log.rb'
 require_relative '../http.rb'
 require_relative '../remotes.rb'
@@ -83,7 +84,7 @@ module Zold
         if res.code == '200'
           json = JSON.parse(res.body)['score']
           score = Score.new(
-            json['date'], r[:host],
+            Time.parse(json['time']), r[:host],
             r[:port], json['suffixes']
           )
           if score.valid?

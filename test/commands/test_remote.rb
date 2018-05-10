@@ -41,7 +41,7 @@ class TestRemote < Minitest::Test
       stub_request(:get, 'http://localhost:1/score.json').to_return(
         status: 200,
         body: {
-          'score': Zold::Score.new(Time.now.utc.iso8601, 'localhost', 80).to_h
+          'score': Zold::Score.new(Time.now, 'localhost', 80).to_h
         }.to_json
       )
       cmd.run(%w[add localhost 2])

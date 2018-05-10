@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'digest'
+require 'time'
 
 # The score.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -27,9 +28,11 @@ require 'digest'
 module Zold
   # Score
   class Score
-    # date: UTC ISO 8601 string
-    def initialize(date, host, port, suffixes = [], strength: 8)
-      @date = date
+    # time: UTC ISO 8601 string
+    def initialize(time, host, port, suffixes = [], strength: 8)
+      raise 'Time must be of type Time' unless time.is_a?(Time)
+      raise 'Port must be of type Integer' unless port.is_a?(Integer)
+      @time = time
       @host = host
       @port = port
       @suffixes = suffixes
@@ -37,14 +40,14 @@ module Zold
     end
 
     def to_s
-      "#{@date} #{@host} #{@port} #{@suffixes.join(' ')}"
+      "#{@time.utc.iso8601} #{@host} #{@port} #{@suffixes.join(' ')}"
     end
 
     def to_h
       {
         host: @host,
         port: @port,
-        date: @date,
+        time: @time.utc.iso8601,
         suffixes: @suffixes,
         strength: @strength
       }
@@ -55,7 +58,7 @@ module Zold
       loop do
         suffix = idx.to_s(16)
         score = Score.new(
-          @date, @host, @port, @suffixes + [suffix],
+          @time, @host, @port, @suffixes + [suffix],
           strength: @strength
         )
         return score if score.valid?
@@ -64,7 +67,8 @@ module Zold
     end
 
     def valid?
-      @suffixes.reduce("#{@date} #{@host} #{@port}") do |prefix, suffix|
+      start = "#{@time.utc.iso8601} #{@host} #{@port}"
+      @suffixes.reduce(start) do |prefix, suffix|
         hex = Digest::SHA256.hexdigest(prefix + ' ' + suffix)
         return false unless hex.end_with?('0' * @strength)
         hex[0, 19]
