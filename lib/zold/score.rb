@@ -40,11 +40,12 @@ module Zold
     end
 
     def to_s
-      "#{@time.utc.iso8601} #{@host} #{@port} #{@suffixes.join(' ')}"
+      "#{value}: #{@time.utc.iso8601} #{@host} #{@port} #{@suffixes.join(' ')}"
     end
 
     def to_h
       {
+        value: value,
         host: @host,
         port: @port,
         time: @time.utc.iso8601,

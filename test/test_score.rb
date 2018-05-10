@@ -52,7 +52,7 @@ class TestScore < Minitest::Test
       Time.parse('2017-07-19T21:24:51Z'), 'localhost', 443, strength: 4
     ).next
     assert_equal(score.value, 1)
-    assert_equal(score.to_s, '2017-07-19T21:24:51Z localhost 443 1169e')
+    assert_equal(score.to_s, '1: 2017-07-19T21:24:51Z localhost 443 1169e')
     assert(score.valid?)
   end
 end
