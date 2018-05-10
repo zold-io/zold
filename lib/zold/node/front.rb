@@ -21,6 +21,7 @@
 STDOUT.sync = true
 
 require 'haml'
+require 'slop'
 require 'json'
 require 'sinatra/base'
 
@@ -44,7 +45,7 @@ module Zold
       set :views, (proc { File.join(root, '../../../views') })
       set :show_exceptions, false
       set :wallets, Wallets.new(Dir.pwd)
-      set :farm, Farm.new(`hostname`, settings.port)
+      set :farm, Farm.new('localhost', settings.port)
     end
 
     get '/' do

@@ -41,7 +41,7 @@ Encoding.default_internal = Encoding::UTF_8
 log = Zold::Log.new
 
 begin
-  opts = Slop.parse(ARGV, strict: false, help: true) do |o|
+  opts = Slop.parse(ARGV, strict: false, help: true, suppress_errors: true) do |o|
     o.banner = "Usage: zold [options] command [arguments]
 Available commands:
     #{Rainbow('remote').green}
@@ -102,9 +102,8 @@ Available options:"
 
   case command
   when 'node'
-    raise 'TCP port is required' if args[0].nil?
-    require_relative '../lib/zold/node/front'
-    Zold::Front.run!(port: args[0].to_i)
+    require_relative '../lib/zold/commands/node'
+    Zold::Node.new(log: log).run(args)
   when 'create'
     require_relative '../lib/zold/commands/create'
     Zold::Create.new(
