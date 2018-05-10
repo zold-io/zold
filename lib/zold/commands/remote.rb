@@ -21,6 +21,7 @@
 require 'rainbow'
 require 'net/http'
 require 'uri'
+require 'json'
 require_relative '../log.rb'
 require_relative '../http.rb'
 require_relative '../remotes.rb'
@@ -64,7 +65,9 @@ module Zold
         total = @remotes.all.size
         if total.zero?
           @log.info("The list of remotes is #{Rainbow('empty').red}!")
-          @log.info("Run 'zold remote add b1.zold.io` and then `zold update`")
+          @log.info(
+            "Run 'zold remote add b1.zold.io 80` and then `zold update`"
+          )
         else
           @log.info("There are #{total} known remotes")
         end
@@ -75,7 +78,8 @@ module Zold
 
     def update
       @remotes.all.each do |r|
-        res = Http.new(URI("#{r[:home]}/score.json")).get
+        uri = URI("#{r[:home]}/score.json")
+        res = Http.new(uri).get
         if res.code == '200'
           json = JSON.parse(res.body)['score']
           score = Score.new(
@@ -92,7 +96,7 @@ module Zold
         else
           @remotes.remove(r[:host], r[:port])
           @log.info(
-            "#{r[:host]} #{Rainbow('removed').red}: #{res.message}"
+            "#{r[:host]} #{Rainbow('removed').red}: #{res.message} at #{uri}"
           )
         end
       end

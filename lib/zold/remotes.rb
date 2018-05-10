@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'csv'
+require 'fileutils'
 
 # The list of remotes.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

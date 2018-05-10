@@ -70,6 +70,19 @@ module Zold
       }.to_json
     end
 
+    get '/score.txt' do
+      content_type 'text/plain'
+      settings.farm.best.to_s
+    end
+
+    get '/score.html' do
+      error 404
+    end
+
+    get '/score.xml' do
+      error 404
+    end
+
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.json} do
       id = Id.new(params[:id])
       wallet = settings.wallets.find(id)
@@ -79,6 +92,14 @@ module Zold
         'score': settings.farm.best.to_h,
         'body': File.read(wallet.path)
       }.to_json
+    end
+
+    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.txt} do
+      id = Id.new(params[:id])
+      wallet = settings.wallets.find(id)
+      error 404 unless wallet.exists?
+      content_type 'text/plain'
+      File.read(wallet.path)
     end
 
     put %r{/wallet/(?<id>[A-Fa-f0-9]{16})/?} do

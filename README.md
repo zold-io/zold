@@ -220,11 +220,11 @@ The full list of RESTful resources:
 
   * `/index.(html|json|xml)` (GET): status page of the node
 
-  * `/score.(html|json|xml)` (GET): score data
+  * `/score.(txt|html|json|xml)` (GET): score data
 
   * `/remotes.(html|json|xml)` (GET): load all known remotes
 
-  * `/wallet/<ID>` (GET): fetch wallet
+  * `/wallet/<ID>.(txt|json)` (GET): fetch wallet
 
   * `/wallet/<ID>` (PUT): push wallet
 

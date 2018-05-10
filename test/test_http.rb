@@ -20,6 +20,8 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
+require 'uri'
+require 'webmock/minitest'
 require_relative '../lib/zold/http.rb'
 
 # Http test.
@@ -28,6 +30,13 @@ require_relative '../lib/zold/http.rb'
 # License:: MIT
 class TestHttp < Minitest::Test
   def test_pings_broken_uri
-    assert_equal(500, Zold::Http.new('http://localhost:999/broken').get.code)
+    stub_request(:get, 'http://bad-host/').to_return(status: 500)
+    assert_equal('500', Zold::Http.new(URI('http://bad-host/')).get.code)
+  end
+
+  def test_pings_live_uri
+    stub_request(:get, 'http://good-host/').to_return(status: 200)
+    res = Zold::Http.new(URI('http://good-host/')).get
+    assert_equal('200', res.code)
   end
 end
