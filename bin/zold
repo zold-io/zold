@@ -41,7 +41,7 @@ Encoding.default_internal = Encoding::UTF_8
 log = Zold::Log.new
 
 begin
-  opts = Slop.parse(ARGV, suppress_errors: true) do |o|
+  opts = Slop.parse(ARGV, strict: false, suppress_errors: true) do |o|
     o.banner = "Usage: zold [options] command [arguments]
 Available commands:
     #{Rainbow('remote').green}
@@ -94,7 +94,7 @@ Available options:"
 
   command = opts.arguments[0]
 
-  args = ARGV[ARGV.index(command)..-1]
+  args = ARGV[(ARGV.index(command) + 1)..-1]
 
   wallets = Zold::Wallets.new(opts['dir'])
   remotes = Zold::Remotes.new(File.join(opts['dir'], '.zold/remotes'))

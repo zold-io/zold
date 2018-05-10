@@ -41,12 +41,15 @@ module Zold
 
     def run(_ = [])
       @remotes.all.each do |r|
-        res = Http.new(URI("#{r[:home]}/wallet/#{@wallet.id}.json")).get
+        uri = URI("#{r[:home]}/wallet/#{@wallet.id}.json")
+        res = Http.new(uri).get
         if res.code == '200'
           json = JSON.parse(res.body)
           score = Score.new(
-            Time.parse(json['score']['time']), r[:host],
-            r[:port], json['score']['suffixes']
+            Time.parse(json['score']['time']),
+            r[:host],
+            r[:port],
+            json['score']['suffixes']
           )
           if score.valid?
             @copies.add(json['body'], r[:host], r[:port], score.value)
@@ -59,7 +62,7 @@ module Zold
           end
         else
           @log.error("#{r[:host]}:#{r[:port]} \
-#{Rainbow(res.code).red}/#{res.message}")
+#{Rainbow(res.code).red}/#{res.message} at #{uri}")
         end
       end
     end
