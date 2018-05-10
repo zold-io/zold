@@ -49,8 +49,13 @@ class FrontTest < Minitest::Test
     assert(last_response.ok?)
   end
 
-  def test_it_renders_home_page
+  def test_redirects_home
     get('/')
+    assert_equal(302, last_response.status)
+  end
+
+  def test_it_renders_home_page
+    get('/index.html')
     assert(last_response.ok?)
     assert(last_response.body.include?('zold'))
   end

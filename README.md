@@ -218,11 +218,11 @@ to the score of the node.
 
 The full list of RESTful resources:
 
-  * `/index.(html|json|xml)` (GET): status page of the node
+  * `/index.html` (GET): status page of the node
 
-  * `/score.(txt|html|json|xml)` (GET): score data
+  * `/score.(txt|json)` (GET): score data
 
-  * `/remotes.(html|json|xml)` (GET): load all known remotes
+  * `/remotes.(txt|json)` (GET): load all known remotes
 
   * `/wallet/<ID>.(txt|json)` (GET): fetch wallet
 

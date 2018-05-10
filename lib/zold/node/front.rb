@@ -49,6 +49,10 @@ module Zold
     end
 
     get '/' do
+      redirect '/index.html'
+    end
+
+    get '/index.html' do
       haml :index, layout: :layout, locals: {
         title: 'zold',
         total: settings.wallets.all.count
@@ -73,14 +77,6 @@ module Zold
     get '/score.txt' do
       content_type 'text/plain'
       settings.farm.best.to_s
-    end
-
-    get '/score.html' do
-      error 404
-    end
-
-    get '/score.xml' do
-      error 404
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.json} do
