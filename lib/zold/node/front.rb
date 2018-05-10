@@ -63,6 +63,10 @@ module Zold
       'User-agent: *'
     end
 
+    get '/favicon.ico' do
+      redirect 'https://www.zold.io/logo.png'
+    end
+
     get '/version' do
       VERSION
     end
