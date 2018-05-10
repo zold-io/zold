@@ -1,1 +1,1 @@
-web: LC_ALL=UTF-8 ./bin/zold node --port $PORT --host b1.zold.io
+web: LC_ALL=UTF-8 ./bin/zold node --bind-port $PORT --port 80 --host b1.zold.io
