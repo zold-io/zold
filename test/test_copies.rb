@@ -40,6 +40,13 @@ class TestCopies < Minitest::Test
     end
   end
 
+  def test_lists_empty_dir
+    Dir.mktmpdir 'test' do |dir|
+      copies = Zold::Copies.new(File.join(dir, 'xxx'))
+      assert(copies.all.empty?, "#{copies.all.count} is not zero")
+    end
+  end
+
   def test_overwrites_host
     Dir.mktmpdir 'test' do |dir|
       copies = Zold::Copies.new(File.join(dir, 'my/a/copies'))

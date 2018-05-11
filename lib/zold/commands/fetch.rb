@@ -40,6 +40,7 @@ module Zold
     end
 
     def run(_ = [])
+      total = 0
       @remotes.all.each do |r|
         uri = URI("#{r[:home]}/wallet/#{@wallet.id}.json")
         res = Http.new(uri).get
@@ -52,6 +53,7 @@ module Zold
             json['score']['suffixes']
           )
           if score.valid?
+            total += 1
             @copies.add(json['body'], r[:host], r[:port], score.value)
             @log.info(
               "#{r[:host]}:#{r[:port]} #{json['body'].length}b/\
@@ -65,6 +67,9 @@ module Zold
 #{Rainbow(res.code).red}/#{res.message} at #{uri}")
         end
       end
+      @log.info("#{total} copies fetched, \
+there are #{@copies.all.count} available locally; \
+run 'zold clean' to remove expired copies")
     end
   end
 end

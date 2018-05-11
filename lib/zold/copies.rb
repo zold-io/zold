@@ -89,6 +89,7 @@ module Zold
     private
 
     def load
+      FileUtils.mkdir_p(File.dirname(file))
       FileUtils.touch(file)
       CSV.read(file).map do |s|
         {
