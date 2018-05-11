@@ -35,9 +35,7 @@ class TestShow < Minitest::Test
       id = Zold::Id.new
       wallet = Zold::Wallets.new(dir).find(id)
       wallet.init(Zold::Id.new, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-      balance = Zold::Show.new(
-        wallet: wallet
-      ).run
+      balance = Zold::Show.new(wallet: wallet).run
       assert balance == Zold::Amount::ZERO
     end
   end
