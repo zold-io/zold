@@ -56,7 +56,7 @@ module Zold
       end
       Zold::Front.set(:port, opts['bind-port'])
       Zold::Front.set(:wallets, Wallets.new(opts[:home]))
-      farm = Farm.new
+      farm = Farm.new(log: @log)
       farm.start(opts[:host], opts[:port], threads: opts[:threads])
       Zold::Front.set(:farm, farm)
       Zold::Front.run!
