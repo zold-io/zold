@@ -33,14 +33,9 @@ module Zold
     end
 
     def run(_ = [])
-      all = @wallets.all
-      if all.empty?
-        @log.info("There are #{Rainbow('no wallets').red} here.")
-      else
-        @wallets.all.each do |id|
-          wallet = Wallet.new(File.join(@wallets.path, id))
-          @log.info("#{id}: #{wallet.balance}")
-        end
+      @wallets.all.each do |id|
+        wallet = Wallet.new(File.join(@wallets.path, id))
+        @log.info("#{id}: #{wallet.balance}")
       end
     end
   end

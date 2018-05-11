@@ -40,7 +40,7 @@ module Zold
       wallet = @wallets.find(id)
       wallet.init(id, @pubkey)
       @log.info("Wallet #{Rainbow(wallet).green} \
-created at #{@wallets.path}.")
+created at #{@wallets.path}")
       wallet
     end
   end

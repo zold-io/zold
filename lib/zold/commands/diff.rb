@@ -52,7 +52,7 @@ module Zold
         after = File.read(f)
       end
       diff = Diffy::Diff.new(before, after, context: 0).to_s(:color)
-      @log.info("Here is the difference:\n" + diff)
+      @log.info(diff)
       diff
     end
   end

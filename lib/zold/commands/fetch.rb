@@ -68,8 +68,7 @@ module Zold
         end
       end
       @log.info("#{total} copies fetched, \
-there are #{@copies.all.count} available locally; \
-run 'zold clean' to remove expired copies")
+there are #{@copies.all.count} available locally")
     end
   end
 end
