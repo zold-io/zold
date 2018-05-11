@@ -45,6 +45,9 @@ module Zold
           default: '127.0.0.1'
         o.string '--home', 'Home directory (default: current directory)',
           default: Dir.pwd
+        o.string '--threads',
+          'How many threads to use for scores finding (default: 8)',
+          default: 8
         o.bool '--help', 'Print instructions'
       end
       if opts.help?
@@ -53,7 +56,9 @@ module Zold
       end
       Zold::Front.set(:port, opts['bind-port'])
       Zold::Front.set(:wallets, Wallets.new(opts[:home]))
-      Zold::Front.set(:farm, Farm.new(opts[:host], opts[:port]))
+      farm = Farm.new
+      farm.start(opts[:host], opts[:port], threads: opts[:threads])
+      Zold::Front.set(:farm, farm)
       Zold::Front.run!
     end
   end

@@ -45,7 +45,7 @@ module Zold
       set :views, (proc { File.join(root, '../../../views') })
       set :show_exceptions, false
       set :wallets, Wallets.new(Dir.pwd)
-      set :farm, Farm.new('localhost', settings.port)
+      set :farm, Farm.new
     end
 
     get '/' do
@@ -74,13 +74,13 @@ module Zold
     get '/score.json' do
       content_type 'application/json'
       {
-        'score': settings.farm.best.to_h
+        'score': score.to_h
       }.to_json
     end
 
     get '/score.txt' do
       content_type 'text/plain'
-      settings.farm.best.to_s
+      score.to_s
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.json} do
@@ -89,7 +89,7 @@ module Zold
       error 404 unless wallet.exists?
       content_type 'application/json'
       {
-        'score': settings.farm.best.to_h,
+        'score': score.to_h,
         'body': File.read(wallet.path)
       }.to_json
     end
@@ -139,6 +139,14 @@ module Zold
       status 503
       e = env['sinatra.error']
       "#{e.message}\n\t#{e.backtrace.join("\n\t")}"
+    end
+
+    private
+
+    def score
+      best = settings.farm.best
+      error 404 if best.empty?
+      best[0]
     end
   end
 end

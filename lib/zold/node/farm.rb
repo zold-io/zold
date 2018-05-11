@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'time'
+require_relative '../log'
 require_relative '../score'
 
 # The farm of scores.
@@ -28,13 +29,49 @@ require_relative '../score'
 module Zold
   # Farm
   class Farm
-    def initialize(host, port)
-      @host = host
-      @port = port
+    attr_reader :best
+    def initialize(log: Log::Quiet.new)
+      @log = log
+      @scores = []
+      @threads = []
+      @best = []
+      @best << Score.new(Time.now, 'localhost', 80)
+      @semaphore = Mutex.new
     end
 
-    def best
-      Score.new(Time.now, @host, @port)
+    def start(host, port, strength: 8, threads: 8)
+      @best = []
+      @scores = Queue.new
+      @scores << Score.new(Time.now, host, port, strength: strength)
+      @threads = (1..threads).map do |t|
+        Thread.new do
+          Thread.current.name = "farm-#{t}"
+          @log.info("Thread #{Thread.current.name} started")
+          loop do
+            s = @scores.pop
+            @semaphore.synchronize do
+              before = @best.map(&:value).max
+              @best << s
+              after = @best.map(&:value).max
+              @best.reject! { |b| b.value < after }
+              if before != after
+                @log.info("#{Thread.current.name}: best is #{@best[0]}")
+              end
+            end
+            if @scores.length < 4
+              @scores << Score.new(Time.now, host, port, strength: strength)
+            end
+            @scores << s.next
+          end
+        end
+      end
+    end
+
+    def stop
+      @threads.each do |t|
+        t.exit
+        @log.info("Thread #{t.name} terminated")
+      end
     end
   end
 end

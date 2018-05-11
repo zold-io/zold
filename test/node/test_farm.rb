@@ -18,40 +18,17 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'rainbow'
+require 'minitest/autorun'
+require 'rack/test'
+require 'tmpdir'
+require_relative '../../lib/zold/node/farm.rb'
 
-# The log.
-# Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
-# License:: MIT
-module Zold
-  # Logging
-  class Log
-    def initialize
-      @mutex = Mutex.new
-    end
-
-    def info(msg)
-      @mutex.synchronize do
-        puts msg
-      end
-    end
-
-    def error(msg)
-      @mutex.synchronize do
-        puts "#{Rainbow('ERROR').red}: #{msg}"
-      end
-    end
-
-    # Log that doesn't log anything
-    class Quiet
-      def info(msg)
-        # nothing to do here
-      end
-
-      def error(msg)
-        # nothing to do here
-      end
-    end
+class FarmTest < Minitest::Test
+  def test_makes_best_score_in_background
+    farm = Zold::Farm.new
+    farm.start('localhost', 80, threads: 4, strength: 2)
+    sleep 1 while farm.best.empty? || farm.best[0].value.zero?
+    assert(farm.best[0].value > 0)
+    farm.stop
   end
 end
