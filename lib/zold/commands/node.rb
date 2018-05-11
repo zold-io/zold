@@ -45,7 +45,7 @@ module Zold
           default: '127.0.0.1'
         o.string '--home', 'Home directory (default: current directory)',
           default: Dir.pwd
-        o.string '--threads',
+        o.integer '--threads',
           'How many threads to use for scores finding (default: 8)',
           default: 8
         o.bool '--help', 'Print instructions'
