@@ -49,6 +49,7 @@ module Zold
           @log.info("Thread #{Thread.current.name} started")
           loop do
             s = @scores.pop
+            next unless s.valid?
             @semaphore.synchronize do
               before = @best.map(&:value).max
               @best << s
