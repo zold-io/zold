@@ -62,6 +62,17 @@ class TestWallet < Minitest::Test
     end
   end
 
+  def test_adds_transaction_and_reads_back
+    Dir.mktmpdir 'test' do |dir|
+      wallet = wallet(dir)
+      amount = Zold::Amount.new(zld: 39.99)
+      key = Zold::Key.new(file: 'fixtures/id_rsa')
+      txn = wallet.sub(amount, Zold::Id.new, key)
+      wallet.add(txn)
+      assert(!Zold::Wallet.new(wallet.path).txns[0][:sign].end_with?("\n"))
+    end
+  end
+
   def test_initializes_it
     Dir.mktmpdir 'test' do |dir|
       pkey = Zold::Key.new(file: 'fixtures/id_rsa.pub')
@@ -84,13 +95,13 @@ class TestWallet < Minitest::Test
       wallet.add(
         id: 1,
         date: Time.now, amount: Zold::Amount.new(zld: 39.99),
-        beneficiary: Zold::Id.new,
+        bnf: Zold::Id.new,
         details: '-'
       )
       wallet.add(
         id: 2,
         date: Time.now, amount: Zold::Amount.new(zld: 14.95),
-        beneficiary: Zold::Id.new,
+        bnf: Zold::Id.new,
         details: '-'
       )
       sum = Zold::Amount::ZERO
@@ -101,20 +112,6 @@ class TestWallet < Minitest::Test
         sum == Zold::Amount.new(coins: 921_740_246),
         "#{sum} is not equal to #{Zold::Amount.new(zld: 54.94)}"
       )
-    end
-  end
-
-  def test_checks_transaction
-    Dir.mktmpdir 'test' do |dir|
-      payer = wallet(dir)
-      receiver = wallet(dir)
-      amount = Zold::Amount.new(zld: 14.95)
-      txn = Zold::Pay.new(
-        payer: payer, receiver: receiver,
-        amount: amount,
-        pvtkey: Zold::Key.new(file: 'fixtures/id_rsa')
-      ).run(['--force'])
-      assert payer.check(txn, amount, receiver.id)
     end
   end
 

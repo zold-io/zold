@@ -18,42 +18,28 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'slop'
-require_relative '../log.rb'
+require 'minitest/autorun'
+require 'tmpdir'
+require_relative '../lib/zold/key.rb'
+require_relative '../lib/zold/id.rb'
+require_relative '../lib/zold/amount.rb'
+require_relative '../lib/zold/signature.rb'
 
-# PAY command.
+# Signature test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # Money sending command
-  class Pay
-    def initialize(payer:, receiver:, amount:,
-      pvtkey:, details: '-', log: Log::Quiet.new)
-      @payer = payer
-      @receiver = receiver
-      @amount = amount
-      @pvtkey = pvtkey
-      @details = details
-      @log = log
-    end
-
-    def run(args = [])
-      opts = Slop.parse(args) do |o|
-        o.bool '--force', 'Ignore all validations'
-      end
-      unless opts['force']
-        raise "The amount can't be negative: #{@amount}" if @amount.negative?
-        raise "Payer and receiver are equal: #{@payer}" if @payer == @receiver
-        if !@payer.root? && @payer.balance < @amount
-          raise "There is not enough funds in #{@payer} to send #{@amount}, \
-  only #{@payer.balance} left"
-        end
-      end
-      txn = @payer.sub(@amount, @receiver.id, @pvtkey, @details)
-      @receiver.add(txn)
-      @log.info("#{@amount} sent from #{@payer} to #{@receiver}: #{@details}")
-      txn
-    end
+class TestSignature < Minitest::Test
+  def test_signs_and_validates
+    pvt = Zold::Key.new(file: 'fixtures/id_rsa')
+    pub = Zold::Key.new(file: 'fixtures/id_rsa.pub')
+    txn = {
+      id: 123,
+      details: 'How are you?',
+      bnf: Zold::Id.new.to_s,
+      amount: Zold::Amount.new(zld: 14.95)
+    }
+    txn[:sign] = Zold::Signature.new.sign(pvt, txn)
+    assert(Zold::Signature.new.valid?(pub, txn))
   end
 end

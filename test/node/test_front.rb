@@ -69,7 +69,7 @@ class FrontTest < Minitest::Test
   def test_pushes_a_wallet
     Dir.mktmpdir 'test' do |dir|
       id = Zold::Id::ROOT
-      file = File.join(dir, "#{id}.xml")
+      file = File.join(dir, id.to_s)
       wallet = Zold::Wallet.new(file)
       wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
       put("/wallet/#{id}", File.read(file))
@@ -84,7 +84,7 @@ class FrontTest < Minitest::Test
   def test_pulls_a_wallet
     Dir.mktmpdir 'test' do |dir|
       id = Zold::Id.new
-      file = File.join(dir, "#{id}.xml")
+      file = File.join(dir, id.to_s)
       wallet = Zold::Wallet.new(file)
       wallet.init(
         id, Zold::Key.new(file: 'fixtures/id_rsa.pub')

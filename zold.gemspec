@@ -45,6 +45,7 @@ Gem::Specification.new do |s|
   s.rdoc_options = ['--charset=UTF-8']
   s.extra_rdoc_files = ['README.md', 'LICENSE.txt']
   s.add_runtime_dependency 'cucumber', '1.3.17'
+  s.add_runtime_dependency 'diffy'
   s.add_runtime_dependency 'haml', '5.0.3'
   s.add_runtime_dependency 'rainbow', '~>3.0'
   s.add_runtime_dependency 'rake', '12.0.0'

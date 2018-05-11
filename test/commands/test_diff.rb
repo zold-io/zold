@@ -24,42 +24,38 @@ require 'json'
 require 'time'
 require 'webmock/minitest'
 require_relative '../../lib/zold/wallet.rb'
-require_relative '../../lib/zold/remotes.rb'
 require_relative '../../lib/zold/id.rb'
 require_relative '../../lib/zold/copies.rb'
 require_relative '../../lib/zold/key.rb'
-require_relative '../../lib/zold/score.rb'
-require_relative '../../lib/zold/commands/fetch.rb'
+require_relative '../../lib/zold/commands/pay.rb'
+require_relative '../../lib/zold/commands/diff.rb'
 
-# FETCH test.
+# DIFF test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestFetch < Minitest::Test
-  def test_fetches_wallet
+class TestDiff < Minitest::Test
+  def test_diff_with_copies
     Dir.mktmpdir 'test' do |dir|
       id = Zold::Id.new
       file = File.join(dir, id.to_s)
       wallet = Zold::Wallet.new(file)
       wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+      first = Zold::Wallet.new(File.join(dir, 'copy-1'))
+      File.write(first.path, File.read(wallet.path))
+      second = Zold::Wallet.new(File.join(dir, 'copy-2'))
+      File.write(second.path, File.read(wallet.path))
+      Zold::Pay.new(
+        payer: first,
+        receiver: second,
+        amount: Zold::Amount.new(zld: 14.95),
+        pvtkey: Zold::Key.new(file: 'fixtures/id_rsa')
+      ).run(['--force'])
       copies = Zold::Copies.new(File.join(dir, 'copies'))
-      remotes = Zold::Remotes.new(File.join(dir, 'remotes.csv'))
-      remotes.clean
-      stub_request(:get, "http://fake-1/wallet/#{id}.json").to_return(
-        status: 200,
-        body: {
-          'score': Zold::Score.new(Time.now, 'localhost', 80).to_h,
-          'body': File.read(wallet.path)
-        }.to_json
-      )
-      stub_request(:get, "http://fake-2/wallet/#{id}.json").to_return(
-        status: 404
-      )
-      remotes.add('fake-1', 80)
-      remotes.add('fake-2', 80)
-      Zold::Fetch.new(wallet: wallet, copies: copies, remotes: remotes).run
-      assert_equal(copies.all[0][:name], '1')
-      assert_equal(copies.all[0][:score], 0)
+      copies.add(File.read(first.path), 'host-1', 80, 5)
+      copies.add(File.read(second.path), 'host-2', 80, 5)
+      diff = Zold::Diff.new(wallet: wallet, copies: copies).run
+      assert(diff.include?('+1;'))
     end
   end
 end

@@ -20,46 +20,40 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
-require 'json'
-require 'time'
-require 'webmock/minitest'
-require_relative '../../lib/zold/wallet.rb'
-require_relative '../../lib/zold/remotes.rb'
-require_relative '../../lib/zold/id.rb'
-require_relative '../../lib/zold/copies.rb'
-require_relative '../../lib/zold/key.rb'
-require_relative '../../lib/zold/score.rb'
-require_relative '../../lib/zold/commands/fetch.rb'
+require_relative '../lib/zold/key.rb'
+require_relative '../lib/zold/id.rb'
+require_relative '../lib/zold/wallet.rb'
+require_relative '../lib/zold/amount.rb'
+require_relative '../lib/zold/patch.rb'
 
-# FETCH test.
+# Patch test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestFetch < Minitest::Test
-  def test_fetches_wallet
+class TestPatch < Minitest::Test
+  def test_builds_patch
     Dir.mktmpdir 'test' do |dir|
       id = Zold::Id.new
-      file = File.join(dir, id.to_s)
-      wallet = Zold::Wallet.new(file)
-      wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-      copies = Zold::Copies.new(File.join(dir, 'copies'))
-      remotes = Zold::Remotes.new(File.join(dir, 'remotes.csv'))
-      remotes.clean
-      stub_request(:get, "http://fake-1/wallet/#{id}.json").to_return(
-        status: 200,
-        body: {
-          'score': Zold::Score.new(Time.now, 'localhost', 80).to_h,
-          'body': File.read(wallet.path)
-        }.to_json
-      )
-      stub_request(:get, "http://fake-2/wallet/#{id}.json").to_return(
-        status: 404
-      )
-      remotes.add('fake-1', 80)
-      remotes.add('fake-2', 80)
-      Zold::Fetch.new(wallet: wallet, copies: copies, remotes: remotes).run
-      assert_equal(copies.all[0][:name], '1')
-      assert_equal(copies.all[0][:score], 0)
+      key = Zold::Key.new(file: 'fixtures/id_rsa')
+      first = Zold::Wallet.new(File.join(dir, 'first'))
+      second = Zold::Wallet.new(File.join(dir, 'second'))
+      third = Zold::Wallet.new(File.join(dir, 'third'))
+      first.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+      File.write(second.path, File.read(first.path))
+      first.sub(Zold::Amount.new(zld: 39), Zold::Id.new, key)
+      first.sub(Zold::Amount.new(zld: 11), Zold::Id.new, key)
+      first.sub(Zold::Amount.new(zld: 3), Zold::Id.new, key)
+      second.sub(Zold::Amount.new(zld: 44), Zold::Id.new, key)
+      File.write(third.path, File.read(first.path))
+      t = third.sub(Zold::Amount.new(zld: 10), Zold::Id.new, key)
+      third.add(t)
+      patch = Zold::Patch.new
+      patch.start(first)
+      patch.join(second)
+      patch.join(third)
+      FileUtils.rm(first.path)
+      patch.save(first.path)
+      assert_equal(Zold::Amount.new(zld: -53), first.balance)
     end
   end
 end

@@ -43,8 +43,11 @@ module Zold
 
     def add(content, host, port, score, time = Time.now)
       raise "Content can't be empty" if content.empty?
+      raise 'TCP port must be of type Integer' unless port.is_a?(Integer)
       raise "TCP port can't be negative: #{port}" if port < 0
+      raise 'Time must be of type Time' unless time.is_a?(Time)
       raise "Time must be in the past: #{time}" if time > Time.now
+      raise 'Score must be Integer' unless score.is_a?(Integer)
       raise "Score can't be negative: #{score}" if score < 0
       FileUtils.mkdir_p(@dir)
       list = load
@@ -75,6 +78,7 @@ module Zold
       load.group_by { |s| s[:name] }.map do |name, scores|
         {
           name: name,
+          path: File.join(@dir, name),
           score: scores.select { |s| s[:time] > Time.now - 24 }
             .map { |s| s[:score] }
             .inject(&:+)

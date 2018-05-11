@@ -18,42 +18,31 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'slop'
-require_relative '../log.rb'
+require 'time'
+require_relative 'key.rb'
+require_relative 'id.rb'
+require_relative 'amount.rb'
 
-# PAY command.
+# The signature of a transaction.
+#
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # Money sending command
-  class Pay
-    def initialize(payer:, receiver:, amount:,
-      pvtkey:, details: '-', log: Log::Quiet.new)
-      @payer = payer
-      @receiver = receiver
-      @amount = amount
-      @pvtkey = pvtkey
-      @details = details
-      @log = log
+  # A signature
+  class Signature
+    def sign(pvt, txn)
+      pvt.sign(block(txn))
     end
 
-    def run(args = [])
-      opts = Slop.parse(args) do |o|
-        o.bool '--force', 'Ignore all validations'
-      end
-      unless opts['force']
-        raise "The amount can't be negative: #{@amount}" if @amount.negative?
-        raise "Payer and receiver are equal: #{@payer}" if @payer == @receiver
-        if !@payer.root? && @payer.balance < @amount
-          raise "There is not enough funds in #{@payer} to send #{@amount}, \
-  only #{@payer.balance} left"
-        end
-      end
-      txn = @payer.sub(@amount, @receiver.id, @pvtkey, @details)
-      @receiver.add(txn)
-      @log.info("#{@amount} sent from #{@payer} to #{@receiver}: #{@details}")
-      txn
+    def valid?(pub, txn)
+      pub.verify(txn[:sign], block(txn))
+    end
+
+    private
+
+    def block(txn)
+      "#{txn[:id]};#{txn[:amount].to_i};#{txn[:bnf]};#{txn[:details]}"
     end
   end
 end

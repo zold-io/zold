@@ -18,42 +18,42 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'slop'
+require 'tempfile'
+require 'diffy'
 require_relative '../log.rb'
+require_relative '../patch.rb'
+require_relative '../wallet.rb'
 
-# PAY command.
+# DIFF command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # Money sending command
-  class Pay
-    def initialize(payer:, receiver:, amount:,
-      pvtkey:, details: '-', log: Log::Quiet.new)
-      @payer = payer
-      @receiver = receiver
-      @amount = amount
-      @pvtkey = pvtkey
-      @details = details
+  # DIFF pulling command
+  class Diff
+    def initialize(wallet:, copies:, log: Log::Quiet.new)
+      @wallet = wallet
+      @copies = copies
       @log = log
     end
 
-    def run(args = [])
-      opts = Slop.parse(args) do |o|
-        o.bool '--force', 'Ignore all validations'
+    def run(_ = [])
+      raise 'There are no remote copies, try FETCH first' if @copies.all.empty?
+      cps = @copies.all.sort_by { |c| c[:score] }.reverse
+      patch = Patch.new
+      patch.start(Wallet.new(cps[0][:path]))
+      cps[1..-1].each do |c|
+        patch.join(Wallet.new(c[:path]))
       end
-      unless opts['force']
-        raise "The amount can't be negative: #{@amount}" if @amount.negative?
-        raise "Payer and receiver are equal: #{@payer}" if @payer == @receiver
-        if !@payer.root? && @payer.balance < @amount
-          raise "There is not enough funds in #{@payer} to send #{@amount}, \
-  only #{@payer.balance} left"
-        end
+      before = File.read(@wallet.path)
+      after = ''
+      Tempfile.open do |f|
+        patch.save(f, overwrite: true)
+        after = File.read(f)
       end
-      txn = @payer.sub(@amount, @receiver.id, @pvtkey, @details)
-      @receiver.add(txn)
-      @log.info("#{@amount} sent from #{@payer} to #{@receiver}: #{@details}")
-      txn
+      diff = Diffy::Diff.new(before, after, context: 0).to_s(:color)
+      @log.info("Here is the difference:\n" + diff)
+      diff
     end
   end
 end

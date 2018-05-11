@@ -159,7 +159,6 @@ If not, the node attempts the next remote in the list.
 
 The remote copy is accepted "as is" without verifications if:
 
-  * The wallet doesn't exist locally _and_
   * All remote copies are identical _and_
   * Their summary score is above the MSS.
 
@@ -264,6 +263,8 @@ contains fields separated by a semi-colon:
 Transactions with positive amount don't
 have RSA signatures. Their IDs point to ID fields of corresponding
 beneficiaries' wallets.
+
+The combination "ID+Beneficiary" is unique in the entire wallet.
 
 The directory `.zold` is automatically created and contains system data.
 

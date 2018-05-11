@@ -19,6 +19,10 @@
 # SOFTWARE.
 
 require 'time'
+require_relative 'key.rb'
+require_relative 'id.rb'
+require_relative 'amount.rb'
+require_relative 'signature.rb'
 
 # The wallet.
 #
@@ -52,14 +56,18 @@ module Zold
       @file
     end
 
-    def init(id, pubkey)
-      raise "File '#{@file}' already exists" if File.exist?(@file)
+    def init(id, pubkey, overwrite: false)
+      raise "File '#{@file}' already exists" if File.exist?(@file) && !overwrite
       File.write(@file, "#{id}\n#{pubkey.to_pub}\n\n")
     end
 
     def version
       all = txns
-      all.empty? ? 0 : all.map { |t| t[:id] }.max
+      if all.empty?
+        0
+      else
+        all.select { |t| t[:amount].negative? }.max_by { |t| t[:id] }[:id]
+      end
     end
 
     def root?
@@ -79,29 +87,30 @@ module Zold
         id: version + 1,
         date: Time.now,
         amount: amount.mul(-1),
-        beneficiary: target,
+        bnf: target,
         details: details
       }
-      txn[:sign] = pvtkey.sign(signature(txn))
+      txn[:sign] = Signature.new.sign(pvtkey, txn)
       File.write(@file, (lines << to_line(txn)).join)
       txn[:amount] = amount
       txn
     end
 
     def add(txn)
-      File.write(@file, (lines << to_line(txn)).join)
+      open(@file, 'a') { |f| f.print to_line(txn) }
     end
 
-    def check(id, amount, beneficiary)
-      txn = txns.find { |t| t[:id] == id }
-      raise "Transaction #{id} not found" if txn.nil?
-      xamount = txn[:amount].mul(-1)
-      raise "#{xamount} != #{amount}" if xamount != amount
-      xbeneficiary = txn[:beneficiary]
-      raise "#{xbeneficiary} != #{beneficiary}" if xbeneficiary != beneficiary
-      valid = Key.new(text: lines[1].strip).verify(txn[:sign], signature(txn))
-      raise "Signature is not valid for '#{signature(txn)}'" unless valid
-      true
+    def remove(id, bnf)
+      File.write(
+        @file,
+        txns.reject { |t| t[:id] == id && t[:bnf] == bnf }
+          .map { |t| to_line(t) }
+          .join
+      )
+    end
+
+    def key
+      Key.new(text: lines[1].strip)
     end
 
     def income
@@ -111,7 +120,10 @@ module Zold
     end
 
     def txns
-      lines.drop(3).map { |t| fields(t) }.sort_by { |a| a[:date] }
+      lines.drop(3)
+        .each_with_index
+        .map { |t, i| fields(t, i + 4) }
+        .sort_by { |a| a[:date] }
     end
 
     private
@@ -121,37 +133,34 @@ module Zold
         txn[:id],
         txn[:date].utc.iso8601,
         txn[:amount].to_i,
-        txn[:beneficiary],
+        txn[:bnf],
         txn[:details],
         txn[:sign]
       ].join(';') + "\n"
     end
 
-    def fields(line)
+    def fields(line, idx)
       regex = Regexp.new(
-        '(' + [
-          '[0-9]+',
-          '[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z',
-          '-?[0-9]+',
-          '[a-f0-9]{16}',
-          '[a-zA-Z0-9 -.]{1,128}',
-          '[A-Za-z0-9+/]*={0,3}'
-        ].join(');(') + ')'
+        [
+          '([0-9]+)',
+          '([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z)',
+          '(-?[0-9]+)',
+          '([a-f0-9]{16})',
+          '([a-zA-Z0-9 -.]{1,128})',
+          '([A-Za-z0-9+/]+={0,3})?'
+        ].join(';')
       )
-      raise "Invalid line: #{line}" unless regex.match(line)
-      parts = line.split(';')
+      clean = line.strip
+      raise "Invalid line ##{idx}: #{line.inspect}" unless regex.match(clean)
+      parts = clean.split(';')
       {
         id: parts[0].to_i,
         date: Time.parse(parts[1]),
         amount: Amount.new(coins: parts[2].to_i),
-        beneficiary: Id.new(parts[3]),
+        bnf: Id.new(parts[3]),
         details: parts[4],
         sign: parts[5]
       }
-    end
-
-    def signature(txn)
-      "#{txn[:id]};#{txn[:amount].to_i};#{txn[:beneficiary]};#{txn[:details]}"
     end
 
     def lines

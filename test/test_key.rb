@@ -29,16 +29,16 @@ require_relative '../lib/zold/key.rb'
 class TestKey < Minitest::Test
   def test_reads_public_rsa
     key = Zold::Key.new(file: 'fixtures/id_rsa.pub')
-    assert key.to_pub.start_with?('MIICI')
-    assert key.to_pub.end_with?('EAAQ==')
-    assert !key.to_pub.include?("\n")
-    assert Zold::Key.new(text: key.to_pub).to_pub.start_with?('MIICI')
+    assert(key.to_pub.start_with?('MIICI'))
+    assert(key.to_pub.end_with?('EAAQ=='))
+    assert(!key.to_pub.include?("\n"))
+    assert(Zold::Key.new(text: key.to_pub).to_pub.start_with?('MIICI'))
   end
 
   def test_reads_private_rsa
     key = Zold::Key.new(file: 'fixtures/id_rsa')
-    assert key.to_pub.start_with?('MIIJJ')
-    assert key.to_pub.end_with?('Sg==')
+    assert(key.to_pub.start_with?('MIIJJ'))
+    assert(key.to_pub.end_with?('Sg=='))
   end
 
   def test_signs_and_verifies
@@ -46,7 +46,7 @@ class TestKey < Minitest::Test
     pvt = Zold::Key.new(file: 'fixtures/id_rsa')
     text = 'How are you, my friend?'
     signature = pvt.sign(text)
-    assert pub.verify(signature, text)
+    assert(pub.verify(signature, text))
   end
 
   def test_signs_and_verifies_with_random_key
@@ -59,7 +59,7 @@ class TestKey < Minitest::Test
       pvt = Zold::Key.new(file: file)
       text = 'How are you doing, dude?'
       signature = pvt.sign(text)
-      assert pub.verify(signature, text)
+      assert(pub.verify(signature, text))
     end
   end
 end

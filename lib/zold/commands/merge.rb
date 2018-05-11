@@ -27,14 +27,22 @@ require_relative '../log.rb'
 module Zold
   # MERGE pulling command
   class Merge
-    def initialize(wallet:, remotes:, log: Log::Quiet.new)
+    def initialize(wallet:, copies:, log: Log::Quiet.new)
       @wallet = wallet
-      @remotes = remotes
+      @copies = copies
       @log = log
     end
 
     def run(_ = [])
-      @log.ierror('MERGE is not implemented yet')
+      raise 'There are no remote copies, try FETCH first' if @copies.all.empty?
+      cps = @copies.all.sort_by { |c| c[:score] }.reverse
+      patch = Patch.new
+      patch.start(Wallet.new(cps[0][:path]))
+      cps[1..-1].each do |c|
+        patch.join(Wallet.new(c[:path]))
+      end
+      patch.save(@wallet.path, overwrite: true)
+      @log.info('Merged successfully')
     end
   end
 end
