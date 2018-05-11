@@ -55,6 +55,7 @@ module Zold
     end
 
     def next
+      raise 'This score is not valid' unless valid?
       idx = 0
       loop do
         suffix = idx.to_s(16)
