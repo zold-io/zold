@@ -62,8 +62,8 @@ class TestCopies < Minitest::Test
   def test_cleans_copies
     Dir.mktmpdir 'test' do |dir|
       copies = Zold::Copies.new(dir)
-      copies.add('h1', 'zold.io', 50, 80, Time.now - 25)
-      copies.add('h1', 'zold.io', 33, 80, Time.now - 26)
+      copies.add('h1', 'zold.io', 50, 80, Time.now - 25 * 60)
+      copies.add('h1', 'zold.io', 33, 80, Time.now - 26 * 60)
       assert(File.exist?(File.join(dir, '1')))
       copies.clean
       assert(copies.all.empty?, "#{copies.all.count} is not empty")

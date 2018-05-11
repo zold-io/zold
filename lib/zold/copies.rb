@@ -32,9 +32,13 @@ module Zold
       @dir = dir
     end
 
+    def to_s
+      File.basename(@dir)
+    end
+
     def clean
       list = load
-      list.reject! { |s| s[:time] < Time.now - 24 }
+      list.reject! { |s| s[:time] < Time.now - 24 * 60 }
       save(list)
       Dir.new(@dir).select { |f| f =~ /[0-9]+/ }.each do |f|
         File.delete(File.join(@dir, f)) if list.find { |s| s[:name] == f }.nil?
@@ -79,7 +83,7 @@ module Zold
         {
           name: name,
           path: File.join(@dir, name),
-          score: scores.select { |s| s[:time] > Time.now - 24 }
+          score: scores.select { |s| s[:time] > Time.now - 24 * 60 }
             .map { |s| s[:score] }
             .inject(&:+)
         }

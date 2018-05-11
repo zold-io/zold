@@ -50,6 +50,8 @@ Available commands:
       Creates a new wallet with a random ID
     #{Rainbow('fetch').green} [ID...]
       Fetch wallet copies from remote nodes
+    #{Rainbow('clean').green} [ID...]
+      Remove expired local copies
     #{Rainbow('merge').green} [ID...]
       Merge remote copies with the HEAD
     #{Rainbow('pull').green} [ID...]
@@ -152,6 +154,17 @@ Available options:"
       Zold::Fetch.new(
         wallet: wallets.find(Zold::Id.new(id)),
         remotes: remotes,
+        copies: Zold::Copies.new(File.join(copies, id)),
+        log: log
+      ).run(args)
+    end
+  when 'clean'
+    require_relative '../lib/zold/commands/clean'
+    if args.empty?
+      args = Dir.new(copies).select { |f| f =~ /[0-9a-fA-F]{16}/ }
+    end
+    args.each do |id|
+      Zold::Clean.new(
         copies: Zold::Copies.new(File.join(copies, id)),
         log: log
       ).run(args)
