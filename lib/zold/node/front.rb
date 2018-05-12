@@ -44,6 +44,7 @@ module Zold
     configure do
       Haml::Options.defaults[:format] = :xhtml
       set :logging, true
+      set :start, Time.now
       set :lock, Mutex.new
       set :log, Log.new
       set :views, (proc { File.join(root, '../../../views') })
@@ -78,9 +79,12 @@ module Zold
 
     get '/score' do
       content_type 'application/json'
-      {
-        'score': score.to_h
-      }.to_json
+      JSON.pretty_generate(
+        'score': score.to_h,
+        'uptime': `uptime`,
+        'date': `date  --iso-8601=seconds -u`,
+        'age': Time.now - settings.start
+      )
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})} do
