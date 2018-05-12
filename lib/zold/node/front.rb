@@ -89,6 +89,9 @@ module Zold
           processors: Facter.value(:processors)['count'],
           memory: Facter::Memory.mem_size
         },
+        wallets: {
+          total: wallets.all.count
+        },
         date: `date  --iso-8601=seconds -u`.strip,
         age: Time.now - settings.start,
         home: 'https://www.zold.io'
