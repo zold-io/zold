@@ -20,7 +20,6 @@
 
 STDOUT.sync = true
 
-require 'haml'
 require 'slop'
 require 'json'
 require 'sinatra/base'
@@ -42,12 +41,10 @@ module Zold
   # Web front
   class Front < Sinatra::Base
     configure do
-      Haml::Options.defaults[:format] = :xhtml
       set :logging, true
       set :start, Time.now
       set :lock, Mutex.new
       set :log, Log.new
-      set :views, (proc { File.join(root, '../../../views') })
       set :show_exceptions, false
       set :wallets, Wallets.new(Dir.pwd)
       set :farm, Farm.new
@@ -70,7 +67,8 @@ module Zold
         'uptime': `uptime`.strip,
         'hostname': `hostname`.strip,
         'date': `date  --iso-8601=seconds -u`.strip,
-        'age': Time.now - settings.start
+        'age': Time.now - settings.start,
+        'home': 'https://www.zold.io'
       )
     end
 
