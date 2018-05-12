@@ -75,7 +75,21 @@ module Zold
           @log.debug("There are #{total} known remotes")
         end
       else
-        raise "Command '#{command}' is not supported"
+        @log.info(
+          "Available commands:
+    #{Rainbow('remote show').green}
+      Show all registered remote nodes
+    #{Rainbow('remote clean').green}
+      Remove all registered remote nodes
+    #{Rainbow('remote reset').green}
+      Restore it back to the default list of nodes
+    #{Rainbow('remote add').green} host port
+      Add a new remote node
+    #{Rainbow('remote remove').green} host port
+      Remove the remote node
+    #{Rainbow('remote update').green}
+      Check each registered remote node for availability"
+        )
       end
     end
 
