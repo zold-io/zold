@@ -59,4 +59,30 @@ class TestMerge < Minitest::Test
       Zold::Merge.new(wallet: wallet, copies: copies).run
     end
   end
+
+  def test_merges_into_empty_wallet
+    Dir.mktmpdir 'test' do |dir|
+      id = Zold::Id.new
+      file = File.join(dir, id.to_s)
+      wallet = Zold::Wallet.new(file)
+      wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+      first = Zold::Wallet.new(File.join(dir, 'copy-1'))
+      File.write(first.path, File.read(wallet.path))
+      second = Zold::Wallet.new(File.join(dir, 'copy-2'))
+      File.write(second.path, File.read(wallet.path))
+      Zold::Pay.new(
+        payer: first,
+        receiver: second,
+        amount: Zold::Amount.new(zld: 14.95),
+        pvtkey: Zold::Key.new(file: 'fixtures/id_rsa')
+      ).run(['--force'])
+      copies = Zold::Copies.new(File.join(dir, 'copies'))
+      copies.add(File.read(first.path), 'host-1', 80, 5)
+      copies.add(File.read(second.path), 'host-2', 80, 5)
+      Zold::Merge.new(
+        wallet: Zold::Wallet.new(File.join(dir, Zold::Id.new.to_s)),
+        copies: copies
+      ).run
+    end
+  end
 end
