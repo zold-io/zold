@@ -65,6 +65,7 @@ module Zold
 
     after do
       headers['Cache-Control'] = 'no-cache'
+      headers['X-Zold-Version'] = VERSION
     end
 
     get '/robots.txt' do

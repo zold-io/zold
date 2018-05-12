@@ -63,7 +63,9 @@ module Zold
       headers = {
         'User-Agent': 'Zold'
       }
-      headers[SCORE_HEADER] = score.to_s if @score.valid? && @score.value >= 3
+      if @score.valid? && @score.value >= 3
+        headers[SCORE_HEADER] = score.reduced(4).to_s
+      end
       headers
     end
   end
