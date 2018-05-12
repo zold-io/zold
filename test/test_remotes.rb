@@ -55,7 +55,7 @@ class TestRemotes < Minitest::Test
       remotes = Zold::Remotes.new(File.join(dir, 'remotes'))
       remotes.clean
       remotes.reset
-      assert(!remotes.total.empty?)
+      assert(!remotes.total.zero?)
     end
   end
 
