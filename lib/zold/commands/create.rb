@@ -35,11 +35,12 @@ module Zold
       @log = log
     end
 
-    def run(_ = [])
-      id = Id.new
+    def run(args = [])
+      id = args.empty? ? Id.new : Id.new(args[0])
       wallet = @wallets.find(id)
       wallet.init(id, @pubkey)
-      @log.info("Wallet #{Rainbow(wallet).green} \
+      @log.info(wallet.id)
+      @log.debug("Wallet #{Rainbow(wallet).green} \
 created at #{@wallets.path}")
       wallet
     end

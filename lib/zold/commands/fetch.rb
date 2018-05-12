@@ -67,7 +67,7 @@ module Zold
 #{Rainbow(score.value).green}"
         )
       end
-      @log.info("#{total} copies fetched, \
+      @log.debug("#{total} copies fetched, \
 there are #{@copies.all.count} available locally")
     end
   end

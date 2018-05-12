@@ -35,8 +35,7 @@ class TestPay < Minitest::Test
     Dir.mktmpdir 'test' do |dir|
       source = Zold::Wallet.new(File.join(dir, 'source'))
       source.init(Zold::Id.new, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-      target = Zold::Wallet.new(File.join(dir, 'target'))
-      target.init(Zold::Id.new, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+      target = Zold::Id.new
       amount = Zold::Amount.new(zld: 14.95)
       Zold::Pay.new(
         payer: source,
@@ -45,10 +44,6 @@ class TestPay < Minitest::Test
         pvtkey: Zold::Key.new(file: 'fixtures/id_rsa')
       ).run(['--force'])
       assert source.balance == amount.mul(-1)
-      assert(
-        target.balance == amount,
-        "#{target.balance} is not equal to #{amount}"
-      )
     end
   end
 end

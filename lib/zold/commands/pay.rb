@@ -44,15 +44,14 @@ module Zold
       end
       unless opts['force']
         raise "The amount can't be negative: #{@amount}" if @amount.negative?
-        raise "Payer and receiver are equal: #{@payer}" if @payer == @receiver
         if !@payer.root? && @payer.balance < @amount
           raise "There is not enough funds in #{@payer} to send #{@amount}, \
   only #{@payer.balance} left"
         end
       end
-      txn = @payer.sub(@amount, @receiver.id, @pvtkey, @details)
-      @receiver.add(txn)
-      @log.info("#{@amount} sent from #{@payer} to #{@receiver}: #{@details}")
+      txn = @payer.sub(@amount, @receiver, @pvtkey, @details)
+      @log.debug("#{@amount} sent from #{@payer} to #{@receiver}: #{@details}")
+      @log.info(txn[:id])
       txn
     end
   end

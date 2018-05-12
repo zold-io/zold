@@ -49,27 +49,27 @@ module Zold
         end
       when 'clean'
         @remotes.clean
-        @log.info('All remote nodes deleted')
+        @log.debug('All remote nodes deleted')
       when 'add'
         host = args[1]
         port = args[2]
         @remotes.add(host, port)
-        @log.info("Remote added: #{host}:#{port}")
+        @log.info("#{host}:#{port}: added")
       when 'remove'
         host = args[1]
         port = args[2]
         @remotes.remove(host, port)
-        @log.info("Remote removed: #{host}:#{port}")
+        @log.info("#{host}:#{port}: removed")
       when 'update'
         update
         total = @remotes.all.size
         if total.zero?
-          @log.info("The list of remotes is #{Rainbow('empty').red}!")
-          @log.info(
+          @log.debug("The list of remotes is #{Rainbow('empty').red}!")
+          @log.debug(
             "Run 'zold remote add b1.zold.io 80` and then `zold update`"
           )
         else
-          @log.info("There are #{total} known remotes")
+          @log.debug("There are #{total} known remotes")
         end
       else
         raise "Command '#{command}' is not supported"
@@ -82,14 +82,16 @@ module Zold
         res = Http.new(uri).get
         unless res.code == '200'
           @remotes.remove(r[:host], r[:port])
-          @log.info("#{Rainbow(r[:host]).red} #{res.message} #{uri}")
+          @log.info(
+            "#{Rainbow(r[:host]).red} #{res.code} \"#{res.message}\" #{uri}"
+          )
           next
         end
         begin
           json = JSON.parse(res.body)
         rescue JSON::ParserError => e
           @remotes.remove(r[:host], r[:port])
-          @log.info("#{Rainbow(r[:host]).red} #{e.message} #{res.body}")
+          @log.info("#{Rainbow(r[:host]).red} \"#{e.message}\": #{res.body}")
           next
         end
         score = Score.new(
@@ -103,7 +105,7 @@ module Zold
         end
         @remotes.rescore(r[:host], r[:port], score.value)
         json['all'].each { |s| run(['add', s['host'], s['port']]) }
-        @log.info("#{r[:host]}: #{Rainbow(score.value).green}")
+        @log.info("#{r[:host]}:#{r[:port]}: #{Rainbow(score.value).green}")
       end
     end
   end

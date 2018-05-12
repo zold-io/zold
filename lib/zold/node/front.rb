@@ -57,9 +57,9 @@ module Zold
 
     before do
       if request.env[Http::SCORE_HEADER]
-        score = Score.parse(request.env[Http::SCORE_HEADER])
-        raise 'The score is invalid' if !score.valid? || score.value < 3
-        settings.remotes.add(score.host, score.port)
+        s = Score.parse(request.env[Http::SCORE_HEADER])
+        raise 'The score is invalid' if !s.valid? || s.value < 3
+        settings.remotes.add(s.host, s.port)
       end
     end
 

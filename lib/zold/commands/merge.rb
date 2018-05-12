@@ -44,7 +44,7 @@ module Zold
         patch.join(Wallet.new(c[:path]))
       end
       patch.save(@wallet.path, overwrite: true)
-      @log.info("Merged successfully into #{@wallet.path}")
+      @log.debug("Merged successfully into #{@wallet.path}")
     end
   end
 end

@@ -39,7 +39,7 @@ module Zold
 
     def run(_ = [])
       @copies.clean
-      @log.info("Expired local copies removed for #{@copies}, \
+      @log.debug("Expired local copies removed for #{@copies}, \
 #{@copies.all.count} left")
     end
   end

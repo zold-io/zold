@@ -81,8 +81,11 @@ Available options:"
     o.on '--no-colors', 'Disable colors in the ouput' do
       Rainbow.enabled = false
     end
+    o.on '--verbose', 'Enable extra logging information' do
+      log = Zold::Log::Verbose.new
+    end
     o.on '-v', '--version', 'Show current version' do
-      puts Zold::VERSION
+      log.info(Zold::VERSION)
       exit
     end
   end
@@ -126,7 +129,7 @@ Available options:"
     require_relative '../lib/zold/commands/pay'
     Zold::Pay.new(
       payer: wallets.find(Zold::Id.new(args[0])),
-      receiver: wallets.find(Zold::Id.new(args[1])),
+      receiver: Zold::Id.new(args[1]),
       amount: Zold::Amount.new(zld: args[2].to_f),
       details: opts.arguments[4] ? args[3] : '-',
       pvtkey: Zold::Key.new(file: opts['private-key']),
@@ -193,6 +196,7 @@ Available options:"
     args.each do |id|
       Zold::Fetch.new(
         wallet: wallets.find(Zold::Id.new(id)),
+        remotes: remotes,
         copies: Zold::Copies.new(File.join(copies, id)),
         log: log
       ).run(args)
@@ -206,6 +210,7 @@ Available options:"
     require_relative '../lib/zold/commands/push'
     Zold::Push.new(
       wallet: wallets.find(Zold::Id.new(args[0])),
+      remotes: remotes,
       log: log
     ).run(args)
   else

@@ -40,10 +40,10 @@ module Zold
       wallet.txns.each do |txn|
         next if @txns.find { |t| t[:id] == txn[:id] && t[:bnf] == txn[:bnf] }
         next if
-          txn[:amount].negative? &&
-          txn[:id] <= max ||
+          txn[:amount].negative? && !@txns.empty? &&
+          (txn[:id] <= max ||
           @txns.find { |t| t[:id] == txn[:id] } ||
-          @txns.map { |t| t[:amount] }.inject(&:+) < txn[:amount]
+          @txns.map { |t| t[:amount] }.inject(&:+) < txn[:amount])
         next unless Signature.new.valid?(@key, txn)
         @txns << txn
       end

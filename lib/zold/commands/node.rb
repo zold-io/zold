@@ -56,10 +56,10 @@ module Zold
       end
       Zold::Front.set(:suppress_messages, true)
       Zold::Front.set(:log, @log)
-      Zold::Front.set(:logging, @log.info?)
+      Zold::Front.set(:logging, @log.debug?)
       Zold::Front.set(
         :server_settings,
-        Logger: @log,
+        Logger: WebrickLog.new(@log),
         AccessLog: []
       )
       Zold::Front.set(:port, opts['bind-port'])
@@ -68,11 +68,26 @@ module Zold
       farm = Farm.new(log: @log)
       farm.start(opts[:host], opts[:port], threads: opts[:threads])
       Zold::Front.set(:farm, farm)
-      @log.info('Starting up the web front...')
+      @log.debug('Starting up the web front...')
       begin
         Zold::Front.run!
       ensure
         farm.stop
+      end
+    end
+
+    # Fake logging facility for Webrick
+    class WebrickLog
+      def initialize(log)
+        @log = log
+      end
+
+      def info(msg)
+        @log.debug(msg)
+      end
+
+      def debug(msg)
+        @log.debug(msg)
       end
     end
   end

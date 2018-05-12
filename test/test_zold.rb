@@ -27,6 +27,25 @@ require 'English'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class TestZold < Minitest::Test
+  def test_all_scripts
+    Dir.new('fixtures/scripts').each.select { |f| f =~ /\.sh$/ }.each do |f|
+      Dir.mktmpdir 'test' do |dir|
+        FileUtils.cp('fixtures/id_rsa.pub', dir)
+        FileUtils.cp('fixtures/id_rsa', dir)
+        script = File.join(dir, f)
+        FileUtils.cp("fixtures/scripts/#{f}", script)
+        bin = File.join(Dir.pwd, 'bin/zold')
+        Dir.chdir(dir) do
+          stdout = `/bin/bash #{f} #{bin} 2>&1`
+          unless $CHILD_STATUS.exitstatus.zero?
+            puts stdout
+            assert_equal($CHILD_STATUS.exitstatus, 0)
+          end
+        end
+      end
+    end
+  end
+
   def test_help
     stdout = exec('--help')
     assert(stdout.include?('Usage: zold'))
@@ -42,7 +61,7 @@ class TestZold < Minitest::Test
       FileUtils.cp('fixtures/id_rsa.pub', dir)
       FileUtils.cp('fixtures/id_rsa', dir)
       stdout = exec(
-        'create --private-key id_rsa --public-key id_rsa.pub --trace',
+        '--private-key id_rsa --public-key id_rsa.pub --verbose --trace create',
         dir
       )
       assert(stdout.include?('created at'))

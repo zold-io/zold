@@ -30,11 +30,11 @@ module Zold
   # Logging
   class Log
     def debug(msg)
-      puts msg
+      # nothing
     end
 
     def debug?
-      true
+      false
     end
 
     def info(msg)
@@ -47,6 +47,29 @@ module Zold
 
     def error(msg)
       puts "#{Rainbow('ERROR').red}: #{msg}"
+    end
+
+    # Extra verbose log
+    class Verbose
+      def debug(msg)
+        puts msg
+      end
+
+      def debug?
+        true
+      end
+
+      def info(msg)
+        puts msg
+      end
+
+      def info?
+        true
+      end
+
+      def error(msg)
+        puts "#{Rainbow('ERROR').red}: #{msg}"
+      end
     end
 
     # Log that doesn't log anything

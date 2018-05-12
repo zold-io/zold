@@ -40,7 +40,7 @@ module Zold
     end
 
     def start(host, port, strength: 8, threads: 8)
-      @best = []
+      @log.debug('Zero-threads farm won\'t score anything!') if threads.zero?
       @scores = Queue.new
       @scores << Score.new(Time.now, host, port, strength: strength)
       @threads = (1..threads).map do |t|
@@ -55,7 +55,7 @@ module Zold
               after = @best.map(&:value).max
               @best.reject! { |b| b.value < after }
               if before != after
-                @log.info("#{Thread.current.name}: best is #{@best[0]}")
+                @log.debug("#{Thread.current.name}: best is #{@best[0]}")
               end
             end
             if @scores.length < 4
@@ -65,15 +65,15 @@ module Zold
           end
         end
       end
-      @log.info("Farm started with #{threads} threads at #{host}:#{port}")
+      @log.debug("Farm started with #{threads} threads at #{host}:#{port}")
     end
 
     def stop
       @threads.each do |t|
         t.exit
-        @log.info("Thread #{t.name} terminated")
+        @log.debug("Thread #{t.name} terminated")
       end
-      @log.info('Farm stopped')
+      @log.debug('Farm stopped')
     end
   end
 end
