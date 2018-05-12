@@ -40,6 +40,24 @@ module Zold
     end
 
     def run(args = [])
+      opts = Slop.parse(args, help: true) do |o|
+        o.banner = "Usage: zold remote <command> [options]
+Available commands:
+    #{Rainbow('remote show').green}
+      Show all registered remote nodes
+    #{Rainbow('remote clean').green}
+      Remove all registered remote nodes
+    #{Rainbow('remote reset').green}
+      Restore it back to the default list of nodes
+    #{Rainbow('remote add').green} host port
+      Add a new remote node
+    #{Rainbow('remote remove').green} host port
+      Remove the remote node
+    #{Rainbow('remote update').green}
+      Check each registered remote node for availability
+Available options:"
+        o.bool '--help', 'Print instructions'
+      end
       command = args[0]
       case command
       when 'show'
@@ -75,21 +93,7 @@ module Zold
           @log.debug("There are #{total} known remotes")
         end
       else
-        @log.info(
-          "Available commands:
-    #{Rainbow('remote show').green}
-      Show all registered remote nodes
-    #{Rainbow('remote clean').green}
-      Remove all registered remote nodes
-    #{Rainbow('remote reset').green}
-      Restore it back to the default list of nodes
-    #{Rainbow('remote add').green} host port
-      Add a new remote node
-    #{Rainbow('remote remove').green} host port
-      Remove the remote node
-    #{Rainbow('remote update').green}
-      Check each registered remote node for availability"
-        )
+        @log.info(opts.to_s)
       end
     end
 
@@ -123,7 +127,7 @@ module Zold
         @remotes.rescore(r[:host], r[:port], score.value)
         json['all'].each do |s|
           unless @remotes.exists?(s['host'], s['port'])
-            run(['add', s['host'], s['port']])
+            run(['add', s['host'], s['port'].to_s])
           end
         end
         @log.info("#{r[:host]}:#{r[:port]}: #{Rainbow(score.value).green} \
