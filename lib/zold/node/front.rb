@@ -35,7 +35,7 @@ require_relative '../log'
 require_relative '../remotes'
 require_relative '../id'
 require_relative '../http'
-require_relative '../commands/show'
+require_relative '../commands/merge'
 
 # The web front of the node.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -102,29 +102,13 @@ module Zold
     end
 
     put %r{/wallet/(?<id>[A-Fa-f0-9]{16})/?} do
-      settings.lock.synchronize do
-        id = Id.new(params[:id])
-        wallet = wallets.find(id)
-        temp = before = nil
-        if wallet.exists?
-          before = wallet.version
-          temp = Tempfile.new('z')
-          FileUtils.cp(wallet.path, temp)
-        end
-        begin
-          request.body.rewind
-          File.write(wallet.path, request.body.read)
-          unless before.nil?
-            after = wallet.version
-            error 403 if after < before
-          end
-        ensure
-          unless temp.nil?
-            FileUtils.cp(temp, wallet.path)
-            temp.unlink
-          end
-        end
-      end
+      id = Id.new(params[:id])
+      wallet = wallets.find(id)
+      request.body.rewind
+      cps = copies(id)
+      cps.add(request.body.read, 'remote', 80, 0)
+      Zold::Merge.new(wallet: wallet, copies: cps).run
+      "Success, #{wallet.id} balance is #{wallet.balance}"
     end
 
     get '/remotes' do
@@ -155,8 +139,12 @@ module Zold
 
     private
 
+    def copies(id)
+      Copies.new(File.join(settings.home, ".zold/copies/#{id}"))
+    end
+
     def remotes
-      Remotes.new(File.join(settings.home, 'remotes'))
+      Remotes.new(File.join(settings.home, '.zold/remotes'))
     end
 
     def wallets

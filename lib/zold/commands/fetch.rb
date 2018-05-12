@@ -44,28 +44,28 @@ module Zold
       @remotes.all.each do |r|
         uri = URI("#{r[:home]}wallet/#{@wallet.id}")
         res = Http.new(uri).get
-        if res.code == '200'
-          json = JSON.parse(res.body)
-          score = Score.new(
-            Time.parse(json['score']['time']),
-            r[:host],
-            r[:port],
-            json['score']['suffixes']
-          )
-          if score.valid?
-            total += 1
-            @copies.add(json['body'], r[:host], r[:port], score.value)
-            @log.info(
-              "#{r[:host]}:#{r[:port]} #{json['body'].length}b/\
-#{Rainbow(score.value).green}"
-            )
-          else
-            @log.error("#{r[:host]}:#{r[:port]} invalid score")
-          end
-        else
+        unless res.code == '200'
           @log.error("#{r[:host]}:#{r[:port]} \
 #{Rainbow(res.code).red}/#{res.message} at #{uri}")
+          next
         end
+        json = JSON.parse(res.body)
+        score = Score.new(
+          Time.parse(json['score']['time']),
+          r[:host],
+          r[:port],
+          json['score']['suffixes']
+        )
+        unless score.valid?
+          @log.error("#{r[:host]}:#{r[:port]} invalid score")
+          next
+        end
+        total += 1
+        @copies.add(json['body'], r[:host], r[:port], score.value)
+        @log.info(
+          "#{r[:host]}:#{r[:port]} #{json['body'].length}b/\
+#{Rainbow(score.value).green}"
+        )
       end
       @log.info("#{total} copies fetched, \
 there are #{@copies.all.count} available locally")

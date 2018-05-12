@@ -19,6 +19,8 @@
 # SOFTWARE.
 
 require_relative '../log.rb'
+require_relative '../wallet.rb'
+require_relative '../patch.rb'
 
 # MERGE command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
