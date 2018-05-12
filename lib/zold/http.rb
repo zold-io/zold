@@ -20,6 +20,7 @@
 
 require 'rainbow'
 require 'net/http'
+require_relative 'score.rb'
 
 # HTTP page.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -28,15 +29,16 @@ require 'net/http'
 module Zold
   # Http page
   class Http
-    def initialize(uri)
+    def initialize(uri, score = Score::ZERO)
       @uri = uri
+      @score = score
     end
 
     def get
       http = Net::HTTP.new(@uri.host, @uri.port)
       http.read_timeout = 5
       http.continue_timeout = 5
-      return http.request_get(@uri.path, 'User-Agent': 'Zold')
+      return http.request_get(@uri.path, headers)
     rescue StandardError => e
       return Net::HTTPServerError.new('1.1', '599', e.message)
     end
@@ -47,11 +49,20 @@ module Zold
       http.continue_timeout = 5
       return http.request_put(
         @uri.path, body,
-        'User-Agent': 'Zold',
-        'Content-Type': 'text/plain'
+        headers.merge('Content-Type': 'text/plain')
       )
     rescue StandardError => e
       return Net::HTTPServerError.new('1.1', '599', e.message)
+    end
+
+    private
+
+    def headers
+      headers = {
+        'User-Agent': 'Zold'
+      }
+      headers['X-Zold-Score'] = score.to_s if @score.valid? && @score.value >= 3
+      headers
     end
   end
 end

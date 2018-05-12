@@ -38,6 +38,14 @@ class TestScore < Minitest::Test
     assert_equal(score.value, 2)
   end
 
+  def test_reduces_itself
+    score = Zold::Score.new(
+      Time.parse('2017-07-19T21:24:51Z'),
+      'localhost', 443, %w[A B C D E F G]
+    ).reduced(2)
+    assert_equal(score.value, 2)
+  end
+
   def test_validates_wrong_score
     score = Zold::Score.new(
       Time.parse('2017-07-19T21:24:51Z'),
@@ -45,6 +53,19 @@ class TestScore < Minitest::Test
     )
     assert_equal(score.value, 3)
     assert(!score.valid?)
+  end
+
+  def test_prints_and_parses
+    time = Time.now
+    score = Zold::Score.parse(
+      Zold::Score.new(
+        time, 'localhost', 999, %w[FIRST SECOND THIRD]
+      ).to_s
+    )
+    assert_equal(score.value, 3)
+    assert_equal(score.time.to_s, time.to_s)
+    assert_equal(score.host, 'localhost')
+    assert_equal(score.port, 999)
   end
 
   def test_finds_next_score

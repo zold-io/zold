@@ -35,7 +35,7 @@ module Zold
       @scores = []
       @threads = []
       @best = []
-      @best << Score.new(Time.now, 'localhost', 80)
+      @best << Score::ZERO
       @semaphore = Mutex.new
     end
 

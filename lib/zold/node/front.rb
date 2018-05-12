@@ -54,6 +54,14 @@ module Zold
       set :server, 'webrick'
     end
 
+    before do
+      if request.env['X-Zold-Score']
+        score = Score.parse(request.env['X-Zold-Score'])
+        raise 'The score is invalid' if !score.valid? || score.value < 3
+        settings.remotes.add(score.host, score.port)
+      end
+    end
+
     get '/robots.txt' do
       'User-agent: *'
     end
@@ -133,13 +141,14 @@ module Zold
 
     not_found do
       status 404
-      content_type 'application/json'
+      content_type 'text/plain'
       'Page not found'
     end
 
     error do
       status 503
       e = env['sinatra.error']
+      content_type 'text/plain'
       "#{e.message}\n\t#{e.backtrace.join("\n\t")}"
     end
 

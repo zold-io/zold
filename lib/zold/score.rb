@@ -28,8 +28,10 @@ require 'time'
 module Zold
   # Score
   class Score
+    DEFAULT_STRENGTH = 8
+    attr_reader :time, :host, :port
     # time: UTC ISO 8601 string
-    def initialize(time, host, port, suffixes = [], strength: 8)
+    def initialize(time, host, port, suffixes = [], strength: DEFAULT_STRENGTH)
       raise 'Time must be of type Time' unless time.is_a?(Time)
       raise 'Port must be of type Integer' unless port.is_a?(Integer)
       @time = time
@@ -37,6 +39,16 @@ module Zold
       @port = port
       @suffixes = suffixes
       @strength = strength
+    end
+
+    ZERO = Score.new(Time.now, 'localhost', 80)
+
+    def self.parse(text, strength: DEFAULT_STRENGTH)
+      _, time, host, port, suffixes = text.split(' ', 5)
+      Score.new(
+        Time.parse(time), host, port.to_i,
+        suffixes.split(' '), strength: strength
+      )
     end
 
     def to_s
@@ -52,6 +64,10 @@ module Zold
         suffixes: @suffixes,
         strength: @strength
       }
+    end
+
+    def reduced(max = 4)
+      Score.new(@time, @host, @port, @suffixes[0..max - 1], strength: @strength)
     end
 
     def next

@@ -41,7 +41,7 @@ class TestRemote < Minitest::Test
       stub_request(:get, 'http://localhost:1/remotes').to_return(
         status: 200,
         body: {
-          score: Zold::Score.new(Time.now, 'localhost', 80).to_h,
+          score: Zold::Score::ZERO.to_h,
           all: [
             { host: 'localhost', port: 888 },
             { host: 'localhost', port: 999 }
