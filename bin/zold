@@ -201,7 +201,7 @@ Available options:"
     require_relative '../lib/zold/commands/merge'
     args.each do |id|
       Zold::Fetch.new(
-        wallet: wallets.find(Zold::Id.new(id)),
+        id: Zold::Id.new(id),
         remotes: remotes,
         copies: Zold::Copies.new(File.join(copies, id)),
         log: log
