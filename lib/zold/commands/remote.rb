@@ -108,7 +108,8 @@ module Zold
         end
         @remotes.rescore(r[:host], r[:port], score.value)
         json['all'].each { |s| run(['add', s['host'], s['port']]) }
-        @log.info("#{r[:host]}:#{r[:port]}: #{Rainbow(score.value).green}")
+        @log.info("#{r[:host]}:#{r[:port]}: #{Rainbow(score.value).green} \
+(v.#{json['version']})")
       end
     end
   end

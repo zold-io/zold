@@ -63,6 +63,10 @@ module Zold
       end
     end
 
+    after do
+      headers['Cache-Control'] = 'no-cache'
+    end
+
     get '/robots.txt' do
       'User-agent: *'
     end
@@ -114,6 +118,7 @@ module Zold
     get '/remotes' do
       content_type 'application/json'
       JSON.pretty_generate(
+        version: VERSION,
         score: score.to_h,
         all: remotes.all.map do |r|
           {

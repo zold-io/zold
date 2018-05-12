@@ -64,7 +64,7 @@ module Zold
         @copies.add(json['body'], r[:host], r[:port], score.value)
         @log.info(
           "#{r[:host]}:#{r[:port]} #{json['body'].length}b/\
-#{Rainbow(score.value).green}"
+#{Rainbow(score.value).green} (v.#{json['version']})"
         )
       end
       @log.debug("#{total} copies fetched, \
