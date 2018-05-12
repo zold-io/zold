@@ -105,6 +105,7 @@ module Zold
       error 404 unless wallet.exists?
       content_type 'application/json'
       {
+        version: VERSION,
         score: score.to_h,
         body: File.read(wallet.path)
       }.to_json
