@@ -53,6 +53,10 @@ module Zold
       )
     end
 
+    def exists?(host, port = 80)
+      !load.find { |r| r[:host] == host && r[:port] == port }.nil?
+    end
+
     def add(host, port = 80)
       list = load
       list << { host: host, port: port, score: 0 }
