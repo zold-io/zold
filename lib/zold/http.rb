@@ -29,6 +29,8 @@ require_relative 'score.rb'
 module Zold
   # Http page
   class Http
+    SCORE_HEADER = 'X-Zold-Score'.freeze
+
     def initialize(uri, score = Score::ZERO)
       @uri = uri
       @score = score
@@ -61,7 +63,7 @@ module Zold
       headers = {
         'User-Agent': 'Zold'
       }
-      headers['X-Zold-Score'] = score.to_s if @score.valid? && @score.value >= 3
+      headers[SCORE_HEADER] = score.to_s if @score.valid? && @score.value >= 3
       headers
     end
   end

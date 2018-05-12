@@ -34,6 +34,7 @@ require_relative '../wallets'
 require_relative '../log'
 require_relative '../remotes'
 require_relative '../id'
+require_relative '../http'
 require_relative '../commands/show'
 
 # The web front of the node.
@@ -55,8 +56,8 @@ module Zold
     end
 
     before do
-      if request.env['X-Zold-Score']
-        score = Score.parse(request.env['X-Zold-Score'])
+      if request.env[Http::SCORE_HEADER]
+        score = Score.parse(request.env[Http::SCORE_HEADER])
         raise 'The score is invalid' if !score.valid? || score.value < 3
         settings.remotes.add(score.host, score.port)
       end
