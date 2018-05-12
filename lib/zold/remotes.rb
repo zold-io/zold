@@ -29,6 +29,8 @@ require 'fileutils'
 module Zold
   # All remotes
   class Remotes
+    PORT = 4096
+
     def initialize(file)
       @file = file
     end
@@ -53,24 +55,24 @@ module Zold
       )
     end
 
-    def exists?(host, port = 80)
+    def exists?(host, port = Remotes::PORT)
       !load.find { |r| r[:host] == host && r[:port] == port }.nil?
     end
 
-    def add(host, port = 80)
+    def add(host, port = Remotes::PORT)
       list = load
       list << { host: host, port: port, score: 0 }
       list.uniq! { |r| "#{r[:host]}:#{r[:port]}" }
       save(list)
     end
 
-    def remove(host, port = 80)
+    def remove(host, port = Remotes::PORT)
       list = load
       list.reject! { |r| r[:host] == host && r[:port] == port }
       save(list)
     end
 
-    def score(host, port = 80)
+    def score(host, port = Remotes::PORT)
       load.find { |r| r[:host] == host && r[:port] == port }[:score]
     end
 

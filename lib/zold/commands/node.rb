@@ -37,10 +37,12 @@ module Zold
     def run(args = [])
       opts = Slop.parse(args, help: true) do |o|
         o.banner = 'Usage: zold node [options]'
-        o.integer '--port', 'TCP port to open for the Net (default: 80)',
-          default: 80
-        o.integer '--bind-port', 'TCP port to listen on (default: 80)',
-          default: 80
+        o.integer '--port',
+          "TCP port to open for the Net (default: #{Remotes::PORT})",
+          default: Remotes::PORT
+        o.integer '--bind-port',
+          "TCP port to listen on (default: #{Remotes::PORT})",
+          default: Remotes::PORT
         o.string '--host', 'Host name (default: 127.0.0.1)',
           default: '127.0.0.1'
         o.string '--home', 'Home directory (default: current directory)',

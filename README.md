@@ -95,7 +95,7 @@ arbitrary text (has to match `[a-zA-Z0-9]+`) to the end of it and to calculate S
 in the hexadecimal format, for example:
 
 ```
-Input: "2017-07-19T21:24:51Z b1.zold.io 80 the-suffix"
+Input: "2017-07-19T21:24:51Z b1.zold.io 4096 the-suffix"
 SHA-256: "eba36e52e1ee674d198f486e07c8496853ffc8879e7fe25329523177646a96a0"
 ```
 
@@ -104,7 +104,7 @@ SHA-256 hash that ends with `00000000` (eight zeros). For example, this
 suffix `11edb424c` works (it took 212 minutes to find it on 2.3GHz Intel Core i7):
 
 ```
-Input: "2017-07-19T21:24:51Z b1.zold.io 80 11edb424c"
+Input: "2017-07-19T21:24:51Z b1.zold.io 4096 11edb424c"
 SHA-256: "34f48e0eee1ed12ad74cb39418f2f6e7442a776a7b6182697957650e00000000"
 ```
 
@@ -276,7 +276,7 @@ The directory `.zold` is automatically created and contains system data.
 these columns:
 
   * Address or IP;
-  * TPC port (usually 80);
+  * TCP port (usually 4096);
   * Score (positive integer);
   * Time of score update, ISO 8601.
 

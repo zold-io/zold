@@ -115,7 +115,7 @@ module Zold
       wallet = wallets.find(id)
       request.body.rewind
       cps = copies(id)
-      cps.add(request.body.read, 'remote', 80, 0)
+      cps.add(request.body.read, 'remote', Remotes::PORT, 0)
       Zold::Merge.new(wallet: wallet, copies: cps).run
       "Success, #{wallet.id} balance is #{wallet.balance}"
     end

@@ -20,6 +20,7 @@
 
 require 'digest'
 require 'time'
+require_relative 'remotes'
 
 # The score.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -41,7 +42,7 @@ module Zold
       @strength = strength
     end
 
-    ZERO = Score.new(Time.now, 'localhost', 80)
+    ZERO = Score.new(Time.now, 'localhost', Remotes::PORT)
 
     def self.parse(text, strength: DEFAULT_STRENGTH)
       _, time, host, port, suffixes = text.split(' ', 5)
