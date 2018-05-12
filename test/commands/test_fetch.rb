@@ -57,7 +57,27 @@ class TestFetch < Minitest::Test
       )
       remotes.add('fake-1', 80)
       remotes.add('fake-2', 80)
-      Zold::Fetch.new(wallet: wallet, copies: copies, remotes: remotes).run
+      Zold::Fetch.new(id: id, copies: copies, remotes: remotes).run
+      assert_equal(copies.all[0][:name], '1')
+      assert_equal(copies.all[0][:score], 0)
+    end
+  end
+
+  def test_fetches_empty_wallet
+    Dir.mktmpdir 'test' do |dir|
+      id = Zold::Id.new
+      copies = Zold::Copies.new(File.join(dir, 'copies'))
+      remotes = Zold::Remotes.new(File.join(dir, 'remotes.csv'))
+      remotes.clean
+      stub_request(:get, "http://fake-1/wallet/#{id}").to_return(
+        status: 200,
+        body: {
+          'score': Zold::Score::ZERO.to_h,
+          'body': 'the body'
+        }.to_json
+      )
+      remotes.add('fake-1', 80)
+      Zold::Fetch.new(id: id, copies: copies, remotes: remotes).run
       assert_equal(copies.all[0][:name], '1')
       assert_equal(copies.all[0][:score], 0)
     end

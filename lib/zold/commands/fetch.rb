@@ -32,8 +32,8 @@ require_relative '../score.rb'
 module Zold
   # FETCH pulling command
   class Fetch
-    def initialize(wallet:, remotes:, copies:, log: Log::Quiet.new)
-      @wallet = wallet
+    def initialize(id:, remotes:, copies:, log: Log::Quiet.new)
+      @id = id
       @remotes = remotes
       @copies = copies
       @log = log
@@ -42,7 +42,7 @@ module Zold
     def run(_ = [])
       total = 0
       @remotes.all.each do |r|
-        uri = URI("#{r[:home]}wallet/#{@wallet.id}")
+        uri = URI("#{r[:home]}wallet/#{@id}")
         res = Http.new(uri).get
         unless res.code == '200'
           @log.error("#{r[:host]}:#{r[:port]} \
