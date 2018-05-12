@@ -35,12 +35,11 @@ class FrontTest < Minitest::Test
           '/version',
           '/robots.txt',
           '/index.html',
-          '/score.json',
-          '/score.txt'
+          '/score'
         ],
         '404' => [
           '/this-is-absent',
-          '/wallet/ffffeeeeddddcccc.json'
+          '/wallet/ffffeeeeddddcccc'
         ]
       }.each do |code, paths|
         paths.each do |p|

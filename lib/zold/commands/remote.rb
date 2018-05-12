@@ -79,7 +79,7 @@ module Zold
 
     def update
       @remotes.all.each do |r|
-        uri = URI("#{r[:home]}/score.json")
+        uri = URI("#{r[:home]}/score")
         res = Http.new(uri).get
         if res.code == '200'
           json = JSON.parse(res.body)['score']

@@ -219,11 +219,11 @@ The full list of RESTful resources:
 
   * `/index.html` (GET): status page of the node
 
-  * `/score.(txt|json)` (GET): score data
+  * `/score` (GET): score data in JSON
 
-  * `/remotes.(txt|json)` (GET): load all known remotes
+  * `/remotes` (GET): load all known remotes in JSON
 
-  * `/wallet/<ID>.json` (GET): fetch wallet
+  * `/wallet/<ID>` (GET): fetch wallet in JSON
 
   * `/wallet/<ID>` (PUT): push wallet
 

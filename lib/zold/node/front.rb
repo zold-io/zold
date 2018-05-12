@@ -76,19 +76,14 @@ module Zold
       VERSION
     end
 
-    get '/score.json' do
+    get '/score' do
       content_type 'application/json'
       {
         'score': score.to_h
       }.to_json
     end
 
-    get '/score.txt' do
-      content_type 'text/plain'
-      score.to_s
-    end
-
-    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.json} do
+    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})} do
       id = Id.new(params[:id])
       wallet = settings.wallets.find(id)
       error 404 unless wallet.exists?

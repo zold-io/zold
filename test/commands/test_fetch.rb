@@ -45,14 +45,14 @@ class TestFetch < Minitest::Test
       copies = Zold::Copies.new(File.join(dir, 'copies'))
       remotes = Zold::Remotes.new(File.join(dir, 'remotes.csv'))
       remotes.clean
-      stub_request(:get, "http://fake-1/wallet/#{id}.json").to_return(
+      stub_request(:get, "http://fake-1/wallet/#{id}").to_return(
         status: 200,
         body: {
           'score': Zold::Score.new(Time.now, 'localhost', 80).to_h,
           'body': File.read(wallet.path)
         }.to_json
       )
-      stub_request(:get, "http://fake-2/wallet/#{id}.json").to_return(
+      stub_request(:get, "http://fake-2/wallet/#{id}").to_return(
         status: 404
       )
       remotes.add('fake-1', 80)
