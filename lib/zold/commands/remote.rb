@@ -50,6 +50,9 @@ module Zold
       when 'clean'
         @remotes.clean
         @log.debug('All remote nodes deleted')
+      when 'reset'
+        @remotes.reset
+        @log.debug('Remote nodes set back to default')
       when 'add'
         host = args[1]
         port = args[2]

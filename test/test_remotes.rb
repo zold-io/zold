@@ -50,6 +50,15 @@ class TestRemotes < Minitest::Test
     end
   end
 
+  def test_resets_remotes
+    Dir.mktmpdir 'test' do |dir|
+      file = File.join(dir, 'remotes')
+      remotes.clean
+      remotes.reset
+      assert(!remotes.total.empty?)
+    end
+  end
+
   def test_modifies_score
     Dir.mktmpdir 'test' do |dir|
       file = File.join(dir, 'remotes')

@@ -45,6 +45,14 @@ module Zold
       save([])
     end
 
+    def reset
+      FileUtils.mkdir_p(File.dirname(@file))
+      FileUtils.copy(
+        File.join(File.dirname(__FILE__), '../../resources/remotes'),
+        @file
+      )
+    end
+
     def add(host, port = 80)
       list = load
       list << { host: host, port: port, score: 0 }
@@ -91,13 +99,7 @@ module Zold
     end
 
     def file
-      unless File.exist?(@file)
-        FileUtils.mkdir_p(File.dirname(@file))
-        FileUtils.copy(
-          File.join(File.dirname(__FILE__), '../../resources/remotes'),
-          @file
-        )
-      end
+      reset unless File.exist?(@file)
       @file
     end
   end
