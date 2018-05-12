@@ -24,6 +24,7 @@ require 'haml'
 require 'slop'
 require 'json'
 require 'sinatra/base'
+require 'webrick'
 
 require_relative 'farm'
 require_relative '../version'
@@ -42,12 +43,14 @@ module Zold
   class Front < Sinatra::Base
     configure do
       Haml::Options.defaults[:format] = :xhtml
+      set :logging, true
       set :lock, Mutex.new
       set :log, Log.new
       set :views, (proc { File.join(root, '../../../views') })
       set :show_exceptions, false
       set :wallets, Wallets.new(Dir.pwd)
       set :farm, Farm.new
+      set :server, 'webrick'
     end
 
     get '/' do

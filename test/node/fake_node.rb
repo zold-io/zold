@@ -40,17 +40,21 @@ class FakeNode
       port = server.addr[1]
       server.close
       node = Thread.new do
-        Thread.current.abort_on_exception = true
-        home = File.join(dir, 'node-home')
-        Zold::Node.new(log: @log).run(
-          [
-            '--port', port.to_s,
-            '--host=locahost',
-            '--bind-port', port.to_s,
-            '--threads=1',
-            '--home', home
-          ]
-        )
+        begin
+          Thread.current.abort_on_exception = true
+          home = File.join(dir, 'node-home')
+          Zold::Node.new(log: @log).run(
+            [
+              '--port', port.to_s,
+              '--host=locahost',
+              '--bind-port', port.to_s,
+              '--threads=1',
+              '--home', home
+            ]
+          )
+        rescue StandardError => e
+          @log.error(e.message + "\n" + e.backtrace.join("\n"))
+        end
       end
       home = URI("http://localhost:#{port}/score.txt")
       while Zold::Http.new(home).get.code != '200' && node.alive?
@@ -60,7 +64,7 @@ class FakeNode
       begin
         yield port
       rescue StandardError => e
-        @log.error(e.message)
+        @log.error(e.message + "\n" + e.backtrace.join("\n"))
       ensure
         node.exit
       end

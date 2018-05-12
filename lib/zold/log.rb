@@ -20,6 +20,8 @@
 
 require 'rainbow'
 
+STDOUT.sync = true
+
 # The log.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
@@ -27,26 +29,42 @@ require 'rainbow'
 module Zold
   # Logging
   class Log
-    def initialize
-      @mutex = Mutex.new
+    def debug(msg)
+      puts msg
+    end
+
+    def debug?
+      true
     end
 
     def info(msg)
-      @mutex.synchronize do
-        puts msg
-      end
+      puts msg
+    end
+
+    def info?
+      true
     end
 
     def error(msg)
-      @mutex.synchronize do
-        puts "#{Rainbow('ERROR').red}: #{msg}"
-      end
+      puts "#{Rainbow('ERROR').red}: #{msg}"
     end
 
     # Log that doesn't log anything
     class Quiet
+      def debug(msg)
+        # nothing to do here
+      end
+
+      def debug?
+        false
+      end
+
       def info(msg)
         # nothing to do here
+      end
+
+      def info?
+        false
       end
 
       def error(msg)

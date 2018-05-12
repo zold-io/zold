@@ -29,36 +29,28 @@ require_relative 'fake_node.rb'
 
 class FrontTest < Minitest::Test
   def test_renders_public_pages
-    FakeNode.new(log: Zold::Log.new).run do |port|
-      [
-        '/version',
-        '/robots.txt',
-        '/index.html',
-        '/score.json',
-        '/score.txt'
-      ].each do |p|
-        uri = URI("http://localhost:#{port}#{p}")
-        response = Zold::Http.new(uri).get
-        assert_equal(
-          '200', response.code,
-          "Invalid response code for #{uri}"
-        )
-      end
-    end
-  end
-
-  def test_renders_absent_pages
-    FakeNode.new(log: Zold::Log.new).run do |port|
-      [
-        '/this-is-absent',
-        '/wallet/ffffeeeeddddcccc.json'
-      ].each do |p|
-        uri = URI("http://localhost:#{port}#{p}")
-        response = Zold::Http.new(uri).get
-        assert_equal(
-          '404', response.code,
-          "Invalid response code for #{uri}"
-        )
+    FakeNode.new.run do |port|
+      {
+        '200' => [
+          '/version',
+          '/robots.txt',
+          '/index.html',
+          '/score.json',
+          '/score.txt'
+        ],
+        '404' => [
+          '/this-is-absent',
+          '/wallet/ffffeeeeddddcccc.json'
+        ]
+      }.each do |code, paths|
+        paths.each do |p|
+          uri = URI("http://localhost:#{port}#{p}")
+          response = Zold::Http.new(uri).get
+          assert_equal(
+            code, response.code,
+            "Invalid response code for #{uri}: #{response.message}"
+          )
+        end
       end
     end
   end

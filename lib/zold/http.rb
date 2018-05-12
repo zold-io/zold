@@ -45,7 +45,11 @@ module Zold
       http = Net::HTTP.new(@uri.host, @uri.port)
       http.read_timeout = 5
       http.continue_timeout = 5
-      return http.request_put(@uri.path, body, 'User-Agent': 'Zold')
+      return http.request_put(
+        @uri.path, body,
+        'User-Agent': 'Zold',
+        'Content-Type': 'text/plain'
+      )
     rescue StandardError => e
       return Net::HTTPServerError.new('1.1', '500', e.message)
     end

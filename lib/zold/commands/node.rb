@@ -54,7 +54,14 @@ module Zold
         @log.info(opts.to_s)
         return
       end
+      Zold::Front.set(:suppress_messages, true)
       Zold::Front.set(:log, @log)
+      Zold::Front.set(:logging, @log.info?)
+      Zold::Front.set(
+        :server_settings,
+        Logger: @log,
+        AccessLog: []
+      )
       Zold::Front.set(:port, opts['bind-port'])
       FileUtils.mkdir_p(opts[:home])
       Zold::Front.set(:wallets, Wallets.new(opts[:home]))
