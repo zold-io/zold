@@ -18,47 +18,51 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'minitest/autorun'
 require 'tmpdir'
-require_relative '../../lib/zold/key.rb'
-require_relative '../../lib/zold/id.rb'
-require_relative '../../lib/zold/amount.rb'
-require_relative '../../lib/zold/wallet.rb'
+require 'webmock/minitest'
+require_relative '../../lib/zold/log.rb'
 require_relative '../../lib/zold/http.rb'
-require_relative 'fake_node.rb'
+require_relative '../../lib/zold/commands/node.rb'
 
-class FrontTest < Minitest::Test
-  def test_renders_public_pages
-    FakeNode.new(log: Zold::Log.new).run do |port|
-      [
-        '/version',
-        '/robots.txt',
-        '/index.html',
-        '/score.json',
-        '/score.txt'
-      ].each do |p|
-        uri = URI("http://localhost:#{port}#{p}")
-        response = Zold::Http.new(uri).get
-        assert_equal(
-          '200', response.code,
-          "Invalid response code for #{uri}"
-        )
-      end
-    end
+# Fake node.
+# Author:: Yegor Bugayenko (yegor256@gmail.com)
+# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# License:: MIT
+class FakeNode
+  def initialize(log: Zold::Log::Quiet.new)
+    @log = log
   end
 
-  def test_renders_absent_pages
-    FakeNode.new(log: Zold::Log.new).run do |port|
-      [
-        '/this-is-absent',
-        '/wallet/ffffeeeeddddcccc.json'
-      ].each do |p|
-        uri = URI("http://localhost:#{port}#{p}")
-        response = Zold::Http.new(uri).get
-        assert_equal(
-          '404', response.code,
-          "Invalid response code for #{uri}"
+  def run
+    WebMock.allow_net_connect!
+    Dir.mktmpdir 'test' do |dir|
+      server = TCPServer.new('127.0.0.1', 0)
+      port = server.addr[1]
+      server.close
+      node = Thread.new do
+        Thread.current.abort_on_exception = true
+        home = File.join(dir, 'node-home')
+        Zold::Node.new(log: @log).run(
+          [
+            '--port', port.to_s,
+            '--host=locahost',
+            '--bind-port', port.to_s,
+            '--threads=1',
+            '--home', home
+          ]
         )
+      end
+      home = URI("http://localhost:#{port}/score.txt")
+      while Zold::Http.new(home).get.code != '200' && node.alive?
+        sleep 1
+        @log.info("Waiting for #{home}...")
+      end
+      begin
+        yield port
+      rescue StandardError => e
+        @log.error(e.message)
+      ensure
+        node.exit
       end
     end
   end

@@ -29,6 +29,7 @@ require_relative 'farm'
 require_relative '../version'
 require_relative '../wallet'
 require_relative '../wallets'
+require_relative '../log'
 require_relative '../id'
 require_relative '../commands/show'
 
@@ -42,6 +43,7 @@ module Zold
     configure do
       Haml::Options.defaults[:format] = :xhtml
       set :lock, Mutex.new
+      set :log, Log.new
       set :views, (proc { File.join(root, '../../../views') })
       set :show_exceptions, false
       set :wallets, Wallets.new(Dir.pwd)
@@ -54,7 +56,7 @@ module Zold
 
     get '/index.html' do
       haml :index, layout: :layout, locals: {
-        title: 'zold',
+        title: 'Zold',
         total: settings.wallets.all.count
       }
     end
@@ -92,14 +94,6 @@ module Zold
         'score': score.to_h,
         'body': File.read(wallet.path)
       }.to_json
-    end
-
-    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.txt} do
-      id = Id.new(params[:id])
-      wallet = settings.wallets.find(id)
-      error 404 unless wallet.exists?
-      content_type 'text/plain'
-      File.read(wallet.path)
     end
 
     put %r{/wallet/(?<id>[A-Fa-f0-9]{16})/?} do

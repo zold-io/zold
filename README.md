@@ -223,7 +223,7 @@ The full list of RESTful resources:
 
   * `/remotes.(txt|json)` (GET): load all known remotes
 
-  * `/wallet/<ID>.(txt|json)` (GET): fetch wallet
+  * `/wallet/<ID>.json` (GET): fetch wallet
 
   * `/wallet/<ID>` (PUT): push wallet
 

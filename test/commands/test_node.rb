@@ -18,32 +18,39 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'net/http'
-require_relative '../log.rb'
-require_relative '../http.rb'
+require 'minitest/autorun'
+require 'tmpdir'
+require 'webmock/minitest'
+require_relative '../../lib/zold/wallet.rb'
+require_relative '../../lib/zold/remotes.rb'
+require_relative '../../lib/zold/id.rb'
+require_relative '../../lib/zold/copies.rb'
+require_relative '../../lib/zold/key.rb'
+require_relative '../../lib/zold/commands/node.rb'
+require_relative '../../lib/zold/commands/fetch.rb'
+require_relative '../../lib/zold/commands/push.rb'
+require_relative '../node/fake_node.rb'
 
-# PUSH command.
+# NODE test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # Wallet pushing command
-  class Push
-    def initialize(wallet:, remotes:, log: Log::Quiet.new)
-      @wallet = wallet
-      @remotes = remotes
-      @log = log
-    end
-
-    def run(_ = [])
-      raise 'The wallet is absent' unless @wallet.exists?
-      remote = @remotes.all[0]
-      uri = URI("#{remote[:home]}/wallet/#{@wallet.id}")
-      response = Http.new(uri).put(File.read(@wallet.path))
-      unless response.code == '200'
-        raise "Failed to push to #{uri}: #{response.code}/#{response.message}"
+class TestNode < Minitest::Test
+  def test_push_and_fetch
+    FakeNode.new.run do |port|
+      Dir.mktmpdir 'test' do |dir|
+        id = Zold::Id.new
+        wallet = Zold::Wallet.new(File.join(dir, id.to_s))
+        wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+        copies = Zold::Copies.new(File.join(dir, 'copies'))
+        remotes = Zold::Remotes.new(File.join(dir, 'remotes.csv'))
+        remotes.clean
+        remotes.add('localhost', port)
+        Zold::Push.new(wallet: wallet, remotes: remotes).run
+        Zold::Fetch.new(wallet: wallet, copies: copies, remotes: remotes).run
+        assert_equal(copies.all[0][:name], '1')
+        assert_equal(copies.all[0][:score], 0)
       end
-      @log.info("The #{@wallet.id} pushed to #{uri}")
     end
   end
 end

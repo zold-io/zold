@@ -54,12 +54,19 @@ module Zold
         @log.info(opts.to_s)
         return
       end
+      Zold::Front.set(:log, @log)
       Zold::Front.set(:port, opts['bind-port'])
+      FileUtils.mkdir_p(opts[:home])
       Zold::Front.set(:wallets, Wallets.new(opts[:home]))
       farm = Farm.new(log: @log)
       farm.start(opts[:host], opts[:port], threads: opts[:threads])
       Zold::Front.set(:farm, farm)
-      Zold::Front.run!
+      @log.info('Starting up the web front...')
+      begin
+        Zold::Front.run!
+      ensure
+        farm.stop
+      end
     end
   end
 end

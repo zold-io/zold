@@ -46,7 +46,6 @@ module Zold
       @threads = (1..threads).map do |t|
         Thread.new do
           Thread.current.name = "farm-#{t}"
-          @log.info("Thread #{Thread.current.name} started")
           loop do
             s = @scores.pop
             next unless s.valid?
@@ -66,6 +65,7 @@ module Zold
           end
         end
       end
+      @log.info("Farm started with #{threads} threads at #{host}:#{port}")
     end
 
     def stop
@@ -73,6 +73,7 @@ module Zold
         t.exit
         @log.info("Thread #{t.name} terminated")
       end
+      @log.info('Farm stopped')
     end
   end
 end

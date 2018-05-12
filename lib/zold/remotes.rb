@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'csv'
+require 'uri'
 require 'fileutils'
 
 # The list of remotes.
@@ -37,7 +38,7 @@ module Zold
     end
 
     def all
-      load
+      load.sort_by { |r| r[:score] }.reverse
     end
 
     def clean
@@ -77,7 +78,7 @@ module Zold
           host: r[0],
           port: r[1].to_i,
           score: r[2].to_i,
-          home: "http://#{r[0]}:#{r[1]}"
+          home: URI("http://#{r[0]}:#{r[1]}")
         }
       end
     end
