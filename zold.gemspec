@@ -46,6 +46,7 @@ Gem::Specification.new do |s|
   s.extra_rdoc_files = ['README.md', 'LICENSE.txt']
   s.add_runtime_dependency 'cucumber', '1.3.17'
   s.add_runtime_dependency 'diffy', '3.2.0'
+  s.add_runtime_dependency 'facter', '2.5.1'
   s.add_runtime_dependency 'rainbow', '~>3.0'
   s.add_runtime_dependency 'rake', '12.0.0'
   s.add_runtime_dependency 'rubocop', '~>0.52.0'

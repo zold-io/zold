@@ -21,6 +21,7 @@
 STDOUT.sync = true
 
 require 'slop'
+require 'facter'
 require 'json'
 require 'sinatra/base'
 require 'webrick'
@@ -64,8 +65,12 @@ module Zold
       JSON.pretty_generate(
         'version': VERSION,
         'score': score.to_h,
-        'uptime': `uptime`.strip,
-        'hostname': `hostname`.strip,
+        'platform': {
+          'uptime': `uptime`.strip,
+          'hostname': `hostname`.strip,
+          'kernel': Facter.value(:kernel),
+          'processors': Facter.value(:processors)['count']
+        },
         'date': `date  --iso-8601=seconds -u`.strip,
         'age': Time.now - settings.start,
         'home': 'https://www.zold.io'
