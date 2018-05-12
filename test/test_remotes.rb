@@ -52,7 +52,7 @@ class TestRemotes < Minitest::Test
 
   def test_resets_remotes
     Dir.mktmpdir 'test' do |dir|
-      file = File.join(dir, 'remotes')
+      remotes = Zold::Remotes.new(File.join(dir, 'remotes'))
       remotes.clean
       remotes.reset
       assert(!remotes.total.empty?)
