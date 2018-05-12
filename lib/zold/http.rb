@@ -38,7 +38,7 @@ module Zold
       http.continue_timeout = 5
       return http.request_get(@uri.path, 'User-Agent': 'Zold')
     rescue StandardError => e
-      return Net::HTTPServerError.new('1.1', '500', e.message)
+      return Net::HTTPServerError.new('1.1', '599', e.message)
     end
 
     def put(body)
@@ -51,7 +51,7 @@ module Zold
         'Content-Type': 'text/plain'
       )
     rescue StandardError => e
-      return Net::HTTPServerError.new('1.1', '500', e.message)
+      return Net::HTTPServerError.new('1.1', '599', e.message)
     end
   end
 end

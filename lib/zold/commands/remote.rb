@@ -78,26 +78,32 @@ module Zold
 
     def update
       @remotes.all.each do |r|
-        res = Http.new(r[:home]).get
-        if res.code == '200'
-          json = JSON.parse(res.body)['score']
-          score = Score.new(
-            Time.parse(json['time']), r[:host],
-            r[:port], json['suffixes']
-          )
-          if score.valid?
-            @remotes.rescore(r[:host], r[:port], score.value)
-            @log.info("#{r[:host]}: #{Rainbow(score.value).green}")
-          else
-            @remotes.remove(r[:host], r[:port])
-            @log.info("#{r[:host]}: score is #{Rainbow('invalid').red}")
-          end
-        else
+        uri = URI("#{r[:home]}remotes")
+        res = Http.new(uri).get
+        unless res.code == '200'
           @remotes.remove(r[:host], r[:port])
-          @log.info(
-            "#{r[:host]} #{Rainbow('removed').red} #{res.message} #{r[:home]}"
-          )
+          @log.info("#{Rainbow(r[:host]).red} #{res.message} #{uri}")
+          next
         end
+        begin
+          json = JSON.parse(res.body)
+        rescue JSON::ParserError => e
+          @remotes.remove(r[:host], r[:port])
+          @log.info("#{Rainbow(r[:host]).red} #{e.message} #{res.body}")
+          next
+        end
+        score = Score.new(
+          Time.parse(json['score']['time']), r[:host],
+          r[:port], json['score']['suffixes']
+        )
+        unless score.valid?
+          @remotes.remove(r[:host], r[:port])
+          @log.info("#{Rainbow(r[:host]).red} invalid score")
+          next
+        end
+        @remotes.rescore(r[:host], r[:port], score.value)
+        json['all'].each { |s| run(['add', s['host'], s['port']]) }
+        @log.info("#{r[:host]}: #{Rainbow(score.value).green}")
       end
     end
   end

@@ -22,6 +22,7 @@ STDOUT.sync = true
 
 require 'slop'
 require 'facter'
+require 'facter/util/memory'
 require 'json'
 require 'sinatra/base'
 require 'webrick'
@@ -31,6 +32,7 @@ require_relative '../version'
 require_relative '../wallet'
 require_relative '../wallets'
 require_relative '../log'
+require_relative '../remotes'
 require_relative '../id'
 require_relative '../commands/show'
 
@@ -47,7 +49,7 @@ module Zold
       set :lock, Mutex.new
       set :log, Log.new
       set :show_exceptions, false
-      set :wallets, Wallets.new(Dir.pwd)
+      set :home, Dir.pwd
       set :farm, Farm.new
       set :server, 'webrick'
     end
@@ -63,35 +65,37 @@ module Zold
     get '/' do
       content_type 'application/json'
       JSON.pretty_generate(
-        'version': VERSION,
-        'score': score.to_h,
-        'platform': {
-          'uptime': `uptime`.strip,
-          'hostname': `hostname`.strip,
-          'kernel': Facter.value(:kernel),
-          'processors': Facter.value(:processors)['count']
+        version: VERSION,
+        score: score.to_h,
+        platform: {
+          uptime: `uptime`.strip,
+          hostname: `hostname`.strip,
+          # see https://docs.puppet.com/facter/3.3/core_facts.html
+          kernel: Facter.value(:kernel),
+          processors: Facter.value(:processors)['count'],
+          memory: Facter::Memory.mem_size
         },
-        'date': `date  --iso-8601=seconds -u`.strip,
-        'age': Time.now - settings.start,
-        'home': 'https://www.zold.io'
+        date: `date  --iso-8601=seconds -u`.strip,
+        age: Time.now - settings.start,
+        home: 'https://www.zold.io'
       )
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})} do
       id = Id.new(params[:id])
-      wallet = settings.wallets.find(id)
+      wallet = wallets.find(id)
       error 404 unless wallet.exists?
       content_type 'application/json'
       {
-        'score': score.to_h,
-        'body': File.read(wallet.path)
+        score: score.to_h,
+        body: File.read(wallet.path)
       }.to_json
     end
 
     put %r{/wallet/(?<id>[A-Fa-f0-9]{16})/?} do
       settings.lock.synchronize do
         id = Id.new(params[:id])
-        wallet = settings.wallets.find(id)
+        wallet = wallets.find(id)
         temp = before = nil
         if wallet.exists?
           before = wallet.version
@@ -114,6 +118,19 @@ module Zold
       end
     end
 
+    get '/remotes' do
+      content_type 'application/json'
+      JSON.pretty_generate(
+        score: score.to_h,
+        all: remotes.all.map do |r|
+          {
+            host: r[:host],
+            port: r[:port]
+          }
+        end
+      )
+    end
+
     not_found do
       status 404
       content_type 'application/json'
@@ -127,6 +144,14 @@ module Zold
     end
 
     private
+
+    def remotes
+      Remotes.new(File.join(settings.home, 'remotes'))
+    end
+
+    def wallets
+      Wallets.new(settings.home)
+    end
 
     def score
       best = settings.farm.best

@@ -64,7 +64,7 @@ module Zold
       )
       Zold::Front.set(:port, opts['bind-port'])
       FileUtils.mkdir_p(opts[:home])
-      Zold::Front.set(:wallets, Wallets.new(opts[:home]))
+      Zold::Front.set(:home, opts[:home])
       farm = Farm.new(log: @log)
       farm.start(opts[:host], opts[:port], threads: opts[:threads])
       Zold::Front.set(:farm, farm)
