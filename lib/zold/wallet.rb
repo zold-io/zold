@@ -61,15 +61,6 @@ module Zold
       File.write(@file, "#{id}\n#{pubkey.to_pub}\n\n")
     end
 
-    def version
-      all = txns
-      if all.empty?
-        0
-      else
-        all.select { |t| t[:amount].negative? }.max_by { |t| t[:id] }[:id]
-      end
-    end
-
     def root?
       id == Id::ROOT
     end
@@ -84,7 +75,7 @@ module Zold
 
     def sub(amount, target, pvtkey, details = '-')
       txn = {
-        id: version + 1,
+        id: max + 1,
         date: Time.now,
         amount: amount.mul(-1),
         bnf: target,
@@ -100,13 +91,8 @@ module Zold
       open(@file, 'a') { |f| f.print to_line(txn) }
     end
 
-    def remove(id, bnf)
-      File.write(
-        @file,
-        txns.reject { |t| t[:id] == id && t[:bnf] == bnf }
-          .map { |t| to_line(t) }
-          .join
-      )
+    def has?(id, bnf)
+      !txns.find { |t| t[:id] == id && t[:bnf] == bnf }.nil?
     end
 
     def key
@@ -127,6 +113,15 @@ module Zold
     end
 
     private
+
+    def max
+      all = txns
+      if all.empty?
+        0
+      else
+        all.select { |t| t[:amount].negative? }.max_by { |t| t[:id] }[:id]
+      end
+    end
 
     def to_line(txn)
       [
