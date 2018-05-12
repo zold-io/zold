@@ -42,7 +42,9 @@ module Zold
     def start(host, port, strength: 8, threads: 8)
       @log.debug('Zero-threads farm won\'t score anything!') if threads.zero?
       @scores = Queue.new
-      @scores << Score.new(Time.now, host, port, strength: strength)
+      first = Score.new(Time.now, host, port, strength: strength)
+      @best = [first]
+      @scores << first
       @threads = (1..threads).map do |t|
         Thread.new do
           Thread.current.name = "farm-#{t}"
