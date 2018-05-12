@@ -175,7 +175,7 @@ Available options:"
   when 'diff'
     require_relative '../lib/zold/commands/diff'
     args.each do |id|
-      Zold::Fetch.new(
+      Zold::Diff.new(
         wallet: wallets.find(Zold::Id.new(id)),
         copies: Zold::Copies.new(File.join(copies, id)),
         log: log

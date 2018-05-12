@@ -27,7 +27,9 @@ zold --private-key id_rsa --trace pay 0000000000000000 af5788fcadd710c5 14.99 'T
 zold show
 zold show 0000000000000000
 
-zold --trace push 0000000000000000
-zold pull 0000000000000000
+zold push 0000000000000000
+zold fetch 0000000000000000
+zold diff 0000000000000000
+zold merge 0000000000000000
 
 echo 'DONE'
