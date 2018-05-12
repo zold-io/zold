@@ -20,7 +20,6 @@
 
 require 'rainbow'
 require 'net/http'
-require 'uri'
 require 'json'
 require 'time'
 require_relative '../log.rb'
@@ -79,8 +78,7 @@ module Zold
 
     def update
       @remotes.all.each do |r|
-        uri = URI("#{r[:home]}/score")
-        res = Http.new(uri).get
+        res = Http.new(r[:home]).get
         if res.code == '200'
           json = JSON.parse(res.body)['score']
           score = Score.new(
@@ -97,7 +95,7 @@ module Zold
         else
           @remotes.remove(r[:host], r[:port])
           @log.info(
-            "#{r[:host]} #{Rainbow('removed').red}: #{res.message} at #{uri}"
+            "#{r[:host]} #{Rainbow('removed').red} #{res.message} #{r[:home]}"
           )
         end
       end

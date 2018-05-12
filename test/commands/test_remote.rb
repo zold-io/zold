@@ -38,14 +38,14 @@ class TestRemote < Minitest::Test
       cmd = Zold::Remote.new(remotes: remotes)
       cmd.run(['clean'])
       cmd.run(%w[add localhost 1])
-      stub_request(:get, 'http://localhost:1/score').to_return(
+      stub_request(:get, 'http://localhost:1/').to_return(
         status: 200,
         body: {
           'score': Zold::Score.new(Time.now, 'localhost', 80).to_h
         }.to_json
       )
       cmd.run(%w[add localhost 2])
-      stub_request(:get, 'http://localhost:2/score').to_return(
+      stub_request(:get, 'http://localhost:2/').to_return(
         status: 404
       )
       assert_equal(remotes.all.count, 2)

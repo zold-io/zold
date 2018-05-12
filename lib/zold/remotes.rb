@@ -78,7 +78,7 @@ module Zold
           host: r[0],
           port: r[1].to_i,
           score: r[2].to_i,
-          home: URI("http://#{r[0]}:#{r[1]}")
+          home: URI("http://#{r[0]}:#{r[1]}/")
         }
       end
     end

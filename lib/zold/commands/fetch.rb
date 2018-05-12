@@ -42,7 +42,7 @@ module Zold
     def run(_ = [])
       total = 0
       @remotes.all.each do |r|
-        uri = URI("#{r[:home]}/wallet/#{@wallet.id}")
+        uri = URI("#{r[:home]}wallet/#{@wallet.id}")
         res = Http.new(uri).get
         if res.code == '200'
           json = JSON.parse(res.body)

@@ -217,9 +217,7 @@ to the score of the node.
 
 The full list of RESTful resources:
 
-  * `/index.html` (GET): status page of the node
-
-  * `/score` (GET): score data in JSON
+  * `/` (GET): status page of the node, in JSON
 
   * `/remotes` (GET): load all known remotes in JSON
 

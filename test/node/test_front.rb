@@ -32,10 +32,8 @@ class FrontTest < Minitest::Test
     FakeNode.new.run do |port|
       {
         '200' => [
-          '/version',
           '/robots.txt',
-          '/index.html',
-          '/score'
+          '/'
         ],
         '404' => [
           '/this-is-absent',

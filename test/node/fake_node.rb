@@ -56,7 +56,7 @@ class FakeNode
           @log.error(e.message + "\n" + e.backtrace.join("\n"))
         end
       end
-      home = URI("http://localhost:#{port}/score")
+      home = URI("http://localhost:#{port}/")
       while Zold::Http.new(home).get.code != '200' && node.alive?
         sleep 1
         @log.info("Waiting for #{home}...")

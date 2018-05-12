@@ -54,17 +54,6 @@ module Zold
       set :server, 'webrick'
     end
 
-    get '/' do
-      redirect '/index.html'
-    end
-
-    get '/index.html' do
-      haml :index, layout: :layout, locals: {
-        title: 'Zold',
-        total: settings.wallets.all.count
-      }
-    end
-
     get '/robots.txt' do
       'User-agent: *'
     end
@@ -73,16 +62,14 @@ module Zold
       redirect 'https://www.zold.io/logo.png'
     end
 
-    get '/version' do
-      VERSION
-    end
-
-    get '/score' do
+    get '/' do
       content_type 'application/json'
       JSON.pretty_generate(
+        'version': VERSION,
         'score': score.to_h,
-        'uptime': `uptime`,
-        'date': `date  --iso-8601=seconds -u`,
+        'uptime': `uptime`.strip,
+        'hostname': `hostname`.strip,
+        'date': `date  --iso-8601=seconds -u`.strip,
         'age': Time.now - settings.start
       )
     end
@@ -126,9 +113,8 @@ module Zold
 
     not_found do
       status 404
-      haml :not_found, layout: :layout, locals: {
-        title: 'Page not found'
-      }
+      content_type 'application/json'
+      'Page not found'
     end
 
     error do
