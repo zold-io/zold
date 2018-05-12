@@ -37,6 +37,7 @@ Thus, the technical capacity of the currency is 549,755,813,888 ZLD (half a tril
 Install Ruby 2.2+, [Rubygems](https://rubygems.org/pages/download), and then run:
 
 ```bash
+$ sudo apt-get install ruby-dev rubygems zlib1g-dev
 $ gem install zold
 ```
 
@@ -62,6 +63,11 @@ For more options and commands just run:
 ```bash
 $ zold --help
 ```
+
+You will need PGP keys in `~/.ssh`. To generate them, if you don't have them
+yet, you can run:
+
+
 
 ## Glossary
 

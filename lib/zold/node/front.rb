@@ -45,6 +45,7 @@ module Zold
   # Web front
   class Front < Sinatra::Base
     configure do
+      set :bind, '0.0.0.0'
       set :logging, true
       set :start, Time.now
       set :lock, Mutex.new
