@@ -74,14 +74,11 @@ module Zold
       txns.inject(Amount::ZERO) { |sum, t| sum + t.amount }
     end
 
-    def sub(amount, invoice, pvtkey, details = '-')
+    def sub(amount, invoice, pvt, details = '-')
+      raise 'The amount has to be of type Amount' unless amount.is_a?(Amount)
       raise "The amount can't be negative: #{amount}" if amount.negative?
-      if invoice.is_a?(Id)
-        prefix = 'NOPREFIX'
-        target = invoice.to_s
-      else
-        prefix, target = invoice.split('@')
-      end
+      raise 'The pvt has to be of type Key' unless pvt.is_a?(Key)
+      prefix, target = invoice.split('@')
       txn = Txn.new(
         max + 1,
         Time.now,
@@ -90,12 +87,13 @@ module Zold
         Id.new(target),
         details
       )
-      txn = txn.signed(pvtkey)
+      txn = txn.signed(pvt)
       add(txn)
       txn
     end
 
     def add(txn)
+      raise 'The txn has to be of type Txn' unless txn.is_a?(Txn)
       open(@file, 'a') { |f| f.print "#{txn}\n" }
     end
 

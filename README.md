@@ -67,7 +67,9 @@ $ zold --help
 You will need PGP keys in `~/.ssh`. To generate them, if you don't have them
 yet, you can run:
 
-
+```bash
+ssh-keygen -t rsa -b 4096
+```
 
 ## Glossary
 

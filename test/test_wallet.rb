@@ -37,9 +37,9 @@ class TestWallet < Minitest::Test
       wallet = wallet(dir)
       amount = Zold::Amount.new(zld: 39.99)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
-      wallet.sub(amount, Zold::Id.new, key)
-      wallet.sub(amount, Zold::Id.new, key)
-      wallet.sub(amount, Zold::Id.new, key)
+      wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
+      wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
+      wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
       assert(
         wallet.balance == amount.mul(-3),
         "#{wallet.balance} is not equal to #{amount.mul(-3)}"
@@ -52,7 +52,7 @@ class TestWallet < Minitest::Test
       wallet = wallet(dir)
       amount = Zold::Amount.new(zld: 39.99)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
-      txn = wallet.sub(amount, Zold::Id.new, key)
+      txn = wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
       wallet.add(txn.inverse(wallet.id))
       assert(!Zold::Wallet.new(wallet.path).txns[0].sign.end_with?("\n"))
     end

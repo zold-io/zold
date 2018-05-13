@@ -96,6 +96,7 @@ module Zold
         wallets: {
           total: wallets.all.count
         },
+        farm: settings.farm.to_json,
         date: `date  --iso-8601=seconds -u`.strip,
         age: Time.now - settings.start,
         home: 'https://www.zold.io'

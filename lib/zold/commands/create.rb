@@ -41,6 +41,10 @@ module Zold
 Available options:"
         o.bool '--help', 'Print instructions'
       end
+      if opts.help?
+        @log.info(opts.to_s)
+        return
+      end
       create(opts.arguments.empty? ? Id.new : Id.new(opts.arguments[0]), opts)
     end
 

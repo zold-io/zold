@@ -39,6 +39,14 @@ module Zold
       @semaphore = Mutex.new
     end
 
+    def to_json
+      {
+        threads: @threads.count,
+        scores: @scores.size,
+        best: @best.count
+      }
+    end
+
     def start(host, port, strength: 8, threads: 8)
       @log.debug('Zero-threads farm won\'t score anything!') if threads.zero?
       @scores = Queue.new
