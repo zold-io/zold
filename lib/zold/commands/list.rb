@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative '../log.rb'
+require_relative '../log'
 
 # LIST command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

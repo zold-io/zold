@@ -21,7 +21,7 @@
 require 'minitest/autorun'
 require 'rack/test'
 require 'tmpdir'
-require_relative '../../lib/zold/node/farm.rb'
+require_relative '../../lib/zold/node/farm'
 
 class FarmTest < Minitest::Test
   def test_makes_best_score_in_background

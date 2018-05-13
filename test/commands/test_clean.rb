@@ -21,8 +21,8 @@
 require 'minitest/autorun'
 require 'tmpdir'
 require 'time'
-require_relative '../../lib/zold/copies.rb'
-require_relative '../../lib/zold/commands/clean.rb'
+require_relative '../../lib/zold/copies'
+require_relative '../../lib/zold/commands/clean'
 
 # CLEAN test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -31,10 +31,11 @@ require_relative '../../lib/zold/commands/clean.rb'
 class TestClean < Minitest::Test
   def test_cleans_copies
     Dir.mktmpdir 'test' do |dir|
-      copies = Zold::Copies.new(File.join(dir, 'copies'))
+      id = Zold::Id.new
+      copies = Zold::Copies.new(File.join(dir, "copies/#{id}"))
       copies.add('a1', 'host-1', 80, 1, Time.now - 26 * 60)
       copies.add('a2', 'host-2', 80, 2, Time.now - 26 * 60)
-      Zold::Clean.new(copies: copies).run
+      Zold::Clean.new(copies: copies.root).run([id.to_s])
       assert(copies.all.empty?)
     end
   end

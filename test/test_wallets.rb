@@ -20,10 +20,10 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
-require_relative '../lib/zold/key.rb'
-require_relative '../lib/zold/id.rb'
-require_relative '../lib/zold/wallets.rb'
-require_relative '../lib/zold/amount.rb'
+require_relative '../lib/zold/key'
+require_relative '../lib/zold/id'
+require_relative '../lib/zold/wallets'
+require_relative '../lib/zold/amount'
 
 # Wallets test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

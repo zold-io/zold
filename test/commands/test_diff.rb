@@ -23,12 +23,13 @@ require 'tmpdir'
 require 'json'
 require 'time'
 require 'webmock/minitest'
-require_relative '../../lib/zold/wallet.rb'
-require_relative '../../lib/zold/id.rb'
-require_relative '../../lib/zold/copies.rb'
-require_relative '../../lib/zold/key.rb'
-require_relative '../../lib/zold/commands/pay.rb'
-require_relative '../../lib/zold/commands/diff.rb'
+require_relative '../../lib/zold/wallets'
+require_relative '../../lib/zold/wallet'
+require_relative '../../lib/zold/id'
+require_relative '../../lib/zold/copies'
+require_relative '../../lib/zold/key'
+require_relative '../../lib/zold/commands/pay'
+require_relative '../../lib/zold/commands/diff'
 
 # DIFF test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -38,24 +39,24 @@ class TestDiff < Minitest::Test
   def test_diff_with_copies
     Dir.mktmpdir 'test' do |dir|
       id = Zold::Id.new
-      file = File.join(dir, id.to_s)
-      wallet = Zold::Wallet.new(file)
+      wallet = Zold::Wallet.new(File.join(dir, id.to_s))
       wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
       first = Zold::Wallet.new(File.join(dir, 'copy-1'))
       File.write(first.path, File.read(wallet.path))
       second = Zold::Wallet.new(File.join(dir, 'copy-2'))
       File.write(second.path, File.read(wallet.path))
       Zold::Pay.new(
-        payer: first,
-        receiver: second,
-        amount: Zold::Amount.new(zld: 14.95),
+        wallets: Zold::Wallets.new(dir),
         pvtkey: Zold::Key.new(file: 'fixtures/id_rsa')
-      ).run(['--force'])
-      copies = Zold::Copies.new(File.join(dir, 'copies'))
+      ).run([id.to_s, second.id.to_s, '14.95', '--force'])
+      copies = Zold::Copies.new(File.join(dir, "copies/#{id}"))
       copies.add(File.read(first.path), 'host-1', 80, 5)
       copies.add(File.read(second.path), 'host-2', 80, 5)
-      diff = Zold::Diff.new(wallet: wallet, copies: copies).run
-      assert(diff.include?('+1;'))
+      diff = Zold::Diff.new(
+        wallets: Zold::Wallets.new(dir),
+        copies: copies.root
+      ).run([id.to_s])
+      assert(diff.include?('-1;'))
     end
   end
 end

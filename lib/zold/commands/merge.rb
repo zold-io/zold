@@ -18,9 +18,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative '../log.rb'
-require_relative '../wallet.rb'
-require_relative '../patch.rb'
+require 'slop'
+require_relative '../log'
+require_relative '../id'
+require_relative '../wallet'
+require_relative '../patch'
 
 # MERGE command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -29,22 +31,45 @@ require_relative '../patch.rb'
 module Zold
   # MERGE pulling command
   class Merge
-    def initialize(wallet:, copies:, log: Log::Quiet.new)
-      @wallet = wallet
+    def initialize(wallets:, copies:, log: Log::Quiet.new)
+      @wallets = wallets
       @copies = copies
       @log = log
     end
 
-    def run(_ = [])
-      raise 'There are no remote copies, try FETCH first' if @copies.all.empty?
-      cps = @copies.all.sort_by { |c| c[:score] }.reverse
+    def run(args = [])
+      opts = Slop.parse(args, help: true) do |o|
+        o.banner = "Usage: zold merge [ID...] [options]
+Available options:"
+        o.bool '--help', 'Print instructions'
+      end
+      if opts.help?
+        @log.info(opts.to_s)
+        return
+      end
+      raise 'At least one wallet ID is required' if opts.arguments.empty?
+      opts.arguments.each do |id|
+        wallet = @wallets.find(Id.new(id))
+        merge(wallet, Copies.new(File.join(@copies, id)), opts)
+        require_relative 'propagate'
+        Propagate.new(
+          wallet: wallet,
+          wallets: @wallets,
+          log: @log
+        ).run(args)
+      end
+    end
+
+    def merge(wallet, cps, _)
+      raise 'There are no remote copies, try FETCH first' if cps.all.empty?
+      cps = cps.all.sort_by { |c| c[:score] }.reverse
       patch = Patch.new
       patch.start(Wallet.new(cps[0][:path]))
       cps[1..-1].each do |c|
         patch.join(Wallet.new(c[:path]))
       end
-      patch.save(@wallet.path, overwrite: true)
-      @log.debug("Merged successfully into #{@wallet.path}")
+      patch.save(wallet.path, overwrite: true)
+      @log.debug("Merged successfully into #{wallet.path}")
     end
   end
 end

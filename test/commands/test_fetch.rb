@@ -23,13 +23,13 @@ require 'tmpdir'
 require 'json'
 require 'time'
 require 'webmock/minitest'
-require_relative '../../lib/zold/wallet.rb'
-require_relative '../../lib/zold/remotes.rb'
-require_relative '../../lib/zold/id.rb'
-require_relative '../../lib/zold/copies.rb'
-require_relative '../../lib/zold/key.rb'
-require_relative '../../lib/zold/score.rb'
-require_relative '../../lib/zold/commands/fetch.rb'
+require_relative '../../lib/zold/wallet'
+require_relative '../../lib/zold/remotes'
+require_relative '../../lib/zold/id'
+require_relative '../../lib/zold/copies'
+require_relative '../../lib/zold/key'
+require_relative '../../lib/zold/score'
+require_relative '../../lib/zold/commands/fetch'
 
 # FETCH test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -42,7 +42,6 @@ class TestFetch < Minitest::Test
       file = File.join(dir, id.to_s)
       wallet = Zold::Wallet.new(file)
       wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-      copies = Zold::Copies.new(File.join(dir, 'copies'))
       remotes = Zold::Remotes.new(File.join(dir, 'remotes.csv'))
       remotes.clean
       stub_request(:get, "http://fake-1/wallet/#{id}").to_return(
@@ -57,7 +56,10 @@ class TestFetch < Minitest::Test
       )
       remotes.add('fake-1', 80)
       remotes.add('fake-2', 80)
-      Zold::Fetch.new(id: id, copies: copies, remotes: remotes).run
+      copies = Zold::Copies.new(File.join(dir, "copies/#{id}"))
+      Zold::Fetch.new(copies: copies.root, remotes: remotes).run(
+        ['--ignore-score-weakness', id.to_s]
+      )
       assert_equal(copies.all[0][:name], '1')
       assert_equal(copies.all[0][:score], 0)
     end
@@ -66,7 +68,6 @@ class TestFetch < Minitest::Test
   def test_fetches_empty_wallet
     Dir.mktmpdir 'test' do |dir|
       id = Zold::Id.new
-      copies = Zold::Copies.new(File.join(dir, 'copies'))
       remotes = Zold::Remotes.new(File.join(dir, 'remotes.csv'))
       remotes.clean
       stub_request(:get, "http://fake-1/wallet/#{id}").to_return(
@@ -77,7 +78,8 @@ class TestFetch < Minitest::Test
         }.to_json
       )
       remotes.add('fake-1', 80)
-      Zold::Fetch.new(id: id, copies: copies, remotes: remotes).run
+      copies = Zold::Copies.new(File.join(dir, "copies/#{id}"))
+      Zold::Fetch.new(copies: copies.root, remotes: remotes).run([id.to_s])
       assert_equal(copies.all[0][:name], '1')
       assert_equal(copies.all[0][:score], 0)
     end

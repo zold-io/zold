@@ -18,7 +18,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative '../log.rb'
+require 'slop'
+require_relative '../log'
+require_relative '../id'
+require_relative '../amount'
 
 # SHOW command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -27,15 +30,37 @@ require_relative '../log.rb'
 module Zold
   # Show command
   class Show
-    def initialize(wallet:, log: Log::Quiet.new)
-      @wallet = wallet
+    def initialize(wallets:, log: Log::Quiet.new)
+      @wallets = wallets
       @log = log
     end
 
-    def run(_ = [])
-      balance = @wallet.balance
-      @log.debug("The balance of #{@wallet} is #{balance}:")
-      @wallet.txns.each do |t|
+    def run(args = [])
+      opts = Slop.parse(args, help: true) do |o|
+        o.banner = "Usage: zold show [ID...] [options]
+Available options:"
+        o.bool '--help', 'Print instructions'
+      end
+      if opts.help?
+        @log.info(opts.to_s)
+        return
+      end
+      if opts.arguments.empty?
+        require_relative 'list'
+        List.new(wallets: @wallets, log: @log).run(args)
+      else
+        total = Amount::ZERO
+        opts.arguments.each do |id|
+          total += show(@wallets.find(Id.new(id)), opts)
+        end
+        total
+      end
+    end
+
+    def show(wallet, _)
+      balance = wallet.balance
+      @log.debug("The balance of #{wallet} is #{balance}:")
+      wallet.txns.each do |t|
         @log.info("##{t[:id]} #{t[:date].utc.iso8601} \
 #{t[:amount]} #{t[:bnf]} #{t[:details]}")
       end

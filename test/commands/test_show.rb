@@ -20,10 +20,11 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
-require_relative '../../lib/zold/wallet.rb'
-require_relative '../../lib/zold/key.rb'
-require_relative '../../lib/zold/id.rb'
-require_relative '../../lib/zold/commands/show.rb'
+require_relative '../../lib/zold/wallets'
+require_relative '../../lib/zold/wallet'
+require_relative '../../lib/zold/key'
+require_relative '../../lib/zold/id'
+require_relative '../../lib/zold/commands/show'
 
 # SHOW test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -33,10 +34,11 @@ class TestShow < Minitest::Test
   def test_checks_wallet_balance
     Dir.mktmpdir 'test' do |dir|
       id = Zold::Id.new
-      wallet = Zold::Wallets.new(dir).find(id)
+      wallets = Zold::Wallets.new(dir)
+      wallet = wallets.find(id)
       wallet.init(Zold::Id.new, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-      balance = Zold::Show.new(wallet: wallet).run
-      assert balance == Zold::Amount::ZERO
+      balance = Zold::Show.new(wallets: wallets).run([id.to_s])
+      assert_equal(Zold::Amount::ZERO, balance)
     end
   end
 end

@@ -18,9 +18,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative '../wallet.rb'
-require_relative '../log.rb'
-require_relative '../id.rb'
+require_relative '../wallet'
+require_relative '../log'
+require_relative '../id'
 
 # CREATE command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -36,7 +36,15 @@ module Zold
     end
 
     def run(args = [])
-      id = args.empty? ? Id.new : Id.new(args[0])
+      opts = Slop.parse(args, help: true) do |o|
+        o.banner = "Usage: zold create [options]
+Available options:"
+        o.bool '--help', 'Print instructions'
+      end
+      create(opts.arguments.empty? ? Id.new : Id.new(opts.arguments[0]), opts)
+    end
+
+    def create(id, _)
       wallet = @wallets.find(id)
       wallet.init(id, @pubkey)
       @log.info(wallet.id)

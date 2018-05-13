@@ -20,9 +20,9 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
-require_relative '../../lib/zold/wallets.rb'
-require_relative '../../lib/zold/key.rb'
-require_relative '../../lib/zold/commands/create.rb'
+require_relative '../../lib/zold/wallets'
+require_relative '../../lib/zold/key'
+require_relative '../../lib/zold/commands/create'
 
 # CREATE test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

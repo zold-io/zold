@@ -21,9 +21,10 @@
 require 'uri'
 require 'json'
 require 'time'
-require_relative '../log.rb'
-require_relative '../http.rb'
-require_relative '../score.rb'
+require_relative '../log'
+require_relative '../http'
+require_relative '../score'
+require_relative '../copies'
 
 # CLEAN command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -37,10 +38,26 @@ module Zold
       @log = log
     end
 
-    def run(_ = [])
-      @copies.clean
-      @log.debug("Expired local copies removed for #{@copies}, \
-#{@copies.all.count} left")
+    def run(args = [])
+      opts = Slop.parse(args, help: true) do |o|
+        o.banner = "Usage: zold clean [ID...] [options]
+Available options:"
+        o.bool '--help', 'Print instructions'
+      end
+      if opts.help?
+        @log.info(opts.to_s)
+        return
+      end
+      raise 'At least one wallet ID is required' if opts.arguments.empty?
+      opts.arguments.each do |id|
+        clean(Copies.new(File.join(@copies, id)), opts)
+      end
+    end
+
+    def clean(cps, _)
+      cps.clean
+      @log.debug("Expired local copies removed for #{cps}, \
+#{cps.all.count} left")
     end
   end
 end

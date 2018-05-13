@@ -20,7 +20,7 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
-require_relative '../lib/zold/id.rb'
+require_relative '../lib/zold/id'
 
 # ID test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

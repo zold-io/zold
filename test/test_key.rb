@@ -20,7 +20,7 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
-require_relative '../lib/zold/key.rb'
+require_relative '../lib/zold/key'
 
 # Key test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

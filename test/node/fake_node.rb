@@ -20,9 +20,9 @@
 
 require 'tmpdir'
 require 'webmock/minitest'
-require_relative '../../lib/zold/log.rb'
-require_relative '../../lib/zold/http.rb'
-require_relative '../../lib/zold/commands/node.rb'
+require_relative '../../lib/zold/log'
+require_relative '../../lib/zold/http'
+require_relative '../../lib/zold/commands/node'
 
 # Fake node.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

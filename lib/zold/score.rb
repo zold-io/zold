@@ -29,10 +29,10 @@ require_relative 'remotes'
 module Zold
   # Score
   class Score
-    DEFAULT_STRENGTH = 8
-    attr_reader :time, :host, :port
+    STRENGTH = 7
+    attr_reader :time, :host, :port, :strength
     # time: UTC ISO 8601 string
-    def initialize(time, host, port, suffixes = [], strength: DEFAULT_STRENGTH)
+    def initialize(time, host, port, suffixes = [], strength: STRENGTH)
       raise 'Time must be of type Time' unless time.is_a?(Time)
       raise 'Port must be of type Integer' unless port.is_a?(Integer)
       @time = time
@@ -44,7 +44,7 @@ module Zold
 
     ZERO = Score.new(Time.now, 'localhost', Remotes::PORT)
 
-    def self.parse(text, strength: DEFAULT_STRENGTH)
+    def self.parse(text, strength: STRENGTH)
       _, time, host, port, suffixes = text.split(' ', 5)
       Score.new(
         Time.parse(time), host, port.to_i,

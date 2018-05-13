@@ -20,11 +20,11 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
-require_relative '../../lib/zold/wallet.rb'
-require_relative '../../lib/zold/amount.rb'
-require_relative '../../lib/zold/key.rb'
-require_relative '../../lib/zold/id.rb'
-require_relative '../../lib/zold/commands/pay.rb'
+require_relative '../../lib/zold/wallets'
+require_relative '../../lib/zold/amount'
+require_relative '../../lib/zold/key'
+require_relative '../../lib/zold/id'
+require_relative '../../lib/zold/commands/pay'
 
 # PAY test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -33,17 +33,17 @@ require_relative '../../lib/zold/commands/pay.rb'
 class TestPay < Minitest::Test
   def test_sends_from_wallet_to_wallet
     Dir.mktmpdir 'test' do |dir|
-      source = Zold::Wallet.new(File.join(dir, 'source'))
-      source.init(Zold::Id.new, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+      id = Zold::Id.new
+      wallets = Zold::Wallets.new(dir)
+      source = wallets.find(id)
+      source.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
       target = Zold::Id.new
       amount = Zold::Amount.new(zld: 14.95)
       Zold::Pay.new(
-        payer: source,
-        receiver: target,
-        amount: amount,
+        wallets: wallets,
         pvtkey: Zold::Key.new(file: 'fixtures/id_rsa')
-      ).run(['--force'])
-      assert source.balance == amount.mul(-1)
+      ).run(['--force', id.to_s, target.to_s, amount.to_zld, 'For the car'])
+      assert_equal(amount.mul(-1), source.balance)
     end
   end
 end

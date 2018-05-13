@@ -20,7 +20,7 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
-require_relative '../lib/zold/amount.rb'
+require_relative '../lib/zold/amount'
 
 # Amount test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

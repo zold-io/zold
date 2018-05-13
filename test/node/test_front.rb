@@ -20,12 +20,12 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
-require_relative '../../lib/zold/key.rb'
-require_relative '../../lib/zold/id.rb'
-require_relative '../../lib/zold/amount.rb'
-require_relative '../../lib/zold/wallet.rb'
-require_relative '../../lib/zold/http.rb'
-require_relative 'fake_node.rb'
+require_relative '../../lib/zold/key'
+require_relative '../../lib/zold/id'
+require_relative '../../lib/zold/amount'
+require_relative '../../lib/zold/wallet'
+require_relative '../../lib/zold/http'
+require_relative 'fake_node'
 
 class FrontTest < Minitest::Test
   def test_renders_public_pages

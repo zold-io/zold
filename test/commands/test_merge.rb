@@ -23,14 +23,14 @@ require 'tmpdir'
 require 'json'
 require 'time'
 require 'webmock/minitest'
-require_relative '../../lib/zold/wallet.rb'
-require_relative '../../lib/zold/id.rb'
-require_relative '../../lib/zold/copies.rb'
-require_relative '../../lib/zold/key.rb'
-require_relative '../../lib/zold/score.rb'
-require_relative '../../lib/zold/patch.rb'
-require_relative '../../lib/zold/commands/merge.rb'
-require_relative '../../lib/zold/commands/pay.rb'
+require_relative '../../lib/zold/wallet'
+require_relative '../../lib/zold/id'
+require_relative '../../lib/zold/copies'
+require_relative '../../lib/zold/key'
+require_relative '../../lib/zold/score'
+require_relative '../../lib/zold/patch'
+require_relative '../../lib/zold/commands/merge'
+require_relative '../../lib/zold/commands/pay'
 
 # MERGE test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -48,15 +48,16 @@ class TestMerge < Minitest::Test
       second = Zold::Wallet.new(File.join(dir, 'copy-2'))
       File.write(second.path, File.read(wallet.path))
       Zold::Pay.new(
-        payer: first,
-        receiver: second,
-        amount: Zold::Amount.new(zld: 14.95),
+        wallets: Zold::Wallets.new(dir),
         pvtkey: Zold::Key.new(file: 'fixtures/id_rsa')
-      ).run(['--force'])
-      copies = Zold::Copies.new(File.join(dir, 'copies'))
+      ).run([id.to_s, second.id.to_s, '14.95', '--force'])
+      copies = Zold::Copies.new(File.join(dir, "copies/#{id}"))
       copies.add(File.read(first.path), 'host-1', 80, 5)
       copies.add(File.read(second.path), 'host-2', 80, 5)
-      Zold::Merge.new(wallet: wallet, copies: copies).run
+      Zold::Merge.new(
+        wallets: Zold::Wallets.new(dir),
+        copies: copies.root
+      ).run([id.to_s])
     end
   end
 
@@ -71,18 +72,16 @@ class TestMerge < Minitest::Test
       second = Zold::Wallet.new(File.join(dir, 'copy-2'))
       File.write(second.path, File.read(wallet.path))
       Zold::Pay.new(
-        payer: first,
-        receiver: second,
-        amount: Zold::Amount.new(zld: 14.95),
+        wallets: Zold::Wallets.new(dir),
         pvtkey: Zold::Key.new(file: 'fixtures/id_rsa')
-      ).run(['--force'])
-      copies = Zold::Copies.new(File.join(dir, 'copies'))
+      ).run([id.to_s, second.id.to_s, '14.95', '--force'])
+      copies = Zold::Copies.new(File.join(dir, "copies/#{id}"))
       copies.add(File.read(first.path), 'host-1', 80, 5)
       copies.add(File.read(second.path), 'host-2', 80, 5)
       Zold::Merge.new(
-        wallet: Zold::Wallet.new(File.join(dir, Zold::Id.new.to_s)),
-        copies: copies
-      ).run
+        wallets: Zold::Wallets.new(dir),
+        copies: copies.root
+      ).run([id.to_s])
     end
   end
 end

@@ -20,7 +20,7 @@
 
 require 'rainbow'
 require 'net/http'
-require_relative 'score.rb'
+require_relative 'score'
 
 # HTTP page.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

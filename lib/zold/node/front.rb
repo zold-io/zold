@@ -47,8 +47,9 @@ module Zold
     configure do
       set :bind, '0.0.0.0'
       set :logging, true
+      set :dump_errors, true
       set :start, Time.now
-      set :lock, Mutex.new
+      set :lock, true
       set :log, Log.new
       set :show_exceptions, false
       set :home, Dir.pwd
@@ -59,7 +60,9 @@ module Zold
     before do
       if request.env[Http::SCORE_HEADER]
         s = Score.parse(request.env[Http::SCORE_HEADER])
-        raise 'The score is invalid' if !s.valid? || s.value < 3
+        error(400, 'The score is invalid') unless s.valid?
+        error(400, 'The score is too small') if s.value < 3
+        error(400, 'The score is weak') if s.strength < Score::STRENGTH
         settings.remotes.add(s.host, s.port)
       end
     end
@@ -117,7 +120,7 @@ module Zold
       request.body.rewind
       cps = copies(id)
       cps.add(request.body.read, 'remote', Remotes::PORT, 0)
-      Zold::Merge.new(wallet: wallet, copies: cps).run
+      Zold::Merge.new(wallets: wallets, copies: cps.root).run([id.to_s])
       "Success, #{wallet.id} balance is #{wallet.balance}"
     end
 
@@ -139,6 +142,12 @@ module Zold
       status 404
       content_type 'text/plain'
       'Page not found'
+    end
+
+    error 400 do
+      status 400
+      content_type 'text/plain'
+      env['sinatra.error'].message
     end
 
     error do

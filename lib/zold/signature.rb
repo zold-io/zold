@@ -19,9 +19,9 @@
 # SOFTWARE.
 
 require 'time'
-require_relative 'key.rb'
-require_relative 'id.rb'
-require_relative 'amount.rb'
+require_relative 'key'
+require_relative 'id'
+require_relative 'amount'
 
 # The signature of a transaction.
 #

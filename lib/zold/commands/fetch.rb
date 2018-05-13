@@ -21,9 +21,11 @@
 require 'uri'
 require 'json'
 require 'time'
-require_relative '../log.rb'
-require_relative '../http.rb'
-require_relative '../score.rb'
+require 'slop'
+require_relative '../log'
+require_relative '../http'
+require_relative '../score'
+require_relative '../copies'
 
 # FETCH command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -32,17 +34,35 @@ require_relative '../score.rb'
 module Zold
   # FETCH pulling command
   class Fetch
-    def initialize(id:, remotes:, copies:, log: Log::Quiet.new)
-      @id = id
+    def initialize(remotes:, copies:, log: Log::Quiet.new)
       @remotes = remotes
       @copies = copies
       @log = log
     end
 
-    def run(_ = [])
+    def run(args = [])
+      opts = Slop.parse(args, help: true) do |o|
+        o.banner = "Usage: zold fetch [ID...] [options]
+Available options:"
+        o.bool '--ignore-score-weakness',
+          'Don\'t complain when their score is too weak',
+          default: false
+        o.bool '--help', 'Print instructions'
+      end
+      if opts.help?
+        @log.info(opts.to_s)
+        return
+      end
+      raise 'At least one wallet ID is required' if opts.arguments.empty?
+      opts.arguments.each do |id|
+        fetch(id, Copies.new(File.join(@copies, id)), opts)
+      end
+    end
+
+    def fetch(id, cps, opts)
       total = 0
       @remotes.all.each do |r|
-        uri = URI("#{r[:home]}wallet/#{@id}")
+        uri = URI("#{r[:home]}wallet/#{id}")
         res = Http.new(uri).get
         unless res.code == '200'
           @log.error("#{r[:host]}:#{r[:port]} \
@@ -60,15 +80,22 @@ module Zold
           @log.error("#{r[:host]}:#{r[:port]} invalid score")
           next
         end
+        if score.strength < Score::STRENGTH && !opts['ignore-score-weakness']
+          @log.error(
+            "#{r[:host]}:#{r[:port]} score is too weak: #{score.strength} \
+(<#{Score::STRENGTH})"
+          )
+          next
+        end
         total += 1
-        @copies.add(json['body'], r[:host], r[:port], score.value)
+        cps.add(json['body'], r[:host], r[:port], score.value)
         @log.info(
           "#{r[:host]}:#{r[:port]} #{json['body'].length}b/\
 #{Rainbow(score.value).green} (v.#{json['version']})"
         )
       end
       @log.debug("#{total} copies fetched, \
-there are #{@copies.all.count} available locally")
+there are #{cps.all.count} available locally")
     end
   end
 end

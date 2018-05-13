@@ -20,11 +20,11 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
-require_relative '../lib/zold/key.rb'
-require_relative '../lib/zold/id.rb'
-require_relative '../lib/zold/wallet.rb'
-require_relative '../lib/zold/amount.rb'
-require_relative '../lib/zold/patch.rb'
+require_relative '../lib/zold/key'
+require_relative '../lib/zold/id'
+require_relative '../lib/zold/wallet'
+require_relative '../lib/zold/amount'
+require_relative '../lib/zold/patch'
 
 # Patch test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

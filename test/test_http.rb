@@ -22,7 +22,7 @@ require 'minitest/autorun'
 require 'tmpdir'
 require 'uri'
 require 'webmock/minitest'
-require_relative '../lib/zold/http.rb'
+require_relative '../lib/zold/http'
 
 # Http test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

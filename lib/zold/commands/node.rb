@@ -47,8 +47,8 @@ module Zold
         o.string '--home', 'Home directory (default: current directory)',
           default: Dir.pwd
         o.integer '--strength',
-          "The strength of the score (default: #{Score::DEFAULT_STRENGTH})",
-          default: Score::DEFAULT_STRENGTH
+          "The strength of the score (default: #{Score::STRENGTH})",
+          default: Score::STRENGTH
         o.integer '--threads',
           'How many threads to use for scores finding (default: 8)',
           default: 8
@@ -95,6 +95,10 @@ module Zold
 
       def debug(msg)
         @log.debug(msg)
+      end
+
+      def debug?
+        @log.debug?
       end
     end
   end

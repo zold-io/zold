@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 require 'slop'
-require_relative '../log.rb'
+require_relative '../log'
 
 # PAY command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -28,29 +28,48 @@ require_relative '../log.rb'
 module Zold
   # Money sending command
   class Pay
-    def initialize(payer:, receiver:, amount:,
-      pvtkey:, details: '-', log: Log::Quiet.new)
-      @payer = payer
-      @receiver = receiver
-      @amount = amount
+    def initialize(wallets:, pvtkey:, log: Log::Quiet.new)
+      @wallets = wallets
       @pvtkey = pvtkey
-      @details = details
       @log = log
     end
 
     def run(args = [])
-      opts = Slop.parse(args) do |o|
-        o.bool '--force', 'Ignore all validations'
+      opts = Slop.parse(args, help: true) do |o|
+        o.banner = "Usage: zold pay FROM TO AMOUNT [options]
+Available options:"
+        o.bool '--force',
+          'Ignore all validations',
+          default: false
+        o.bool '--help', 'Print instructions'
       end
-      unless opts['force']
-        raise "The amount can't be negative: #{@amount}" if @amount.negative?
-        if !@payer.root? && @payer.balance < @amount
-          raise "There is not enough funds in #{@payer} to send #{@amount}, \
-  only #{@payer.balance} left"
+      if opts.help?
+        @log.info(opts.to_s)
+        return
+      end
+      raise 'Payer wallet ID is required' if opts.arguments[0].nil?
+      from = @wallets.find(Zold::Id.new(opts.arguments[0]))
+      raise 'Wallet doesn\'t exist, do \'fetch\' first' unless from.exists?
+      raise 'Recepient wallet ID is required' if opts.arguments[1].nil?
+      to = Zold::Id.new(opts.arguments[1])
+      raise 'Amount is required (in ZLD)' if opts.arguments[2].nil?
+      amount = Zold::Amount.new(zld: opts.arguments[2].to_f)
+      details = opts.arguments[3] ? opts.arguments[3] : '-'
+      pay(from, to, amount, details, opts)
+    end
+
+    def pay(from, to, amount, details, opts)
+      unless opts.force?
+        raise 'Payer/beneficiary can\'t be identical' if from.id == to
+        raise 'The amount can\'t be zero' if amount.zero?
+        raise "The amount can't be negative: #{amount}" if amount.negative?
+        if !from.root? && from.balance < @amount
+          raise "There is not enough funds in #{from} to send #{amount}, \
+  only #{payer.balance} left"
         end
       end
-      txn = @payer.sub(@amount, @receiver, @pvtkey, @details)
-      @log.debug("#{@amount} sent from #{@payer} to #{@receiver}: #{@details}")
+      txn = from.sub(amount, to, @pvtkey, details)
+      @log.debug("#{amount} sent from #{from} to #{to}: #{details}")
       @log.info(txn[:id])
       txn
     end

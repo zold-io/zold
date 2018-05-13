@@ -21,7 +21,7 @@
 require 'minitest/autorun'
 require 'tmpdir'
 require 'time'
-require_relative '../lib/zold/score.rb'
+require_relative '../lib/zold/score'
 
 # Score test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

@@ -32,6 +32,10 @@ module Zold
       @dir = dir
     end
 
+    def root
+      File.join(@dir, '..')
+    end
+
     def to_s
       File.basename(@dir)
     end

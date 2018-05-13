@@ -28,8 +28,9 @@ zold show
 zold show 0000000000000000
 
 zold push 0000000000000000
-zold fetch 0000000000000000
+zold fetch 0000000000000000 --ignore-score-weakness
 zold diff 0000000000000000
-zold --trace merge 0000000000000000
+zold merge 0000000000000000
+zold clean 0000000000000000
 
 echo 'DONE'

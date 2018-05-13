@@ -21,11 +21,11 @@
 require 'minitest/autorun'
 require 'tmpdir'
 require 'webmock/minitest'
-require_relative '../../lib/zold/wallets.rb'
-require_relative '../../lib/zold/remotes.rb'
-require_relative '../../lib/zold/key.rb'
-require_relative '../../lib/zold/score.rb'
-require_relative '../../lib/zold/commands/remote.rb'
+require_relative '../../lib/zold/wallets'
+require_relative '../../lib/zold/remotes'
+require_relative '../../lib/zold/key'
+require_relative '../../lib/zold/score'
+require_relative '../../lib/zold/commands/remote'
 
 # REMOTE test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -35,9 +35,6 @@ class TestRemote < Minitest::Test
   def test_updates_remote
     Dir.mktmpdir 'test' do |dir|
       remotes = Zold::Remotes.new(File.join(dir, 'a/b/c/remotes'))
-      cmd = Zold::Remote.new(remotes: remotes)
-      cmd.run(['clean'])
-      cmd.run(%w[add localhost 1])
       stub_request(:get, 'http://localhost:1/remotes').to_return(
         status: 200,
         body: {
@@ -48,12 +45,15 @@ class TestRemote < Minitest::Test
           ]
         }.to_json
       )
-      cmd.run(%w[add localhost 2])
       stub_request(:get, 'http://localhost:2/remotes').to_return(
         status: 404
       )
-      assert_equal(remotes.all.count, 2)
-      cmd.run(['update'])
+      cmd = Zold::Remote.new(remotes: remotes)
+      cmd.run(['clean'])
+      cmd.run(%w[add localhost 1])
+      cmd.run(%w[add localhost 2])
+      assert_equal(2, remotes.all.count)
+      cmd.run(['update', '--ignore-score-weakness'])
       assert_equal(3, remotes.all.count)
     end
   end

@@ -18,8 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative 'id.rb'
-require_relative 'wallet.rb'
+require_relative 'id'
+require_relative 'wallet'
 
 # The local collection of wallets.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

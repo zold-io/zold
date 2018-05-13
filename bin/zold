@@ -120,107 +120,37 @@ Available options:"
     ).run(args)
   when 'remote'
     require_relative '../lib/zold/commands/remote'
-    Zold::Remote.new(
-      remotes: remotes,
-      log: log
-    ).run(args)
+    Zold::Remote.new(remotes: remotes, log: log).run(args)
   when 'pay'
-    raise "Payer wallet ID is required" if args[0].nil?
-    raise "Recepient wallet ID is required" if args[1].nil?
-    raise "Amount is required (in Zolds)" if args[2].nil?
     require_relative '../lib/zold/commands/pay'
     Zold::Pay.new(
-      payer: wallets.find(Zold::Id.new(args[0])),
-      receiver: Zold::Id.new(args[1]),
-      amount: Zold::Amount.new(zld: args[2].to_f),
-      details: opts.arguments[4] ? args[3] : '-',
+      wallets: wallets,
       pvtkey: Zold::Key.new(file: opts['private-key']),
       log: log
     ).run(args)
   when 'show'
-    if args[0].nil?
-      require_relative '../lib/zold/commands/list'
-      Zold::List.new(
-        wallets: wallets,
-        log: log
-      ).run(args)
-    else
-      require_relative '../lib/zold/commands/show'
-      args.each do |id|
-        Zold::Show.new(
-          wallet: wallets.find(Zold::Id.new(id)),
-          log: log
-        ).run(args)
-      end
-    end
+    require_relative '../lib/zold/commands/show'
+    Zold::Show.new(wallets: wallets, log: log).run(args)
   when 'fetch'
     require_relative '../lib/zold/commands/fetch'
-    args.each do |id|
-      Zold::Fetch.new(
-        id: Zold::Id.new(id),
-        remotes: remotes,
-        copies: Zold::Copies.new(File.join(copies, id)),
-        log: log
-      ).run(args)
-    end
+    Zold::Fetch.new(remotes: remotes, copies: copies, log: log).run(args)
   when 'clean'
     require_relative '../lib/zold/commands/clean'
-    if args.empty?
-      args = Dir.new(copies).select { |f| f =~ /[0-9a-fA-F]{16}/ }
-    end
-    args.each do |id|
-      Zold::Clean.new(
-        copies: Zold::Copies.new(File.join(copies, id)),
-        log: log
-      ).run(args)
-    end
+    Zold::Clean.new(copies: copies, log: log).run(args)
   when 'diff'
     require_relative '../lib/zold/commands/diff'
-    args.each do |id|
-      Zold::Diff.new(
-        wallet: wallets.find(Zold::Id.new(id)),
-        copies: Zold::Copies.new(File.join(copies, id)),
-        log: log
-      ).run(args)
-    end
+    Zold::Diff.new(wallets: wallets, copies: copies, log: log).run(args)
   when 'merge'
     require_relative '../lib/zold/commands/merge'
-    require_relative '../lib/zold/commands/propagate'
-    args.each do |id|
-      Zold::Merge.new(
-        wallet: wallets.find(Zold::Id.new(id)),
-        copies: Zold::Copies.new(File.join(copies, id)),
-        log: log
-      ).run(args)
-      Zold::Propagate.new(
-        wallet: wallets.find(Zold::Id.new(id)),
-        wallets: wallets,
-        log: log
-      ).run(args)
-    end
+    Zold::Merge.new(wallets: wallets, copies: copies, log: log).run(args)
   when 'pull'
     require_relative '../lib/zold/commands/fetch'
+    Zold::Fetch.new(remotes: remotes, copies: copies, log: log).run(args)
     require_relative '../lib/zold/commands/merge'
-    args.each do |id|
-      Zold::Fetch.new(
-        id: Zold::Id.new(id),
-        remotes: remotes,
-        copies: Zold::Copies.new(File.join(copies, id)),
-        log: log
-      ).run(args)
-      Zold::Merge.new(
-        wallet: wallets.find(Zold::Id.new(id)),
-        copies: Zold::Copies.new(File.join(copies, id)),
-        log: log
-      ).run(args)
-    end
+    Zold::Merge.new(wallets: wallets, copies: copies, log: log).run(args)
   when 'push'
     require_relative '../lib/zold/commands/push'
-    Zold::Push.new(
-      wallet: wallets.find(Zold::Id.new(args[0])),
-      remotes: remotes,
-      log: log
-    ).run(args)
+    Zold::Push.new(wallets: wallets, remotes: remotes, log: log).run(args)
   when 'score'
     require_relative '../lib/zold/score'
     if args.length != 3

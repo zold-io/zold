@@ -18,9 +18,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative '../log.rb'
-require_relative '../wallet.rb'
-require_relative '../wallets.rb'
+require_relative '../log'
+require_relative '../wallet'
+require_relative '../wallets'
 
 # PROPAGATE command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

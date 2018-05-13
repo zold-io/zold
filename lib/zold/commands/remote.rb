@@ -18,14 +18,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'slop'
 require 'rainbow'
 require 'net/http'
 require 'json'
 require 'time'
-require_relative '../log.rb'
-require_relative '../http.rb'
-require_relative '../remotes.rb'
-require_relative '../score.rb'
+require_relative '../log'
+require_relative '../http'
+require_relative '../remotes'
+require_relative '../score'
 
 # REMOTE command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -56,48 +57,60 @@ Available commands:
     #{Rainbow('remote update').green}
       Check each registered remote node for availability
 Available options:"
+        o.bool '--ignore-score-weakness',
+          'Don\'t complain when their score is too weak',
+          default: false
         o.bool '--help', 'Print instructions'
       end
       command = args[0]
       case command
       when 'show'
-        @remotes.all.each do |r|
-          score = Rainbow("/#{r[:score]}").color(r[:score] > 0 ? :green : :red)
-          @log.info(r[:host] + Rainbow(":#{r[:port]}").gray + score)
-        end
+        show
       when 'clean'
-        @remotes.clean
-        @log.debug('All remote nodes deleted')
+        clean
       when 'reset'
-        @remotes.reset
-        @log.debug('Remote nodes set back to default')
+        reset
       when 'add'
-        host = args[1]
-        port = args[2]
-        @remotes.add(host, port)
-        @log.info("#{host}:#{port}: added")
+        add(opts.arguments[1], opts.arguments[2].to_i)
       when 'remove'
-        host = args[1]
-        port = args[2]
-        @remotes.remove(host, port)
-        @log.info("#{host}:#{port}: removed")
+        remove(opts.arguments[1], opts.arguments[2].to_i)
       when 'update'
-        update
-        total = @remotes.all.size
-        if total.zero?
-          @log.debug("The list of remotes is #{Rainbow('empty').red}!")
-          @log.debug(
-            "Run 'zold remote add b1.zold.io 80` and then `zold update`"
-          )
-        else
-          @log.debug("There are #{total} known remotes")
-        end
+        update(opts)
       else
         @log.info(opts.to_s)
       end
     end
 
-    def update
+    def show
+      @remotes.all.each do |r|
+        score = Rainbow("/#{r[:score]}").color(r[:score] > 0 ? :green : :red)
+        @log.info(r[:host] + Rainbow(":#{r[:port]}").gray + score)
+      end
+    end
+
+    def clean
+      @remotes.clean
+      @log.debug('All remote nodes deleted')
+    end
+
+    def reset
+      @remotes.reset
+      @log.debug('Remote nodes set back to default')
+    end
+
+    def add(host, port)
+      @remotes.add(host, port)
+      @log.info("#{host}:#{port} added to the list")
+      @log.info("There are #{@remotes.all.count} remote nodes in the list")
+    end
+
+    def remove(host, port)
+      @remotes.remove(host, port)
+      @log.info("#{host}:#{port} removed from the list")
+      @log.info("There are #{@remotes.all.count} remote nodes in the list")
+    end
+
+    def update(opts)
       @remotes.all.each do |r|
         uri = URI("#{r[:home]}remotes")
         res = Http.new(uri).get
@@ -111,7 +124,7 @@ Available options:"
         begin
           json = JSON.parse(res.body)
         rescue JSON::ParserError => e
-          @remotes.remove(r[:host], r[:port])
+          remove(r[:host], r[:port])
           @log.info("#{Rainbow(r[:host]).red} \"#{e.message}\": #{res.body}")
           next
         end
@@ -120,18 +133,34 @@ Available options:"
           r[:port], json['score']['suffixes']
         )
         unless score.valid?
-          @remotes.remove(r[:host], r[:port])
+          remove(r[:host], r[:port])
           @log.info("#{Rainbow(r[:host]).red} invalid score")
+          next
+        end
+        if score.strength < Score::STRENGTH && !opts['ignore-score-weakness']
+          remove(r[:host], r[:port])
+          @log.info(
+            "#{Rainbow(r[:host]).red} score too weak: #{score.strength}"
+          )
           next
         end
         @remotes.rescore(r[:host], r[:port], score.value)
         json['all'].each do |s|
           unless @remotes.exists?(s['host'], s['port'])
-            run(['add', s['host'], s['port'].to_s])
+            add(s['host'], s['port'])
           end
         end
         @log.info("#{r[:host]}:#{r[:port]}: #{Rainbow(score.value).green} \
 (v.#{json['version']})")
+      end
+      total = @remotes.all.size
+      if total.zero?
+        @log.debug("The list of remotes is #{Rainbow('empty').red}!")
+        @log.debug(
+          "Run 'zold remote add b1.zold.io 80` and then `zold update`"
+        )
+      else
+        @log.debug("There are #{total} known remotes")
       end
     end
   end

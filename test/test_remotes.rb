@@ -20,7 +20,7 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
-require_relative '../lib/zold/remotes.rb'
+require_relative '../lib/zold/remotes'
 
 # Remotes test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
