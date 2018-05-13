@@ -98,7 +98,7 @@ module Zold
         },
         farm: settings.farm.to_json,
         date: `date  --iso-8601=seconds -u`.strip,
-        age: Time.now - settings.start,
+        age: (Time.now - settings.start) / (60 * 60),
         home: 'https://www.zold.io'
       )
     end
