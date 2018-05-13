@@ -123,12 +123,8 @@ module Zold
     private
 
     def max
-      all = txns
-      if all.empty?
-        0
-      else
-        all.select { |t| t.amount.negative? }.max_by(&:id).id
-      end
+      negative = txns.select { |t| t.amount.negative? }
+      negative.empty? ? 0 : negative.max_by(&:id).id
     end
 
     def lines
