@@ -18,6 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'concurrent'
 require_relative '../log'
 require_relative '../remotes'
 require_relative '../copies'
@@ -37,9 +38,17 @@ module Zold
       @copies = copies
       @address = address
       @log = log
+      @semaphores = Concurrent::Map.new
     end
 
     def push(id, body)
+      @semaphores.put_if_absent(id, Mutex.new)
+      @semaphores.get(id).synchronize do
+        push_unsafe(id, body)
+      end
+    end
+
+    def push_unsafe(id, body)
       copies = Copies.new(File.join(@copies, id.to_s))
       copies.add(body, 'remote', Remotes::PORT, 0)
       Zold::Fetch.new(
