@@ -30,6 +30,7 @@ zold propagate 0000000000000000
 zold show
 zold show 0000000000000000
 
+zold remote show
 zold push 0000000000000000
 zold fetch 0000000000000000 --ignore-score-weakness
 zold diff 0000000000000000

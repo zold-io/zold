@@ -120,8 +120,8 @@ Available options:"
   args = args[(args.index(command) + 1)..-1]
 
   wallets = Zold::Wallets.new(opts['dir'])
-  remotes = Zold::Remotes.new(File.join(opts['dir'], '.zold/remotes'))
-  copies = File.join(opts['dir'], '.zold/copies')
+  remotes = Zold::Remotes.new(File.join(opts['dir'], '.zoldata/remotes'))
+  copies = File.join(opts['dir'], '.zoldata/copies')
 
   case command
   when 'node'

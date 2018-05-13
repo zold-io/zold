@@ -158,11 +158,11 @@ module Zold
     private
 
     def copies(id)
-      Copies.new(File.join(settings.home, ".zold/copies/#{id}"))
+      Copies.new(File.join(settings.home, ".zoldata/copies/#{id}"))
     end
 
     def remotes
-      Remotes.new(File.join(settings.home, '.zold/remotes'))
+      Remotes.new(File.join(settings.home, '.zoldata/remotes'))
     end
 
     def wallets

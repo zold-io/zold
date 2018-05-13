@@ -56,6 +56,7 @@ Available options:"
     def push(wallet, _)
       raise 'The wallet is absent' unless wallet.exists?
       remote = @remotes.all[0]
+      raise "There are no remote nodes, run 'zold remote reset'" if remote.nil?
       uri = URI("#{remote[:home]}wallet/#{wallet.id}")
       response = Http.new(uri).put(File.read(wallet.path))
       unless response.code == '200'
