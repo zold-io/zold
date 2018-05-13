@@ -58,9 +58,8 @@ module Zold
       if request.env[Http::SCORE_HEADER]
         s = Score.parse(request.env[Http::SCORE_HEADER])
         error(400, 'The score is invalid') unless s.valid?
-        error(400, 'The score is too small') if s.value < 3
         error(400, 'The score is weak') if s.strength < Score::STRENGTH
-        settings.remotes.add(s.host, s.port)
+        settings.remotes.add(s.host, s.port) if s.value > 3
       end
     end
 

@@ -41,7 +41,19 @@ Encoding.default_internal = Encoding::UTF_8
 log = Zold::Log.new
 
 begin
-  opts = Slop.parse(ARGV, strict: false, suppress_errors: true) do |o|
+  args = []
+  config = File.expand_path('~/.zold')
+  if File.exist?(config)
+    body = File.read(config)
+    extra = body.split(/[\r\n]+/).map(&:strip)
+    args += extra
+    log.debug("Found #{body.split(/\n/).length} lines in #{config}")
+  else
+    log.debug("Default config file #{config} not found")
+  end
+  args += ARGV
+
+  opts = Slop.parse(args, strict: false, suppress_errors: true) do |o|
     o.banner = "Usage: zold [options] command [arguments]
 Available commands:
     #{Rainbow('remote').green}
