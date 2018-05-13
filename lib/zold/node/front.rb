@@ -110,9 +110,7 @@ module Zold
       body = request.body.read
       if wallet.exists? && File.read(wallet.path) == body
         status 304
-        return JSON.pretty_generate(
-          version: VERSION, score: score.to_h
-        )
+        return
       end
       cps = copies(id)
       cps.add(body, 'remote', Remotes::PORT, 0)
@@ -127,6 +125,7 @@ module Zold
         log: settings.log
       ).run([id.to_s])
       cps.remove('remote', Remotes::PORT)
+      require_relative '../commands/push'
       modified.each do |m|
         Zold::Push.new(
           wallets: wallets, remotes: settings.remotes,

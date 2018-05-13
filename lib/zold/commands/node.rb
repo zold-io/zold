@@ -111,6 +111,10 @@ module Zold
         # nothing
       end
 
+      def fatal(msg)
+        @log.error(msg)
+      end
+
       def debug?
         @log.info?
       end

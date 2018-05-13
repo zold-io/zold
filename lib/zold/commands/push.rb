@@ -60,7 +60,11 @@ Available options:"
       @remotes.all.each do |r|
         uri = URI("#{r[:home]}wallet/#{wallet.id}")
         response = Http.new(uri).put(File.read(wallet.path))
-        if response.code != '304' && response.code != '200'
+        if response.code == '304'
+          @log.info("#{uri}: same version there")
+          next
+        end
+        unless response.code == '200'
           @log.error("#{uri} failed as #{response.code}/#{response.message}")
           next
         end
