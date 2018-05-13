@@ -29,17 +29,23 @@ module Zold
   # A key
   class Key
     def initialize(file: nil, text: nil)
-      unless file.nil?
-        path = File.expand_path(file)
-        raise "Can't find RSA key at #{file} (#{path})" unless File.exist?(path)
-        @body = File.read(path)
+      @body = lambda do
+        unless file.nil?
+          path = File.expand_path(file)
+          unless File.exist?(path)
+            raise "Can't find RSA key at #{file} (#{path})"
+          end
+          return File.read(path)
+        end
+        unless text.nil?
+          return [
+            '-----BEGIN PUBLIC KEY-----',
+            text.gsub(/(?<=\G.{64})/, "\n"),
+            '-----END PUBLIC KEY-----'
+          ].join("\n")
+        end
+        raise 'Either file or text must be set'
       end
-      return if text.nil?
-      @body = [
-        '-----BEGIN PUBLIC KEY-----',
-        text.gsub(/(?<=\G.{64})/, "\n"),
-        '-----END PUBLIC KEY-----'
-      ].join("\n")
     end
 
     def to_s
@@ -61,7 +67,7 @@ module Zold
     private
 
     def rsa
-      text = @body.strip
+      text = @body.call.strip
       unless text.start_with?('-----BEGIN')
         text = OpenSSHKeyConverter.decode_pubkey(text.split[1])
       end

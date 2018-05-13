@@ -60,7 +60,7 @@ class TestWallet < Minitest::Test
 
   def test_initializes_it
     Dir.mktmpdir 'test' do |dir|
-      pkey = Zold::Key.new(file: 'fixtures/id_rsa.pub')
+      pkey = Zold::Key.new(file: File.join(Dir.pwd, 'fixtures/id_rsa.pub'))
       Dir.chdir(dir) do
         file = File.join(dir, 'source')
         wallet = Zold::Wallet.new(file)
