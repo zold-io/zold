@@ -29,7 +29,7 @@ require_relative 'remotes'
 module Zold
   # Score
   class Score
-    STRENGTH = 7
+    STRENGTH = 6
     attr_reader :time, :host, :port, :strength
     # time: UTC ISO 8601 string
     def initialize(time, host, port, suffixes = [], strength: STRENGTH)
