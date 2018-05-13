@@ -54,6 +54,8 @@ Available commands:
       Remove expired local copies
     #{Rainbow('merge').green} [ID...]
       Merge remote copies with the HEAD
+    #{Rainbow('propagate').green} [ID...]
+      Propagate transactions to receiving wallets
     #{Rainbow('pull').green} [ID...]
       Fetch and then merge
     #{Rainbow('show').green} [ID...]
@@ -148,6 +150,9 @@ Available options:"
   when 'merge'
     require_relative '../lib/zold/commands/merge'
     Zold::Merge.new(wallets: wallets, copies: copies, log: log).run(args)
+  when 'propagate'
+    require_relative '../lib/zold/commands/propagate'
+    Zold::Propagate.new(wallets: wallets, log: log).run(args)
   when 'pull'
     require_relative '../lib/zold/commands/fetch'
     Zold::Fetch.new(remotes: remotes, copies: copies, log: log).run(args)

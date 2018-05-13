@@ -26,6 +26,7 @@ zold --public-key id_rsa.pub create 0000000000000000
 target=`zold create`
 invoice=`zold invoice ${target}`
 zold --private-key id_rsa pay 0000000000000000 ${invoice} 14.99 'To save the world!'
+zold propagate 0000000000000000
 zold show
 zold show 0000000000000000
 

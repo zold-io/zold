@@ -31,21 +31,18 @@ require_relative 'amount'
 module Zold
   # A signature
   class Signature
-    def sign(pvt, txn)
-      pvt.sign(block(txn))
+    def sign(pvt, t)
+      pvt.sign(block(t))
     end
 
-    def valid?(pub, txn)
-      pub.verify(txn[:sign], block(txn))
+    def valid?(pub, t)
+      pub.verify(t.sign, block(t))
     end
 
     private
 
-    def block(txn)
-      [
-        txn[:id], txn[:amount].to_i,
-        txn[:prefix], txn[:bnf], txn[:details]
-      ].join(';')
+    def block(t)
+      [t.id, t.amount.to_i, t.prefix, t.bnf, t.details].join(';')
     end
   end
 end

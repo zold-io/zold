@@ -61,8 +61,8 @@ Available options:"
       balance = wallet.balance
       @log.debug("The balance of #{wallet} is #{balance}:")
       wallet.txns.each do |t|
-        @log.info("##{t[:id]} #{t[:date].utc.iso8601} \
-#{t[:amount]} #{t[:bnf]} #{t[:details]}")
+        @log.info("##{t.id} #{t.date.utc.iso8601} \
+#{t.amount} #{t.bnf} #{t.details}")
       end
       balance
     end

@@ -35,15 +35,15 @@ module Zold
     end
 
     def join(wallet)
-      negative = @txns.select { |t| t[:amount].negative? }
-      max = negative.empty? ? 0 : negative.max_by { |t| t[:id] }[:id]
+      negative = @txns.select { |t| t.amount.negative? }
+      max = negative.empty? ? 0 : negative.max_by(&:id).id
       wallet.txns.each do |txn|
-        next if @txns.find { |t| t[:id] == txn[:id] && t[:bnf] == txn[:bnf] }
+        next if @txns.find { |t| t == txn }
         next if
-          txn[:amount].negative? && !@txns.empty? &&
-          (txn[:id] <= max ||
-          @txns.find { |t| t[:id] == txn[:id] } ||
-          @txns.map { |t| t[:amount] }.inject(&:+) < txn[:amount])
+          txn.amount.negative? && !@txns.empty? &&
+          (txn.id <= max ||
+          @txns.find { |t| t.id == txn.id } ||
+          @txns.map(&:amount).inject(&:+) < txn.amount)
         next unless Signature.new.valid?(@key, txn)
         @txns << txn
       end

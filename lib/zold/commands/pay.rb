@@ -74,7 +74,7 @@ Available options:"
       end
       txn = from.sub(amount, invoice, @pvtkey, details)
       @log.debug("#{amount} sent from #{from} to #{invoice}: #{details}")
-      @log.info(txn[:id])
+      @log.info(txn.id)
       txn
     end
   end

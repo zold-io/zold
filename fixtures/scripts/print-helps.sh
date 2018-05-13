@@ -6,7 +6,7 @@ shopt -s expand_aliases
 alias zold="$1"
 
 zold --help
-declare -a commands=(node create invoice remote pay show fetch clean diff merge pull push)
+declare -a commands=(node create invoice remote pay show fetch clean diff merge propagate pull push)
 for c in "${commands[@]}"
 do
   zold --trace $c --help

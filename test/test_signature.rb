@@ -33,13 +33,11 @@ class TestSignature < Minitest::Test
   def test_signs_and_validates
     pvt = Zold::Key.new(file: 'fixtures/id_rsa')
     pub = Zold::Key.new(file: 'fixtures/id_rsa.pub')
-    txn = {
-      id: 123,
-      details: 'How are you?',
-      bnf: Zold::Id.new.to_s,
-      amount: Zold::Amount.new(zld: 14.95)
-    }
-    txn[:sign] = Zold::Signature.new.sign(pvt, txn)
+    txn = Zold::Txn.new(
+      123, Time.now, Zold::Amount.new(zld: 14.95),
+      'NOPREFIX', Zold::Id.new, '-'
+    )
+    txn = txn.signed(pvt)
     assert(Zold::Signature.new.valid?(pub, txn))
   end
 end

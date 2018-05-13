@@ -21,6 +21,7 @@
 require 'time'
 require_relative 'key'
 require_relative 'id'
+require_relative 'txn'
 require_relative 'amount'
 require_relative 'signature'
 
@@ -70,42 +71,36 @@ module Zold
     end
 
     def balance
-      txns.inject(Amount::ZERO) { |sum, t| sum + t[:amount] }
+      txns.inject(Amount::ZERO) { |sum, t| sum + t.amount }
     end
 
     def sub(amount, invoice, pvtkey, details = '-')
       raise "The amount can't be negative: #{amount}" if amount.negative?
-      raise 'The amount can\'t be zero' if amount.zero?
-      raise 'Details can\'t be empty' if details.empty?
-      raise "Details are too long: \"#{details}\"" if details.length > 128
       if invoice.is_a?(Id)
         prefix = 'NOPREFIX'
         target = invoice.to_s
       else
         prefix, target = invoice.split('@')
       end
-      raise "Prefix is too short: \"#{prefix}\"" if prefix.length < 8
-      raise "Prefix is too long: \"#{prefix}\"" if prefix.length > 32
-      txn = {
-        id: max + 1,
-        date: Time.now,
-        amount: amount.mul(-1),
-        prefix: prefix,
-        bnf: Id.new(target),
-        details: details
-      }
-      txn[:sign] = Signature.new.sign(pvtkey, txn)
-      File.write(@file, (lines << to_line(txn)).join)
-      txn[:amount] = amount
+      txn = Txn.new(
+        max + 1,
+        Time.now,
+        amount.mul(-1),
+        prefix,
+        Id.new(target),
+        details
+      )
+      txn = txn.signed(pvtkey)
+      add(txn)
       txn
     end
 
     def add(txn)
-      open(@file, 'a') { |f| f.print to_line(txn) }
+      open(@file, 'a') { |f| f.print "#{txn}\n" }
     end
 
     def has?(id, bnf)
-      !txns.find { |t| t[:id] == id && t[:bnf] == bnf }.nil?
+      !txns.find { |t| t.id == id && t.bnf == bnf }.nil?
     end
 
     def key
@@ -114,15 +109,15 @@ module Zold
 
     def income
       txns.each do |t|
-        yield t unless t[:amount].negative?
+        yield t unless t.amount.negative?
       end
     end
 
     def txns
       lines.drop(3)
         .each_with_index
-        .map { |t, i| fields(t, i + 4) }
-        .sort_by { |a| a[:date] }
+        .map { |line, i| Txn.parse(line, i + 4) }
+        .sort_by(&:date)
     end
 
     private
@@ -132,46 +127,8 @@ module Zold
       if all.empty?
         0
       else
-        all.select { |t| t[:amount].negative? }.max_by { |t| t[:id] }[:id]
+        all.select { |t| t.amount.negative? }.max_by(&:id).id
       end
-    end
-
-    def to_line(txn)
-      [
-        txn[:id],
-        txn[:date].utc.iso8601,
-        txn[:amount].to_i,
-        txn[:prefix],
-        txn[:bnf],
-        txn[:details],
-        txn[:sign]
-      ].join(';') + "\n"
-    end
-
-    def fields(line, idx)
-      regex = Regexp.new(
-        [
-          '([0-9]+)',
-          '([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z)',
-          '(-?[0-9]+)',
-          '([A-Za-z0-9]{8,32})',
-          '([a-f0-9]{16})',
-          '([a-zA-Z0-9 -.]{1,128})',
-          '([A-Za-z0-9+/]+={0,3})?'
-        ].join(';')
-      )
-      clean = line.strip
-      raise "Invalid line ##{idx}: #{line.inspect}" unless regex.match(clean)
-      parts = clean.split(';')
-      {
-        id: parts[0].to_i,
-        date: Time.parse(parts[1]),
-        amount: Amount.new(coins: parts[2].to_i),
-        prefix: parts[3],
-        bnf: Id.new(parts[4]),
-        details: parts[5],
-        sign: parts[6]
-      }
     end
 
     def lines

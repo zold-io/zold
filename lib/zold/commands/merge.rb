@@ -52,11 +52,7 @@ Available options:"
         wallet = @wallets.find(Id.new(id))
         merge(wallet, Copies.new(File.join(@copies, id)), opts)
         require_relative 'propagate'
-        Propagate.new(
-          wallet: wallet,
-          wallets: @wallets,
-          log: @log
-        ).run(args)
+        Propagate.new(wallets: @wallets, log: @log).run(args)
       end
     end
 

@@ -23,6 +23,7 @@ require 'tmpdir'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/id'
 require_relative '../lib/zold/wallet'
+require_relative '../lib/zold/txn'
 require_relative '../lib/zold/amount'
 require_relative '../lib/zold/commands/pay'
 
@@ -52,8 +53,8 @@ class TestWallet < Minitest::Test
       amount = Zold::Amount.new(zld: 39.99)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       txn = wallet.sub(amount, Zold::Id.new, key)
-      wallet.add(txn)
-      assert(!Zold::Wallet.new(wallet.path).txns[0][:sign].end_with?("\n"))
+      wallet.add(txn.inverse)
+      assert(!Zold::Wallet.new(wallet.path).txns[0].sign.end_with?("\n"))
     end
   end
 
@@ -77,24 +78,20 @@ class TestWallet < Minitest::Test
     Dir.mktmpdir 'test' do |dir|
       wallet = wallet(dir)
       wallet.add(
-        id: 1,
-        date: Time.now,
-        amount: Zold::Amount.new(zld: 39.99),
-        prefix: 'NOPREFIX',
-        bnf: Zold::Id.new,
-        details: '-'
+        Zold::Txn.new(
+          1, Time.now, Zold::Amount.new(zld: 39.99),
+          'NOPREFIX', Zold::Id.new, '-'
+        )
       )
       wallet.add(
-        id: 2,
-        date: Time.now,
-        amount: Zold::Amount.new(zld: 14.95),
-        prefix: 'NOPREFIX',
-        bnf: Zold::Id.new,
-        details: '-'
+        Zold::Txn.new(
+          2, Time.now, Zold::Amount.new(zld: 14.95),
+          'NOPREFIX', Zold::Id.new, '-'
+        )
       )
       sum = Zold::Amount::ZERO
       wallet.income do |t|
-        sum += t[:amount]
+        sum += t.amount
       end
       assert(
         sum == Zold::Amount.new(coins: 921_740_246),

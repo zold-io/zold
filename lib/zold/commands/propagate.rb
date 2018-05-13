@@ -30,29 +30,44 @@ require_relative '../prefixes'
 module Zold
   # PROPAGATE pulling command
   class Propagate
-    def initialize(wallet:, wallets:, log: Log::Quiet.new)
-      @wallet = wallet
+    def initialize(wallets:, log: Log::Quiet.new)
       @wallets = wallets
       @log = log
     end
 
-    def run(_ = [])
-      me = @wallet.id
-      @wallet.txns.select { |t| t[:amount].negative? }.each do |t|
-        target = @wallets.find(t[:bnf])
-        unless target.exists?
-          @log.debug("#{t[:amount].mul(-1)} to #{t[:bnf]}: wallet is absent")
-          next
-        end
-        next if target.has?(t[:id], me)
-        unless Prefixes.new(target).valid?(t[:prefix])
-          @log.info("#{t[:amount].mul(-1)} to #{t[:bnf]}: wrong prefix")
-          next
-        end
-        target.add(t)
-        @log.info("#{t[:amount].mul(-1)} to #{t[:bnf]}")
+    def run(args = [])
+      opts = Slop.parse(args, help: true) do |o|
+        o.banner = "Usage: zold propagate [ID...] [options]
+Available options:"
+        o.bool '--help', 'Print instructions'
       end
-      @log.debug('Wallet propagated successfully')
+      if opts.help?
+        @log.info(opts.to_s)
+        return
+      end
+      raise 'At least one wallet ID is required' if opts.arguments.empty?
+      opts.arguments.each do |id|
+        propagate(@wallets.find(id), opts)
+      end
+    end
+
+    def propagate(wallet, _)
+      me = wallet.id
+      wallet.txns.select { |t| t.amount.negative? }.each do |t|
+        target = @wallets.find(t.bnf)
+        unless target.exists?
+          @log.debug("#{t.amount.mul(-1)} to #{t.bnf}: wallet is absent")
+          next
+        end
+        next if target.has?(t.id, me)
+        unless Prefixes.new(target).valid?(t.prefix)
+          @log.info("#{t.amount.mul(-1)} to #{t.bnf}: wrong prefix")
+          next
+        end
+        target.add(t.inverse)
+        @log.info("#{t.amount.mul(-1)} to #{t.bnf}")
+      end
+      @log.debug("Wallet #{me} propagated successfully")
     end
   end
 end
