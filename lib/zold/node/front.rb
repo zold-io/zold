@@ -22,7 +22,6 @@ STDOUT.sync = true
 
 require 'slop'
 require 'facter'
-require 'facter/util/memory'
 require 'json'
 require 'sinatra/base'
 require 'webrick'
@@ -87,11 +86,9 @@ module Zold
         score: score.to_h,
         platform: {
           uptime: `uptime`.strip,
-          hostname: `hostname`.strip,
           # see https://docs.puppet.com/facter/3.3/core_facts.html
           kernel: Facter.value(:kernel),
-          processors: Facter.value(:processors)['count'],
-          memory: Facter::Memory.mem_size
+          processors: Facter.value(:processors)['count']
         },
         wallets: {
           total: wallets.all.count

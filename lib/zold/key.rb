@@ -18,6 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+gem 'openssl'
+require 'openssl'
 require 'base64'
 
 # The RSA key (either private or public).

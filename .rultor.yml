@@ -23,6 +23,7 @@ release:
     chmod -R 600 ~/.ssh/*
     echo -e "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null" > ~/.ssh/config
     sed -i -s 's|Gemfile.lock||g' .gitignore
+    bundle update
     git add Gemfile.lock
     git add .gitignore
     git fetch
