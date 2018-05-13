@@ -52,7 +52,8 @@ Available options:"
       modified = []
       opts.arguments.each do |id|
         wallet = @wallets.find(Id.new(id))
-        merge(wallet, Copies.new(File.join(@copies, id)), opts)
+        next unless merge(wallet, Copies.new(File.join(@copies, id)), opts)
+        modified << Id.new(id)
         require_relative 'propagate'
         modified += Propagate.new(wallets: @wallets, log: @log).run(args)
       end

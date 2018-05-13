@@ -127,6 +127,12 @@ module Zold
         log: settings.log
       ).run([id.to_s])
       cps.remove('remote', Remotes::PORT)
+      modified.each do |m|
+        Zold::Push.new(
+          wallets: wallets, remotes: settings.remotes,
+          log: settings.log
+        ).run([m.to_s])
+      end
       JSON.pretty_generate(
         version: VERSION,
         score: score.to_h,
