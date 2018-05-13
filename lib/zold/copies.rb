@@ -49,6 +49,10 @@ module Zold
       end
     end
 
+    def remove(host, port)
+      save(load.reject! { |s| s[:host] == host && s[:port] == port })
+    end
+
     def add(content, host, port, score, time = Time.now)
       raise "Content can't be empty" if content.empty?
       raise 'TCP port must be of type Integer' unless port.is_a?(Integer)

@@ -21,7 +21,6 @@
 STDOUT.sync = true
 
 require 'slop'
-require 'facter'
 require 'json'
 require 'sinatra/base'
 require 'webrick'
@@ -34,7 +33,6 @@ require_relative '../log'
 require_relative '../remotes'
 require_relative '../id'
 require_relative '../http'
-require_relative '../commands/merge'
 
 # The web front of the node.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -84,15 +82,8 @@ module Zold
       JSON.pretty_generate(
         version: VERSION,
         score: score.to_h,
-        platform: {
-          uptime: `uptime`.strip,
-          # see https://docs.puppet.com/facter/3.3/core_facts.html
-          kernel: Facter.value(:kernel),
-          processors: Facter.value(:processors)['count']
-        },
-        wallets: {
-          total: wallets.all.count
-        },
+        uptime: `uptime`.strip,
+        wallets: wallets.all.count,
         farm: settings.farm.to_json,
         date: `date  --iso-8601=seconds -u`.strip,
         age: (Time.now - settings.start) / (60 * 60),
@@ -118,7 +109,11 @@ module Zold
       request.body.rewind
       cps = copies(id)
       cps.add(request.body.read, 'remote', Remotes::PORT, 0)
+      require_relative '../commands/fetch'
+      Zold::Fetch.new(remotes: remotes, copies: cps.root).run([id.to_s])
+      require_relative '../commands/merge'
       Zold::Merge.new(wallets: wallets, copies: cps.root).run([id.to_s])
+      cps.remove('remote', Remotes::PORT)
       "Success, #{wallet.id} balance is #{wallet.balance}"
     end
 
