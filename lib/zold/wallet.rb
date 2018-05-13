@@ -73,12 +73,25 @@ module Zold
       txns.inject(Amount::ZERO) { |sum, t| sum + t[:amount] }
     end
 
-    def sub(amount, target, pvtkey, details = '-')
+    def sub(amount, invoice, pvtkey, details = '-')
+      raise "The amount can't be negative: #{amount}" if amount.negative?
+      raise 'The amount can\'t be zero' if amount.zero?
+      raise 'Details can\'t be empty' if details.empty?
+      raise "Details are too long: \"#{details}\"" if details.length > 128
+      if invoice.is_a?(Id)
+        prefix = 'NOPREFIX'
+        target = invoice.to_s
+      else
+        prefix, target = invoice.split('@')
+      end
+      raise "Prefix is too short: \"#{prefix}\"" if prefix.length < 8
+      raise "Prefix is too long: \"#{prefix}\"" if prefix.length > 32
       txn = {
         id: max + 1,
         date: Time.now,
         amount: amount.mul(-1),
-        bnf: target,
+        prefix: prefix,
+        bnf: Id.new(target),
         details: details
       }
       txn[:sign] = Signature.new.sign(pvtkey, txn)
@@ -128,6 +141,7 @@ module Zold
         txn[:id],
         txn[:date].utc.iso8601,
         txn[:amount].to_i,
+        txn[:prefix],
         txn[:bnf],
         txn[:details],
         txn[:sign]
@@ -140,6 +154,7 @@ module Zold
           '([0-9]+)',
           '([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z)',
           '(-?[0-9]+)',
+          '([A-Za-z0-9]{8,32})',
           '([a-f0-9]{16})',
           '([a-zA-Z0-9 -.]{1,128})',
           '([A-Za-z0-9+/]+={0,3})?'
@@ -152,9 +167,10 @@ module Zold
         id: parts[0].to_i,
         date: Time.parse(parts[1]),
         amount: Amount.new(coins: parts[2].to_i),
-        bnf: Id.new(parts[3]),
-        details: parts[4],
-        sign: parts[5]
+        prefix: parts[3],
+        bnf: Id.new(parts[4]),
+        details: parts[5],
+        sign: parts[6]
       }
     end
 

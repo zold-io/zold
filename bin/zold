@@ -58,8 +58,10 @@ Available commands:
       Fetch and then merge
     #{Rainbow('show').green} [ID...]
       Show all available information about the wallet
-    #{Rainbow('pay').green} source target amount details
+    #{Rainbow('pay').green} from to amount details
       Pay ZOLD from one wallet to another
+    #{Rainbow('invoice').green} ID
+      Generate invoice unique ID for a payment
     #{Rainbow('status').green}
       Show status of local copies
     #{Rainbow('push').green} [ID...]
@@ -121,6 +123,9 @@ Available options:"
   when 'remote'
     require_relative '../lib/zold/commands/remote'
     Zold::Remote.new(remotes: remotes, log: log).run(args)
+  when 'invoice'
+    require_relative '../lib/zold/commands/invoice'
+    Zold::Invoice.new(wallets: wallets, log: log).run(args)
   when 'pay'
     require_relative '../lib/zold/commands/pay'
     Zold::Pay.new(

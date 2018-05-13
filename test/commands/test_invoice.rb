@@ -18,34 +18,29 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'time'
-require_relative 'key'
-require_relative 'id'
-require_relative 'amount'
+require 'minitest/autorun'
+require 'tmpdir'
+require_relative '../../lib/zold/wallets'
+require_relative '../../lib/zold/amount'
+require_relative '../../lib/zold/key'
+require_relative '../../lib/zold/id'
+require_relative '../../lib/zold/commands/invoice'
 
-# The signature of a transaction.
-#
+# INVOICE test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # A signature
-  class Signature
-    def sign(pvt, txn)
-      pvt.sign(block(txn))
-    end
-
-    def valid?(pub, txn)
-      pub.verify(txn[:sign], block(txn))
-    end
-
-    private
-
-    def block(txn)
-      [
-        txn[:id], txn[:amount].to_i,
-        txn[:prefix], txn[:bnf], txn[:details]
-      ].join(';')
+class TestInvoice < Minitest::Test
+  def test_generates_invoice
+    Dir.mktmpdir 'test' do |dir|
+      id = Zold::Id.new
+      wallets = Zold::Wallets.new(dir)
+      source = wallets.find(id)
+      source.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+      invoice = Zold::Invoice.new(wallets: wallets).run(
+        [id.to_s, '--length=16']
+      )
+      assert_equal(33, invoice.length)
     end
   end
 end

@@ -21,6 +21,7 @@
 require_relative '../log'
 require_relative '../wallet'
 require_relative '../wallets'
+require_relative '../prefixes'
 
 # PROPAGATE command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -44,6 +45,10 @@ module Zold
           next
         end
         next if target.has?(t[:id], me)
+        unless Prefixes.new(target).valid?(t[:prefix])
+          @log.info("#{t[:amount].mul(-1)} to #{t[:bnf]}: wrong prefix")
+          next
+        end
         target.add(t)
         @log.info("#{t[:amount].mul(-1)} to #{t[:bnf]}")
       end

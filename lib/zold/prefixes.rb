@@ -18,34 +18,36 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'time'
 require_relative 'key'
-require_relative 'id'
-require_relative 'amount'
 
-# The signature of a transaction.
+# Payment prefixes.
 #
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # A signature
-  class Signature
-    def sign(pvt, txn)
-      pvt.sign(block(txn))
+  # Payment prefixes
+  class Prefixes
+    def initialize(wallet)
+      @wallet = wallet
     end
 
-    def valid?(pub, txn)
-      pub.verify(txn[:sign], block(txn))
+    def create(length)
+      raise "Length #{length} is too small" if length < 8
+      raise "Length #{length} is too big" if length > 32
+      key = body
+      start = Random.new.rand(key.length - length)
+      key[start..(start + length - 1)]
+    end
+
+    def valid?(prefix)
+      body.include?(prefix)
     end
 
     private
 
-    def block(txn)
-      [
-        txn[:id], txn[:amount].to_i,
-        txn[:prefix], txn[:bnf], txn[:details]
-      ].join(';')
+    def body
+      @wallet.key.to_pub.gsub(/[^A-Z0-9a-z]/, '')
     end
   end
 end

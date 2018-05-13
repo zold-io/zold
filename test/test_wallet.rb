@@ -78,13 +78,17 @@ class TestWallet < Minitest::Test
       wallet = wallet(dir)
       wallet.add(
         id: 1,
-        date: Time.now, amount: Zold::Amount.new(zld: 39.99),
+        date: Time.now,
+        amount: Zold::Amount.new(zld: 39.99),
+        prefix: 'NOPREFIX',
         bnf: Zold::Id.new,
         details: '-'
       )
       wallet.add(
         id: 2,
-        date: Time.now, amount: Zold::Amount.new(zld: 14.95),
+        date: Time.now,
+        amount: Zold::Amount.new(zld: 14.95),
+        prefix: 'NOPREFIX',
         bnf: Zold::Id.new,
         details: '-'
       )

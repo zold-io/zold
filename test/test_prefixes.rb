@@ -18,34 +18,29 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'time'
-require_relative 'key'
-require_relative 'id'
-require_relative 'amount'
+require 'minitest/autorun'
+require 'tmpdir'
+require_relative '../lib/zold/key'
+require_relative '../lib/zold/id'
+require_relative '../lib/zold/wallet'
+require_relative '../lib/zold/prefixes'
 
-# The signature of a transaction.
-#
+# Prefixes test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # A signature
-  class Signature
-    def sign(pvt, txn)
-      pvt.sign(block(txn))
-    end
-
-    def valid?(pub, txn)
-      pub.verify(txn[:sign], block(txn))
-    end
-
-    private
-
-    def block(txn)
-      [
-        txn[:id], txn[:amount].to_i,
-        txn[:prefix], txn[:bnf], txn[:details]
-      ].join(';')
+class TestPrefixes < Minitest::Test
+  def test_creates_and_validates
+    Dir.mktmpdir 'test' do |dir|
+      id = Zold::Id.new
+      wallet = Zold::Wallet.new(File.join(dir, id.to_s))
+      wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+      prefixes = Zold::Prefixes.new(wallet)
+      (8..32).each do |len|
+        prefix = prefixes.create(len)
+        assert_equal(len, prefix.length)
+        assert(prefixes.valid?(prefix))
+      end
     end
   end
 end

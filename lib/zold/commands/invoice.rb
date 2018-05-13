@@ -18,34 +18,47 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'time'
-require_relative 'key'
-require_relative 'id'
-require_relative 'amount'
+require 'slop'
+require_relative '../log'
+require_relative '../prefixes'
 
-# The signature of a transaction.
-#
+# INVOICE command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # A signature
-  class Signature
-    def sign(pvt, txn)
-      pvt.sign(block(txn))
+  # Generate invoice
+  class Invoice
+    def initialize(wallets:, log: Log::Quiet.new)
+      @wallets = wallets
+      @log = log
     end
 
-    def valid?(pub, txn)
-      pub.verify(txn[:sign], block(txn))
+    def run(args = [])
+      opts = Slop.parse(args, help: true) do |o|
+        o.banner = "Usage: zold invoice ID [options]
+Where:
+    'ID' is the wallet ID of the money receiver
+Available options:"
+        o.integer '--length',
+          'The length of the invoice prefix (default: 8)',
+          default: 8
+        o.bool '--help', 'Print instructions'
+      end
+      if opts.help?
+        @log.info(opts.to_s)
+        return
+      end
+      raise 'Receiver wallet ID is required' if opts.arguments[0].nil?
+      wallet = @wallets.find(Zold::Id.new(opts.arguments[0]))
+      raise 'Wallet doesn\'t exist, do \'fetch\' first' unless wallet.exists?
+      invoice(wallet, opts)
     end
 
-    private
-
-    def block(txn)
-      [
-        txn[:id], txn[:amount].to_i,
-        txn[:prefix], txn[:bnf], txn[:details]
-      ].join(';')
+    def invoice(wallet, opts)
+      invoice = "#{Prefixes.new(wallet).create(opts[:length])}@#{wallet.id}"
+      @log.info(invoice)
+      invoice
     end
   end
 end
