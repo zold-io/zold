@@ -86,7 +86,7 @@ module Zold
         wallets: wallets.all.count,
         farm: settings.farm.to_json,
         date: `date  --iso-8601=seconds -u`.strip,
-        age: (Time.now - settings.start) / (60 * 60),
+        hours_alive: ((Time.now - settings.start) / (60 * 60)).round(2),
         home: 'https://www.zold.io'
       )
     end
