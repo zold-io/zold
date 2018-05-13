@@ -23,7 +23,7 @@ zold remote add localhost ${port}
 zold remote show
 
 zold --public-key id_rsa.pub create 0000000000000000
-target=`zold create`
+target=`zold --public-key id_rsa.pub create`
 invoice=`zold invoice ${target}`
 zold --private-key id_rsa pay 0000000000000000 ${invoice} 14.99 'To save the world!'
 zold propagate 0000000000000000
