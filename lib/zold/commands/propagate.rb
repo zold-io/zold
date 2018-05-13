@@ -35,6 +35,7 @@ module Zold
       @log = log
     end
 
+    # Returns list of Wallet IDs which were affected
     def run(args = [])
       opts = Slop.parse(args, help: true) do |o|
         o.banner = "Usage: zold propagate [ID...] [options]
@@ -46,13 +47,17 @@ Available options:"
         return
       end
       raise 'At least one wallet ID is required' if opts.arguments.empty?
+      modified = []
       opts.arguments.each do |id|
-        propagate(@wallets.find(id), opts)
+        modified += propagate(@wallets.find(id), opts)
       end
+      modified
     end
 
+    # Returns list of Wallet IDs which were affected
     def propagate(wallet, _)
       me = wallet.id
+      modified = []
       wallet.txns.select { |t| t.amount.negative? }.each do |t|
         target = @wallets.find(t.bnf)
         unless target.exists?
@@ -66,8 +71,12 @@ Available options:"
         end
         target.add(t.inverse(me))
         @log.info("#{t.amount.mul(-1)} to #{t.bnf}")
+        modified << t.id
       end
-      @log.debug("Wallet #{me} propagated successfully")
+      modified.uniq!
+      @log.debug("Wallet #{me} propagated successfully, \
+#{modified.count} wallets affected")
+      modified
     end
   end
 end

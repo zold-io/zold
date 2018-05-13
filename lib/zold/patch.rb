@@ -49,10 +49,15 @@ module Zold
       end
     end
 
+    # Returns TRUE if the file was actually modified
     def save(file, overwrite: false)
+      before = ''
+      before = File.read(file) if File.exist?(file)
       wallet = Zold::Wallet.new(file)
       wallet.init(@id, @key, overwrite: overwrite)
       @txns.each { |t| wallet.add(t) }
+      after = File.read(file)
+      before != after
     end
   end
 end

@@ -122,7 +122,7 @@ module Zold
         log: settings.log
       ).run([id.to_s, "--ignore-node=#{settings.me}"])
       require_relative '../commands/merge'
-      Zold::Merge.new(
+      modified = Zold::Merge.new(
         wallets: wallets, copies: cps.root,
         log: settings.log
       ).run([id.to_s])
@@ -130,7 +130,8 @@ module Zold
       JSON.pretty_generate(
         version: VERSION,
         score: score.to_h,
-        balance: wallet.balance
+        balance: wallet.balance,
+        modified: modified.count
       )
     end
 

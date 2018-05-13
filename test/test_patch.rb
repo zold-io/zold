@@ -52,7 +52,7 @@ class TestPatch < Minitest::Test
       patch.join(second)
       patch.join(third)
       FileUtils.rm(first.path)
-      patch.save(first.path)
+      assert_equal(true, patch.save(first.path))
       assert_equal(Zold::Amount.new(zld: -53), first.balance)
     end
   end

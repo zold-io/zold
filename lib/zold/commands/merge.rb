@@ -37,6 +37,7 @@ module Zold
       @log = log
     end
 
+    # Returns the array of modified wallets (IDs)
     def run(args = [])
       opts = Slop.parse(args, help: true) do |o|
         o.banner = "Usage: zold merge [ID...] [options]
@@ -48,12 +49,14 @@ Available options:"
         return
       end
       raise 'At least one wallet ID is required' if opts.arguments.empty?
+      modified = []
       opts.arguments.each do |id|
         wallet = @wallets.find(Id.new(id))
         merge(wallet, Copies.new(File.join(@copies, id)), opts)
         require_relative 'propagate'
-        Propagate.new(wallets: @wallets, log: @log).run(args)
+        modified += Propagate.new(wallets: @wallets, log: @log).run(args)
       end
+      modified
     end
 
     def merge(wallet, cps, _)
@@ -64,8 +67,13 @@ Available options:"
       cps[1..-1].each do |c|
         patch.join(Wallet.new(c[:path]))
       end
-      patch.save(wallet.path, overwrite: true)
-      @log.debug("Merged successfully into #{wallet.path}")
+      modified = patch.save(wallet.path, overwrite: true)
+      if modified
+        @log.debug("Merged successfully into #{wallet.path}")
+      else
+        @log.debug("Nothing changed in #{wallet.path} after merge")
+      end
+      modified
     end
   end
 end

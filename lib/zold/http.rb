@@ -40,7 +40,6 @@ module Zold
     def get
       http = Net::HTTP.new(@uri.host, @uri.port)
       http.read_timeout = 5
-      http.continue_timeout = 5
       return http.request_get(@uri.path, headers)
     rescue StandardError => e
       return Net::HTTPServerError.new('1.1', '599', e.message)
@@ -48,8 +47,7 @@ module Zold
 
     def put(body)
       http = Net::HTTP.new(@uri.host, @uri.port)
-      http.read_timeout = 5
-      http.continue_timeout = 5
+      http.read_timeout = 60
       return http.request_put(
         @uri.path, body,
         headers.merge(

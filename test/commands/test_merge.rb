@@ -54,10 +54,12 @@ class TestMerge < Minitest::Test
       copies = Zold::Copies.new(File.join(dir, "copies/#{id}"))
       copies.add(File.read(first.path), 'host-1', 80, 5)
       copies.add(File.read(second.path), 'host-2', 80, 5)
-      Zold::Merge.new(
+      modified = Zold::Merge.new(
         wallets: Zold::Wallets.new(dir),
         copies: copies.root
       ).run([id.to_s])
+      assert(1, modified.count)
+      assert(id, modified[0])
     end
   end
 
@@ -78,10 +80,12 @@ class TestMerge < Minitest::Test
       copies = Zold::Copies.new(File.join(dir, "copies/#{id}"))
       copies.add(File.read(first.path), 'host-1', 80, 5)
       copies.add(File.read(second.path), 'host-2', 80, 5)
-      Zold::Merge.new(
+      modified = Zold::Merge.new(
         wallets: Zold::Wallets.new(dir),
         copies: copies.root
       ).run([id.to_s])
+      assert(1, modified.count)
+      assert(id, modified[0])
     end
   end
 end
