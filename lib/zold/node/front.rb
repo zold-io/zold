@@ -109,9 +109,15 @@ module Zold
       cps = copies(id)
       cps.add(request.body.read, 'remote', Remotes::PORT, 0)
       require_relative '../commands/fetch'
-      Zold::Fetch.new(remotes: remotes, copies: cps.root).run([id.to_s])
+      Zold::Fetch.new(
+        remotes: remotes, copies: cps.root,
+        log: settings.log
+      ).run([id.to_s])
       require_relative '../commands/merge'
-      Zold::Merge.new(wallets: wallets, copies: cps.root).run([id.to_s])
+      Zold::Merge.new(
+        wallets: wallets, copies: cps.root,
+        log: settings.log
+      ).run([id.to_s])
       cps.remove('remote', Remotes::PORT)
       "Success, #{wallet.id} balance is #{wallet.balance}"
     end

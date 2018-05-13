@@ -29,6 +29,13 @@ STDOUT.sync = true
 module Zold
   # Logging
   class Log
+    MUTEX = Mutex.new
+    def self.print(text)
+      MUTEX.synchronize do
+        puts(text)
+      end
+    end
+
     def debug(msg)
       # nothing
     end
@@ -38,7 +45,7 @@ module Zold
     end
 
     def info(msg)
-      puts msg
+      Log.print(msg)
     end
 
     def info?
@@ -46,13 +53,13 @@ module Zold
     end
 
     def error(msg)
-      puts "#{Rainbow('ERROR').red}: #{msg}"
+      Log.print("#{Rainbow('ERROR').red}: #{msg}")
     end
 
     # Extra verbose log
     class Verbose
       def debug(msg)
-        puts msg
+        Log.print(msg)
       end
 
       def debug?
@@ -60,7 +67,7 @@ module Zold
       end
 
       def info(msg)
-        puts msg
+        Log.print(msg)
       end
 
       def info?
@@ -68,7 +75,7 @@ module Zold
       end
 
       def error(msg)
-        puts "#{Rainbow('ERROR').red}: #{msg}"
+        Log.print("#{Rainbow('ERROR').red}: #{msg}")
       end
     end
 
