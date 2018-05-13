@@ -46,6 +46,7 @@ module Zold
       set :logging, true
       set :dump_errors, true
       set :start, Time.now
+      set :lock, false
       set :log, Log.new
       set :show_exceptions, false
       set :home, Dir.pwd
