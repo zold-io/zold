@@ -77,6 +77,7 @@ Available options:"
           @log.error("#{uri} invalid score")
           next
         end
+        @log.info("#{uri} accepted: #{Rainbow(score.value).green}")
         total += score.value
       end
       @log.info("Total score is #{total}")
