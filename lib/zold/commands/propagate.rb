@@ -64,7 +64,7 @@ Available options:"
           @log.info("#{t.amount.mul(-1)} to #{t.bnf}: wrong prefix")
           next
         end
-        target.add(t.inverse)
+        target.add(t.inverse(me))
         @log.info("#{t.amount.mul(-1)} to #{t.bnf}")
       end
       @log.debug("Wallet #{me} propagated successfully")

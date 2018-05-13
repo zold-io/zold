@@ -32,7 +32,7 @@ module Zold
   # A single transaction
   class Txn
     attr_reader :id, :date, :amount, :prefix, :bnf, :details, :sign
-    attr_writer :sign, :amount
+    attr_writer :sign, :amount, :bnf
     def initialize(id, date, amount, prefix, bnf, details)
       raise "ID of transaction can't be negative: #{id}" if id < 1
       @id = id
@@ -68,9 +68,10 @@ module Zold
       ].join(';')
     end
 
-    def inverse
+    def inverse(bnf)
       t = clone
       t.amount = amount.mul(-1)
+      t.bnf = bnf
       t
     end
 

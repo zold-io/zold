@@ -100,6 +100,8 @@ module Zold
     end
 
     def has?(id, bnf)
+      raise 'The txn ID has to be of type Integer' unless id.is_a?(Integer)
+      raise 'The bnf has to be of type Id' unless bnf.is_a?(Id)
       !txns.find { |t| t.id == id && t.bnf == bnf }.nil?
     end
 

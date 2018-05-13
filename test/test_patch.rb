@@ -46,7 +46,7 @@ class TestPatch < Minitest::Test
       second.sub(Zold::Amount.new(zld: 44), Zold::Id.new, key)
       File.write(third.path, File.read(first.path))
       t = third.sub(Zold::Amount.new(zld: 10), Zold::Id.new, key)
-      third.add(t.inverse)
+      third.add(t.inverse(id))
       patch = Zold::Patch.new
       patch.start(first)
       patch.join(second)
