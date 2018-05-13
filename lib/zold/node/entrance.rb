@@ -24,6 +24,7 @@ require_relative '../remotes'
 require_relative '../copies'
 require_relative '../commands/merge'
 require_relative '../commands/fetch'
+require_relative '../commands/push'
 
 # The entrance of the web front.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
