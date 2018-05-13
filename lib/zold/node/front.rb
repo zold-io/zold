@@ -50,6 +50,7 @@ module Zold
       set :log, Log.new
       set :show_exceptions, false
       set :home, Dir.pwd
+      set :me, 'localhost:4096'
       set :farm, Farm.new
       set :server, 'webrick'
     end
@@ -112,7 +113,7 @@ module Zold
       Zold::Fetch.new(
         remotes: settings.remotes, copies: cps.root,
         log: settings.log
-      ).run([id.to_s])
+      ).run([id.to_s, "--ignore-node=#{settings.me}"])
       require_relative '../commands/merge'
       Zold::Merge.new(
         wallets: wallets, copies: cps.root,

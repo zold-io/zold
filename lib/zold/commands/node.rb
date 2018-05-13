@@ -82,6 +82,7 @@ module Zold
       Zold::Front.set(:port, opts['bind-port'])
       FileUtils.mkdir_p(opts[:home])
       Zold::Front.set(:home, opts[:home])
+      Zold::Front.set(:me, "#{opts[:host]}:#{opts[:port]}".downcase)
       farm = Farm.new(log: @log)
       farm.start(
         opts[:host], opts[:port],

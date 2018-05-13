@@ -44,7 +44,7 @@ class TestRemotes < Minitest::Test
       FileUtils.touch(file)
       remotes = Zold::Remotes.new(file)
       remotes.add('127.0.0.1')
-      remotes.add('localhost', 433)
+      remotes.add('LOCALHOST', 433)
       remotes.remove('localhost', 433)
       assert(1, remotes.all.count)
     end
