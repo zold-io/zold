@@ -18,37 +18,43 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative 'id'
-require_relative 'wallet'
+require_relative '../log'
+require_relative '../remotes'
+require_relative '../copies'
+require_relative '../commands/merge'
+require_relative '../commands/fetch'
 
-# The local collection of wallets.
+# The entrance of the web front.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # Collection of local wallets
-  class Wallets
-    def initialize(dir)
-      @dir = dir
+  # The entrance
+  class Entrance
+    def initialize(wallets, remotes, copies, address, log: Log::Quiet.new)
+      @wallets = wallets
+      @remotes = remotes
+      @copies = copies
+      @address = address
+      @log = log
     end
 
-    def path
-      FileUtils.mkdir_p(@dir)
-      File.expand_path(@dir)
-    end
-
-    def all
-      Dir.new(path).select do |f|
-        file = File.join(@dir, f)
-        File.file?(file) &&
-          !File.directory?(file) &&
-          f =~ /[0-9a-fA-F]{16}/ &&
-          Id.new(f).to_s == f
+    def push(id, body)
+      copies = Copies.new(File.join(@copies, id.to_s))
+      copies.add(body, 'remote', Remotes::PORT, 0)
+      Zold::Fetch.new(
+        remotes: @remotes, copies: copies.root, log: @log
+      ).run([id.to_s, "--ignore-node=#{@address}"])
+      modified = Zold::Merge.new(
+        wallets: @wallets, copies: copies.root, log: @log
+      ).run([id.to_s])
+      copies.remove('remote', Remotes::PORT)
+      modified.each do |m|
+        Zold::Push.new(
+          wallets: @wallets, remotes: @remotes, log: @log
+        ).run([m.to_s])
       end
-    end
-
-    def find(id)
-      Zold::Wallet.new(File.join(path, id.to_s))
+      modified
     end
   end
 end

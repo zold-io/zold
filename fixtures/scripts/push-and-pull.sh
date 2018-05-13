@@ -15,7 +15,8 @@ trap "kill -9 $pid" EXIT
 cd ..
 
 while ! nc -z localhost ${port}; do
-  sleep 0.1
+  sleep 0.5
+  ((c++)) && ((c==20)) && break
 done
 
 zold --trace remote clean

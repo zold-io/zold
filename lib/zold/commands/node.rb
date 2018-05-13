@@ -20,7 +20,11 @@
 
 require 'slop'
 require_relative '../score'
+require_relative '../wallets'
+require_relative '../remotes'
+require_relative '../node/entrance'
 require_relative '../node/front'
+require_relative '../node/farm'
 
 # NODE command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -61,9 +65,10 @@ module Zold
         @log.info(opts.to_s)
         return
       end
-      Zold::Front.set(:suppress_messages, true)
       Zold::Front.set(:log, @log)
       Zold::Front.set(:logging, @log.debug?)
+      FileUtils.mkdir_p(opts[:home])
+      Zold::Front.set(:home, opts[:home])
       Zold::Front.set(
         :server_settings,
         Logger: WebrickLog.new(@log),
@@ -79,10 +84,18 @@ module Zold
           )
         )
       end
+      wallets = Wallets.new(File.join(opts[:home], 'zold-wallets'))
+      Zold::Front.set(:wallets, wallets)
+      remotes = Remotes.new(File.join(opts[:home], 'zold-remotes'))
+      Zold::Front.set(:remotes, remotes)
+      copies = File.join(opts[:home], 'zold-copies')
+      Zold::Front.set(:copies, copies)
+      address = "#{opts[:host]}:#{opts[:port]}".downcase
+      Zold::Front.set(:address, address)
+      Zold::Front.set(
+        :entrance, Entrance.new(wallets, remotes, copies, address, log: @log)
+      )
       Zold::Front.set(:port, opts['bind-port'])
-      FileUtils.mkdir_p(opts[:home])
-      Zold::Front.set(:home, opts[:home])
-      Zold::Front.set(:me, "#{opts[:host]}:#{opts[:port]}".downcase)
       farm = Farm.new(log: @log)
       farm.start(
         opts[:host], opts[:port],

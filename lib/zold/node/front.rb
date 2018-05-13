@@ -20,17 +20,13 @@
 
 STDOUT.sync = true
 
-require 'slop'
 require 'json'
 require 'sinatra/base'
 require 'webrick'
 
-require_relative 'farm'
 require_relative '../version'
 require_relative '../wallet'
-require_relative '../wallets'
 require_relative '../log'
-require_relative '../remotes'
 require_relative '../id'
 require_relative '../http'
 
@@ -43,16 +39,21 @@ module Zold
   class Front < Sinatra::Base
     configure do
       set :bind, '0.0.0.0'
-      set :logging, true
+      set :suppress_messages, true
       set :dump_errors, true
       set :start, Time.now
       set :lock, false
-      set :log, Log.new
       set :show_exceptions, false
-      set :home, Dir.pwd
-      set :me, 'localhost:4096'
-      set :farm, Farm.new
       set :server, 'webrick'
+      set :home, nil? # to be injected at node.rb
+      set :logging, true # to be injected at node.rb
+      set :log, nil? # to be injected at node.rb
+      set :address, nil? # to be injected at node.rb
+      set :farm, nil? # to be injected at node.rb
+      set :entrance, nil? # to be injected at node.rb
+      set :wallets, nil? # to be injected at node.rb
+      set :remotes, nil? # to be injected at node.rb
+      set :copies, nil? # to be injected at node.rb
     end
 
     before do
@@ -83,7 +84,7 @@ module Zold
         version: VERSION,
         score: score.to_h,
         uptime: `uptime`.strip,
-        wallets: wallets.all.count,
+        wallets: settings.wallets.all.count,
         farm: settings.farm.to_json,
         date: `date  --iso-8601=seconds -u`.strip,
         hours_alive: ((Time.now - settings.start) / (60 * 60)).round(2),
@@ -93,7 +94,7 @@ module Zold
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})} do
       id = Id.new(params[:id])
-      wallet = wallets.find(id)
+      wallet = settings.wallets.find(id)
       error 404 unless wallet.exists?
       content_type 'application/json'
       {
@@ -105,33 +106,14 @@ module Zold
 
     put %r{/wallet/(?<id>[A-Fa-f0-9]{16})/?} do
       id = Id.new(params[:id])
-      wallet = wallets.find(id)
+      wallet = settings.wallets.find(id)
       request.body.rewind
       body = request.body.read
       if wallet.exists? && File.read(wallet.path) == body
         status 304
         return
       end
-      cps = copies(id)
-      cps.add(body, 'remote', Remotes::PORT, 0)
-      require_relative '../commands/fetch'
-      Zold::Fetch.new(
-        remotes: settings.remotes, copies: cps.root,
-        log: settings.log
-      ).run([id.to_s, "--ignore-node=#{settings.me}"])
-      require_relative '../commands/merge'
-      modified = Zold::Merge.new(
-        wallets: wallets, copies: cps.root,
-        log: settings.log
-      ).run([id.to_s])
-      cps.remove('remote', Remotes::PORT)
-      require_relative '../commands/push'
-      modified.each do |m|
-        Zold::Push.new(
-          wallets: wallets, remotes: settings.remotes,
-          log: settings.log
-        ).run([m.to_s])
-      end
+      modified = settings.entrance.push(id, body)
       JSON.pretty_generate(
         version: VERSION,
         score: score.to_h,
@@ -174,14 +156,6 @@ module Zold
     end
 
     private
-
-    def copies(id)
-      Copies.new(File.join(settings.home, ".zoldata/copies/#{id}"))
-    end
-
-    def wallets
-      Wallets.new(settings.home)
-    end
 
     def score
       best = settings.farm.best
