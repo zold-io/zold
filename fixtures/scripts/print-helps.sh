@@ -11,5 +11,3 @@ for c in "${commands[@]}"
 do
   zold --trace $c --help
 done
-
-echo 'DONE'

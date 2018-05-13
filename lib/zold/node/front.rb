@@ -55,7 +55,7 @@ module Zold
     end
 
     before do
-      if request.env[Http::SCORE_HEADER]
+      if request.env[Http::SCORE_HEADER] && !settings.remotes.empty?
         s = Score.parse(request.env[Http::SCORE_HEADER])
         error(400, 'The score is invalid') unless s.valid?
         error(400, 'The score is weak') if s.strength < Score::STRENGTH
@@ -110,7 +110,7 @@ module Zold
       cps.add(request.body.read, 'remote', Remotes::PORT, 0)
       require_relative '../commands/fetch'
       Zold::Fetch.new(
-        remotes: remotes, copies: cps.root,
+        remotes: settings.remotes, copies: cps.root,
         log: settings.log
       ).run([id.to_s])
       require_relative '../commands/merge'
@@ -127,7 +127,7 @@ module Zold
       JSON.pretty_generate(
         version: VERSION,
         score: score.to_h,
-        all: remotes.all.map do |r|
+        all: settings.remotes.all.map do |r|
           {
             host: r[:host],
             port: r[:port]
@@ -159,10 +159,6 @@ module Zold
 
     def copies(id)
       Copies.new(File.join(settings.home, ".zoldata/copies/#{id}"))
-    end
-
-    def remotes
-      Remotes.new(File.join(settings.home, '.zoldata/remotes'))
     end
 
     def wallets

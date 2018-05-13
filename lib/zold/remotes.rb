@@ -31,12 +31,15 @@ module Zold
   class Remotes
     PORT = 4096
 
-    def initialize(file)
-      @file = file
+    # Empty, for standalone mode
+    class Empty
+      def all
+        []
+      end
     end
 
-    def total
-      load.length
+    def initialize(file)
+      @file = file
     end
 
     def all

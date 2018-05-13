@@ -86,8 +86,8 @@ Available commands:
       Generate score for the given host and port
 Available options:"
     o.string '-d', '--dir',
-      'The directory where wallets are stored (default: current directory)',
-      default: '.'
+      'The directory where wallets are stored (default: .)',
+      default: Dir.pwd
     o.string '--private-key',
       'The location of RSA private key (default: ~/.ssh/id_rsa)',
       default: '~/.ssh/id_rsa'

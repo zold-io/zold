@@ -44,7 +44,7 @@ module Zold
           default: Remotes::PORT
         o.string '--host', 'Host name (default: 127.0.0.1)',
           default: '127.0.0.1'
-        o.string '--home', 'Home directory (default: current directory)',
+        o.string '--home', 'Home directory (default: .)',
           default: Dir.pwd
         o.integer '--strength',
           "The strength of the score (default: #{Score::STRENGTH})",
@@ -52,6 +52,9 @@ module Zold
         o.integer '--threads',
           'How many threads to use for scores finding (default: 8)',
           default: 8
+        o.bool '--standalone',
+          'Never communicate with other nodes (mostly for testing)',
+          default: false
         o.bool '--help', 'Print instructions'
       end
       if opts.help?
@@ -66,6 +69,16 @@ module Zold
         Logger: WebrickLog.new(@log),
         AccessLog: []
       )
+      if opts['standalone']
+        Zold::Front.set(:remotes, Remotes::Empty.new)
+      else
+        Zold::Front.set(
+          :remotes,
+          Remotes.new(
+            File.join(opts[:home], '.zoldata/remotes')
+          )
+        )
+      end
       Zold::Front.set(:port, opts['bind-port'])
       FileUtils.mkdir_p(opts[:home])
       Zold::Front.set(:home, opts[:home])
