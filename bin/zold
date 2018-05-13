@@ -117,7 +117,7 @@ Available options:"
 
   command = opts.arguments[0]
 
-  args = ARGV[(ARGV.index(command) + 1)..-1]
+  args = args[(args.index(command) + 1)..-1]
 
   wallets = Zold::Wallets.new(opts['dir'])
   remotes = Zold::Remotes.new(File.join(opts['dir'], '.zold/remotes'))
