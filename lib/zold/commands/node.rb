@@ -19,8 +19,7 @@
 # SOFTWARE.
 
 require 'slop'
-require_relative '../node/front.rb'
-require_relative '../log.rb'
+require_relative '../score'
 require_relative '../node/front'
 
 # NODE command.
@@ -47,6 +46,9 @@ module Zold
           default: '127.0.0.1'
         o.string '--home', 'Home directory (default: current directory)',
           default: Dir.pwd
+        o.integer '--strength',
+          "The strength of the score (default: #{Score::DEFAULT_STRENGTH})",
+          default: Score::DEFAULT_STRENGTH
         o.integer '--threads',
           'How many threads to use for scores finding (default: 8)',
           default: 8
@@ -68,7 +70,10 @@ module Zold
       FileUtils.mkdir_p(opts[:home])
       Zold::Front.set(:home, opts[:home])
       farm = Farm.new(log: @log)
-      farm.start(opts[:host], opts[:port], threads: opts[:threads])
+      farm.start(
+        opts[:host], opts[:port],
+        threads: opts[:threads], strength: opts[:strength]
+      )
       Zold::Front.set(:farm, farm)
       @log.debug('Starting up the web front...')
       begin

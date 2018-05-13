@@ -100,7 +100,7 @@ SHA-256: "eba36e52e1ee674d198f486e07c8496853ffc8879e7fe25329523177646a96a0"
 ```
 
 The node attempts to try different sufficies until one of them produces
-SHA-256 hash that ends with `00000000` (eight zeros). For example, this
+SHA-256 hash that ends with `0000000` (seven zeros). For example, this
 suffix `11edb424c` works (it took 212 minutes to find it on 2.3GHz Intel Core i7):
 
 ```
