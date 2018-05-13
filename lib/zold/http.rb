@@ -52,7 +52,10 @@ module Zold
       http.continue_timeout = 5
       return http.request_put(
         @uri.path, body,
-        headers.merge('Content-Type': 'text/plain')
+        headers.merge(
+          'Content-Type': 'text/plain',
+          'Content-Length': body.length.to_s
+        )
       )
     rescue StandardError => e
       return Net::HTTPServerError.new('1.1', '599', e.message)

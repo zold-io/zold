@@ -107,8 +107,15 @@ module Zold
       id = Id.new(params[:id])
       wallet = wallets.find(id)
       request.body.rewind
+      body = request.body.read
+      if wallet.exists? && File.read(wallet.path) == body
+        status 304
+        return JSON.pretty_generate(
+          version: VERSION, score: score.to_h
+        )
+      end
       cps = copies(id)
-      cps.add(request.body.read, 'remote', Remotes::PORT, 0)
+      cps.add(body, 'remote', Remotes::PORT, 0)
       require_relative '../commands/fetch'
       Zold::Fetch.new(
         remotes: settings.remotes, copies: cps.root,
@@ -120,7 +127,11 @@ module Zold
         log: settings.log
       ).run([id.to_s])
       cps.remove('remote', Remotes::PORT)
-      "Success, #{wallet.id} balance is #{wallet.balance}"
+      JSON.pretty_generate(
+        version: VERSION,
+        score: score.to_h,
+        balance: wallet.balance
+      )
     end
 
     get '/remotes' do

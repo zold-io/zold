@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'slop'
+require 'json'
 require 'net/http'
 require_relative '../log'
 require_relative '../id'
@@ -55,14 +56,26 @@ Available options:"
 
     def push(wallet, _)
       raise 'The wallet is absent' unless wallet.exists?
-      remote = @remotes.all[0]
-      raise "There are no remote nodes, run 'zold remote reset'" if remote.nil?
-      uri = URI("#{remote[:home]}wallet/#{wallet.id}")
-      response = Http.new(uri).put(File.read(wallet.path))
-      unless response.code == '200'
-        raise "Failed to push to #{uri}: #{response.code}/#{response.message}"
+      total = 0
+      @remotes.all.each do |r|
+        uri = URI("#{r[:home]}wallet/#{wallet.id}")
+        response = Http.new(uri).put(File.read(wallet.path))
+        if response.code != '304' && response.code != '200'
+          @log.error("#{uri} failed as #{response.code}/#{response.message}")
+          next
+        end
+        json = JSON.parse(response.body)['score']
+        score = Score.new(
+          Time.parse(json['time']), json['host'],
+          json['port'], json['suffixes']
+        )
+        unless score.valid?
+          @log.error("#{uri} invalid score")
+          next
+        end
+        total += score.value
       end
-      @log.info("The #{wallet.id} pushed to #{uri}")
+      @log.info("Total score is #{total}")
     end
   end
 end
