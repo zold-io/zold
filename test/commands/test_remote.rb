@@ -48,13 +48,19 @@ class TestRemote < Minitest::Test
       stub_request(:get, 'http://localhost:2/remotes').to_return(
         status: 404
       )
+      stub_request(:get, 'http://localhost:888/remotes').to_return(
+        status: 404
+      )
+      stub_request(:get, 'http://localhost:999/remotes').to_return(
+        status: 404
+      )
       cmd = Zold::Remote.new(remotes: remotes)
       cmd.run(['clean'])
       cmd.run(%w[add localhost 1])
       cmd.run(%w[add localhost 2])
       assert_equal(2, remotes.all.count)
       cmd.run(['update', '--ignore-score-weakness'])
-      assert_equal(3, remotes.all.count)
+      assert_equal(1, remotes.all.count)
     end
   end
 end

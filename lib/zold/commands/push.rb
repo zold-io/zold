@@ -56,7 +56,7 @@ Available options:"
     def push(wallet, _)
       raise 'The wallet is absent' unless wallet.exists?
       remote = @remotes.all[0]
-      uri = URI("#{remote[:home]}/wallet/#{wallet.id}")
+      uri = URI("#{remote[:home]}wallet/#{wallet.id}")
       response = Http.new(uri).put(File.read(wallet.path))
       unless response.code == '200'
         raise "Failed to push to #{uri}: #{response.code}/#{response.message}"

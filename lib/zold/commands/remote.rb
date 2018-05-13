@@ -76,6 +76,7 @@ Available options:"
         remove(opts.arguments[1], opts.arguments[2].to_i)
       when 'update'
         update(opts)
+        update(opts, false)
       else
         @log.info(opts.to_s)
       end
@@ -110,7 +111,7 @@ Available options:"
       @log.info("There are #{@remotes.all.count} remote nodes in the list")
     end
 
-    def update(opts)
+    def update(opts, deep = true)
       @remotes.all.each do |r|
         uri = URI("#{r[:home]}remotes")
         res = Http.new(uri).get
@@ -145,9 +146,11 @@ Available options:"
           next
         end
         @remotes.rescore(r[:host], r[:port], score.value)
-        json['all'].each do |s|
-          unless @remotes.exists?(s['host'], s['port'])
-            add(s['host'], s['port'])
+        if deep
+          json['all'].each do |s|
+            unless @remotes.exists?(s['host'], s['port'])
+              add(s['host'], s['port'])
+            end
           end
         end
         @log.info("#{r[:host]}:#{r[:port]}: #{Rainbow(score.value).green} \

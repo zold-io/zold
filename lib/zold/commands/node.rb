@@ -94,11 +94,11 @@ module Zold
       end
 
       def debug(msg)
-        @log.debug(msg)
+        # nothing
       end
 
       def debug?
-        @log.debug?
+        @log.info?
       end
     end
   end
