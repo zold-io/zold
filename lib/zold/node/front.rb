@@ -67,6 +67,7 @@ module Zold
 
     after do
       headers['Cache-Control'] = 'no-cache'
+      headers['Connection'] = 'close'
       headers['X-Zold-Version'] = VERSION
     end
 
