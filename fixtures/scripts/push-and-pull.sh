@@ -9,7 +9,9 @@ port=`python -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.gets
 
 mkdir server
 cd server
-zold --trace node --host=localhost --port=${port} --bind-port=${port} --threads=0 --standalone &
+zold --trace node --invoice=NOSUFFIX@ffffffffffffffff \
+  --host=localhost --port=${port} --bind-port=${port} \
+  --threads=0 --standalone &
 pid=$!
 trap "kill -9 $pid" EXIT
 cd ..

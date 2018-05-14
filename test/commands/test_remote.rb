@@ -24,6 +24,7 @@ require 'webmock/minitest'
 require_relative '../../lib/zold/wallets'
 require_relative '../../lib/zold/remotes'
 require_relative '../../lib/zold/key'
+require_relative '../../lib/zold/log'
 require_relative '../../lib/zold/score'
 require_relative '../../lib/zold/commands/remote'
 
@@ -35,10 +36,11 @@ class TestRemote < Minitest::Test
   def test_updates_remote
     Dir.mktmpdir 'test' do |dir|
       remotes = Zold::Remotes.new(File.join(dir, 'a/b/c/remotes'))
-      stub_request(:get, 'http://localhost:1/remotes').to_return(
+      zero = Zold::Score::ZERO
+      stub_request(:get, "http://#{zero.host}:#{zero.port}/remotes").to_return(
         status: 200,
         body: {
-          score: Zold::Score::ZERO.to_h,
+          score: zero.to_h,
           all: [
             { host: 'localhost', port: 888 },
             { host: 'localhost', port: 999 }
@@ -56,7 +58,7 @@ class TestRemote < Minitest::Test
       )
       cmd = Zold::Remote.new(remotes: remotes)
       cmd.run(['clean'])
-      cmd.run(%w[add localhost 1])
+      cmd.run(['add', zero.host, zero.port.to_s])
       cmd.run(%w[add localhost 2])
       assert_equal(2, remotes.all.count)
       cmd.run(['update', '--ignore-score-weakness'])

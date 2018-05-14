@@ -129,13 +129,15 @@ Available options:"
           @log.info("#{Rainbow(r[:host]).red} \"#{e.message}\": #{res.body}")
           next
         end
-        score = Score.new(
-          Time.parse(json['score']['time']), r[:host],
-          r[:port], json['score']['suffixes']
-        )
+        score = Score.parse_json(json['score'])
         unless score.valid?
           remove(r[:host], r[:port])
           @log.info("#{Rainbow(r[:host]).red} invalid score")
+          next
+        end
+        if score.strength < Score::STRENGTH
+          remove(r[:host], r[:port])
+          @log.info("#{Rainbow(r[:host]).red} score is too weak")
           next
         end
         if score.strength < Score::STRENGTH && !opts['ignore-score-weakness']
@@ -145,7 +147,14 @@ Available options:"
           )
           next
         end
-        @remotes.rescore(r[:host], r[:port], score.value)
+        if r[:host] != score.host || r[:port] != score.port
+          @remotes.remove(r[:host], r[:port])
+          @remotes.add(score.host, score.port)
+          @log.info(
+            "#{r[:host]}:#{r[:port]} renamed to #{score.host}:#{score.port}"
+          )
+        end
+        @remotes.rescore(score.host, score.port, score.value)
         if deep
           json['all'].each do |s|
             unless @remotes.exists?(s['host'], s['port'])

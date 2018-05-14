@@ -14,7 +14,7 @@ Layout/MultilineMethodCallIndentation:
 Metrics/AbcSize:
   Enabled: false
 Metrics/BlockLength:
-  Max: 50
+  Max: 100
 Metrics/ClassLength:
   Max: 200
 Style/EndOfLine:
@@ -24,4 +24,4 @@ Metrics/ParameterLists:
 Layout/AlignParameters:
   Enabled: false
 Metrics/PerceivedComplexity:
-  Max: 12
+  Max: 15

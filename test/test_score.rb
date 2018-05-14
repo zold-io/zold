@@ -28,20 +28,11 @@ require_relative '../lib/zold/score'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class TestScore < Minitest::Test
-  def test_validates_score
-    score = Zold::Score.new(
-      Time.parse('2017-07-19T21:24:51Z'),
-      'localhost', 443,
-      %w[9a81d5 40296e], strength: 6
-    )
-    assert(score.valid?)
-    assert_equal(score.value, 2)
-  end
-
   def test_reduces_itself
     score = Zold::Score.new(
       Time.parse('2017-07-19T21:24:51Z'),
-      'localhost', 443, %w[A B C D E F G]
+      'localhost', 443, 'NOSUFFIX@ffffffffffffffff',
+      %w[A B C D E F G]
     ).reduced(2)
     assert_equal(score.value, 2)
   end
@@ -49,9 +40,10 @@ class TestScore < Minitest::Test
   def test_validates_wrong_score
     score = Zold::Score.new(
       Time.parse('2017-07-19T21:24:51Z'),
-      'localhost', 443, %w[xxx yyy zzz]
+      'localhost', 443, 'NOSUFFIX@ffffffffffffffff',
+      %w[xxx yyy zzz]
     )
-    assert_equal(score.value, 3)
+    assert_equal(3, score.value)
     assert(!score.valid?)
   end
 
@@ -59,21 +51,22 @@ class TestScore < Minitest::Test
     time = Time.now
     score = Zold::Score.parse(
       Zold::Score.new(
-        time, 'localhost', 999, %w[FIRST SECOND THIRD]
+        time, 'localhost', 999, 'NOSUFFIX@ffffffffffffffff',
+        %w[FIRST SECOND THIRD]
       ).to_s
     )
-    assert_equal(score.value, 3)
+    assert_equal(3, score.value)
     assert_equal(score.time.to_s, time.to_s)
-    assert_equal(score.host, 'localhost')
-    assert_equal(score.port, 999)
+    assert_equal('localhost', score.host)
+    assert_equal(999, score.port)
   end
 
   def test_finds_next_score
     score = Zold::Score.new(
-      Time.parse('2017-07-19T21:24:51Z'), 'localhost', 443, strength: 4
-    ).next
-    assert_equal(score.value, 1)
-    assert_equal(score.to_s, '1: 2017-07-19T21:24:51Z localhost 443 1169e')
+      Time.now, 'localhost', 443,
+      'NOSUFFIX@ffffffffffffffff', strength: 2
+    ).next.next.next
+    assert_equal(3, score.value)
     assert(score.valid?)
   end
 end

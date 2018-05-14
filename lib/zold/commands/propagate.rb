@@ -70,7 +70,7 @@ Available options:"
           next
         end
         target.add(t.inverse(me))
-        @log.info("#{t.amount.mul(-1)} to #{t.bnf}")
+        @log.info("#{t.amount.mul(-1)} arrived to #{t.bnf}: #{t.details}")
         modified << t.id
       end
       modified.uniq!

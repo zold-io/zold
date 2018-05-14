@@ -69,12 +69,13 @@ Available options:"
           next
         end
         json = JSON.parse(response.body)['score']
-        score = Score.new(
-          Time.parse(json['time']), json['host'],
-          json['port'], json['suffixes']
-        )
+        score = Score.parse_json(json)
         unless score.valid?
           @log.error("#{uri} invalid score")
+          next
+        end
+        if score.strength < Score::STRENGTH
+          @log.error("#{uri} score is too weak")
           next
         end
         @log.info("#{uri} accepted: #{Rainbow(score.value).green}")

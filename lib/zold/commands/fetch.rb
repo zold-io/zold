@@ -86,12 +86,7 @@ there are #{cps.all.count} available locally")
         return false
       end
       json = JSON.parse(res.body)
-      score = Score.new(
-        Time.parse(json['score']['time']),
-        r[:host],
-        r[:port],
-        json['score']['suffixes']
-      )
+      score = Score.parse_json(json['score'])
       unless score.valid?
         @log.error("#{address} invalid score")
         return false
@@ -103,7 +98,7 @@ there are #{cps.all.count} available locally")
         )
         return false
       end
-      cps.add(json['body'], r[:host], r[:port], score.value)
+      cps.add(json['body'], score.host, score.port, score.value)
       @log.info(
         "#{address} #{json['body'].length}b/\
 #{Rainbow(score.value).green} (v.#{json['version']})"

@@ -33,7 +33,6 @@ class TestRemotes < Minitest::Test
       FileUtils.touch(file)
       remotes = Zold::Remotes.new(file)
       remotes.add('127.0.0.1')
-      remotes.add('127.0.0.1')
       assert(1, remotes.all.count)
     end
   end

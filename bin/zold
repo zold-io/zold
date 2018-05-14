@@ -175,18 +175,15 @@ Available options:"
     Zold::Push.new(wallets: wallets, remotes: remotes, log: log).run(args)
   when 'score'
     require_relative '../lib/zold/score'
-    if args.length != 3
-      raise 'Exactly three args required: host, port, strength'
+    if args.length != 4
+      raise 'Exactly four args required: host, port, invoice, strength'
     end
     host = args[0]
-    raise "Invalid host name: #{host}" unless host =~ /[a-z0-9\.-]+/
     port = args[1].to_i
-    raise "Invalid TCP port: #{port}" if port <= 0 || port > 65535
-    strength = args[2].to_i
+    invoice = args[2]
+    strength = args[3].to_i
     raise "Invalid strength: #{strength}" if strength <= 0 || strength > 8
-    score = Zold::Score.new(
-      Time.now, host, port, strength: strength
-    )
+    score = Zold::Score.new(Time.now, host, port, invoice, strength: strength)
     loop do
       log.info(score.to_s)
       score = score.next

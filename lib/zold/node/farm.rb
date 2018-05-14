@@ -30,8 +30,9 @@ module Zold
   # Farm
   class Farm
     attr_reader :best
-    def initialize(log: Log::Quiet.new)
+    def initialize(invoice, log: Log::Quiet.new)
       @log = log
+      @invoice = invoice
       @scores = []
       @threads = []
       @best = []
@@ -50,7 +51,7 @@ module Zold
     def start(host, port, strength: 8, threads: 8)
       @log.debug('Zero-threads farm won\'t score anything!') if threads.zero?
       @scores = Queue.new
-      first = Score.new(Time.now, host, port, strength: strength)
+      first = Score.new(Time.now, host, port, @invoice, strength: strength)
       @best = [first]
       @scores << first
       @threads = (1..threads).map do |t|
@@ -69,7 +70,10 @@ module Zold
               end
             end
             if @scores.length < 4
-              @scores << Score.new(Time.now, host, port, strength: strength)
+              @scores << Score.new(
+                Time.now, host, port, @invoice,
+                strength: strength
+              )
             end
             @scores << s.next
           end

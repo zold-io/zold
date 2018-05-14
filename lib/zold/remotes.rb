@@ -67,6 +67,7 @@ module Zold
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
       raise 'Port can\'t be negative' if port < 0
       raise 'Port can\'t be over 65536' if port > 0xffff
+      raise "#{host}:#{port} alread exists" if exists?(host, port)
       list = load
       list << { host: host.downcase, port: port, score: 0 }
       list.uniq! { |r| "#{r[:host]}:#{r[:port]}" }
@@ -75,6 +76,7 @@ module Zold
 
     def remove(host, port = Remotes::PORT)
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
+      raise "#{host}:#{port} is absent" unless exists?(host, port)
       list = load
       list.reject! { |r| r[:host] == host.downcase && r[:port] == port }
       save(list)
@@ -82,11 +84,13 @@ module Zold
 
     def score(host, port = Remotes::PORT)
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
+      raise "#{host}:#{port} is absent" unless exists?(host, port)
       load.find { |r| r[:host] == host.downcase && r[:port] == port }[:score]
     end
 
     def rescore(host, port, score)
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
+      raise "#{host}:#{port} is absent" unless exists?(host, port)
       list = load
       list.find do |r|
         r[:host] == host.downcase && r[:port] == port

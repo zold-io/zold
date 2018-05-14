@@ -45,6 +45,7 @@ class FakeNode
           home = File.join(dir, 'node-home')
           Zold::Node.new(log: @log).run(
             [
+              '--invoice', 'NOSUFFIX@ffffffffffffffff',
               '--port', port.to_s,
               '--host=locahost',
               '--bind-port', port.to_s,

@@ -40,6 +40,8 @@ module Zold
     def run(args = [])
       opts = Slop.parse(args, help: true) do |o|
         o.banner = 'Usage: zold node [options]'
+        o.string '--invoice',
+          'The invoice you want to collect money to'
         o.integer '--port',
           "TCP port to open for the Net (default: #{Remotes::PORT})",
           default: Remotes::PORT
@@ -65,6 +67,7 @@ module Zold
         @log.info(opts.to_s)
         return
       end
+      raise '--invoice is mandatory' unless opts[:invoice]
       Zold::Front.set(:log, @log)
       Zold::Front.set(:logging, @log.debug?)
       FileUtils.mkdir_p(opts[:home])
@@ -75,18 +78,13 @@ module Zold
         AccessLog: []
       )
       if opts['standalone']
-        Zold::Front.set(:remotes, Remotes::Empty.new)
+        remotes = Remotes::Empty.new
+        @log.debug('Running in standalone mode!')
       else
-        Zold::Front.set(
-          :remotes,
-          Remotes.new(
-            File.join(opts[:home], '.zoldata/remotes')
-          )
-        )
+        remotes = Remotes.new(File.join(opts[:home], 'zold-remotes'))
       end
       wallets = Wallets.new(File.join(opts[:home], 'zold-wallets'))
       Zold::Front.set(:wallets, wallets)
-      remotes = Remotes.new(File.join(opts[:home], 'zold-remotes'))
       Zold::Front.set(:remotes, remotes)
       copies = File.join(opts[:home], 'zold-copies')
       Zold::Front.set(:copies, copies)
@@ -96,7 +94,7 @@ module Zold
         :entrance, Entrance.new(wallets, remotes, copies, address, log: @log)
       )
       Zold::Front.set(:port, opts['bind-port'])
-      farm = Farm.new(log: @log)
+      farm = Farm.new(opts[:invoice], log: @log)
       farm.start(
         opts[:host], opts[:port],
         threads: opts[:threads], strength: opts[:strength]
