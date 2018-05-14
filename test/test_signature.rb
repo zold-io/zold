@@ -22,6 +22,7 @@ require 'minitest/autorun'
 require 'tmpdir'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/id'
+require_relative '../lib/zold/txn'
 require_relative '../lib/zold/amount'
 require_relative '../lib/zold/signature'
 
@@ -38,6 +39,7 @@ class TestSignature < Minitest::Test
       'NOPREFIX', Zold::Id.new, '-'
     )
     txn = txn.signed(pvt)
+    assert_equal(684, txn.sign.length)
     assert(Zold::Signature.new.valid?(pub, txn))
   end
 end
