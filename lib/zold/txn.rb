@@ -80,9 +80,9 @@ module Zold
       t
     end
 
-    def signed(pvt)
+    def signed(pvt, id)
       t = clone
-      t.sign = Signature.new.sign(pvt, self)
+      t.sign = Signature.new.sign(pvt, id, self)
       t
     end
 

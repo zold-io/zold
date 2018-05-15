@@ -44,7 +44,7 @@ module Zold
           (txn.id <= max ||
           @txns.find { |t| t.id == txn.id } ||
           @txns.map(&:amount).inject(&:+) < txn.amount)
-        next unless Signature.new.valid?(@key, txn)
+        next unless Signature.new.valid?(@key, wallet.id, txn)
         @txns << txn
       end
     end

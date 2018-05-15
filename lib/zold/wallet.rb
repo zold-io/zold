@@ -87,7 +87,7 @@ module Zold
         Id.new(target),
         details
       )
-      txn = txn.signed(pvt)
+      txn = txn.signed(pvt, self)
       add(txn)
       txn
     end

@@ -38,8 +38,9 @@ class TestSignature < Minitest::Test
       123, Time.now, Zold::Amount.new(zld: 14.95),
       'NOPREFIX', Zold::Id.new, 'hello, world!'
     )
-    txn = txn.signed(pvt)
+    id = Zold::Id.new
+    txn = txn.signed(pvt, id)
     assert_equal(684, txn.sign.length)
-    assert(Zold::Signature.new.valid?(pub, txn))
+    assert(Zold::Signature.new.valid?(pub, id, txn))
   end
 end
