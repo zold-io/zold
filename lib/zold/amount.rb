@@ -29,9 +29,9 @@ module Zold
   class Amount
     def initialize(coins: nil, zld: nil)
       raise 'You can\'t specify both coints and zld' if !coins.nil? && !zld.nil?
+      raise "Integer is required, while #{coins.class} provided: #{coins}" unless coins.nil? || coins.is_a?(Integer)
       @coins = coins unless coins.nil?
       @coins = (zld * 2**24).to_i unless zld.nil?
-      raise "Integer is required: #{@coins.class}" unless @coins.is_a?(Integer)
     end
 
     ZERO = Amount.new(coins: 0)
@@ -54,19 +54,33 @@ module Zold
     end
 
     def ==(other)
+      raise '== may only work with Amount' unless other.is_a?(Amount)
       @coins == other.to_i
     end
 
     def >(other)
+      raise '> may only work with Amount' unless other.is_a?(Amount)
       @coins > other.to_i
     end
 
     def <(other)
+      raise '< may only work with Amount' unless other.is_a?(Amount)
       @coins < other.to_i
     end
 
+    def <=(other)
+      raise '<= may only work with Amount' unless other.is_a?(Amount)
+      @coins <= other.to_i
+    end
+
     def +(other)
+      raise '+ may only work with Amount' unless other.is_a?(Amount)
       Amount.new(coins: @coins + other.to_i)
+    end
+
+    def -(other)
+      raise '- may only work with Amount' unless other.is_a?(Amount)
+      Amount.new(coins: @coins - other.to_i)
     end
 
     def zero?
@@ -77,8 +91,8 @@ module Zold
       @coins < 0
     end
 
-    def mul(m)
-      c = @coins * m
+    def *(other)
+      c = (@coins * other).to_i
       raise "Overflow, can't multiply #{@coins} by #{m}" if c > 2**63
       Amount.new(coins: c)
     end

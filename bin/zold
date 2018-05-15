@@ -41,14 +41,16 @@ Encoding.default_internal = Encoding::UTF_8
 log = Zold::Log.new
 
 args = []
-config = File.expand_path('~/.zold')
-if File.exist?(config)
-  body = File.read(config)
-  extra = body.split(/[\r\n]+/).map(&:strip)
-  args += extra
-  log.debug("Found #{body.split(/\n/).length} lines in #{config}")
-else
-  log.debug("Default config file #{config} not found")
+unless ENV['RACK_ENV'] == 'test'
+  config = File.expand_path('~/.zold')
+  if File.exist?(config)
+    body = File.read(config)
+    extra = body.split(/[\r\n]+/).map(&:strip)
+    args += extra
+    log.debug("Found #{body.split(/\n/).length} lines in #{config}")
+  else
+    log.debug("Default config file #{config} not found")
+  end
 end
 args += ARGV
 
@@ -56,44 +58,38 @@ begin
   opts = Slop.parse(args, strict: false, suppress_errors: true) do |o|
     o.banner = "Usage: zold [options] command [arguments]
 Available commands:
-    #{Rainbow('remote').green}
+    #{Rainbow('remote').green} command [options]
       Manage remote nodes
-    #{Rainbow('create').green}
+    #{Rainbow('create').green} [options]
       Creates a new wallet with a random ID
-    #{Rainbow('fetch').green} [ID...]
+    #{Rainbow('fetch').green} [ID...] [options]
       Fetch wallet copies from remote nodes
-    #{Rainbow('clean').green} [ID...]
+    #{Rainbow('clean').green} [ID...] [options]
       Remove expired local copies
-    #{Rainbow('merge').green} [ID...]
+    #{Rainbow('merge').green} [ID...] [options]
       Merge remote copies with the HEAD
-    #{Rainbow('propagate').green} [ID...]
+    #{Rainbow('propagate').green} [ID...] [options]
       Propagate transactions to receiving wallets
-    #{Rainbow('pull').green} [ID...]
+    #{Rainbow('pull').green} [ID...] [options]
       Fetch and then merge
-    #{Rainbow('show').green} [ID...]
+    #{Rainbow('show').green} [ID...] [options]
       Show all available information about the wallet
-    #{Rainbow('pay').green} from to amount details
+    #{Rainbow('pay').green} from to amount details [options]
       Pay ZOLD from one wallet to another
-    #{Rainbow('invoice').green} ID
+    #{Rainbow('invoice').green} ID [options]
       Generate invoice unique ID for a payment
-    #{Rainbow('status').green}
-      Show status of local copies
-    #{Rainbow('push').green} [ID...]
+    #{Rainbow('push').green} [ID...] [options]
       Push all/some local wallets or the ones required
-    #{Rainbow('node').green} port
+    #{Rainbow('taxes').green} command [ID...] [options]
+      Pay taxes, check their status
+    #{Rainbow('node').green} [options]
       Run node at the given TCP port
-    #{Rainbow('score').green} host port strength
+    #{Rainbow('score').green} host port strength [options]
       Generate score for the given host and port
 Available options:"
     o.string '-d', '--dir',
       'The directory where wallets are stored (default: .)',
       default: Dir.pwd
-    o.string '--private-key',
-      'The location of RSA private key (default: ~/.ssh/id_rsa)',
-      default: '~/.ssh/id_rsa'
-    o.string '--public-key',
-      'The location of RSA public key (default: ~/.ssh/id_rsa.pub)',
-      default: '~/.ssh/id_rsa.pub'
     o.bool '-h', '--help', 'Show these instructions'
     o.bool '--trace', 'Show full stack trace in case of a problem'
     o.on '--no-colors', 'Disable colors in the ouput' do
@@ -129,11 +125,7 @@ Available options:"
     Zold::Node.new(log: log).run(args)
   when 'create'
     require_relative '../lib/zold/commands/create'
-    Zold::Create.new(
-      wallets: wallets,
-      pubkey: Zold::Key.new(file: opts['public-key']),
-      log: log
-    ).run(args)
+    Zold::Create.new(wallets: wallets, log: log).run(args)
   when 'remote'
     require_relative '../lib/zold/commands/remote'
     Zold::Remote.new(remotes: remotes, log: log).run(args)
@@ -142,11 +134,7 @@ Available options:"
     Zold::Invoice.new(wallets: wallets, log: log).run(args)
   when 'pay'
     require_relative '../lib/zold/commands/pay'
-    Zold::Pay.new(
-      wallets: wallets,
-      pvtkey: Zold::Key.new(file: opts['private-key']),
-      log: log
-    ).run(args)
+    Zold::Pay.new(wallets: wallets, log: log).run(args)
   when 'show'
     require_relative '../lib/zold/commands/show'
     Zold::Show.new(wallets: wallets, log: log).run(args)
@@ -170,14 +158,15 @@ Available options:"
     Zold::Fetch.new(remotes: remotes, copies: copies, log: log).run(args)
     require_relative '../lib/zold/commands/merge'
     Zold::Merge.new(wallets: wallets, copies: copies, log: log).run(args)
+  when 'taxes'
+    require_relative '../lib/zold/commands/taxes'
+    Zold::Taxes.new(wallets: wallets, log: log).run(args)
   when 'push'
     require_relative '../lib/zold/commands/push'
     Zold::Push.new(wallets: wallets, remotes: remotes, log: log).run(args)
   when 'score'
     require_relative '../lib/zold/score'
-    if args.length != 4
-      raise 'Exactly four args required: host, port, invoice, strength'
-    end
+    raise 'Exactly four args required: host, port, invoice, strength' if args.length != 4
     host = args[0]
     port = args[1].to_i
     invoice = args[2]

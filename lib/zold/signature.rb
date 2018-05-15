@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'time'
+require 'digest'
 require_relative 'key'
 require_relative 'id'
 require_relative 'amount'
@@ -32,17 +32,17 @@ module Zold
   # A signature
   class Signature
     def sign(pvt, t)
-      pvt.sign(block(t))
+      pvt.sign(body(t))
     end
 
     def valid?(pub, t)
-      pub.verify(t.sign, block(t))
+      pub.verify(t.sign, body(t))
     end
 
     private
 
-    def block(t)
-      [t.id, t.amount.to_i, t.prefix, t.bnf, t.details].join(';')
+    def body(t)
+      [t.id, t.amount.to_i, t.prefix, t.bnf, t.details].join(' ')
     end
   end
 end

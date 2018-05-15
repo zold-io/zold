@@ -34,9 +34,7 @@ module Zold
       @body = lambda do
         unless file.nil?
           path = File.expand_path(file)
-          unless File.exist?(path)
-            raise "Can't find RSA key at #{file} (#{path})"
-          end
+          raise "Can't find RSA key at #{file} (#{path})" unless File.exist?(path)
           return File.read(path)
         end
         unless text.nil?

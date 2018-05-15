@@ -49,6 +49,7 @@ module Zold
       @prefix = prefix
       raise 'Details can\'t be empty' if details.empty?
       raise "Details are too long: \"#{details}\"" if details.length > 128
+      raise "Details are wrong: \"#{details}\"" unless details =~ /^[a-zA-Z0-9 -\.,]{1,128}$/
       @details = details
     end
 
@@ -68,9 +69,13 @@ module Zold
       ].join(';')
     end
 
+    def to_text
+      "##{@id} #{@date.utc.iso8601} #{@amount} #{@bnf} #{@details}"
+    end
+
     def inverse(bnf)
       t = clone
-      t.amount = amount.mul(-1)
+      t.amount = amount * -1
       t.bnf = bnf
       t
     end
@@ -81,17 +86,17 @@ module Zold
       t
     end
 
-    def self.parse(line, idx)
+    def self.parse(line, idx = 0)
       regex = Regexp.new(
-        [
+        '^' + [
           '([0-9]+)',
           '([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z)',
           '(-?[0-9]+)',
           '([A-Za-z0-9]{8,32})',
           '([a-f0-9]{16})',
-          '([a-zA-Z0-9 -.]{1,128})',
+          '([a-zA-Z0-9 -\.,]{1,128})',
           '([A-Za-z0-9+/]+={0,3})?'
-        ].join(';')
+        ].join(';') + '$'
       )
       clean = line.strip
       raise "Invalid line ##{idx}: #{line.inspect}" unless regex.match(clean)

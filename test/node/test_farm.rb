@@ -26,7 +26,7 @@ require_relative '../../lib/zold/node/farm'
 
 class FarmTest < Minitest::Test
   def test_makes_best_score_in_background
-    farm = Zold::Farm.new('NOSUFFIX@ffffffffffffffff')
+    farm = Zold::Farm.new('NOPREFIX@ffffffffffffffff')
     farm.start('localhost', 80, threads: 4, strength: 2)
     sleep 1 while farm.best.empty? || farm.best[0].value.zero?
     assert(farm.best[0].value > 0)

@@ -66,9 +66,7 @@ module Zold
         'User-Agent': "Zold #{VERSION}",
         'Connection': 'close'
       }
-      if @score.valid? && @score.value >= 3
-        headers[SCORE_HEADER] = score.reduced(4).to_s
-      end
+      headers[SCORE_HEADER] = score.reduced(4).to_s if @score.valid? && @score.value >= 3 && !score.expired?
       headers
     end
   end

@@ -31,10 +31,9 @@ require_relative '../../lib/zold/commands/create'
 class TestCreate < Minitest::Test
   def test_creates_wallet
     Dir.mktmpdir 'test' do |dir|
-      wallet = Zold::Create.new(
-        wallets: Zold::Wallets.new(dir),
-        pubkey: Zold::Key.new(file: 'fixtures/id_rsa.pub')
-      ).run
+      wallet = Zold::Create.new(wallets: Zold::Wallets.new(dir)).run(
+        ['--public-key=fixtures/id_rsa.pub']
+      )
       assert wallet.balance.zero?
       assert(
         File.exist?(File.join(dir, wallet.id.to_s)),

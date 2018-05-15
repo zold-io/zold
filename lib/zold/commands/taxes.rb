@@ -1,0 +1,154 @@
+# Copyright (c) 2018 Yegor Bugayenko
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the 'Software'), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+require 'slop'
+require 'json'
+require_relative 'pay'
+require_relative '../log'
+require_relative '../score'
+require_relative '../id'
+require_relative '../tax'
+require_relative '../http'
+
+# TAXES command.
+# Author:: Yegor Bugayenko (yegor256@gmail.com)
+# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# License:: MIT
+module Zold
+  # Taxes command
+  class Taxes
+    def initialize(wallets:, remotes:, log: Log::Quiet.new)
+      @wallets = wallets
+      @remotes = remotes
+      @log = log
+    end
+
+    def run(args = [])
+      opts = Slop.parse(args, help: true) do |o|
+        o.banner = "Usage: zold taxes command [options]
+Available commands:
+    #{Rainbow('taxes pay').green} wallet
+      Pay taxes for the given wallet
+    #{Rainbow('taxes show').green}
+      Show taxes status for the given wallet
+    #{Rainbow('taxes debt').green}
+      Show current debt
+Available options:"
+        o.string '--private-key',
+          'The location of RSA private key (default: ~/.ssh/id_rsa)',
+          require: true,
+          default: '~/.ssh/id_rsa'
+        o.bool '--help', 'Print instructions'
+      end
+      command = opts.arguments[0]
+      case command
+      when 'show'
+        raise 'At least one wallet ID is required' unless opts.arguments[1]
+        opts.arguments[1..-1].each do |id|
+          show(@wallets.find(Id.new(id), opts))
+        end
+      when 'debt'
+        raise 'At least one wallet ID is required' unless opts.arguments[1]
+        opts.arguments[1..-1].each do |id|
+          debt(@wallets.find(Id.new(id), opts))
+        end
+      when 'pay'
+        raise 'At least one wallet ID is required' unless opts.arguments[1]
+        opts.arguments[1..-1].each do |id|
+          pay(@wallets.find(Id.new(id)), opts)
+        end
+      else
+        @log.info(opts.to_s)
+      end
+    end
+
+    def pay(wallet, _)
+      raise 'The wallet is absent' unless wallet.exists?
+      tax = Tax.new(wallet)
+      debt = tax.debt
+      @log.debug("The current debt is #{debt} (#{debt.to_i} zents)")
+      if debt <= Tax::TRIAL
+        @log.debug("No need to pay taxes yet, until the debt is less than #{Tax::TRIAL} (#{Tax::TRIAL.to_i} zents)")
+        return
+      end
+      top = top_scores
+      while debt > Amount::ZERO
+        raise 'No acceptable remote nodes, try later' if top.empty?
+        best = top.shift
+        txn = tax.pay(Zold::Key.new(file: opts['private-key']), best)
+        wallet.add(txn)
+        debt -= txn.amount
+        @log.info("#{txn.amount} of taxes paid to #{txn.bnf}, #{debt} left to pay")
+      end
+      @log.info('The wallet is in good standing, all taxes paid')
+    end
+
+    def debt(wallet, _)
+      raise 'The wallet is absent' unless wallet.exists?
+      tax = Tax.new(wallet)
+      @log.info(tax.debt)
+    end
+
+    def show(_, _)
+      raise 'Not implemented yet'
+    end
+
+    private
+
+    def top_scores
+      best = []
+      @remotes.all.each do |r|
+        uri = URI(r[:home])
+        name = "#{r[:host]}:#{r[:port]}"
+        res = Http.new(uri).get
+        unless res.code == '200'
+          @log.info("#{name}: #{Rainbow(res.code).red} \"#{res.message}\" at #{uri}")
+          next
+        end
+        begin
+          json = JSON.parse(res.body)
+        rescue JSON::ParserError => e
+          @log.info("#{name}: #{Rainbow('broken').red} JSON \"#{e.message}\": #{res.body}")
+          next
+        end
+        score = Score.parse_json(json['score'])
+        unless score.valid?
+          @log.info("#{name}: #{Rainbow('invalid').red} score")
+          next
+        end
+        if score.expired?
+          @log.info("#{name}: #{Rainbow('expired').red} score")
+          next
+        end
+        if score.strength < Score::STRENGTH
+          @log.info("#{name} score #{Rainbow(score.value).red} is too weak (<#{Score::STRENGTH})")
+          next
+        end
+        if score.value < Tax::MIN_SCORE
+          @log.info("#{name} score #{Rainbow(score.value).red} is too small (<#{Tax::MIN_SCORE})")
+          next
+        end
+        @log.info("#{score.host}:#{score.port}: #{Rainbow(score.value).green}")
+        best << score
+      end
+      best.sort_by(&:value).reverse
+    end
+  end
+end

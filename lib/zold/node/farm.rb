@@ -65,9 +65,7 @@ module Zold
               @best << s
               after = @best.map(&:value).max
               @best.reject! { |b| b.value < after }
-              if before != after
-                @log.debug("#{Thread.current.name}: best is #{@best[0]}")
-              end
+              @log.debug("#{Thread.current.name}: best is #{@best[0]}") if before != after
             end
             if @scores.length < 4
               @scores << Score.new(

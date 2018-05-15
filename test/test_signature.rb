@@ -36,7 +36,7 @@ class TestSignature < Minitest::Test
     pub = Zold::Key.new(file: 'fixtures/id_rsa.pub')
     txn = Zold::Txn.new(
       123, Time.now, Zold::Amount.new(zld: 14.95),
-      'NOPREFIX', Zold::Id.new, '-'
+      'NOPREFIX', Zold::Id.new, 'hello, world!'
     )
     txn = txn.signed(pvt)
     assert_equal(684, txn.sign.length)

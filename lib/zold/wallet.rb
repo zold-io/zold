@@ -82,7 +82,7 @@ module Zold
       txn = Txn.new(
         max + 1,
         Time.now,
-        amount.mul(-1),
+        amount * -1,
         prefix,
         Id.new(target),
         details

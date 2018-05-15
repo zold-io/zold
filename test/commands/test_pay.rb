@@ -39,11 +39,13 @@ class TestPay < Minitest::Test
       source.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
       target = Zold::Id.new
       amount = Zold::Amount.new(zld: 14.95)
-      Zold::Pay.new(
-        wallets: wallets,
-        pvtkey: Zold::Key.new(file: 'fixtures/id_rsa')
-      ).run(['--force', id.to_s, target.to_s, amount.to_zld, 'For the car'])
-      assert_equal(amount.mul(-1), source.balance)
+      Zold::Pay.new(wallets: wallets).run(
+        [
+          '--force', '--private-key=fixtures/id_rsa',
+          id.to_s, target.to_s, amount.to_zld, 'For the car'
+        ]
+      )
+      assert_equal(amount * -1, source.balance)
     end
   end
 end

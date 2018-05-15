@@ -60,8 +60,7 @@ Available options:"
     def show(wallet, _)
       balance = wallet.balance
       wallet.txns.each do |t|
-        @log.info("##{t.id} #{t.date.utc.iso8601} \
-#{t.amount} #{t.bnf} #{t.details}")
+        @log.info(t.to_text)
       end
       @log.info("The balance of #{wallet}: #{balance}")
       balance

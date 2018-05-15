@@ -20,42 +20,47 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
-require 'json'
-require 'time'
 require 'webmock/minitest'
 require_relative '../../lib/zold/wallets'
-require_relative '../../lib/zold/wallet'
-require_relative '../../lib/zold/id'
-require_relative '../../lib/zold/copies'
+require_relative '../../lib/zold/amount'
 require_relative '../../lib/zold/key'
-require_relative '../../lib/zold/commands/pay'
-require_relative '../../lib/zold/commands/diff'
+require_relative '../../lib/zold/log'
+require_relative '../../lib/zold/id'
+require_relative '../../lib/zold/commands/taxes'
 
-# DIFF test.
+# TAXES test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestDiff < Minitest::Test
-  def test_diff_with_copies
+class TestTaxes < Minitest::Test
+  def test_pays_taxes
     Dir.mktmpdir 'test' do |dir|
       id = Zold::Id.new
-      wallet = Zold::Wallet.new(File.join(dir, id.to_s))
+      wallets = Zold::Wallets.new(dir)
+      wallet = wallets.find(id)
       wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-      first = Zold::Wallet.new(File.join(dir, 'copy-1'))
-      File.write(first.path, File.read(wallet.path))
-      second = Zold::Wallet.new(File.join(dir, 'copy-2'))
-      File.write(second.path, File.read(wallet.path))
-      Zold::Pay.new(
-        wallets: Zold::Wallets.new(dir)
-      ).run([id.to_s, second.id.to_s, '14.95', '--force', '--private-key=fixtures/id_rsa'])
-      copies = Zold::Copies.new(File.join(dir, "copies/#{id}"))
-      copies.add(File.read(first.path), 'host-1', 80, 5)
-      copies.add(File.read(second.path), 'host-2', 80, 5)
-      diff = Zold::Diff.new(
-        wallets: Zold::Wallets.new(dir),
-        copies: copies.root
-      ).run([id.to_s])
-      assert(diff.include?('-1;'))
+      wallet.add(
+        Zold::Txn.new(
+          1,
+          Time.now - 24 * 60 * 365 * 20,
+          Zold::Amount.new(zld: 19.99),
+          'NOPREFIX', Zold::Id.new, '-'
+        )
+      )
+      remotes = Zold::Remotes.new(File.join(dir, 'a/remotes'))
+      remotes.clean
+      zero = Zold::Score::ZERO
+      remotes.add(zero.host, zero.port)
+      stub_request(:get, "http://#{zero.host}:#{zero.port}/").to_return(
+        status: 200,
+        body: {
+          score: zero.to_h
+        }.to_json
+      )
+      Zold::Taxes.new(
+        wallets: wallets, remotes: remotes
+      ).run(['pay', '--private-key=fixtures/id_rsa', id.to_s])
+      assert_equal(Zold::Amount.new(coins: 335_376_547), wallet.balance)
     end
   end
 end

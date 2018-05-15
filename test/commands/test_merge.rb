@@ -48,9 +48,8 @@ class TestMerge < Minitest::Test
       second = Zold::Wallet.new(File.join(dir, 'copy-2'))
       File.write(second.path, File.read(wallet.path))
       Zold::Pay.new(
-        wallets: Zold::Wallets.new(dir),
-        pvtkey: Zold::Key.new(file: 'fixtures/id_rsa')
-      ).run([id.to_s, second.id.to_s, '14.95', '--force'])
+        wallets: Zold::Wallets.new(dir)
+      ).run([id.to_s, second.id.to_s, '14.95', '--force', '--private-key=fixtures/id_rsa'])
       copies = Zold::Copies.new(File.join(dir, "copies/#{id}"))
       copies.add(File.read(first.path), 'host-1', 80, 5)
       copies.add(File.read(second.path), 'host-2', 80, 5)
@@ -74,9 +73,8 @@ class TestMerge < Minitest::Test
       second = Zold::Wallet.new(File.join(dir, 'copy-2'))
       File.write(second.path, File.read(wallet.path))
       Zold::Pay.new(
-        wallets: Zold::Wallets.new(dir),
-        pvtkey: Zold::Key.new(file: 'fixtures/id_rsa')
-      ).run([id.to_s, second.id.to_s, '14.95', '--force'])
+        wallets: Zold::Wallets.new(dir)
+      ).run([id.to_s, second.id.to_s, '14.95', '--force', '--private-key=fixtures/id_rsa'])
       copies = Zold::Copies.new(File.join(dir, "copies/#{id}"))
       copies.add(File.read(first.path), 'host-1', 80, 5)
       copies.add(File.read(second.path), 'host-2', 80, 5)

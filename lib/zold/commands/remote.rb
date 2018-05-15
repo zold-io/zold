@@ -50,9 +50,9 @@ Available commands:
       Remove all registered remote nodes
     #{Rainbow('remote reset').green}
       Restore it back to the default list of nodes
-    #{Rainbow('remote add').green} host port
+    #{Rainbow('remote add').green} host [port]
       Add a new remote node
-    #{Rainbow('remote remove').green} host port
+    #{Rainbow('remote remove').green} host [port]
       Remove the remote node
     #{Rainbow('remote update').green}
       Check each registered remote node for availability
@@ -62,7 +62,7 @@ Available options:"
           default: false
         o.bool '--help', 'Print instructions'
       end
-      command = args[0]
+      command = opts.arguments[0]
       case command
       when 'show'
         show
@@ -71,9 +71,9 @@ Available options:"
       when 'reset'
         reset
       when 'add'
-        add(opts.arguments[1], opts.arguments[2].to_i)
+        add(opts.arguments[1], opts.arguments[2] ? opts.arguments[2].to_i : Remotes::PORT)
       when 'remove'
-        remove(opts.arguments[1], opts.arguments[2].to_i)
+        remove(opts.arguments[1], opts.arguments[2] ? opts.arguments[2].to_i : Remotes::PORT)
       when 'update'
         update(opts)
         update(opts, false)
@@ -117,9 +117,7 @@ Available options:"
         res = Http.new(uri).get
         unless res.code == '200'
           @remotes.remove(r[:host], r[:port])
-          @log.info(
-            "#{Rainbow(r[:host]).red} #{res.code} \"#{res.message}\" #{uri}"
-          )
+          @log.info("#{Rainbow(r[:host]).red} #{res.code} \"#{res.message}\" #{uri}")
           next
         end
         begin
@@ -135,42 +133,33 @@ Available options:"
           @log.info("#{Rainbow(r[:host]).red} invalid score")
           next
         end
-        if score.strength < Score::STRENGTH
+        if score.expired?
           remove(r[:host], r[:port])
-          @log.info("#{Rainbow(r[:host]).red} score is too weak")
+          @log.info("#{Rainbow(r[:host]).red} expired score")
           next
         end
         if score.strength < Score::STRENGTH && !opts['ignore-score-weakness']
           remove(r[:host], r[:port])
-          @log.info(
-            "#{Rainbow(r[:host]).red} score too weak: #{score.strength}"
-          )
+          @log.info("#{Rainbow(r[:host]).red} score too weak: #{score.strength}")
           next
         end
         if r[:host] != score.host || r[:port] != score.port
           @remotes.remove(r[:host], r[:port])
           @remotes.add(score.host, score.port)
-          @log.info(
-            "#{r[:host]}:#{r[:port]} renamed to #{score.host}:#{score.port}"
-          )
+          @log.info("#{r[:host]}:#{r[:port]} renamed to #{score.host}:#{score.port}")
         end
         @remotes.rescore(score.host, score.port, score.value)
         if deep
           json['all'].each do |s|
-            unless @remotes.exists?(s['host'], s['port'])
-              add(s['host'], s['port'])
-            end
+            add(s['host'], s['port']) unless @remotes.exists?(s['host'], s['port'])
           end
         end
-        @log.info("#{r[:host]}:#{r[:port]}: #{Rainbow(score.value).green} \
-(v.#{json['version']})")
+        @log.info("#{r[:host]}:#{r[:port]}: #{Rainbow(score.value).green} (v.#{json['version']})")
       end
       total = @remotes.all.size
       if total.zero?
         @log.debug("The list of remotes is #{Rainbow('empty').red}!")
-        @log.debug(
-          "Run 'zold remote add b1.zold.io 80` and then `zold update`"
-        )
+        @log.debug("Run 'zold remote add b1.zold.io` and then `zold update`")
       else
         @log.debug("There are #{total} known remotes")
       end

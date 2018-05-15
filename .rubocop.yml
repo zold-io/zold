@@ -25,3 +25,5 @@ Layout/AlignParameters:
   Enabled: false
 Metrics/PerceivedComplexity:
   Max: 15
+Metrics/LineLength:
+  Max: 120

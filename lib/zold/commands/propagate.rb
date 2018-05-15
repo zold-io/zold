@@ -61,21 +61,20 @@ Available options:"
       wallet.txns.select { |t| t.amount.negative? }.each do |t|
         target = @wallets.find(t.bnf)
         unless target.exists?
-          @log.debug("#{t.amount.mul(-1)} to #{t.bnf}: wallet is absent")
+          @log.debug("#{t.amount * -1} to #{t.bnf}: wallet is absent")
           next
         end
         next if target.has?(t.id, me)
         unless Prefixes.new(target).valid?(t.prefix)
-          @log.info("#{t.amount.mul(-1)} to #{t.bnf}: wrong prefix")
+          @log.info("#{t.amount * -1} to #{t.bnf}: wrong prefix")
           next
         end
         target.add(t.inverse(me))
-        @log.info("#{t.amount.mul(-1)} arrived to #{t.bnf}: #{t.details}")
+        @log.info("#{t.amount * -1} arrived to #{t.bnf}: #{t.details}")
         modified << t.id
       end
       modified.uniq!
-      @log.debug("Wallet #{me} propagated successfully, \
-#{modified.count} wallets affected")
+      @log.debug("Wallet #{me} propagated successfully, #{modified.count} wallets affected")
       modified
     end
   end

@@ -28,9 +28,8 @@ require_relative '../log'
 module Zold
   # Money sending command
   class Pay
-    def initialize(wallets:, pvtkey:, log: Log::Quiet.new)
+    def initialize(wallets:, log: Log::Quiet.new)
       @wallets = wallets
-      @pvtkey = pvtkey
       @log = log
     end
 
@@ -43,6 +42,10 @@ Where:
     'amount' is the amount to pay, in ZLD, for example '14.95'
     'details' is the optional text to attach to the payment
 Available options:"
+        o.string '--private-key',
+          'The location of RSA private key (default: ~/.ssh/id_rsa)',
+          require: true,
+          default: '~/.ssh/id_rsa'
         o.bool '--force',
           'Ignore all validations',
           default: false
@@ -68,12 +71,12 @@ Available options:"
         raise 'The amount can\'t be zero' if amount.zero?
         raise "The amount can't be negative: #{amount}" if amount.negative?
         if !from.root? && from.balance < @amount
-          raise "There is not enough funds in #{from} to send #{amount}, \
-  only #{payer.balance} left"
+          raise "There is not enough funds in #{from} to send #{amount}, only #{payer.balance} left"
         end
       end
-      txn = from.sub(amount, invoice, @pvtkey, details)
-      @log.debug("#{amount} sent from #{from} to #{invoice}: #{details}")
+      key = Zold::Key.new(file: opts['private-key'])
+      txn = from.sub(amount, invoice, key, details)
+      @log.debug("#{amount} sent from #{from} to #{txn.bnf}: #{details}")
       @log.info(txn.id)
       txn
     end

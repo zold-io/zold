@@ -61,7 +61,7 @@ class TestZold < Minitest::Test
       FileUtils.cp('fixtures/id_rsa.pub', dir)
       FileUtils.cp('fixtures/id_rsa', dir)
       stdout = exec(
-        '--private-key id_rsa --public-key id_rsa.pub --verbose --trace create',
+        '--verbose --trace create --public-key=id_rsa.pub',
         dir
       )
       assert(stdout.include?('created at'))

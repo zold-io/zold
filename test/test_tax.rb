@@ -18,46 +18,36 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative '../wallet'
-require_relative '../log'
-require_relative '../id'
+require 'minitest/autorun'
+require 'tmpdir'
+require 'time'
+require_relative '../lib/zold/id'
+require_relative '../lib/zold/txn'
+require_relative '../lib/zold/wallet'
+require_relative '../lib/zold/tax'
+require_relative '../lib/zold/key'
+require_relative '../lib/zold/amount'
 
-# CREATE command.
+# Tax test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # Create command
-  class Create
-    def initialize(wallets:, log: Log::Quiet.new)
-      @wallets = wallets
-      @log = log
-    end
-
-    def run(args = [])
-      opts = Slop.parse(args, help: true) do |o|
-        o.banner = "Usage: zold create [options]
-Available options:"
-        o.string '--public-key',
-          'The location of RSA public key (default: ~/.ssh/id_rsa.pub)',
-          require: true,
-          default: '~/.ssh/id_rsa.pub'
-        o.bool '--help', 'Print instructions'
-      end
-      if opts.help?
-        @log.info(opts.to_s)
-        return
-      end
-      create(opts.arguments.empty? ? Id.new : Id.new(opts.arguments[0]), opts)
-    end
-
-    def create(id, opts)
-      wallet = @wallets.find(id)
-      key = Zold::Key.new(file: opts['public-key'])
-      wallet.init(id, key)
-      @log.info(wallet.id)
-      @log.debug("Wallet #{Rainbow(wallet).green} created at #{@wallets.path}")
-      wallet
+class TestTax < Minitest::Test
+  def test_calculates_tax_for_one_year
+    Dir.mktmpdir 'test' do |dir|
+      id = Zold::Id.new
+      wallet = Zold::Wallet.new(File.join(dir, id.to_s))
+      wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+      wallet.add(
+        Zold::Txn.new(
+          1,
+          Time.now - 24 * 60 * 365,
+          Zold::Amount.new(zld: 19.99),
+          'NOPREFIX', Zold::Id.new, '-'
+        )
+      )
+      tax = Zold::Tax.new(wallet)
+      assert_equal(Zold::Amount.new(coins: 61_320), tax.debt)
     end
   end
 end

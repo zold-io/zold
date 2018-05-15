@@ -71,7 +71,11 @@ Available options:"
         json = JSON.parse(response.body)['score']
         score = Score.parse_json(json)
         unless score.valid?
-          @log.error("#{uri} invalid score")
+          @log.error("#{uri} invalid score: #{score}")
+          next
+        end
+        if score.expired?
+          @log.error("#{uri} expired score: #{score}")
           next
         end
         if score.strength < Score::STRENGTH

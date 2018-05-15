@@ -22,6 +22,7 @@ require 'concurrent'
 require_relative '../log'
 require_relative '../remotes'
 require_relative '../copies'
+require_relative '../tax'
 require_relative '../commands/merge'
 require_relative '../commands/fetch'
 require_relative '../commands/push'
@@ -52,15 +53,19 @@ module Zold
     def push_unsafe(id, body)
       copies = Copies.new(File.join(@copies, id.to_s))
       copies.add(body, 'remote', Remotes::PORT, 0)
-      Zold::Fetch.new(
+      Fetch.new(
         remotes: @remotes, copies: copies.root, log: @log
       ).run([id.to_s, "--ignore-node=#{@address}"])
-      modified = Zold::Merge.new(
+      modified = Merge.new(
         wallets: @wallets, copies: copies.root, log: @log
       ).run([id.to_s])
+      debt = Tax.new(@wallets.find(id)).debt
+      if debt > Tax::TRIAL
+        raise "Taxes are not paid, the debt is #{debt} (#{debt.to_i} zents), won't promote the wallet"
+      end
       copies.remove('remote', Remotes::PORT)
       modified.each do |m|
-        Zold::Push.new(
+        Push.new(
           wallets: @wallets, remotes: @remotes, log: @log
         ).run([m.to_s])
       end

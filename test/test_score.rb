@@ -31,7 +31,7 @@ class TestScore < Minitest::Test
   def test_reduces_itself
     score = Zold::Score.new(
       Time.parse('2017-07-19T21:24:51Z'),
-      'localhost', 443, 'NOSUFFIX@ffffffffffffffff',
+      'localhost', 443, 'NOPREFIX@ffffffffffffffff',
       %w[A B C D E F G]
     ).reduced(2)
     assert_equal(score.value, 2)
@@ -40,7 +40,7 @@ class TestScore < Minitest::Test
   def test_validates_wrong_score
     score = Zold::Score.new(
       Time.parse('2017-07-19T21:24:51Z'),
-      'localhost', 443, 'NOSUFFIX@ffffffffffffffff',
+      'localhost', 443, 'NOPREFIX@ffffffffffffffff',
       %w[xxx yyy zzz]
     )
     assert_equal(3, score.value)
@@ -51,7 +51,7 @@ class TestScore < Minitest::Test
     time = Time.now
     score = Zold::Score.parse(
       Zold::Score.new(
-        time, 'localhost', 999, 'NOSUFFIX@ffffffffffffffff',
+        time, 'localhost', 999, 'NOPREFIX@ffffffffffffffff',
         %w[FIRST SECOND THIRD]
       ).to_s
     )
@@ -61,12 +61,38 @@ class TestScore < Minitest::Test
     assert_equal(999, score.port)
   end
 
+  def test_prints_and_parses_text
+    time = Time.now
+    score = Zold::Score.parse_text(
+      Zold::Score.new(
+        time, 'a.example.com', 999, 'NOPREFIX@ffffffffffffffff',
+        %w[FIRST SECOND THIRD]
+      ).to_text
+    )
+    assert_equal(3, score.value)
+    assert_equal(score.time.to_s, time.to_s)
+    assert_equal('a.example.com', score.host)
+    assert_equal(999, score.port)
+  end
+
+  def test_prints_and_parses_text_zero_score
+    time = Time.now
+    score = Zold::Score.parse_text(
+      Zold::Score.new(
+        time, '192.168.0.1', 1, 'NOPREFIX@ffffffffffffffff', []
+      ).to_text
+    )
+    assert_equal(0, score.value)
+    assert(!score.expired?)
+  end
+
   def test_finds_next_score
     score = Zold::Score.new(
       Time.now, 'localhost', 443,
-      'NOSUFFIX@ffffffffffffffff', strength: 2
+      'NOPREFIX@ffffffffffffffff', strength: 2
     ).next.next.next
     assert_equal(3, score.value)
     assert(score.valid?)
+    assert(!score.expired?)
   end
 end

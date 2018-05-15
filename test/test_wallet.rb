@@ -41,8 +41,8 @@ class TestWallet < Minitest::Test
       wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
       wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
       assert(
-        wallet.balance == amount.mul(-3),
-        "#{wallet.balance} is not equal to #{amount.mul(-3)}"
+        wallet.balance == amount * -3,
+        "#{wallet.balance} is not equal to #{amount * -3}"
       )
     end
   end

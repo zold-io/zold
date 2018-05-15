@@ -18,5 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+ENV['RACK_ENV'] = 'test'
+
 require 'simplecov'
 require_relative '../../lib/zold'
