@@ -1,0 +1,38 @@
+\documentclass[11pt,oneside]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[american]{babel}
+\usepackage[
+  paperwidth=6in, paperheight=9in,
+  bindingoffset=0.25in, left=0.75in, right=0.75in, top=0.75in, bottom=1.25in
+]{geometry}
+\usepackage{setspace}
+\usepackage{indentfirst}
+
+\pagestyle{empty}
+\setlength{\topskip}{6pt}
+\setlength{\parindent}{0pt} % indent first line
+\setlength{\parskip}{0pt} % before par
+\interfootnotelinepenalty=10000
+\setstretch{1.1}
+
+\usepackage{mathpazo} % Palantino font
+
+\usepackage{hyperref}
+\usepackage[style=authoryear,sorting=nyt,backend=biber,
+  hyperref=true,abbreviate=true,
+  maxcitenames=1,maxbibnames=1]{biblatex}
+  \addbibresource{main.bib}
+
+\title{Zold, Lightweight Crypto Currency}
+\author{Yegor Bugayenko\\
+CEO of Zerocracy, Inc.\\
+555 Bryant, Ste 470, Palo Alto, CA 94301\\
+\texttt{yegor@zerocracy.com}\\
+408.692.4742}
+\begin{document}
+
+\raggedbottom
+
+how are you?
+
+\end{document}
