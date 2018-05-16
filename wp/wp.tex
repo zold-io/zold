@@ -8,15 +8,21 @@
 \usepackage{setspace}
 \usepackage{microtype}
 \usepackage{mathpazo} % Palantino font
+\usepackage{mdframed}
 \usepackage{minted}
-  \setminted{fontsize=\footnotesize}
+  \setminted{fontsize=\small}
   \setminted{breaklines}
   \usemintedstyle{bw}
+  \BeforeBeginEnvironment{minted}{\begin{mdframed}[topline=false,rightline=false,bottomline=false,linecolor=black,linewidth=2pt]}
+  \AfterEndEnvironment{minted}{\end{mdframed}}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\newcommand\dd[1]{\colorbox{gray!30}{\texttt{#1}}}
 \usepackage{hyperref}
 \pagestyle{empty}
 \setstretch{1.2}
 
-\title{Zold, Lightweight Crypto Currency}
+\title{\includegraphics{../}\\Zold, Lightweight Crypto Currency}
 \author{Yegor Bugayenko\\\texttt{yegor@zold.io}}
 
 \begin{document}
@@ -54,13 +60,13 @@ Zold is a command line tool. Its entire code base is open source.
 
 \textbf{Capacity}.
 One currency unit is called ZLD.
-One ZLD by convention equals to $2^24$ (16,777,216) \emph{zents}.
+One ZLD by convention equals to $2^{24}$ \emph{zents} (16,777,216).
 All amounts are stored as signed 64-bit integers.
 Thus, the technical capacity of the currency is 549,755,813,888 ZLD (half a trillion).
 
 \textbf{Zero wallet}.
 There is no mining, the only way to get ZLD is to receive it from someone else.
-The wallet with the \texttt{0x00} ID belongs to the
+The wallet with the \dd{0x00} ID belongs to the
 issuer and may have a negative balance. All other wallets
 may have only positive balances.
 
@@ -105,7 +111,7 @@ separated by spaces:
 
 \begin{itemize}
 \item The current timestamp in UTC ISO 8601,
-\item The host name or IP address, e.g. \texttf{b2.zold.io},
+\item The host name or IP address, e.g. \dd{b2.zold.io},
 \item The TCP port number,
 \item The invoice.
 \end{itemize}
@@ -117,9 +123,9 @@ For example, the body may look like this:
 \end{minted}
 
 Then, the node attempts to append any arbitrary text, which has to match
-\texttt{/[a-zA-Z0-9]+/} regular expression, to the end of the body and calculates
+\dd{/[a-zA-Z0-9]+/} regular expression, to the end of the body and calculates
 SHA-256 hash of the text in the hexadecimal format. For example, this would be the body
-with \texttt{abcdef} suffix:
+with \dd{abcdef} suffix:
 
 \begin{minted}{text}
 2018-05-16T17:43:07Z b2.zold.io 4096 THdonv1E@0000000000000000 abcdef
@@ -132,8 +138,8 @@ The hash of this body will be:
 \end{minted}
 
 The node attempts to try different sufficies until one of them produces
-a hash that ends with \texttt{000000} (six zeros). For example, this
-suffix \texttt{...} would work
+a hash that ends with \dd{000000} (six zeros). For example, this
+suffix \dd{...} would work
 (it took about an hour to find it on 2.3GHz Intel Core i7):
 
 When the first suffix is found, the score is 1. Then, to
@@ -148,14 +154,58 @@ in order to obtain a new hash with trailing zeros, for example:
 And so on.
 
 The score is valid only when the starting time point is earlier than
-current time, but not earlier than 24 hours ago. The strength of the score
+the current time, but not earlier than 24 hours ago. The strength of the score
 is the amount of the trailing zeros in the hash. In the example above the
 strength was equal to six.
 
 \section{Wallets}
 
-Each
+There is no central ledger in Zold.
+Each user has \emph{wallets} (any number of them).
+Each wallet is an ASCII-text file with the name equal to the wallet ID.
+For example, file \dd{12345678abcdef} may include:
 
+\begin{minted}{text}
+12345678abcdef
+AAAAB3NzaC1yc2EAAAADAQABAAABAQCuLuVr4Tl2sXoN5Zb7b6SKMPrVjLxb...
+
+34;2017-07-19T21:24:51Z;-560700;Ui0wpLu7;98bb82c81735c4ee;For services;SKMPrVjLxbM5oDm0IhniQQy3shF...
+35;2017-07-19T21:25:07Z;-56990;xksQuJa9;98bb82c81735c4ee;-;QCuLuVr4Tl2sXoN5Zb7b6SKMPrVjLxb...
+134;2017-07-19T21:29:11Z;647388;kkIZo09s;18bb82dd1735b6e9;-;
+36;2017-07-19T22:18:43Z;-884733;pplIe28s;38ab8fc8e735c4fc;For fun;2sXoN5Zb7b6SKMPrVjLxb7b6SKMPrVjLx...
+\end{minted}
+
+Lines are separated by either CR or CRLF.
+There is a header and a ledger, separated by an empty line.
+The header includes two lines:
+
+\begin{itemize}
+  \item Wallet ID, a 64-bit unsigned integer;
+  \item Public RSA key of the wallet owner.
+\end{itemize}
+
+The ledger includes transactions, one per line. Each transaction line
+contains fields separated by a semi-colon:
+
+\begin{itemize}
+  \item Transaction ID, an unsigned 16-bit integer;
+  \item Date and time, in ISO 8601 format;
+  \item Amount, a signed 64-bit integer;
+  \item Payment prefix;
+  \item Wallet ID of the beneficiary;
+  \item Details, matching \dd{/[a-zA-Z0-9 -.]{1,128}/};
+  \item RSA signature.
+\end{itemize}
+
+Transactions with positive amount don't have RSA signatures.
+Their IDs point to ID fields of corresponding beneficiaries' wallets.
+
+The combination \dd{ID+Beneficiary} is unique in the entire wallet.
+
+The RSA signature is calculated using the private RSA key of the
+wallet and the following text body (all parts are separated by space):
+
+of the sender of "ID;amount;beneficiary;details" text
 \section{Push}
 
 \section{Fetch and Merge}

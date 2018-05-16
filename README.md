@@ -155,42 +155,6 @@ Each HTTP response contains `Content-type` header.
 
 ## Files
 
-Each wallet is a text file with the name equal to the wallet ID, for example:
-
-```text
-12345678abcdef
-AAAAB3NzaC1yc2EAAAADAQABAAABAQCuLuVr4Tl2sXoN5Zb7b6SKMPrVjLxb...
-
-34;2017-07-19T21:24:51Z;-560700;98bb82c81735c4ee;for services;SKMPrVjLxbM5oDm0IhniQQy3shF...
-35;2017-07-19T21:25:07Z;-56990;98bb82c81735c4ee;;QCuLuVr4Tl2sXoN5Zb7b6SKMPrVjLxb...
-134;2017-07-19T21:29:11Z;647388;18bb82dd1735b6e9;;
-36;2017-07-19T22:18:43Z;-884733;38ab8fc8e735c4fc;for fun;2sXoN5Zb7b6SKMPrVjLxb7b6SKMPrVjLx...
-```
-
-Lines are separated by either CR or CRLF, doesn't matter. There is a
-header and a ledger, separated by an empty line.
-The header includes two lines:
-
-  * Wallet ID, a 64-bit unsigned integer;
-  * Public RSA key of the wallet owner.
-
-The ledger includes transactions, one per line. Each transaction line
-contains fields separated by a semi-colon:
-
-  * Transaction ID, an unsigned 16-bit integer;
-  * Date and time, in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601);
-  * Amount (integer);
-  * Wallet ID of the beneficiary;
-  * Details: `/[a-zA-Z0-9 -.]{1,128}/`;
-  * RSA signature of the sender of "ID;amount;beneficiary;details" text.
-
-Transactions with positive amount don't
-have RSA signatures. Their IDs point to ID fields of corresponding
-beneficiaries' wallets.
-
-The combination "ID+Beneficiary" is unique in the entire wallet.
-
-The directory `.zold` is automatically created and contains system data.
 
 `.zold/remotes` is a comma-separated file with a list of remote nodes with
 these columns:
