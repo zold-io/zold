@@ -121,35 +121,35 @@ Available options:"
         uri = URI("#{r[:home]}remotes")
         res = Http.new(uri).get
         unless res.code == '200'
-          @remotes.remove(r[:host], r[:port])
+          @remotes.error(r[:host], r[:port])
           @log.info("#{Rainbow(r[:host]).red} #{res.code} \"#{res.message}\" #{uri}")
           next
         end
         begin
           json = JSON.parse(res.body)
         rescue JSON::ParserError => e
-          remove(r[:host], r[:port])
+          error(r[:host], r[:port])
           @log.info("#{Rainbow(r[:host]).red} \"#{e.message}\": #{res.body}")
           next
         end
         score = Score.parse_json(json['score'])
         unless score.valid?
-          remove(r[:host], r[:port])
+          error(r[:host], r[:port])
           @log.info("#{Rainbow(r[:host]).red} invalid score")
           next
         end
         if score.expired?
-          remove(r[:host], r[:port])
+          error(r[:host], r[:port])
           @log.info("#{Rainbow(r[:host]).red} expired score")
           next
         end
         if score.strength < Score::STRENGTH && !opts['ignore-score-weakness']
-          remove(r[:host], r[:port])
+          error(r[:host], r[:port])
           @log.info("#{Rainbow(r[:host]).red} score too weak: #{score.strength}")
           next
         end
         if r[:host] != score.host || r[:port] != score.port
-          @remotes.remove(r[:host], r[:port])
+          @remotes.error(r[:host], r[:port])
           @remotes.add(score.host, score.port)
           @log.info("#{r[:host]}:#{r[:port]} renamed to #{score.host}:#{score.port}")
         end

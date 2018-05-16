@@ -66,7 +66,12 @@ Available options:"
     def fetch(id, cps, opts)
       total = 0
       @remotes.all.each do |r|
-        total += 1 if fetch_one(id, r, cps, opts)
+        done = fetch_one(id, r, cps, opts)
+        if done
+          total += 1
+        else
+          @remotes.error(r[:host], r[:port])
+        end
       end
       @log.debug("#{total} copies fetched, there are #{cps.all.count} available locally")
     end

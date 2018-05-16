@@ -43,7 +43,14 @@ module Zold
     end
 
     def all
-      load.sort_by { |r| r[:score] }.reverse
+      list = load
+      max_score = list.map { |r| r[:score] }.max
+      max_score = 1 if max_score.zero?
+      max_errors = list.map { |r| r[:errors] }.max
+      max_errors = 1 if max_errors.zero?
+      list.sort_by do |r|
+        (1 - r[:errors] / max_errors) * 5 + (r[:score] / max_score)
+      end.reverse
     end
 
     def clean
@@ -88,6 +95,22 @@ module Zold
       load.find { |r| r[:host] == host.downcase && r[:port] == port }[:score]
     end
 
+    def errors(host, port = Remotes::PORT)
+      raise 'Port has to be of type Integer' unless port.is_a?(Integer)
+      raise "#{host}:#{port} is absent" unless exists?(host, port)
+      load.find { |r| r[:host] == host.downcase && r[:port] == port }[:errors]
+    end
+
+    def error(host, port = Remotes::PORT)
+      raise 'Port has to be of type Integer' unless port.is_a?(Integer)
+      raise "#{host}:#{port} is absent" unless exists?(host, port)
+      list = load
+      list.find do |r|
+        r[:host] == host.downcase && r[:port] == port
+      end[:errors] += 1
+      save(list)
+    end
+
     def rescore(host, port, score)
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
       raise "#{host}:#{port} is absent" unless exists?(host, port)
@@ -106,6 +129,7 @@ module Zold
           host: r[0],
           port: r[1].to_i,
           score: r[2].to_i,
+          errors: r[3].to_i,
           home: URI("http://#{r[0]}:#{r[1]}/")
         }
       end
@@ -114,7 +138,14 @@ module Zold
     def save(list)
       File.write(
         file,
-        list.map { |r| "#{r[:host]},#{r[:port]},#{r[:score]}" }.join("\n")
+        list.map do |r|
+          [
+            r[:host],
+            r[:port],
+            r[:score],
+            r[:errors]
+          ].join(',')
+        end.join("\n")
       )
     end
 

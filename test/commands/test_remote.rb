@@ -62,7 +62,7 @@ class TestRemote < Minitest::Test
       cmd.run(%w[remote add localhost 2])
       assert_equal(2, remotes.all.count)
       cmd.run(['remote', 'update', '--ignore-score-weakness'])
-      assert_equal(1, remotes.all.count)
+      assert_equal(4, remotes.all.count)
     end
   end
 end
