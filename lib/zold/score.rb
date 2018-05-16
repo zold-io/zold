@@ -165,7 +165,7 @@ module Zold
       @suffixes.reduce(start) do |prefix, suffix|
         hex = Digest::SHA256.hexdigest(prefix + ' ' + suffix)
         return false unless hex.end_with?('0' * @strength)
-        hex[0, 19]
+        hex[0, 63]
       end
       true
     end

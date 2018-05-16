@@ -1,37 +1,141 @@
 \documentclass[11pt,oneside]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[american]{babel}
-\usepackage[
-  paperwidth=6in, paperheight=9in,
-  bindingoffset=0.25in, left=0.75in, right=0.75in, top=0.75in, bottom=1.25in
-]{geometry}
+% \usepackage[
+%   paperwidth=6in, paperheight=9in,
+%   bindingoffset=0.25in, left=0.75in, right=0.75in, top=0.75in, bottom=1.25in
+% ]{geometry}
 \usepackage{setspace}
-\usepackage{indentfirst}
-
-\pagestyle{empty}
-\setlength{\topskip}{6pt}
-\setlength{\parindent}{0pt} % indent first line
-\setlength{\parskip}{0pt} % before par
-\interfootnotelinepenalty=10000
-\setstretch{1.1}
-
+\usepackage{microtype}
 \usepackage{mathpazo} % Palantino font
-
+\usepackage{minted}
+  \setminted{fontsize=\footnotesize}
+  \setminted{breaklines}
+  \usemintedstyle{bw}
 \usepackage{hyperref}
-\usepackage[style=authoryear,sorting=nyt,backend=biber,
-  hyperref=true,abbreviate=true,
-  maxcitenames=1,maxbibnames=1]{biblatex}
-  \addbibresource{main.bib}
+\pagestyle{empty}
+\setstretch{1.2}
 
 \title{Zold, Lightweight Crypto Currency}
-\author{Yegor Bugayenko\\
-CEO of Zerocracy, Inc.\\
-555 Bryant, Ste 470, Palo Alto, CA 94301\\
-\texttt{yegor@zerocracy.com}\\
-408.692.4742}
-\begin{document}
+\author{Yegor Bugayenko\\\texttt{yegor@zold.io}}
 
+\begin{document}
 \raggedbottom
+\maketitle
+\begin{abstract}
+Works for you?
+\end{abstract}
+
+\section{Motivation}
+
+Bitcoin, the first decentralized digital currency, was released in
+January 2009. Since then a number of similar Blockchain-based products have been
+created, including Etherium, Litecoin, and others.
+
+Zold is also a decentralized digital currency that maintains its transactions
+in an unpredicable amount of zero-trust server nodes, trying to guarantee
+data consistency. However, the architecture of Zold is not based on Blockchain
+principles. The development of Zold was motivated by the desire to overcome
+a few obvious disadvantages of existing solutions.
+
+First, the speed of transaction processing is rather low.
+
+Second, mining commissions are high.
+
+Third, the technology is too complex.
+
+Zold was created as an attempt to resolve these mentioned problems
+of existing digital currencies.
+
+\section{Principles}
+
+\textbf{Open source}.
+Zold is a command line tool. Its entire code base is open source.
+
+\textbf{Capacity}.
+One currency unit is called ZLD.
+One ZLD by convention equals to $2^24$ (16,777,216) \emph{zents}.
+All amounts are stored as signed 64-bit integers.
+Thus, the technical capacity of the currency is 549,755,813,888 ZLD (half a trillion).
+
+\textbf{Zero wallet}.
+There is no mining, the only way to get ZLD is to receive it from someone else.
+The wallet with the \texttt{0x00} ID belongs to the
+issuer and may have a negative balance. All other wallets
+may have only positive balances.
+
+\textbf{No general ledger}.
+There is no central ledger, each wallet has its own personal ledger.
+Each transaction in the ledger is confirmed by RSA signature;
+
+\textbf{No trust}.
+The network of communicating nodes maintains wallets of users.
+Anyone can add a node to the network.
+It is assumed that any node may contain corrupted data, either by mistake or intentionally.
+
+\section{Proof of Work}
+
+Each node calculates its own score.
+First, it builds the initial text body, which consists of four parts,
+separated by spaces:
+
+\begin{itemize}
+\item The current timestamp in UTC ISO 8601,
+\item The host name or IP address, e.g. \texttf{b2.zold.io},
+\item The TCP port number,
+\item The invoice.
+\end{itemize}
+
+For example, the body may look like this:
+
+\begin{minted}{text}
+2017-07-19T21:24:51Z b2.zold.io 4096 Yt0lOy6Rgf@0000000000000000
+\end{minted}
+
+Then, it attempts to append any
+arbitrary text (has to match \texttt{[a-zA-Z0-9]+} regular expression)
+to the end of it and to calculate SHA-256 of the text
+in the hexadecimal format. For example, this would be the body
+with \texttt{abcdef} suffix:
+
+\begin{minted}{text}
+2017-07-19T21:24:51Z b2.zold.io 4096 Yt0lOy6Rgf@0000000000000000 abcdef
+\end{minted}
+
+The SHA-256 of this body will be:
+
+\begin{minted}{text}
+2017-07-19T21:24:51Z b2.zold.io 4096 Yt0lOy6Rgf@0000000000000000 abcdef
+\end{minted}
+
+The node attempts to try different sufficies until one of them produces
+SHA-256 hash that ends with \texttt{000000} (six zeros). For example, this
+suffix \texttt{...} works
+(it took about an hour to find it on 2.3GHz Intel Core i7):
+
+When the first suffix is found, the score is 1. Then, to
+increase the score by one, the next suffix has to be found, which
+can be added to the first 64 characters of the previous hash
+in order to obtain a new hash with trailing zeros, for example:
+
+\begin{minted}{text}
+2017-07-19T21:24:51Z b2.zold.io 4096 Yt0lOy6Rgf@0000000000000000 abcdef abcdef
+\end{minted}
+
+And so on.
+
+The score is valid only when the starting time point is earlier than
+current time, but not earlier than 24 hours ago. The strength of the score
+is the amount of the trailing zeros in the hash. In the example above the
+strength was equal to six.
+
+\section{Wallets}
+
+\section{Push}
+
+\section{Fetch and Merge}
+
+\section{Threats Analysis}
 
 how are you?
 
