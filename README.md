@@ -45,8 +45,6 @@ yet, you can run:
 $ ssh-keygen -t rsa -b 4096
 ```
 
-## Operations
-
 ### Remote
 
 Each node maintains a list of visible "remote" nodes.

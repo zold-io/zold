@@ -3,7 +3,7 @@ set -x
 set -e
 shopt -s expand_aliases
 
-alias zold="$1"
+alias zold="$1 --ignore-global-config --trace"
 
 zold --help
 declare -a commands=(node create invoice remote pay show fetch clean diff merge propagate pull push)

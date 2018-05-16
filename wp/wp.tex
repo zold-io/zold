@@ -75,8 +75,32 @@ It is assumed that any node may contain corrupted data, either by mistake or int
 
 \section{Proof of Work}
 
-Each node calculates its own score.
-First, it builds the initial text body, which consists of four parts,
+The system consists of nodes (server machines), which maintain the data.
+In order to guarantee data consistency among all distributed nodes
+there has to be an algorithm of data segregation.
+Corrupted data must be detected earlier and filtered out as quickly as possible.
+Bitcoin introduced such an algorithm and called it \emph{proof of work}.
+
+Its fundamental principle is that each block of data must have a special
+number attached to it, known as \emph{nonce}, which is rather difficult to calculate,
+because it requires a lot of CPU power. It is assumed that at any moment
+of time the majority of nodes in the network invest their CPU power into
+calculating the nonces for the data that is not corrupted. If and when
+some data gets corrupted, the amount of CPU power a part of the network
+decides to invest into its nonces calculation would be smaller than what
+the other part of the network can supply. The latter part
+will quickly dominate the former and the nodes with corrupted data will
+be ostracized and eventually ignored.
+
+Zold has borrowed this principle, although modified it. We also require
+our nodes to invest their CPU power into meaninless and repetative
+calculations just to help us identify which part of the network they belong:
+corrupted or not. Each Zold node has to calculate its \emph{trust score},
+which is as big as much CPU power the node invested into its calculation.
+
+Similar to Bitcoin nonces we repetatively calculate cryptographic hashes,
+looking for consecutive zeros inside them. First, in order to calculate a score,
+a node makes the initial text, which consists of four parts,
 separated by spaces:
 
 \begin{itemize}
@@ -89,28 +113,27 @@ separated by spaces:
 For example, the body may look like this:
 
 \begin{minted}{text}
-2017-07-19T21:24:51Z b2.zold.io 4096 Yt0lOy6Rgf@0000000000000000
+2018-05-16T17:43:07Z b2.zold.io 4096 THdonv1E@0000000000000000
 \end{minted}
 
-Then, it attempts to append any
-arbitrary text (has to match \texttt{[a-zA-Z0-9]+} regular expression)
-to the end of it and to calculate SHA-256 of the text
-in the hexadecimal format. For example, this would be the body
+Then, the node attempts to append any arbitrary text, which has to match
+\texttt{/[a-zA-Z0-9]+/} regular expression, to the end of the body and calculates
+SHA-256 hash of the text in the hexadecimal format. For example, this would be the body
 with \texttt{abcdef} suffix:
 
 \begin{minted}{text}
-2017-07-19T21:24:51Z b2.zold.io 4096 Yt0lOy6Rgf@0000000000000000 abcdef
+2018-05-16T17:43:07Z b2.zold.io 4096 THdonv1E@0000000000000000 abcdef
 \end{minted}
 
-The SHA-256 of this body will be:
+The hash of this body will be:
 
 \begin{minted}{text}
-2017-07-19T21:24:51Z b2.zold.io 4096 Yt0lOy6Rgf@0000000000000000 abcdef
+...
 \end{minted}
 
 The node attempts to try different sufficies until one of them produces
-SHA-256 hash that ends with \texttt{000000} (six zeros). For example, this
-suffix \texttt{...} works
+a hash that ends with \texttt{000000} (six zeros). For example, this
+suffix \texttt{...} would work
 (it took about an hour to find it on 2.3GHz Intel Core i7):
 
 When the first suffix is found, the score is 1. Then, to
@@ -130,6 +153,8 @@ is the amount of the trailing zeros in the hash. In the example above the
 strength was equal to six.
 
 \section{Wallets}
+
+Each
 
 \section{Push}
 

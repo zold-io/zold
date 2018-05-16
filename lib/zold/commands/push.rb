@@ -66,20 +66,24 @@ Available options:"
           next
         end
         unless response.code == '200'
+          @remotes.error(r[:host], r[:port])
           @log.error("#{uri} failed as #{response.code}/#{response.message}")
           next
         end
         json = JSON.parse(response.body)['score']
         score = Score.parse_json(json)
         unless score.valid?
+          @remotes.error(r[:host], r[:port])
           @log.error("#{uri} invalid score: #{score}")
           next
         end
         if score.expired?
+          @remotes.error(r[:host], r[:port])
           @log.error("#{uri} expired score: #{score}")
           next
         end
         if score.strength < Score::STRENGTH
+          @remotes.error(r[:host], r[:port])
           @log.error("#{uri} score is too weak")
           next
         end
