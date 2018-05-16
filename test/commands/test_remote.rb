@@ -57,11 +57,11 @@ class TestRemote < Minitest::Test
         status: 404
       )
       cmd = Zold::Remote.new(remotes: remotes)
-      cmd.run(['clean'])
-      cmd.run(['add', zero.host, zero.port.to_s])
-      cmd.run(%w[add localhost 2])
+      cmd.run(%w[remote clean])
+      cmd.run(['remote', 'add', zero.host, zero.port.to_s])
+      cmd.run(%w[remote add localhost 2])
       assert_equal(2, remotes.all.count)
-      cmd.run(['update', '--ignore-score-weakness'])
+      cmd.run(['remote', 'update', '--ignore-score-weakness'])
       assert_equal(1, remotes.all.count)
     end
   end

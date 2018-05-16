@@ -9,5 +9,5 @@ zold --help
 declare -a commands=(node create invoice remote pay show fetch clean diff merge propagate pull push)
 for c in "${commands[@]}"
 do
-  zold --trace $c --help
+  zold --ignore-global-config --trace $c --help
 done

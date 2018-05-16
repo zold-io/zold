@@ -38,7 +38,7 @@ module Zold
     end
 
     def run(args = [])
-      opts = Slop.parse(args, help: true) do |o|
+      opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = 'Usage: zold node [options]'
         o.string '--invoice',
           'The invoice you want to collect money to'

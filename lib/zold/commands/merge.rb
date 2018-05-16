@@ -39,7 +39,7 @@ module Zold
 
     # Returns the array of modified wallets (IDs)
     def run(args = [])
-      opts = Slop.parse(args, help: true) do |o|
+      opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = "Usage: zold merge [ID...] [options]
 Available options:"
         o.bool '--help', 'Print instructions'
@@ -48,9 +48,10 @@ Available options:"
         @log.info(opts.to_s)
         return
       end
-      raise 'At least one wallet ID is required' if opts.arguments.empty?
+      mine = opts.arguments[1..-1]
+      raise 'At least one wallet ID is required' if mine.empty?
       modified = []
-      opts.arguments.each do |id|
+      mine.each do |id|
         wallet = @wallets.find(Id.new(id))
         next unless merge(wallet, Copies.new(File.join(@copies, id)), opts)
         modified << Id.new(id)

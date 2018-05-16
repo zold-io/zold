@@ -34,7 +34,7 @@ module Zold
     end
 
     def run(args = [])
-      opts = Slop.parse(args, help: true) do |o|
+      opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = "Usage: zold pay wallet invoice amount [details] [options]
 Where:
     'wallet' is the sender's wallet ID
@@ -55,14 +55,15 @@ Available options:"
         @log.info(opts.to_s)
         return
       end
-      raise 'Payer wallet ID is required' if opts.arguments[0].nil?
-      from = @wallets.find(Zold::Id.new(opts.arguments[0]))
+      mine = opts.arguments[1..-1]
+      raise 'Payer wallet ID is required as the first argument' if mine[0].nil?
+      from = @wallets.find(Zold::Id.new(mine[0]))
       raise 'Wallet doesn\'t exist, do \'fetch\' first' unless from.exists?
-      raise 'Recepient\'s invoice is required' if opts.arguments[1].nil?
-      invoice = opts.arguments[1]
-      raise 'Amount is required (in ZLD)' if opts.arguments[2].nil?
-      amount = Zold::Amount.new(zld: opts.arguments[2].to_f)
-      details = opts.arguments[3] ? opts.arguments[3] : '-'
+      raise 'Recepient\'s invoice is required as the second argument' if mine[1].nil?
+      invoice = mine[1]
+      raise 'Amount is required (in ZLD) as the third argument' if mine[2].nil?
+      amount = Zold::Amount.new(zld: mine[2].to_f)
+      details = mine[3] ? mine[3] : '-'
       pay(from, invoice, amount, details, opts)
     end
 

@@ -41,7 +41,7 @@ Encoding.default_internal = Encoding::UTF_8
 log = Zold::Log.new
 
 args = []
-unless ENV['RACK_ENV'] == 'test'
+unless ENV['RACK_ENV'] == 'test' || ARGV.find { |a| a == '--ignore-global-config' }
   config = File.expand_path('~/.zold')
   if File.exist?(config)
     body = File.read(config)
@@ -92,6 +92,7 @@ Available options:"
       default: Dir.pwd
     o.bool '-h', '--help', 'Show these instructions'
     o.bool '--trace', 'Show full stack trace in case of a problem'
+    o.bool '--ignore-global-config', 'Don\'t read options from the ~/.zold file'
     o.on '--no-colors', 'Disable colors in the ouput' do
       Rainbow.enabled = false
     end
@@ -104,16 +105,17 @@ Available options:"
     end
   end
 
-  raise 'Try --help' if opts.arguments.empty? && !opts.help?
+  commands = opts.arguments.reject { |a| a.start_with?('-') }
+  command = commands[0]
 
-  if opts.help? && opts.arguments.empty?
+  if command.nil?
+    raise 'A command required, try --help' unless opts.help?
     log.info(opts.to_s)
     exit
   end
 
-  command = opts.arguments[0]
-
-  args = args[(args.index(command) + 1)..-1]
+  args = opts.arguments
+  args << '--help' if opts.help?
 
   wallets = Zold::Wallets.new(opts['dir'])
   remotes = Zold::Remotes.new(File.join(opts['dir'], '.zoldata/remotes'))

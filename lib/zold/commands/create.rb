@@ -35,7 +35,7 @@ module Zold
     end
 
     def run(args = [])
-      opts = Slop.parse(args, help: true) do |o|
+      opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = "Usage: zold create [options]
 Available options:"
         o.string '--public-key',
@@ -48,7 +48,8 @@ Available options:"
         @log.info(opts.to_s)
         return
       end
-      create(opts.arguments.empty? ? Id.new : Id.new(opts.arguments[0]), opts)
+      mine = opts.arguments[1..-1]
+      create(mine.empty? ? Id.new : Id.new(mine[0]), opts)
     end
 
     def create(id, opts)

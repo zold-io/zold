@@ -47,14 +47,14 @@ class TestDiff < Minitest::Test
       File.write(second.path, File.read(wallet.path))
       Zold::Pay.new(
         wallets: Zold::Wallets.new(dir)
-      ).run([id.to_s, second.id.to_s, '14.95', '--force', '--private-key=fixtures/id_rsa'])
+      ).run(['pay', id.to_s, second.id.to_s, '14.95', '--force', '--private-key=fixtures/id_rsa'])
       copies = Zold::Copies.new(File.join(dir, "copies/#{id}"))
       copies.add(File.read(first.path), 'host-1', 80, 5)
       copies.add(File.read(second.path), 'host-2', 80, 5)
       diff = Zold::Diff.new(
         wallets: Zold::Wallets.new(dir),
         copies: copies.root
-      ).run([id.to_s])
+      ).run(['diff', id.to_s])
       assert(diff.include?('-1;'))
     end
   end

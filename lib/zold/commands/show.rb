@@ -36,7 +36,7 @@ module Zold
     end
 
     def run(args = [])
-      opts = Slop.parse(args, help: true) do |o|
+      opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = "Usage: zold show [ID...] [options]
 Available options:"
         o.bool '--help', 'Print instructions'
@@ -45,12 +45,13 @@ Available options:"
         @log.info(opts.to_s)
         return
       end
-      if opts.arguments.empty?
+      mine = opts.arguments[1..-1]
+      if mine.empty?
         require_relative 'list'
         List.new(wallets: @wallets, log: @log).run(args)
       else
         total = Amount::ZERO
-        opts.arguments.each do |id|
+        mine.each do |id|
           total += show(@wallets.find(Id.new(id)), opts)
         end
         total

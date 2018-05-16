@@ -59,7 +59,7 @@ class TestTaxes < Minitest::Test
       )
       Zold::Taxes.new(
         wallets: wallets, remotes: remotes
-      ).run(['pay', '--private-key=fixtures/id_rsa', id.to_s])
+      ).run(['taxes', '--private-key=fixtures/id_rsa', id.to_s])
       assert_equal(Zold::Amount.new(coins: 335_376_547), wallet.balance)
     end
   end

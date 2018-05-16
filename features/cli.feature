@@ -12,6 +12,6 @@ Feature: Command Line Processing
     Then Exit code is zero
 
   Scenario: Wallet can be created
-    When I run bin/zold with "--trace create --public-key=id_rsa.pub"
+    When I run bin/zold with "--trace --public-key=id_rsa.pub create"
     Then Exit code is zero
 

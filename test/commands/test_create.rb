@@ -32,7 +32,7 @@ class TestCreate < Minitest::Test
   def test_creates_wallet
     Dir.mktmpdir 'test' do |dir|
       wallet = Zold::Create.new(wallets: Zold::Wallets.new(dir)).run(
-        ['--public-key=fixtures/id_rsa.pub']
+        ['create', '--public-key=fixtures/id_rsa.pub']
       )
       assert wallet.balance.zero?
       assert(

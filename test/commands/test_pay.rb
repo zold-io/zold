@@ -41,7 +41,7 @@ class TestPay < Minitest::Test
       amount = Zold::Amount.new(zld: 14.95)
       Zold::Pay.new(wallets: wallets).run(
         [
-          '--force', '--private-key=fixtures/id_rsa',
+          'pay', '--force', '--private-key=fixtures/id_rsa',
           id.to_s, target.to_s, amount.to_zld, 'For the car'
         ]
       )

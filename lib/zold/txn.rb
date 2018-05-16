@@ -34,19 +34,25 @@ module Zold
     attr_reader :id, :date, :amount, :prefix, :bnf, :details, :sign
     attr_writer :sign, :amount, :bnf
     def initialize(id, date, amount, prefix, bnf, details)
+      raise 'The ID can\'t be NIL' if id.nil?
       raise "ID of transaction can't be negative: #{id}" if id < 1
       @id = id
+      raise 'The time can\'t be NIL' if date.nil?
       raise 'Time have to be of type Time' unless date.is_a?(Time)
       raise "Time can't be in the future: #{date}" if date > Time.now
       @date = date
+      raise 'The amount can\'t be NIL' if amount.nil?
       raise 'The amount has to be of type Amount' unless amount.is_a?(Amount)
       raise 'The amount can\'t be zero' if amount.zero?
       @amount = amount
+      raise 'The bnf can\'t be NIL' if bnf.nil?
       raise 'The bnf has to be of type Id' unless bnf.is_a?(Id)
       @bnf = bnf
+      raise 'Prefix can\'t be NIL' if prefix.nil?
       raise "Prefix is too short: \"#{prefix}\"" if prefix.length < 8
       raise "Prefix is too long: \"#{prefix}\"" if prefix.length > 32
       @prefix = prefix
+      raise 'Details can\'t be NIL' if details.nil?
       raise 'Details can\'t be empty' if details.empty?
       raise "Details are too long: \"#{details}\"" if details.length > 128
       raise "Details are wrong: \"#{details}\"" unless details =~ /^[a-zA-Z0-9 -\.,]{1,128}$/

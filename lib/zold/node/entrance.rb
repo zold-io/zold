@@ -55,10 +55,10 @@ module Zold
       copies.add(body, 'remote', Remotes::PORT, 0)
       Fetch.new(
         remotes: @remotes, copies: copies.root, log: @log
-      ).run([id.to_s, "--ignore-node=#{@address}"])
+      ).run(['fetch', id.to_s, "--ignore-node=#{@address}"])
       modified = Merge.new(
         wallets: @wallets, copies: copies.root, log: @log
-      ).run([id.to_s])
+      ).run(['merge', id.to_s])
       debt = Tax.new(@wallets.find(id)).debt
       if debt > Tax::TRIAL
         raise "Taxes are not paid, the debt is #{debt} (#{debt.to_i} zents), won't promote the wallet"
@@ -67,7 +67,7 @@ module Zold
       modified.each do |m|
         Push.new(
           wallets: @wallets, remotes: @remotes, log: @log
-        ).run([m.to_s])
+        ).run(['push', m.to_s])
       end
       modified
     end

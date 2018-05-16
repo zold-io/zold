@@ -35,7 +35,7 @@ class TestClean < Minitest::Test
       copies = Zold::Copies.new(File.join(dir, "copies/#{id}"))
       copies.add('a1', 'host-1', 80, 1, Time.now - 26 * 60)
       copies.add('a2', 'host-2', 80, 2, Time.now - 26 * 60)
-      Zold::Clean.new(copies: copies.root).run([id.to_s])
+      Zold::Clean.new(copies: copies.root).run(['clean', id.to_s])
       assert(copies.all.empty?)
     end
   end

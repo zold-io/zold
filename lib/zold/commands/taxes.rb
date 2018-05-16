@@ -41,7 +41,7 @@ module Zold
     end
 
     def run(args = [])
-      opts = Slop.parse(args, help: true) do |o|
+      opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = "Usage: zold taxes command [options]
 Available commands:
     #{Rainbow('taxes pay').green} wallet
@@ -57,21 +57,22 @@ Available options:"
           default: '~/.ssh/id_rsa'
         o.bool '--help', 'Print instructions'
       end
-      command = opts.arguments[0]
+      mine = opts.arguments[1..-1]
+      command = mine[0]
       case command
       when 'show'
-        raise 'At least one wallet ID is required' unless opts.arguments[1]
-        opts.arguments[1..-1].each do |id|
+        raise 'At least one wallet ID is required' unless mine[1]
+        mine[1..-1].each do |id|
           show(@wallets.find(Id.new(id), opts))
         end
       when 'debt'
-        raise 'At least one wallet ID is required' unless opts.arguments[1]
-        opts.arguments[1..-1].each do |id|
+        raise 'At least one wallet ID is required' unless mine[1]
+        mine[1..-1].each do |id|
           debt(@wallets.find(Id.new(id), opts))
         end
       when 'pay'
-        raise 'At least one wallet ID is required' unless opts.arguments[1]
-        opts.arguments[1..-1].each do |id|
+        raise 'At least one wallet ID is required' unless mine[1]
+        mine[1..-1].each do |id|
           pay(@wallets.find(Id.new(id)), opts)
         end
       else

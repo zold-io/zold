@@ -41,7 +41,7 @@ module Zold
     end
 
     def run(args = [])
-      opts = Slop.parse(args, help: true) do |o|
+      opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = "Usage: zold remote <command> [options]
 Available commands:
     #{Rainbow('remote show').green}
@@ -62,7 +62,12 @@ Available options:"
           default: false
         o.bool '--help', 'Print instructions'
       end
-      command = opts.arguments[0]
+      if opts.help?
+        @log.info(opts.to_s)
+        return
+      end
+      mine = opts.arguments[1..-1]
+      command = mine[0]
       case command
       when 'show'
         show
@@ -71,14 +76,14 @@ Available options:"
       when 'reset'
         reset
       when 'add'
-        add(opts.arguments[1], opts.arguments[2] ? opts.arguments[2].to_i : Remotes::PORT)
+        add(mine[1], mine[2] ? mine[2].to_i : Remotes::PORT)
       when 'remove'
-        remove(opts.arguments[1], opts.arguments[2] ? opts.arguments[2].to_i : Remotes::PORT)
+        remove(mine[1], mine[2] ? mine[2].to_i : Remotes::PORT)
       when 'update'
         update(opts)
         update(opts, false)
       else
-        @log.info(opts.to_s)
+        raise "Unknown command '#{command}'"
       end
     end
 

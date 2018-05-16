@@ -6,7 +6,7 @@ AllCops:
   TargetRubyVersion: 2.2
 
 Metrics/CyclomaticComplexity:
-  Max: 15
+  Max: 25
 Metrics/MethodLength:
   Enabled: false
 Layout/MultilineMethodCallIndentation:
@@ -17,13 +17,13 @@ Metrics/BlockLength:
   Max: 100
 Metrics/ClassLength:
   Max: 200
-Style/EndOfLine:
+Layout/EndOfLine:
   EnforcedStyle: lf
 Metrics/ParameterLists:
   Max: 10
 Layout/AlignParameters:
   Enabled: false
 Metrics/PerceivedComplexity:
-  Max: 15
+  Max: 25
 Metrics/LineLength:
   Max: 120

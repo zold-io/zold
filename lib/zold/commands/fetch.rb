@@ -41,7 +41,7 @@ module Zold
     end
 
     def run(args = [])
-      opts = Slop.parse(args, help: true) do |o|
+      opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = "Usage: zold fetch [ID...] [options]
 Available options:"
         o.bool '--ignore-score-weakness',
@@ -56,8 +56,9 @@ Available options:"
         @log.info(opts.to_s)
         return
       end
-      raise 'At least one wallet ID is required' if opts.arguments.empty?
-      opts.arguments.each do |id|
+      mine = opts.arguments[1..-1]
+      raise 'At least one wallet ID is required' if mine.empty?
+      mine.each do |id|
         fetch(id, Copies.new(File.join(@copies, id)), opts)
       end
     end

@@ -46,8 +46,8 @@ class TestNode < Minitest::Test
         remotes = Zold::Remotes.new(File.join(dir, 'remotes.csv'))
         remotes.clean
         remotes.add('localhost', port)
-        Zold::Push.new(wallet: wallet, remotes: remotes).run
-        Zold::Fetch.new(wallet: wallet, copies: copies, remotes: remotes).run
+        Zold::Push.new(wallet: wallet, remotes: remotes).run(['push'])
+        Zold::Fetch.new(wallet: wallet, copies: copies, remotes: remotes).run(['fetch'])
         assert_equal(copies.all[0][:name], '1')
         assert_equal(copies.all[0][:score], 0)
       end
