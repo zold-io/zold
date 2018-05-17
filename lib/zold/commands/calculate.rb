@@ -50,6 +50,8 @@ Available options:"
         o.integer '--max',
           'Maximum value to find and then stop (default: 8)',
           default: 8
+        o.bool '--hide-hash', 'Don\'t print hash',
+          default: false
         o.bool '--help', 'Print instructions'
       end
       if opts.help?
@@ -60,6 +62,7 @@ Available options:"
     end
 
     def calculate(opts)
+      start = Time.now
       strength = opts[:strength]
       raise "Invalid strength: #{strength}" if strength <= 0 || strength > 8
       score = Zold::Score.new(
@@ -67,10 +70,14 @@ Available options:"
         opts[:invoice], strength: strength
       )
       loop do
-        @log.info(score.to_s)
+        msg = score.to_s
+        msg += (score.value > 0 ? ' ' + score.hash : '') unless opts['hide-hash']
+        @log.info(msg)
         break if score.value >= opts[:max].to_i
         score = score.next
       end
+      seconds = (Time.now - start).round(2)
+      @log.info("Took #{seconds} seconds, #{seconds / score.value} per value")
       score
     end
   end

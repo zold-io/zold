@@ -96,6 +96,13 @@ module Zold
       )
     end
 
+    def hash
+      raise 'Score has zero value, there is no hash' if @suffixes.empty?
+      @suffixes.reduce(body) do |prefix, suffix|
+        Digest::SHA256.hexdigest(prefix + ' ' + suffix)[0, 63]
+      end
+    end
+
     def to_text
       prefix, bnf = @invoice.split('@')
       [
@@ -127,7 +134,8 @@ module Zold
         invoice: @invoice,
         time: @time.utc.iso8601,
         suffixes: @suffixes,
-        strength: @strength
+        strength: @strength,
+        hash: value.zero? ? nil : hash
       }
     end
 
@@ -160,14 +168,12 @@ module Zold
       @time < Time.now - 24 * 60
     end
 
+    def body
+      "#{@time.utc.iso8601} #{@host} #{@port} #{@invoice}"
+    end
+
     def valid?
-      start = "#{@time.utc.iso8601} #{@host} #{@port} #{@invoice}"
-      @suffixes.reduce(start) do |prefix, suffix|
-        hex = Digest::SHA256.hexdigest(prefix + ' ' + suffix)
-        return false unless hex.end_with?('0' * @strength)
-        hex[0, 63]
-      end
-      true
+      @suffixes.empty? || hash.end_with?('0' * @strength)
     end
 
     def value

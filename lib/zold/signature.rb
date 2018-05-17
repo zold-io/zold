@@ -42,7 +42,7 @@ module Zold
     private
 
     def body(id, t)
-      [id, t.id, t.amount.to_i, t.prefix, t.bnf, t.details].join(' ')
+      [id, t.id, t.date.utc.iso8601, t.amount.to_i, t.prefix, t.bnf, t.details].join(' ')
     end
   end
 end

@@ -95,4 +95,12 @@ class TestScore < Minitest::Test
     assert(score.valid?)
     assert(!score.expired?)
   end
+
+  def test_correct_number_of_zeroes
+    score = Zold::Score.new(
+      Time.now, 'localhost', 443,
+      'NOPREFIX@ffffffffffffffff', strength: 3
+    ).next
+    assert(score.hash.end_with?('000'))
+  end
 end

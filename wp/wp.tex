@@ -1,10 +1,6 @@
 \documentclass[11pt,oneside]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[american]{babel}
-% \usepackage[
-%   paperwidth=6in, paperheight=9in,
-%   bindingoffset=0.25in, left=0.75in, right=0.75in, top=0.75in, bottom=1.25in
-% ]{geometry}
 \usepackage{setspace}
 \usepackage{microtype}
 \usepackage{mathpazo} % Palantino font
@@ -22,7 +18,7 @@
 \pagestyle{empty}
 \setstretch{1.2}
 
-\title{\includegraphics{../}\\Zold, Lightweight Crypto Currency}
+\title{\includegraphics[scale=0.05]{logo.png}\\Zold, Lightweight Crypto Currency}
 \author{Yegor Bugayenko\\\texttt{yegor@zold.io}}
 
 \begin{document}
@@ -109,37 +105,37 @@ looking for consecutive zeros inside them. First, in order to calculate a score,
 a node makes the initial text, which consists of four parts,
 separated by spaces:
 
-\begin{itemize}
+\begin{enumerate}
 \item The current timestamp in UTC ISO 8601,
 \item The host name or IP address, e.g. \dd{b2.zold.io},
 \item The TCP port number,
 \item The invoice.
-\end{itemize}
+\end{enumerate}
 
 For example, the body may look like this:
 
 \begin{minted}{text}
-2018-05-16T17:43:07Z b2.zold.io 4096 THdonv1E@0000000000000000
+2018-05-17T03:50:59Z b2.zold.io 4096 THdonv1E@0000000000000000
 \end{minted}
 
 Then, the node attempts to append any arbitrary text, which has to match
 \dd{/[a-zA-Z0-9]+/} regular expression, to the end of the body and calculates
 SHA-256 hash of the text in the hexadecimal format. For example, this would be the body
-with \dd{abcdef} suffix:
+with \dd{b5c41} suffix:
 
 \begin{minted}{text}
-2018-05-16T17:43:07Z b2.zold.io 4096 THdonv1E@0000000000000000 abcdef
+2018-05-17T03:50:59Z b2.zold.io 4096 THdonv1E@0000000000000000 117b1f
 \end{minted}
 
 The hash of this body will be:
 
 \begin{minted}{text}
-...
+670baa704726fe2c837c5ca764202adca5ab12c9b90c94d9fb1b8d629000000
 \end{minted}
 
 The node attempts to try different sufficies until one of them produces
-a hash that ends with \dd{000000} (six zeros). For example, this
-suffix \dd{...} would work
+a hash that ends with a few tailing zeroes. The one above ends
+with five zeroes
 (it took about an hour to find it on 2.3GHz Intel Core i7):
 
 When the first suffix is found, the score is 1. Then, to
@@ -148,7 +144,8 @@ can be added to the first 64 characters of the previous hash
 in order to obtain a new hash with trailing zeros, for example:
 
 \begin{minted}{text}
-2017-07-19T21:24:51Z b2.zold.io 4096 Yt0lOy6Rgf@0000000000000000 abcdef abcdef
+2018-05-17T03:50:59Z b2.zold.io 4096 THdonv1E@0000000000000000 117b1f 1546e35
+99dcd18e4bd03004e1205437866b5b68035cc8985240ae52cbd37640a000000
 \end{minted}
 
 And so on.
@@ -156,7 +153,7 @@ And so on.
 The score is valid only when the starting time point is earlier than
 the current time, but not earlier than 24 hours ago. The strength of the score
 is the amount of the trailing zeros in the hash. In the example above the
-strength was equal to six.
+strength is six.
 
 \section{Wallets}
 
@@ -179,15 +176,15 @@ Lines are separated by either CR or CRLF.
 There is a header and a ledger, separated by an empty line.
 The header includes two lines:
 
-\begin{itemize}
+\begin{enumerate}
   \item Wallet ID, a 64-bit unsigned integer;
   \item Public RSA key of the wallet owner.
-\end{itemize}
+\end{enumerate}
 
 The ledger includes transactions, one per line. Each transaction line
 contains fields separated by a semi-colon:
 
-\begin{itemize}
+\begin{enumerate}
   \item Transaction ID, an unsigned 16-bit integer;
   \item Date and time, in ISO 8601 format;
   \item Amount, a signed 64-bit integer;
@@ -195,7 +192,7 @@ contains fields separated by a semi-colon:
   \item Wallet ID of the beneficiary;
   \item Details, matching \dd{/[a-zA-Z0-9 -.]{1,128}/};
   \item RSA signature.
-\end{itemize}
+\end{enumerate}
 
 Transactions with positive amount don't have RSA signatures.
 Their IDs point to ID fields of corresponding beneficiaries' wallets.
@@ -203,9 +200,18 @@ Their IDs point to ID fields of corresponding beneficiaries' wallets.
 The combination \dd{ID+Beneficiary} is unique in the entire wallet.
 
 The RSA signature is calculated using the private RSA key of the
-wallet and the following text body (all parts are separated by space):
+wallet and the following fields of transaction, separated by spaces:
 
-of the sender of "ID;amount;beneficiary;details" text
+\begin{enumerate}
+  \item Wallet ID;
+  \item Transaction ID, an unsigned 16-bit integer;
+  \item Date and time, in ISO 8601 format;
+  \item Amount, a signed 64-bit integer;
+  \item Payment prefix;
+  \item Wallet ID of the beneficiary;
+  \item Details, matching \dd{/[a-zA-Z0-9 -.]{1,128}/}.
+\end{enumerate}
+
 \section{Push}
 
 \section{Fetch and Merge}
