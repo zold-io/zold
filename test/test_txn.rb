@@ -34,13 +34,13 @@ class TestTxn < Minitest::Test
     time = Time.now
     txn = Zold::Txn.parse(
       Zold::Txn.new(
-        123, time, Zold::Amount.new(zld: 99.95),
+        123, time, Zold::Amount.new(zld: -99.95),
         'NOPREFIX', Zold::Id.new,
         'Some details to see 123. Works, or not.'
       ).to_s
     )
     assert_equal(123, txn.id)
-    assert_equal('99.95', txn.amount.to_zld)
+    assert_equal('-99.95', txn.amount.to_zld)
     assert_equal('NOPREFIX', txn.prefix)
   end
 end

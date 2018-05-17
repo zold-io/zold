@@ -34,6 +34,9 @@ module Zold
     # The minimum score a wallet can buy in order to pay taxes.
     MIN_SCORE = 16
 
+    # The maximum allowed amount in one transaction.
+    MAX_PAYMENT = Amount.new(zld: 1)
+
     # This is how much we charge per one transaction per hour
     # of storage. A wallet of 4096 transactions will pay
     # approximately 16ZLD per year.
@@ -57,20 +60,15 @@ module Zold
 
     def debt
       txns = @wallet.txns
-      return Amount::ZERO if txns.empty?
-      paid = txns.map do |t|
+      scores = txns.map do |t|
         pfx, body = t.details.split(' ')
-        if pfx != 'TAXES' || body.nil?
-          Amount::ZERO
-        else
-          score = Score.parse_text(body)
-          if score.valid? && score.value >= MIN_SCORE
-            t.amount
-          else
-            Amount::ZERO
-          end
-        end
-      end.inject(&:+) * -1
+        next if pfx != 'TAXES' || body.nil?
+        score = Score.parse_text(body)
+        next if !score.valid? || score.value < MIN_SCORE
+        next if t.amount > Tax::MAX_PAYMENT
+        score
+      end.reject(&:nil?).uniq(&:hash)
+      paid = scores.empty? ? Amount::ZERO : scores.map(&:amount).inject(&:+) * -1
       age_hours = (Time.now - txns.sort_by(&:date)[0].date) / 60
       owned = Tax::FEE_TXN_HOUR * txns.count * age_hours
       owned - paid

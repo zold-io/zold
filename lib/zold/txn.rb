@@ -65,9 +65,9 @@ module Zold
 
     def to_s
       [
-        @id,
+        format('%04x', @id),
         @date.utc.iso8601,
-        @amount.to_i,
+        format('%016x', @amount.to_i),
         @prefix,
         @bnf,
         @details,
@@ -95,11 +95,11 @@ module Zold
     def self.parse(line, idx = 0)
       regex = Regexp.new(
         '^' + [
-          '([0-9]+)',
+          '([0-9a-f]{4})',
           '([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z)',
-          '(-?[0-9]+)',
+          '([0-9a-f]{16})',
           '([A-Za-z0-9]{8,32})',
-          '([a-f0-9]{16})',
+          '([0-9a-f]{16})',
           '([a-zA-Z0-9 -\.,]{1,128})',
           '([A-Za-z0-9+/]+={0,3})?'
         ].join(';') + '$'
@@ -108,9 +108,9 @@ module Zold
       raise "Invalid line ##{idx}: #{line.inspect}" unless regex.match(clean)
       parts = clean.split(';')
       txn = Txn.new(
-        parts[0].to_i,
+        Integer("0x#{parts[0]}", 16),
         Time.parse(parts[1]),
-        Amount.new(coins: parts[2].to_i),
+        Amount.new(coins: Integer("0x#{parts[2]}", 16)),
         parts[3],
         Id.new(parts[4]),
         parts[5]

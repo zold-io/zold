@@ -184,10 +184,10 @@ For example, the wallet in the file \dd{12345678abcdef} may include:
 12345678abcdef
 AAAAB3NzaC1yc2EAAAADAQABAAABAQCuLuVr4Tl2sXoN5Zb7b6SKMPrVjLxb...
 
-34;2017-07-19T21:24:51Z;-560700;Ui0wpLu7;98bb82c81735c4ee;For services;SKMPrVjLxbM5oDm0IhniQQy3shF...
-35;2017-07-19T21:25:07Z;-56990;xksQuJa9;98bb82c81735c4ee;For food;QCuLuVr4Tl2sXoN5Zb7b6SKMPrVjLxb...
-134;2017-07-19T21:29:11Z;647388;kkIZo09s;18bb82dd1735b6e9;-;
-36;2017-07-19T22:18:43Z;-884733;pplIe28s;38ab8fc8e735c4fc;For programming;2sXoN5Zb7b6SKMPrVjLxb7b6SKMPrVjLx...
+003a;2017-07-19T21:24:51Z;ffffffff9c0ccccd;Ui0wpLu7;98bb82c81735c4ee;For services;SKMPrVj...
+003b;2017-07-19T21:25:07Z;ffffffffffa72367;xksQuJa9;98bb82c81735c4ee;For food;QCuLuVr4...
+0f34;2017-07-19T21:29:11Z;0000000000647388;kkIZo09s;18bb82dd1735b6e9;-;
+003c;2017-07-19T22:18:43Z;ffffffffff884733;pplIe28s;38ab8fc8e735c4fc;For programming;2sXoN5...
 \end{minted}
 
 Lines are separated by either CR or CRLF.
@@ -204,11 +204,11 @@ The ledger includes transactions, one per line. Each transaction line
 contains fields separated by a semi-colon:
 
 \begin{enumerate}
-  \item Transaction ID, an unsigned 16-bit integer;
-  \item Date and time, in \href{https://en.wikipedia.org/wiki/ISO_8601}{ISO 8601} format;
-  \item Amount, a signed 64-bit integer;
+  \item Transaction ID, an unsigned 16-bit integer, 4-symbols hex;
+  \item Date and time, in \href{https://en.wikipedia.org/wiki/ISO_8601}{ISO 8601} format, 20 symbols;
+  \item Amount, a signed 64-bit integer, 16-symbols hex;
   \item Payment prefix, 8-32 symbols;
-  \item Wallet ID of the beneficiary;
+  \item Wallet ID of the beneficiary, 16-symbols hex;
   \item Details, matching \dd{/[a-zA-Z0-9 -.]\{1,128\}/};
   \item \href{https://en.wikipedia.org/wiki/RSA_(cryptosystem)}{RSA} signature,
     684 symbols in \href{https://en.wikipedia.org/wiki/Base64}{Base64}.
@@ -217,7 +217,7 @@ contains fields separated by a semi-colon:
 Transactions with positive amount don't have signatures.
 Their IDs point to ID fields of corresponding beneficiaries' wallets.
 
-The combination \dd{ID+Beneficiary} is unique in the entire wallet.
+The combination ``ID'' + ``Beneficiary'' is unique in the entire wallet.
 
 The \href{https://en.wikipedia.org/wiki/RSA_(cryptosystem)}{RSA}
 signature is calculated using the private RSA key of the
@@ -233,11 +233,67 @@ wallet and the following fields of transaction, separated by spaces:
   \item Details, matching \dd{/[a-zA-Z0-9 -.]{1,128}/}.
 \end{enumerate}
 
-\section{Push}
+For example, this text may be used as a signing input:
+
+\begin{minted}{text}
+12345678abcdef 003a 2017-07-19T21:24:51Z ffffffff9c0ccccd Ui0wpLu7 98bb82c81735c4ee For services
+\end{minted}
+
+Each transaction takes 900 symbols at most.
+The maximum amount of transactions in one wallet is 65536.
+Thus, a single wallet may be as big as a 59Mb text file.
+
+\section{Taxes}
+
+Each wallet must have to pay \emph{taxes} in order to be promoted by nodes.
+
+The amount of taxes to be paid is calculated by the following formula:
+
+$$X = A \times F \times T.$$
+
+$A$ is the total age of the wallet,
+which is calculated as the difference in hours between the current time
+and the time of the oldest transaction in the wallet.
+$T$ is the total number of transactions in the wallet.
+$F$ is the fee per transaction/hour, which is equal to 7.48 zents
+(a one-year-old wallet with 4096 transactions inside must pay approximately 16 ZLD taxes annually).
+
+In order to pay taxes the owner of the wallet has to select any remote
+node from the network, which has a score of 16 or more. Then, it has to
+take the invoice from the score and send the payment of 1 ZLD or less
+to that node. The score has to be placed into the details of the transaction,
+prefixed by \dd{TAXES }. All tax payments inside a wallet must
+have unique scores.
 
 \section{Fetch and Merge}
 
-\section{Threats Analysis}
+Each node maintains a list of \emph{remote nodes} (their host names and TCP port numbers),
+their scores and their availability information. When the node is just installed,
+the list contains a limited amount of pre-defined addresses. The list is
+updated both by user request and automatically in order to give priority
+to high-score nodes and the nodes with the highest availability.
+Moreover, the node adds new elements to the list retrieving them from all
+available remote nodes.
+
+
+
+\section{Push}
+
+
+\section{RESTful API}
+
+\section{Incentives}
+
+\subsection{To Stay Online}
+
+\subsection{To Promote Other Nodes}
+
+Each node is supposed to promote other remote nodes via the
+\dd{/remotes} RESTful entry point. What is the incentive to do that?
+Why can't a node always return an empty list, expecting its clients
+to always pay taxes to it?
+
+\section{Threats}
 
 how are you?
 
