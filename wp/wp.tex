@@ -17,7 +17,7 @@
 \usepackage{hyperref}
   \hypersetup{colorlinks=true,allcolors=blue!40!black}
 \pagestyle{empty}
-\setstretch{1.2}
+\setstretch{1.1}
 \setlength{\topskip}{6pt}
 \setlength{\parindent}{0pt} % indent first line
 \setlength{\parskip}{6pt} % before par
@@ -36,7 +36,8 @@ Works for you?
 
 Bitcoin, the first decentralized digital currency, was released in
 January 2009. Since then a number of similar Blockchain-based products have been
-created, including Etherium, Litecoin, and others.
+created, including Etherium, Litecoin, and others. \colorbox{yellow}{links} There were other solutions,
+not based on Blockchain, including IOTA, and others. \colorbox{yellow}{links}
 
 Zold is also a decentralized digital currency that maintains its transactions
 in an unpredicable amount of zero-trust server nodes, trying to guarantee
@@ -44,11 +45,11 @@ data consistency. However, the architecture of Zold is not based on Blockchain
 principles. The development of Zold was motivated by the desire to overcome
 a few obvious disadvantages of existing solutions.
 
-First, the speed of transaction processing is rather low.
+First, the speed of transaction processing is rather low. \colorbox{yellow}{proof?}
 
-Second, mining commissions are high.
+Second, mining commissions are high. \colorbox{yellow}{proof?}
 
-Third, the technology is too complex.
+Third, the technology is too complex. \colorbox{yellow}{proof?}
 
 Zold was created as an attempt to resolve these mentioned problems
 of existing digital currencies.
@@ -70,7 +71,7 @@ It is assumed that any node may contain corrupted data, either by mistake or int
 
 \textbf{Proof of work}.
 Each node, in order to earn trust, must invest its CPU power
-and find hash suffixes, performing certain calculations.
+and find hash suffixes, performing certain expensive calculations.
 
 \textbf{No General Ledger}.
 There is no central ledger, each wallet has its own personal ledger.
@@ -90,6 +91,8 @@ The wallet with the \dd{0x00} ID belongs to the
 issuer and may have a negative balance. All other wallets
 may only have positive balances.
 
+\colorbox{yellow}{Let's compare each of these principles with other currencies and highlight similarities.}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -100,6 +103,7 @@ In order to guarantee data consistency among all distributed nodes
 there has to be an algorithm of data segregation.
 Corrupted data must be detected earlier and filtered out as quickly as possible.
 Bitcoin introduced such an algorithm and called it \emph{proof of work}.
+\colorbox{yellow}{link}
 
 Its fundamental principle is that each block of data must have a special
 number attached to it, known as \emph{nonce}, which is rather difficult to calculate,
@@ -111,6 +115,7 @@ decides to invest into its nonces calculation would be smaller than what
 the other part of the network invests into legal data. The latter part
 will quickly dominate the former and the nodes with corrupted data will
 be ostracized and eventually ignored.
+\colorbox{yellow}{let's make sure this text is correct and add a link}
 
 Zold has borrowed this principle, although modified it. We also require
 our nodes to invest their CPU power into meaninless and repetative
@@ -184,8 +189,8 @@ strength is six.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Wallets}
 
-There is no central ledger in Zold.
-Each user has \emph{wallets} (any number of them).
+There is no central ledger in Zold, like many other digital currencies.
+Instead, each user has their own \emph{wallets} (any number of them) with their own ledgers inside.
 Each wallet is an ASCII-text file with the name equal to the wallet ID.
 For example, the wallet in the file \dd{12345678abcdef} may include:
 
@@ -229,7 +234,7 @@ Their IDs point to ID fields of corresponding beneficiaries' wallets.
 The combination ``ID'' + ``Beneficiary'' is unique in the entire wallet.
 
 The \href{https://en.wikipedia.org/wiki/RSA_(cryptosystem)}{RSA}
-signature is calculated using the private RSA key of the
+signature is calculated using the private key of the
 wallet and the following fields of transaction, separated by spaces:
 
 \begin{enumerate}
@@ -250,7 +255,7 @@ For example, this text may be used as a signing input:
 
 Each transaction takes 900 symbols at most.
 The maximum amount of transactions in one wallet is 65536.
-Thus, a single wallet may be as big as a 59Mb text file.
+Thus, a single wallet may be as big as a 59Mb text file, at most.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -261,10 +266,9 @@ Each wallet must have to pay \emph{taxes} in order to be promoted by nodes.
 The maximum amount of tax debt a node can tolerate is 1 ZLD. This means
 that if the debt is smaller, all nodes must promote the wallet to their
 remote nodes. If the debt is bigger, a node will accept the wallet but won't
-promote it further, which will seriously decrease wallet visibility in
+promote it further, which will seriously decrease wallet's visibility in
 the network---only a limited amount of nodes will see it, unless the owner
-manually ``push'' it to many nodes, which is a time and network traffic
-expensive operation.
+manually pushes it to many nodes, which is an expensive operation.
 
 The amount of taxes to be paid is calculated by the following formula:
 
@@ -336,14 +340,17 @@ the maximum ID in the ledger, it gets ignored as a fraudulent one
 (``double spending''). Otherwise, it gets to the end of the ledger.
 
 Then, when merge is done, the modifications get \emph{propagated} to other wallets
-available locally. Each transaction that has a negative amount is copied
-added to the ledger of their receiving wallets, if they don't yet exist there.
+available locally. Each transaction that has a negative amount is
+copied to the ledger of their receiving wallets (with a reversed sign),
+if it doesn't yet exist there.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Push}
 
+At any moment of time any node may decide to push a wallet to another node.
+The accepts it, merges with the local version, and keeps locally.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -421,6 +428,13 @@ automatically decides which node to pay taxes to and the selection is
 made by the availability criteria. The node which is the most available
 and visible will get the majority of tax payments.
 
+\subsection{To Accept Wallets}
+
+Why a node would accept push requests and spend its storage space
+on the wallets coming in? If the node doesn't accept a push request,
+its availability rating decreases and other nodes will stop paying
+taxes to it.
+
 \subsection{To Promote Other Nodes}
 
 What is the incentive to promote other remote nodes via the \dd{/remotes} RESTful
@@ -434,6 +448,18 @@ returns, the higher its chance to be at the top of the list.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Threats}
 
-how are you?
+\subsection{Double Spending}
+
+It is possible to submit the same spending transaction to the same wallet
+and then push it to two different nodes in different parts of the network.
+They won't know about each other and will propagate those spending
+transactions to other wallets. Both two owners of those money receiving
+wallets will think that their money arrived, while only one of them is
+a legit receiver, the other transaction is fraudulent.
+
+This will happen, but very soon one part of the network will dominate the other
+one, and one of the transactions will be rejected from the wallet, after
+a number of merge operations in all nodes of the network. The receiver of the
+money must be careful and always to the full fetch (from as many
 
 \end{document}
