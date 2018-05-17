@@ -9,16 +9,20 @@
   \setminted{fontsize=\small}
   \setminted{breaklines}
   \usemintedstyle{bw}
-  \BeforeBeginEnvironment{minted}{\begin{mdframed}[topline=false,rightline=false,bottomline=false,linecolor=black,linewidth=2pt]}
+  \BeforeBeginEnvironment{minted}{\vspace{6pt}\begin{mdframed}[topline=false,rightline=false,bottomline=false,linecolor=black,linewidth=2pt]}
   \AfterEndEnvironment{minted}{\end{mdframed}}
 \usepackage{xcolor}
 \usepackage{graphicx}
 \newcommand\dd[1]{\colorbox{gray!30}{\texttt{#1}}}
 \usepackage{hyperref}
+  \hypersetup{colorlinks=true,allcolors=blue!40!black}
 \pagestyle{empty}
 \setstretch{1.2}
+\setlength{\topskip}{6pt}
+\setlength{\parindent}{0pt} % indent first line
+\setlength{\parskip}{6pt} % before par
 
-\title{\includegraphics[scale=0.05]{logo.png}\\Zold, Lightweight Crypto Currency}
+\title{\includegraphics[scale=0.05]{logo.png}\\Zold: Lightweight Crypto Currency}
 \author{Yegor Bugayenko\\\texttt{yegor@zold.io}}
 
 \begin{document}
@@ -51,8 +55,25 @@ of existing digital currencies.
 
 \section{Principles}
 
-\textbf{Open source}.
-Zold is a command line tool. Its entire code base is open source.
+\textbf{Open Source}.
+Zold is a command line tool. Its entire code base is open source
+and hosted at the GitHub \href{https://github.com/yegor256/zold}{yegor256/zold}
+repository.
+
+\textbf{No Trust}.
+The network of communicating nodes maintains wallets of users.
+Anyone can add a node to the network.
+It is assumed that any node may contain corrupted data, either by mistake or intentionally.
+
+\textbf{Proof of work}.
+Each node, in order to earn trust, must invest its CPU power
+and find hash suffixes, performing certain calculations.
+
+\textbf{No General Ledger}.
+There is no central ledger, each wallet has its own personal ledger.
+All transactions in each ledger are confirmed by
+\href{https://en.wikipedia.org/wiki/RSA_(cryptosystem)}{RSA signatures}
+of their owners;
 
 \textbf{Capacity}.
 One currency unit is called ZLD.
@@ -60,20 +81,11 @@ One ZLD by convention equals to $2^{24}$ \emph{zents} (16,777,216).
 All amounts are stored as signed 64-bit integers.
 Thus, the technical capacity of the currency is 549,755,813,888 ZLD (half a trillion).
 
-\textbf{Zero wallet}.
-There is no mining, the only way to get ZLD is to receive it from someone else.
+\textbf{Zero Wallet}.
+There is no ``mining,'' the only way to get ZLD is to receive it from someone else.
 The wallet with the \dd{0x00} ID belongs to the
 issuer and may have a negative balance. All other wallets
-may have only positive balances.
-
-\textbf{No general ledger}.
-There is no central ledger, each wallet has its own personal ledger.
-Each transaction in the ledger is confirmed by RSA signature;
-
-\textbf{No trust}.
-The network of communicating nodes maintains wallets of users.
-Anyone can add a node to the network.
-It is assumed that any node may contain corrupted data, either by mistake or intentionally.
+may only have positive balances.
 
 \section{Proof of Work}
 
@@ -87,47 +99,48 @@ Its fundamental principle is that each block of data must have a special
 number attached to it, known as \emph{nonce}, which is rather difficult to calculate,
 because it requires a lot of CPU power. It is assumed that at any moment
 of time the majority of nodes in the network invest their CPU power into
-calculating the nonces for the data that is not corrupted. If and when
+calculating the nonces for the data that is not corrupted. If and when for any reason
 some data gets corrupted, the amount of CPU power a part of the network
 decides to invest into its nonces calculation would be smaller than what
-the other part of the network can supply. The latter part
+the other part of the network invests into legal data. The latter part
 will quickly dominate the former and the nodes with corrupted data will
 be ostracized and eventually ignored.
 
 Zold has borrowed this principle, although modified it. We also require
 our nodes to invest their CPU power into meaninless and repetative
-calculations just to help us identify which part of the network they belong:
+calculations just to help us identify which part of the network they belong to:
 corrupted or not. Each Zold node has to calculate its \emph{trust score},
-which is as big as much CPU power the node invested into its calculation.
+which is as big as much CPU power the node has invested into its calculation.
 
 Similar to Bitcoin nonces we repetatively calculate cryptographic hashes,
 looking for consecutive zeros inside them. First, in order to calculate a score,
-a node makes the initial text, which consists of four parts,
+a node makes the \emph{prefix}, which consists of four parts,
 separated by spaces:
 
 \begin{enumerate}
-\item The current timestamp in UTC ISO 8601,
+\item The current timestamp in UTC, in \href{https://en.wikipedia.org/wiki/ISO_8601}{ISO 8601},
 \item The host name or IP address, e.g. \dd{b2.zold.io},
-\item The TCP port number,
+\item The \href{https://en.wikipedia.org/wiki/Port_(computer_networking)}{TCP port} number,
 \item The invoice.
 \end{enumerate}
 
-For example, the body may look like this:
+For example, the prefix may look like this:
 
 \begin{minted}{text}
 2018-05-17T03:50:59Z b2.zold.io 4096 THdonv1E@0000000000000000
 \end{minted}
 
 Then, the node attempts to append any arbitrary text, which has to match
-\dd{/[a-zA-Z0-9]+/} regular expression, to the end of the body and calculates
-SHA-256 hash of the text in the hexadecimal format. For example, this would be the body
-with \dd{b5c41} suffix:
+\dd{/[a-zA-Z0-9]+/} regular expression, to the end of the prefix and calculates
+\href{https://en.wikipedia.org/wiki/SHA-2}{SHA-256 hash}
+of the text in the hexadecimal format. For example, this would be the prefix
+with the attached \dd{117b1f} suffix:
 
 \begin{minted}{text}
 2018-05-17T03:50:59Z b2.zold.io 4096 THdonv1E@0000000000000000 117b1f
 \end{minted}
 
-The hash of this body will be:
+The hash of this text will be:
 
 \begin{minted}{text}
 670baa704726fe2c837c5ca764202adca5ab12c9b90c94d9fb1b8d629000000
@@ -135,8 +148,8 @@ The hash of this body will be:
 
 The node attempts to try different sufficies until one of them produces
 a hash that ends with a few tailing zeroes. The one above ends
-with five zeroes
-(it took about an hour to find it on 2.3GHz Intel Core i7):
+with six zeroes
+(it took three minutes to find it on 2.3GHz Intel Core i7):
 
 When the first suffix is found, the score is 1. Then, to
 increase the score by one, the next suffix has to be found, which
@@ -145,6 +158,11 @@ in order to obtain a new hash with trailing zeros, for example:
 
 \begin{minted}{text}
 2018-05-17T03:50:59Z b2.zold.io 4096 THdonv1E@0000000000000000 117b1f 1546e35
+\end{minted}
+
+Produces:
+
+\begin{minted}{text}
 99dcd18e4bd03004e1205437866b5b68035cc8985240ae52cbd37640a000000
 \end{minted}
 
@@ -160,16 +178,16 @@ strength is six.
 There is no central ledger in Zold.
 Each user has \emph{wallets} (any number of them).
 Each wallet is an ASCII-text file with the name equal to the wallet ID.
-For example, file \dd{12345678abcdef} may include:
+For example, the wallet in the file \dd{12345678abcdef} may include:
 
 \begin{minted}{text}
 12345678abcdef
 AAAAB3NzaC1yc2EAAAADAQABAAABAQCuLuVr4Tl2sXoN5Zb7b6SKMPrVjLxb...
 
 34;2017-07-19T21:24:51Z;-560700;Ui0wpLu7;98bb82c81735c4ee;For services;SKMPrVjLxbM5oDm0IhniQQy3shF...
-35;2017-07-19T21:25:07Z;-56990;xksQuJa9;98bb82c81735c4ee;-;QCuLuVr4Tl2sXoN5Zb7b6SKMPrVjLxb...
+35;2017-07-19T21:25:07Z;-56990;xksQuJa9;98bb82c81735c4ee;For food;QCuLuVr4Tl2sXoN5Zb7b6SKMPrVjLxb...
 134;2017-07-19T21:29:11Z;647388;kkIZo09s;18bb82dd1735b6e9;-;
-36;2017-07-19T22:18:43Z;-884733;pplIe28s;38ab8fc8e735c4fc;For fun;2sXoN5Zb7b6SKMPrVjLxb7b6SKMPrVjLx...
+36;2017-07-19T22:18:43Z;-884733;pplIe28s;38ab8fc8e735c4fc;For programming;2sXoN5Zb7b6SKMPrVjLxb7b6SKMPrVjLx...
 \end{minted}
 
 Lines are separated by either CR or CRLF.
@@ -177,8 +195,9 @@ There is a header and a ledger, separated by an empty line.
 The header includes two lines:
 
 \begin{enumerate}
-  \item Wallet ID, a 64-bit unsigned integer;
-  \item Public RSA key of the wallet owner.
+  \item Wallet ID, a 64-bit unsigned integer in hexadecimal format;
+  \item Public \href{https://en.wikipedia.org/wiki/RSA_(cryptosystem)}{RSA}
+    key of the wallet owner, in \href{https://en.wikipedia.org/wiki/Base64}{Base64}.
 \end{enumerate}
 
 The ledger includes transactions, one per line. Each transaction line
@@ -186,20 +205,22 @@ contains fields separated by a semi-colon:
 
 \begin{enumerate}
   \item Transaction ID, an unsigned 16-bit integer;
-  \item Date and time, in ISO 8601 format;
+  \item Date and time, in \href{https://en.wikipedia.org/wiki/ISO_8601}{ISO 8601} format;
   \item Amount, a signed 64-bit integer;
-  \item Payment prefix;
+  \item Payment prefix, 8-32 symbols;
   \item Wallet ID of the beneficiary;
-  \item Details, matching \dd{/[a-zA-Z0-9 -.]{1,128}/};
-  \item RSA signature.
+  \item Details, matching \dd{/[a-zA-Z0-9 -.]\{1,128\}/};
+  \item \href{https://en.wikipedia.org/wiki/RSA_(cryptosystem)}{RSA} signature,
+    684 symbols in \href{https://en.wikipedia.org/wiki/Base64}{Base64}.
 \end{enumerate}
 
-Transactions with positive amount don't have RSA signatures.
+Transactions with positive amount don't have signatures.
 Their IDs point to ID fields of corresponding beneficiaries' wallets.
 
 The combination \dd{ID+Beneficiary} is unique in the entire wallet.
 
-The RSA signature is calculated using the private RSA key of the
+The \href{https://en.wikipedia.org/wiki/RSA_(cryptosystem)}{RSA}
+signature is calculated using the private RSA key of the
 wallet and the following fields of transaction, separated by spaces:
 
 \begin{enumerate}

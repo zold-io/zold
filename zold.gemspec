@@ -39,7 +39,7 @@ Gem::Specification.new do |s|
   s.homepage = 'http://github.com/zerocracy/zold'
   s.files = `git ls-files`.split($RS)
   s.executables = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
-  s.test_files = s.files.grep(%r{^(test|spec|features)/})
+  s.test_files = s.files.grep(%r{^(test|spec|features|wp)/})
   s.rdoc_options = ['--charset=UTF-8']
   s.extra_rdoc_files = ['README.md', 'LICENSE.txt']
   s.add_runtime_dependency 'concurrent-ruby', '1.0.5'

@@ -98,18 +98,18 @@ module Zold
 
     def hash
       raise 'Score has zero value, there is no hash' if @suffixes.empty?
-      @suffixes.reduce(body) do |prefix, suffix|
-        Digest::SHA256.hexdigest(prefix + ' ' + suffix)[0, 63]
+      @suffixes.reduce(prefix) do |pfx, suffix|
+        Digest::SHA256.hexdigest(pfx + ' ' + suffix)[0, 63]
       end
     end
 
     def to_text
-      prefix, bnf = @invoice.split('@')
+      pfx, bnf = @invoice.split('@')
       [
         @time.to_i.to_s(16),
         @host,
         @port.to_s(16),
-        prefix,
+        pfx,
         bnf,
         @suffixes.join(' ')
       ].join(' ')
@@ -168,7 +168,7 @@ module Zold
       @time < Time.now - 24 * 60
     end
 
-    def body
+    def prefix
       "#{@time.utc.iso8601} #{@host} #{@port} #{@invoice}"
     end
 
