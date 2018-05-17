@@ -5,3 +5,4 @@
 * text=auto eol=lf
 *.rb ident
 *.xml ident
+*.png binary
