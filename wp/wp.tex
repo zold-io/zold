@@ -53,6 +53,9 @@ Third, the technology is too complex.
 Zold was created as an attempt to resolve these mentioned problems
 of existing digital currencies.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Principles}
 
 \textbf{Open Source}.
@@ -87,6 +90,9 @@ The wallet with the \dd{0x00} ID belongs to the
 issuer and may have a negative balance. All other wallets
 may only have positive balances.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Proof of Work}
 
 The system consists of nodes (server machines), which maintain the data.
@@ -173,6 +179,9 @@ the current time, but not earlier than 24 hours ago. The strength of the score
 is the amount of the trailing zeros in the hash. In the example above the
 strength is six.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Wallets}
 
 There is no central ledger in Zold.
@@ -243,9 +252,19 @@ Each transaction takes 900 symbols at most.
 The maximum amount of transactions in one wallet is 65536.
 Thus, a single wallet may be as big as a 59Mb text file.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Taxes}
 
 Each wallet must have to pay \emph{taxes} in order to be promoted by nodes.
+The maximum amount of tax debt a node can tolerate is 1 ZLD. This means
+that if the debt is smaller, all nodes must promote the wallet to their
+remote nodes. If the debt is bigger, a node will accept the wallet but won't
+promote it further, which will seriously decrease wallet visibility in
+the network---only a limited amount of nodes will see it, unless the owner
+manually ``push'' it to many nodes, which is a time and network traffic
+expensive operation.
 
 The amount of taxes to be paid is calculated by the following formula:
 
@@ -265,7 +284,10 @@ to that node. The score has to be placed into the details of the transaction,
 prefixed by \dd{TAXES }. All tax payments inside a wallet must
 have unique scores.
 
-\section{Fetch and Merge}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Fetch, Merge, and Propagate}
 
 Each node maintains a list of \emph{remote nodes} (their host names and TCP port numbers),
 their scores and their availability information. When the node is just installed,
@@ -275,24 +297,141 @@ to high-score nodes and the nodes with the highest availability.
 Moreover, the node adds new elements to the list retrieving them from all
 available remote nodes.
 
+First, to see a wallet, it has to be \emph{fetched} from a number of remote
+nodes. The nodes may provide different versions of the same wallet, either
+because some data is corrupted or because modifications were made to the same
+wallet from different parts of the network. Each version retrieved from the
+network is stored in a local \emph{copy} and gets a score assigned to it.
+The score of the local copy is a summary of all scores of the nodes that
+provided that copy. Let's say, there are 17 nodes in the network and they
+provided three different copies of the wallet:
 
+\begin{minted}{text}
+copy-1: 78,090 bytes, 11 servers, 177 score
+copy-2: 56,113 bytes, 4 servers, 69 score
+copy-3: 97,132 bytes, 2 servers, 37 score
+\end{minted}
 
+The fetch operation ends at this point. The next step is to \emph{merge}
+all three copies into the local one, if it exists. The algorithm of merging
+is the following.
+
+First, the copy of the wallet we are merging into, is added to the list,
+with the score zero:
+
+\begin{minted}{text}
+copy-0: 55,991 bytes, 0 servers, 0 score
+copy-1: 78,090 bytes, 11 servers, 177 score
+copy-2: 56,113 bytes, 4 servers, 69 score
+copy-3: 97,132 bytes, 2 servers, 37 score
+\end{minted}
+
+Then, the copy with the highest score is assumed to be the correct one,
+which is the \dd{copy-1} in this example.
+
+Then, all other copies, in the order of their scores, are merged into the
+correct one, transaction by transaction. If a transaction already exists,
+it's ignored. If a transaction is negative (spending money) and its ID is lower than
+the maximum ID in the ledger, it gets ignored as a fraudulent one
+(``double spending''). Otherwise, it gets to the end of the ledger.
+
+Then, when merge is done, the modifications get \emph{propagated} to other wallets
+available locally. Each transaction that has a negative amount is copied
+added to the ledger of their receiving wallets, if they don't yet exist there.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Push}
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{RESTful API}
 
+There is a limited set of RESTful API entry points in each node.
+
+\dd{GET /} is a home page of a node that returns JSON response with the
+information about the node, for example (other details may be added in
+further versions):
+
+\begin{minted}{json}
+{
+  "version": "0.6.1",
+  "score": {
+    "value": 3,
+    "host": "b2.zold.io",
+    "port": 4096,
+    "invoice": "THdonv1E@0000000000000000",
+    "suffixes": [ "4f9c38", "49c074", "24829a" ],
+    "strength": 6
+  }
+}
+\end{minted}
+
+\dd{GET /remotes} returns the list of remote nodes known by the node, in JSON:
+
+\begin{minted}{json}
+{
+  "version": "0.6.1",
+  "all": [
+    { "host": "b2.zold.io", "port": 4096 },
+    { "host": "b1.zold.io", "port": 80 }
+  ]
+}\end{minted}
+
+\dd{GET /wallet/<ID>} returns the content of the wallet:
+
+\begin{minted}{json}
+{
+  "version": "0.6.1",
+  "body": "..."
+}\end{minted}
+
+If the wallet is not found, a
+\href{https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.5}{404}
+HTTP response is returned.
+
+If the client provided the MD5 hash of the wallet content in the
+\href{https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.26}{\dd{If-None-Match}}
+HTTP header and it matches with the hash of the
+content the node contains, a
+\href{https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.5}{304} HTTP response is returned.
+
+\dd{PUT /wallet/<ID>} pushes the content of the wallet to the node. The
+node responds either with
+\href{https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.3}{202} (if accepted),
+\href{https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.1}{400} (if the data is corrupted),
+or
+\href{https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.5}{304}
+(if the content is the same as the one the node already has).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Incentives}
 
 \subsection{To Stay Online}
 
+What is the reason for a node to stay online and spend its CPU power
+and network traffic? Each node is insterested in doing that because it
+hopes that wallet owners will pay taxes to its invoices. The software
+automatically decides which node to pay taxes to and the selection is
+made by the availability criteria. The node which is the most available
+and visible will get the majority of tax payments.
+
 \subsection{To Promote Other Nodes}
 
-Each node is supposed to promote other remote nodes via the
-\dd{/remotes} RESTful entry point. What is the incentive to do that?
-Why can't a node always return an empty list, expecting its clients
-to always pay taxes to it?
+What is the incentive to promote other remote nodes via the \dd{/remotes} RESTful
+entry point and why can't a node always return an empty list, expecting its clients
+to always pay taxes to it? The software automatically prioritizes remote
+nodes by the amount of remote nodes it promotes. The longer the list a node
+returns, the higher its chance to be at the top of the list.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Threats}
 
 how are you?
