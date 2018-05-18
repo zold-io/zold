@@ -17,6 +17,10 @@
 **NOTICE**: It's an experiment and a very early draft! Please, feel free to
 submit your ideas or pull requests.
 
+Here is the [White Paper](https://latexonline.cc/compile?git=https%3A%2F%2Fgithub.com%2Fyegor256%2Fzold&target=wp%2Fwp.tex&command=pdflatex&trackId=1520158941887).
+
+The license is [MIT](https://github.com/zerocracy/zold/blob/master/LICENSE.txt).
+
 ## How to Use
 
 Install Ruby 2.2+, [Rubygems](https://rubygems.org/pages/download), and then run:
@@ -89,5 +93,3 @@ $ zold node --invoice=5f96e731e48ae21f
 
 Grateful users of the system will pay "taxes" to your wallet for processing
 of their transactions.
-
-The license is [MIT](https://github.com/zerocracy/zold/blob/master/LICENSE.txt).
