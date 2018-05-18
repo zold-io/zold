@@ -65,7 +65,7 @@ Available options:"
         invoice = target
       else
         require_relative 'invoice'
-        invoice = Invoice.new(wallets: @wallets, log: @log).run([target])
+        invoice = Invoice.new(wallets: @wallets, log: @log).run(['invoice', target])
       end
       raise 'Amount is required (in ZLD) as the third argument' if mine[2].nil?
       amount = Zold::Amount.new(zld: mine[2].to_f)

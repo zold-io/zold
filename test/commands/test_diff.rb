@@ -55,7 +55,7 @@ class TestDiff < Minitest::Test
         wallets: Zold::Wallets.new(dir),
         copies: copies.root
       ).run(['diff', id.to_s])
-      assert(diff.include?('-1;'))
+      assert(diff.include?('-0001;'))
     end
   end
 end

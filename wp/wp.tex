@@ -29,7 +29,11 @@
 \raggedbottom
 \maketitle
 \begin{abstract}
-Works for you?
+The world is hyped about digital currencies now. Why not create a new one,
+which will implement a different set of architectural principles? Zold is
+an \emph{experimental} solution that enables distributed transactions between
+anonymous users. Its core ``proof of work'' principle is borrowed from Bitcoin's Blockchain,
+while the rest of the architecture is new.
 \end{abstract}
 
 \section{Motivation}
@@ -71,7 +75,7 @@ It is assumed that any node may contain corrupted data, either by mistake or int
 
 \textbf{Proof of work}.
 Each node, in order to earn trust, must invest its CPU power
-and find hash suffixes, performing certain expensive calculations.
+and find hash suffixes, performing certain expensive and meaningless calculations.
 
 \textbf{No General Ledger}.
 There is no central ledger, each wallet has its own personal ledger.
@@ -117,8 +121,8 @@ will quickly dominate the former and the nodes with corrupted data will
 be ostracized and eventually ignored.
 \colorbox{yellow}{let's make sure this text is correct and add a link}
 
-Zold has borrowed this principle, although modified it. We also require
-our nodes to invest their CPU power into meaninless and repetative
+Zold has borrowed this principle, although modified it. It also requires
+its nodes to invest their CPU power into meaninless and repetative
 calculations just to help us identify which part of the network they belong to:
 corrupted or not. Each Zold node has to calculate its \emph{trust score},
 which is as big as much CPU power the node has invested into its calculation.
@@ -434,6 +438,12 @@ or
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Incentives}
+
+It is obvious that anonymous users will participate in Zold and maintain
+their nodes only if they have enough financial motivation to do that. Simply
+put, their expenses must be lower than the income they are getting in
+form of taxes. This Section analyzes the most obvious questions users
+may have, regarding their motivation.
 
 \subsection{To Stay Online}
 

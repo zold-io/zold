@@ -33,16 +33,18 @@ require_relative '../../lib/zold/commands/pay'
 class TestPay < Minitest::Test
   def test_sends_from_wallet_to_wallet
     Dir.mktmpdir 'test' do |dir|
-      id = Zold::Id.new
       wallets = Zold::Wallets.new(dir)
-      source = wallets.find(id)
-      source.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-      target = Zold::Id.new
+      sid = Zold::Id.new
+      source = wallets.find(sid)
+      source.init(sid, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+      tid = Zold::Id.new
+      target = wallets.find(tid)
+      target.init(tid, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
       amount = Zold::Amount.new(zld: 14.95)
       Zold::Pay.new(wallets: wallets).run(
         [
           'pay', '--force', '--private-key=fixtures/id_rsa',
-          id.to_s, target.to_s, amount.to_zld, 'For the car'
+          sid.to_s, tid.to_s, amount.to_zld, 'For the car'
         ]
       )
       assert_equal(amount * -1, source.balance)
