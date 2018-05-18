@@ -23,6 +23,7 @@ require 'rainbow'
 require 'net/http'
 require 'json'
 require 'time'
+require_relative 'args'
 require_relative '../log'
 require_relative '../http'
 require_relative '../remotes'
@@ -62,11 +63,7 @@ Available options:"
           default: false
         o.bool '--help', 'Print instructions'
       end
-      if opts.help?
-        @log.info(opts.to_s)
-        return
-      end
-      mine = opts.arguments[1..-1]
+      mine = Args.new(opts, @log).take || return
       command = mine[0]
       case command
       when 'show'

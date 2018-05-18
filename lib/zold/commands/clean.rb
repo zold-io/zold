@@ -21,6 +21,9 @@
 require 'uri'
 require 'json'
 require 'time'
+require 'slop'
+require 'rainbow'
+require_relative 'args'
 require_relative '../log'
 require_relative '../http'
 require_relative '../score'
@@ -48,7 +51,7 @@ Available options:"
         @log.info(opts.to_s)
         return
       end
-      mine = opts.arguments[1..-1]
+      mine = Args.new(opts, @log).take || return
       raise 'At least one wallet ID is required' if mine.empty?
       mine.each do |id|
         clean(Copies.new(File.join(@copies, id)), opts)

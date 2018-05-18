@@ -44,9 +44,9 @@ module Zold
 
     def all
       list = load
-      max_score = list.map { |r| r[:score] }.max
+      max_score = list.map { |r| r[:score] }.max || 0
       max_score = 1 if max_score.zero?
-      max_errors = list.map { |r| r[:errors] }.max
+      max_errors = list.map { |r| r[:errors] }.max || 0
       max_errors = 1 if max_errors.zero?
       list.sort_by do |r|
         (1 - r[:errors] / max_errors) * 5 + (r[:score] / max_score)

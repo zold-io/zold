@@ -20,6 +20,8 @@
 
 require 'slop'
 require 'json'
+require 'rainbow'
+require_relative 'args'
 require_relative 'pay'
 require_relative '../log'
 require_relative '../score'
@@ -57,7 +59,7 @@ Available options:"
           default: '~/.ssh/id_rsa'
         o.bool '--help', 'Print instructions'
       end
-      mine = opts.arguments[1..-1]
+      mine = Args.new(opts, @log).take || return
       command = mine[0]
       case command
       when 'show'

@@ -19,45 +19,32 @@
 # SOFTWARE.
 
 require 'slop'
-require 'rainbow'
-require_relative 'args'
-require_relative '../wallet'
+require 'json'
+require 'net/http'
 require_relative '../log'
 require_relative '../id'
+require_relative '../http'
 
-# CREATE command.
+# Args.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # Create command
-  class Create
-    def initialize(wallets:, log: Log::Quiet.new)
-      @wallets = wallets
+  # Command line args
+  class Args
+    def initialize(opts, log)
+      @opts = opts
       @log = log
     end
 
-    def run(args = [])
-      opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
-        o.banner = "Usage: zold create [options]
-Available options:"
-        o.string '--public-key',
-          'The location of RSA public key (default: ~/.ssh/id_rsa.pub)',
-          require: true,
-          default: '~/.ssh/id_rsa.pub'
-        o.bool '--help', 'Print instructions'
+    def take
+      if @opts.help?
+        @log.info(@opts.to_s)
+        return
       end
-      mine = Args.new(opts, @log).take || return
-      create(mine.empty? ? Id.new : Id.new(mine[0]), opts)
-    end
-
-    def create(id, opts)
-      wallet = @wallets.find(id)
-      key = Zold::Key.new(file: opts['public-key'])
-      wallet.init(id, key)
-      @log.info(wallet.id)
-      @log.debug("Wallet #{Rainbow(wallet).green} created at #{@wallets.path}")
-      wallet
+      args = @opts.arguments.reject { |a| a.start_with?('-') }
+      raise 'Try --help' if args.empty?
+      args[1..-1]
     end
   end
 end

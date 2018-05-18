@@ -18,46 +18,35 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'slop'
-require 'rainbow'
-require_relative 'args'
-require_relative '../wallet'
-require_relative '../log'
-require_relative '../id'
+require 'minitest/autorun'
+require 'tmpdir'
+require 'json'
+require 'time'
+require 'webmock/minitest'
+require_relative '../../lib/zold/wallet'
+require_relative '../../lib/zold/wallets'
+require_relative '../../lib/zold/remotes'
+require_relative '../../lib/zold/id'
+require_relative '../../lib/zold/key'
+require_relative '../../lib/zold/commands/push'
 
-# CREATE command.
+# PUSH test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # Create command
-  class Create
-    def initialize(wallets:, log: Log::Quiet.new)
-      @wallets = wallets
-      @log = log
-    end
-
-    def run(args = [])
-      opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
-        o.banner = "Usage: zold create [options]
-Available options:"
-        o.string '--public-key',
-          'The location of RSA public key (default: ~/.ssh/id_rsa.pub)',
-          require: true,
-          default: '~/.ssh/id_rsa.pub'
-        o.bool '--help', 'Print instructions'
-      end
-      mine = Args.new(opts, @log).take || return
-      create(mine.empty? ? Id.new : Id.new(mine[0]), opts)
-    end
-
-    def create(id, opts)
-      wallet = @wallets.find(id)
-      key = Zold::Key.new(file: opts['public-key'])
-      wallet.init(id, key)
-      @log.info(wallet.id)
-      @log.debug("Wallet #{Rainbow(wallet).green} created at #{@wallets.path}")
-      wallet
+class TestPush < Minitest::Test
+  def test_pushes_wallet
+    Dir.mktmpdir 'test' do |dir|
+      id = Zold::Id.new
+      wallets = Zold::Wallets.new(dir)
+      wallet = wallets.find(id)
+      wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+      remotes = Zold::Remotes.new(File.join(dir, 'remotes.csv'))
+      remotes.clean
+      stub_request(:put, "http://fake-1/wallet/#{id}").to_return(status: 304)
+      Zold::Push.new(wallets: wallets, remotes: remotes).run(
+        ['--ignore-this-stupid-option', 'push', id.to_s]
+      )
     end
   end
 end

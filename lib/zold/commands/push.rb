@@ -18,9 +18,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'rainbow'
 require 'slop'
 require 'json'
 require 'net/http'
+require_relative 'args'
 require_relative '../log'
 require_relative '../id'
 require_relative '../http'
@@ -44,11 +46,7 @@ module Zold
 Available options:"
         o.bool '--help', 'Print instructions'
       end
-      if opts.help?
-        @log.info(opts.to_s)
-        return
-      end
-      mine = opts.arguments[1..-1]
+      mine = Args.new(opts, @log).take || return
       raise 'At least one wallet ID is required' if mine.empty?
       mine.each do |id|
         push(@wallets.find(Id.new(id)), opts)

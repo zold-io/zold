@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'slop'
+require_relative 'args'
 require_relative '../log'
 require_relative '../prefixes'
 
@@ -45,11 +46,7 @@ Available options:"
           default: 8
         o.bool '--help', 'Print instructions'
       end
-      if opts.help?
-        @log.info(opts.to_s)
-        return
-      end
-      mine = opts.arguments[1..-1]
+      mine = Args.new(opts, @log).take || return
       raise 'Receiver wallet ID is required' if mine[0].nil?
       wallet = @wallets.find(Zold::Id.new(mine[0]))
       raise 'Wallet doesn\'t exist, do \'fetch\' first' unless wallet.exists?

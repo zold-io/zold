@@ -41,7 +41,7 @@ module Zold
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = 'Usage: zold node [options]'
         o.string '--invoice',
-          'The invoice you want to collect money to'
+          'The invoice you want to collect money to or the wallet ID'
         o.integer '--port',
           "TCP port to open for the Net (default: #{Remotes::PORT})",
           default: Remotes::PORT
@@ -94,9 +94,15 @@ module Zold
         :entrance, Entrance.new(wallets, remotes, copies, address, log: @log)
       )
       Zold::Front.set(:port, opts['bind-port'])
-      farm = Farm.new(opts[:invoice], log: @log)
+      invoice = opts[:invoice]
+      unless invoice.include?('@')
+        require_relative 'invoice'
+        invoice = Invoice.new(wallets: @wallets, log: @log).run(['invoice', invoice])
+      end
+      farm = Farm.new(invoice, log: @log)
       farm.start(
-        opts[:host], opts[:port],
+        opts[:host],
+        opts[:port],
         threads: opts[:threads], strength: opts[:strength]
       )
       Zold::Front.set(:farm, farm)

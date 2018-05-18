@@ -19,6 +19,8 @@
 # SOFTWARE.
 
 require 'slop'
+require 'rainbow'
+require_relative 'args'
 require_relative '../log'
 
 # PAY command.
@@ -51,21 +53,15 @@ Available options:"
           default: false
         o.bool '--help', 'Print instructions'
       end
-      if opts.help?
-        @log.info(opts.to_s)
-        return
-      end
-      mine = opts.arguments[1..-1]
+      mine = Args.new(opts, @log).take || return
       raise 'Payer wallet ID is required as the first argument' if mine[0].nil?
       from = @wallets.find(Zold::Id.new(mine[0]))
       raise 'Wallet doesn\'t exist, do \'fetch\' first' unless from.exists?
       raise 'Recepient\'s invoice or wallet ID is required as the second argument' if mine[1].nil?
-      target = mine[1]
-      if target.include?('@')
-        invoice = target
-      else
+      invoice = mine[1]
+      unless invoice.include?('@')
         require_relative 'invoice'
-        invoice = Invoice.new(wallets: @wallets, log: @log).run(['invoice', target])
+        invoice = Invoice.new(wallets: @wallets, log: @log).run(['invoice', invoice])
       end
       raise 'Amount is required (in ZLD) as the third argument' if mine[2].nil?
       amount = Zold::Amount.new(zld: mine[2].to_f)

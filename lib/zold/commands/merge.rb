@@ -19,6 +19,8 @@
 # SOFTWARE.
 
 require 'slop'
+require 'rainbow'
+require_relative 'args'
 require_relative '../log'
 require_relative '../id'
 require_relative '../wallet'
@@ -44,11 +46,7 @@ module Zold
 Available options:"
         o.bool '--help', 'Print instructions'
       end
-      if opts.help?
-        @log.info(opts.to_s)
-        return
-      end
-      mine = opts.arguments[1..-1]
+      mine = Args.new(opts, @log).take || return
       raise 'At least one wallet ID is required' if mine.empty?
       modified = []
       mine.each do |id|
