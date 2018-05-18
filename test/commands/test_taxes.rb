@@ -21,6 +21,7 @@
 require 'minitest/autorun'
 require 'tmpdir'
 require 'webmock/minitest'
+require_relative '../test__helper'
 require_relative '../../lib/zold/wallets'
 require_relative '../../lib/zold/amount'
 require_relative '../../lib/zold/key'
@@ -58,7 +59,7 @@ class TestTaxes < Minitest::Test
         }.to_json
       )
       Zold::Taxes.new(
-        wallets: wallets, remotes: remotes
+        wallets: wallets, remotes: remotes, log: $log
       ).run(['taxes', '--private-key=fixtures/id_rsa', id.to_s])
       assert_equal(Zold::Amount.new(coins: 335_376_547), wallet.balance)
     end

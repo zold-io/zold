@@ -38,7 +38,7 @@ class TestZold < Minitest::Test
         Dir.chdir(dir) do
           stdout = `/bin/bash #{f} #{bin} 2>&1`
           unless $CHILD_STATUS.exitstatus.zero?
-            puts stdout
+            $log.info(stdout)
             assert_equal($CHILD_STATUS.exitstatus, 0)
           end
         end

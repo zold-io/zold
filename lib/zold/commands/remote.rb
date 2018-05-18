@@ -114,6 +114,7 @@ Available options:"
     end
 
     def update(opts, deep = true)
+      capacity = []
       @remotes.all.each do |r|
         uri = URI("#{r[:home]}remotes")
         res = Http.new(uri).get
@@ -156,7 +157,12 @@ Available options:"
             add(s['host'], s['port']) unless @remotes.exists?(s['host'], s['port'])
           end
         end
+        capacity << { host: score.host, port: score.port, count: json['all'].count }
         @log.info("#{r[:host]}:#{r[:port]}: #{Rainbow(score.value).green} (v.#{json['version']})")
+      end
+      max_capacity = capacity.map { |c| c[:count] }.max || 0
+      capacity.each do |c|
+        @remotes.error(c[:host], c[:port]) if c[:count] < max_capacity
       end
       total = @remotes.all.size
       if total.zero?

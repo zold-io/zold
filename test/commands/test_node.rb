@@ -21,6 +21,7 @@
 require 'minitest/autorun'
 require 'tmpdir'
 require 'webmock/minitest'
+require_relative '../test__helper'
 require_relative '../../lib/zold/wallet'
 require_relative '../../lib/zold/remotes'
 require_relative '../../lib/zold/id'
@@ -37,17 +38,22 @@ require_relative '../node/fake_node'
 # License:: MIT
 class TestNode < Minitest::Test
   def test_push_and_fetch
-    FakeNode.new.run do |port|
+    FakeNode.new(log: $log).run do |port|
       Dir.mktmpdir 'test' do |dir|
         id = Zold::Id.new
-        wallet = Zold::Wallet.new(File.join(dir, id.to_s))
+        wallets = Zold::Wallets.new(dir)
+        wallet = wallets.find(id)
         wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-        copies = Zold::Copies.new(File.join(dir, 'copies'))
         remotes = Zold::Remotes.new(File.join(dir, 'remotes.csv'))
         remotes.clean
         remotes.add('localhost', port)
-        Zold::Push.new(wallet: wallet, remotes: remotes).run(['push'])
-        Zold::Fetch.new(wallet: wallet, copies: copies, remotes: remotes).run(['fetch'])
+        Zold::Push.new(wallets: wallets, remotes: remotes, log: $log).run(['push'])
+        Zold::Fetch.new(
+          wallets: wallets, copies: File.join(dir, 'copies'),
+          remotes: remotes, log: $log
+        ).run(['fetch'])
+        copies = Zold::Copies.new(File.join(dir, "copies/#{id}"))
+        assert_equal(1, copies.all.count)
         assert_equal(copies.all[0][:name], '1')
         assert_equal(copies.all[0][:score], 0)
       end

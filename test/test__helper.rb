@@ -29,5 +29,8 @@ if ENV['CI'] == 'true'
   SimpleCov.formatter = SimpleCov::Formatter::Codecov
 end
 
+require_relative '../lib/zold/log'
+$log = Zold::Log::Quiet.new
+
 require 'minitest/autorun'
 require_relative '../lib/zold'

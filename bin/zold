@@ -142,7 +142,7 @@ Available options:"
     Zold::Show.new(wallets: wallets, log: log).run(args)
   when 'fetch'
     require_relative '../lib/zold/commands/fetch'
-    Zold::Fetch.new(remotes: remotes, copies: copies, log: log).run(args)
+    Zold::Fetch.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)
   when 'clean'
     require_relative '../lib/zold/commands/clean'
     Zold::Clean.new(copies: copies, log: log).run(args)
@@ -157,7 +157,7 @@ Available options:"
     Zold::Propagate.new(wallets: wallets, log: log).run(args)
   when 'pull'
     require_relative '../lib/zold/commands/fetch'
-    Zold::Fetch.new(remotes: remotes, copies: copies, log: log).run(args)
+    Zold::Fetch.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)
     require_relative '../lib/zold/commands/merge'
     Zold::Merge.new(wallets: wallets, copies: copies, log: log).run(args)
   when 'taxes'

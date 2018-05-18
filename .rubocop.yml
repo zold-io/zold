@@ -27,3 +27,7 @@ Metrics/PerceivedComplexity:
   Max: 25
 Metrics/LineLength:
   Max: 120
+
+# Get rid of this:
+Style/GlobalVars:
+  Enabled: false

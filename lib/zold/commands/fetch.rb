@@ -36,7 +36,8 @@ require_relative '../copies'
 module Zold
   # FETCH pulling command
   class Fetch
-    def initialize(remotes:, copies:, log: Log::Quiet.new)
+    def initialize(wallets:, remotes:, copies:, log: Log::Quiet.new)
+      @wallets = wallets
       @remotes = remotes
       @copies = copies
       @log = log

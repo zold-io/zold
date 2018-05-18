@@ -20,6 +20,7 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
+require_relative '../test__helper'
 require_relative '../../lib/zold/wallets'
 require_relative '../../lib/zold/amount'
 require_relative '../../lib/zold/key'
@@ -41,7 +42,7 @@ class TestPay < Minitest::Test
       target = wallets.find(tid)
       target.init(tid, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
       amount = Zold::Amount.new(zld: 14.95)
-      Zold::Pay.new(wallets: wallets).run(
+      Zold::Pay.new(wallets: wallets, log: $log).run(
         [
           'pay', '--force', '--private-key=fixtures/id_rsa',
           sid.to_s, tid.to_s, amount.to_zld, 'For the car'

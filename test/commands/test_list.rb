@@ -20,6 +20,7 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
+require_relative '../test__helper'
 require_relative '../../lib/zold/wallet'
 require_relative '../../lib/zold/key'
 require_relative '../../lib/zold/id'
@@ -36,7 +37,7 @@ class TestList < Minitest::Test
       wallets = Zold::Wallets.new(dir)
       wallet = wallets.find(id)
       wallet.init(Zold::Id.new, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-      Zold::List.new(wallets: wallets).run
+      Zold::List.new(wallets: wallets, log: $log).run
     end
   end
 end

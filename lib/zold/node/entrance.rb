@@ -54,7 +54,7 @@ module Zold
       copies = Copies.new(File.join(@copies, id.to_s))
       copies.add(body, 'remote', Remotes::PORT, 0)
       Fetch.new(
-        remotes: @remotes, copies: copies.root, log: @log
+        wallets: @wallets, remotes: @remotes, copies: copies.root, log: @log
       ).run(['fetch', id.to_s, "--ignore-node=#{@address}"])
       modified = Merge.new(
         wallets: @wallets, copies: copies.root, log: @log

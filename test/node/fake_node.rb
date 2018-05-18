@@ -45,6 +45,7 @@ class FakeNode
           home = File.join(dir, 'node-home')
           Zold::Node.new(log: @log).run(
             [
+              '--standalone',
               '--invoice', 'NOPREFIX@ffffffffffffffff',
               '--port', port.to_s,
               '--host=locahost',
@@ -64,8 +65,6 @@ class FakeNode
       end
       begin
         yield port
-      rescue StandardError => e
-        @log.error(e.message + "\n" + e.backtrace.join("\n"))
       ensure
         node.exit
       end

@@ -23,7 +23,9 @@ require 'tmpdir'
 require 'json'
 require 'time'
 require 'webmock/minitest'
+require_relative '../test__helper'
 require_relative '../../lib/zold/wallet'
+require_relative '../../lib/zold/wallets'
 require_relative '../../lib/zold/remotes'
 require_relative '../../lib/zold/id'
 require_relative '../../lib/zold/copies'
@@ -39,8 +41,8 @@ class TestFetch < Minitest::Test
   def test_fetches_wallet
     Dir.mktmpdir 'test' do |dir|
       id = Zold::Id.new
-      file = File.join(dir, id.to_s)
-      wallet = Zold::Wallet.new(file)
+      wallets = Zold::Wallets.new(dir)
+      wallet = wallets.find(id)
       wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
       remotes = Zold::Remotes.new(File.join(dir, 'remotes.csv'))
       remotes.clean
@@ -57,7 +59,7 @@ class TestFetch < Minitest::Test
       remotes.add('fake-1', 80)
       remotes.add('fake-2', 80)
       copies = Zold::Copies.new(File.join(dir, "copies/#{id}"))
-      Zold::Fetch.new(copies: copies.root, remotes: remotes).run(
+      Zold::Fetch.new(wallets: wallets, copies: copies.root, remotes: remotes, log: $log).run(
         ['fetch', '--ignore-score-weakness', id.to_s]
       )
       assert_equal(copies.all[0][:name], '1')
@@ -68,6 +70,7 @@ class TestFetch < Minitest::Test
   def test_fetches_empty_wallet
     Dir.mktmpdir 'test' do |dir|
       id = Zold::Id.new
+      wallets = Zold::Wallets.new(dir)
       remotes = Zold::Remotes.new(File.join(dir, 'remotes.csv'))
       remotes.clean
       stub_request(:get, "http://fake-1/wallet/#{id}").to_return(
@@ -79,7 +82,9 @@ class TestFetch < Minitest::Test
       )
       remotes.add('fake-1', 80)
       copies = Zold::Copies.new(File.join(dir, "copies/#{id}"))
-      Zold::Fetch.new(copies: copies.root, remotes: remotes).run(['fetch', id.to_s])
+      Zold::Fetch.new(
+        wallets: wallets, copies: copies.root, remotes: remotes, log: $log
+      ).run(['fetch', id.to_s])
       assert_equal(copies.all[0][:name], '1')
       assert_equal(copies.all[0][:score], 0)
     end

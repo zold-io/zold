@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
+require_relative '../test__helper'
 require_relative '../../lib/zold/log'
 require_relative '../../lib/zold/commands/calculate'
 
@@ -28,7 +29,7 @@ require_relative '../../lib/zold/commands/calculate'
 # License:: MIT
 class TestCalculate < Minitest::Test
   def test_calculates_score
-    score = Zold::Calculate.new.run(
+    score = Zold::Calculate.new(log: $log).run(
       ['score', '--strength=2', '--max=8', '--invoice=NOSUFFIX@ffffffffffffffff']
     )
     assert(score.valid?)

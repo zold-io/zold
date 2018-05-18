@@ -23,6 +23,7 @@ require 'tmpdir'
 require 'json'
 require 'time'
 require 'webmock/minitest'
+require_relative '../test__helper'
 require_relative '../../lib/zold/wallet'
 require_relative '../../lib/zold/wallets'
 require_relative '../../lib/zold/remotes'
@@ -44,7 +45,7 @@ class TestPush < Minitest::Test
       remotes = Zold::Remotes.new(File.join(dir, 'remotes.csv'))
       remotes.clean
       stub_request(:put, "http://fake-1/wallet/#{id}").to_return(status: 304)
-      Zold::Push.new(wallets: wallets, remotes: remotes).run(
+      Zold::Push.new(wallets: wallets, remotes: remotes, log: $log).run(
         ['--ignore-this-stupid-option', 'push', id.to_s]
       )
     end

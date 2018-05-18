@@ -20,6 +20,7 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
+require_relative '../test__helper'
 require_relative '../../lib/zold/wallets'
 require_relative '../../lib/zold/key'
 require_relative '../../lib/zold/commands/create'
@@ -31,7 +32,7 @@ require_relative '../../lib/zold/commands/create'
 class TestCreate < Minitest::Test
   def test_creates_wallet
     Dir.mktmpdir 'test' do |dir|
-      wallet = Zold::Create.new(wallets: Zold::Wallets.new(dir)).run(
+      wallet = Zold::Create.new(wallets: Zold::Wallets.new(dir), log: $log).run(
         ['create', '--public-key=fixtures/id_rsa.pub']
       )
       assert wallet.balance.zero?

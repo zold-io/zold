@@ -23,6 +23,7 @@ require 'tmpdir'
 require 'json'
 require 'time'
 require 'webmock/minitest'
+require_relative '../test__helper'
 require_relative '../../lib/zold/wallet'
 require_relative '../../lib/zold/wallets'
 require_relative '../../lib/zold/id'
@@ -49,14 +50,14 @@ class TestMerge < Minitest::Test
       second = Zold::Wallet.new(File.join(dir, 'copy-2'))
       File.write(second.path, File.read(wallet.path))
       Zold::Pay.new(
-        wallets: Zold::Wallets.new(dir)
+        wallets: Zold::Wallets.new(dir), log: $log
       ).run(['pay', id.to_s, second.id.to_s, '14.95', '--force', '--private-key=fixtures/id_rsa'])
       copies = Zold::Copies.new(File.join(dir, "copies/#{id}"))
       copies.add(File.read(first.path), 'host-1', 80, 5)
       copies.add(File.read(second.path), 'host-2', 80, 5)
       modified = Zold::Merge.new(
         wallets: Zold::Wallets.new(dir),
-        copies: copies.root
+        copies: copies.root, log: $log
       ).run(['merge', id.to_s])
       assert(1, modified.count)
       assert(id, modified[0])
@@ -74,14 +75,14 @@ class TestMerge < Minitest::Test
       second = Zold::Wallet.new(File.join(dir, 'copy-2'))
       File.write(second.path, File.read(wallet.path))
       Zold::Pay.new(
-        wallets: Zold::Wallets.new(dir)
+        wallets: Zold::Wallets.new(dir), log: $log
       ).run(['pay', id.to_s, second.id.to_s, '14.95', '--force', '--private-key=fixtures/id_rsa'])
       copies = Zold::Copies.new(File.join(dir, "copies/#{id}"))
       copies.add(File.read(first.path), 'host-1', 80, 5)
       copies.add(File.read(second.path), 'host-2', 80, 5)
       modified = Zold::Merge.new(
         wallets: Zold::Wallets.new(dir),
-        copies: copies.root
+        copies: copies.root, log: $log
       ).run(['merge', id.to_s])
       assert(1, modified.count)
       assert(id, modified[0])
