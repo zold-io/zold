@@ -54,12 +54,8 @@ Available options:"
           default: []
         o.bool '--help', 'Print instructions'
       end
-      if opts.help?
-        @log.info(opts.to_s)
-        return
-      end
       mine = Args.new(opts, @log).take || return
-      raise 'At least one wallet ID is required' if mine.empty?
+      mine = @wallets.all if mine.empty?
       mine.each do |id|
         fetch(id, Copies.new(File.join(@copies, id)), opts)
       end

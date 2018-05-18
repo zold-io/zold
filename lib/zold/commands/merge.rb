@@ -47,7 +47,7 @@ Available options:"
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
-      raise 'At least one wallet ID is required' if mine.empty?
+      mine = @wallets.all if mine.empty?
       modified = []
       mine.each do |id|
         wallet = @wallets.find(Id.new(id))
