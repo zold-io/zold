@@ -28,10 +28,15 @@ module Zold
   # Amount
   class Amount
     def initialize(coins: nil, zld: nil)
-      raise 'You can\'t specify both coints and zld' if !coins.nil? && !zld.nil?
-      raise "Integer is required, while #{coins.class} provided: #{coins}" unless coins.nil? || coins.is_a?(Integer)
-      @coins = coins unless coins.nil?
-      @coins = (zld * 2**24).to_i unless zld.nil?
+      if !coins.nil?
+        raise "Integer is required, while #{coins.class} provided: #{coins}" unless coins.is_a?(Integer)
+        @coins = coins
+      elsif !zld.nil?
+        raise "Float is required, while #{zld.class} provided: #{zld}" unless zld.is_a?(Float)
+        @coins = (zld * 2**24).to_i
+      else
+        raise 'You can\'t specify both coints and zld'
+      end
     end
 
     ZERO = Amount.new(coins: 0)

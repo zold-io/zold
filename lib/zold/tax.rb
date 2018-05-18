@@ -35,7 +35,7 @@ module Zold
     MIN_SCORE = 16
 
     # The maximum allowed amount in one transaction.
-    MAX_PAYMENT = Amount.new(zld: 1)
+    MAX_PAYMENT = Amount.new(zld: 1.0)
 
     # This is how much we charge per one transaction per hour
     # of storage. A wallet of 4096 transactions will pay

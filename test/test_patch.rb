@@ -40,12 +40,12 @@ class TestPatch < Minitest::Test
       third = Zold::Wallet.new(File.join(dir, 'third'))
       first.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
       File.write(second.path, File.read(first.path))
-      first.sub(Zold::Amount.new(zld: 39), "NOPREFIX@#{Zold::Id.new}", key)
-      first.sub(Zold::Amount.new(zld: 11), "NOPREFIX@#{Zold::Id.new}", key)
-      first.sub(Zold::Amount.new(zld: 3), "NOPREFIX@#{Zold::Id.new}", key)
-      second.sub(Zold::Amount.new(zld: 44), "NOPREFIX@#{Zold::Id.new}", key)
+      first.sub(Zold::Amount.new(zld: 39.0), "NOPREFIX@#{Zold::Id.new}", key)
+      first.sub(Zold::Amount.new(zld: 11.0), "NOPREFIX@#{Zold::Id.new}", key)
+      first.sub(Zold::Amount.new(zld: 3.0), "NOPREFIX@#{Zold::Id.new}", key)
+      second.sub(Zold::Amount.new(zld: 44.0), "NOPREFIX@#{Zold::Id.new}", key)
       File.write(third.path, File.read(first.path))
-      t = third.sub(Zold::Amount.new(zld: 10), "NOPREFIX@#{Zold::Id.new}", key)
+      t = third.sub(Zold::Amount.new(zld: 10.0), "NOPREFIX@#{Zold::Id.new}", key)
       third.add(t.inverse(id))
       patch = Zold::Patch.new
       patch.start(first)
@@ -53,7 +53,7 @@ class TestPatch < Minitest::Test
       patch.join(third)
       FileUtils.rm(first.path)
       assert_equal(true, patch.save(first.path))
-      assert_equal(Zold::Amount.new(zld: -53), first.balance)
+      assert_equal(Zold::Amount.new(zld: -53.0), first.balance)
     end
   end
 end

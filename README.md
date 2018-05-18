@@ -62,15 +62,17 @@ $ zold fetch 5555444433332222
 5.00 ZLD added to 5f96e731e48ae21f: To my friend!
 ```
 
-Now, you have the money in your wallet! Next, you can pay your friend back:
+Now, you have the money in your wallet!
+
+Next, you can pay your friend back:
 
 ```bash
-$ zold pay 5f96e731e48ae21f 5555444433332222 2 'Here is a refund'
--5.00 ZLD added to 5f96e731e48ae21f: Here is a refund
+$ zold pay 5f96e731e48ae21f 5555444433332222 2.50 'Here is a refund'
+-2.50 ZLD added to 5f96e731e48ae21f: Here is a refund
 ```
 
 Finally, you have to push your wallet to the network so that your friend
-know about the payment:
+knows about the payment:
 
 ```bash
 $ zold push 5f96e731e48ae21f
