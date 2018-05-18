@@ -334,12 +334,21 @@ Then, the copy with the highest score is assumed to be the correct one,
 which is the \dd{copy-1} in this example.
 
 Then, all other copies, in the order of their scores, are merged into the
-correct one, transaction by transaction. If a transaction already exists,
-it's ignored. If a transaction is negative (spending money) and its ID is lower than
-the maximum ID in the ledger, it gets ignored as a fraudulent one
-(``double spending''). Otherwise, it gets to the end of the ledger.
+correct one, transaction by transaction, applied the following rules
+consequently:
 
-Then, when merge is done, the modifications get \emph{propagated} to other wallets
+\begin{enumerate}
+\item If the transaction already exists, it's ignored;
+\item If the transaction is negative (spending money) and its ID is lower than
+the maximum ID in the ledger, it gets ignored as a fraudulent one (``double spending'');
+\item If the transaction makes the balance of the wallet negative, it is ignored;
+\item If the transaction is positive and its signature is not valid, it is ignored;
+\item If the transaction is negative and it's absent in the paying wallet
+(which is fetched and merged first), it's ignored;
+\item Otherwise, it gets added to the end of the ledger.
+\end{enumerate}
+
+When merge is done, the modifications get \emph{propagated} to other wallets
 available locally. Each transaction that has a negative amount is
 copied to the ledger of their receiving wallets (with a reversed sign),
 if it doesn't yet exist there.
@@ -347,10 +356,14 @@ if it doesn't yet exist there.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Push}
+\section{Pay and Push}
+
+To send money from one wallet to another, the owner of the sending wallet
+has to add a negative transaction to it, signing it with the private RSA key.
 
 At any moment of time any node may decide to push a wallet to another node.
-The accepts it, merges with the local version, and keeps locally.
+The accepts it, merges with the local version, and keeps locally. Then, it
+\emph{promotes} the wallet to all known remote nodes.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -358,6 +371,9 @@ The accepts it, merges with the local version, and keeps locally.
 \section{RESTful API}
 
 There is a limited set of RESTful API entry points in each node.
+Each response has \dd{Content-Type},
+\dd{Content-Length}, and \dd{X-Zold-Version}
+HTTP headers.
 
 \dd{GET /} is a home page of a node that returns JSON response with the
 information about the node, for example (other details may be added in
@@ -461,5 +477,9 @@ This will happen, but very soon one part of the network will dominate the other
 one, and one of the transactions will be rejected from the wallet, after
 a number of merge operations in all nodes of the network. The receiver of the
 money must be careful and always to the full fetch (from as many
+
+\subsection{Fake }
+
+A produ
 
 \end{document}

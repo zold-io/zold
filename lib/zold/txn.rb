@@ -65,9 +65,9 @@ module Zold
 
     def to_s
       [
-        format('%04x', @id),
+        Txn.to_hex(@id, 4),
         @date.utc.iso8601,
-        format('%016x', @amount.to_i),
+        Txn.to_hex(@amount.to_i, 16),
         @prefix,
         @bnf,
         @details,
@@ -108,15 +108,26 @@ module Zold
       raise "Invalid line ##{idx}: #{line.inspect}" unless regex.match(clean)
       parts = clean.split(';')
       txn = Txn.new(
-        Integer("0x#{parts[0]}", 16),
+        Txn.from_hex(parts[0]),
         Time.parse(parts[1]),
-        Amount.new(coins: Integer("0x#{parts[2]}", 16)),
+        Amount.new(coins: Txn.from_hex(parts[2])),
         parts[3],
         Id.new(parts[4]),
         parts[5]
       )
       txn.sign = parts[6]
       txn
+    end
+
+    private
+
+    def self.to_hex(num, width)
+      format("%0#{width}x", num).gsub(/^../, 'ff')
+    end
+
+    def self.from_hex(txt)
+      num = Integer("0x#{txt}", 16)
+      num = 1 - num if txt.start_with?('f')
     end
   end
 end

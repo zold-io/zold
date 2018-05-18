@@ -25,7 +25,7 @@ zold remote clean
 zold remote add localhost ${port}
 zold remote show
 
-zold create --public-key=id_rsa.pub 0000000000000000
+zold --public-key=id_rsa.pub create 0000000000000000
 target=`zold create --public-key=id_rsa.pub`
 invoice=`zold invoice ${target}`
 zold pay --private-key=id_rsa 0000000000000000 ${invoice} 14.99 'To save the world!'
