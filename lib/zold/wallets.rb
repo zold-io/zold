@@ -37,6 +37,7 @@ module Zold
       File.expand_path(@dir)
     end
 
+    # Returns the list of their IDs (as plain text)
     def all
       Dir.new(path).select do |f|
         file = File.join(@dir, f)
