@@ -5,6 +5,7 @@
 \usepackage{microtype}
 \usepackage{mathpazo} % Palantino font
 \usepackage{mdframed}
+\usepackage{pgfplots}
 \usepackage{minted}
   \setminted{fontsize=\small}
   \setminted{breaklines}
@@ -92,11 +93,12 @@ One ZLD by convention equals to $2^{24}$ \emph{zents} (16,777,216).
 All amounts are stored as signed 64-bit integers.
 Thus, the technical capacity of the currency is 549,755,813,888 ZLD (half a trillion).
 
-\textbf{Zero Wallet}.
-There is no ``mining,'' the only way to get ZLD is to receive it from someone else.
-The wallet with the \dd{0x00} ID belongs to the
-issuer and may have a negative balance. All other wallets
-may only have positive balances.
+\textbf{Root Wallet}.
+Zold is a pre-mined currency.
+The only way to get ZLD is to receive it from someone else.
+The root wallet belongs to the issuer and may have a negative balance,
+which can grow according to a pre-defined restrictive formula.
+All other wallets may only have positive balances.
 
 \colorbox{yellow}{Let's compare each of these principles with other currencies and highlight similarities.}
 
@@ -267,6 +269,51 @@ For example, this text may be used as a signing input:
 Each transaction takes 900 symbols at most.
 The maximum amount of transactions in one wallet is 65536.
 Thus, a single wallet may be as big as a 59Mb text file, at most.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Mining Formula}
+
+The only way to get ZLD is to receive it from the \emph{root} wallet \dd{0000000000000000}.
+This wallet is the only one that may have a negative ballance.
+However, to prevent an uncontrolled emission of ZLD, the balance
+of this wallet must satisfy the formula:
+
+$$x = \frac{2048}{h};\quad z = 2^{63 - x}.$$
+
+Here $h$ is the age of the root wallet in hours and $z$ is the maximum
+amount of zents it can issue at that moment. The first
+six years will look like this:
+
+\vspace{\parskip}\begin{center}\begin{tabular}{lrr}
+\hline
+Year & ZLD & Share \\
+\hline
+1st & 32m & 0.01\% \\
+2nd & 4b & 0.77\% \\
+3rd & 21b & 4\%\\
+4th & 48b & 9\% \\
+5th & 78b & 14\% \\
+6th & 108b & 20\% \\
+\hline
+\end{tabular}\end{center}
+
+On a large perspective of 25 years total emission of ZLD will look
+like this:
+
+\vspace{\parskip}\begin{center}\begin{tikzpicture}
+\begin{axis}[
+  axis lines=middle,
+  width=12cm,height=5cm,
+  xlabel={Age, in years},
+  ylabel={Billions of ZLD},
+]
+\addplot[domain=-0:25, samples=25]{2^(39-2048/(x*24*365)) / 1000000000};
+\end{axis}
+\end{tikzpicture}\end{center}
+
+The limitation is hardwired in Zold software and can't be eliminated.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

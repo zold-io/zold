@@ -21,6 +21,7 @@
 require 'minitest/autorun'
 require 'tmpdir'
 require 'English'
+require_relative 'test__helper'
 
 # Zold main module test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

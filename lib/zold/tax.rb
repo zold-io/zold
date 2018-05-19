@@ -69,8 +69,7 @@ module Zold
         score
       end.reject(&:nil?).uniq(&:hash)
       paid = scores.empty? ? Amount::ZERO : scores.map(&:amount).inject(&:+) * -1
-      age_hours = txns.empty? ? 0 : (Time.now - txns.sort_by(&:date)[0].date) / 60
-      owned = Tax::FEE_TXN_HOUR * txns.count * age_hours
+      owned = Tax::FEE_TXN_HOUR * txns.count * @wallet.age
       owned - paid
     end
   end

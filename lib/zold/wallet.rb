@@ -131,6 +131,12 @@ module Zold
       end
     end
 
+    # Age of wallet in hours
+    def age
+      list = txns
+      list.empty? ? 0 : (Time.now - list.sort_by(&:date)[0].date) / 60
+    end
+
     def txns
       lines.drop(5)
         .each_with_index

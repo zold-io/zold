@@ -19,6 +19,8 @@
 # SOFTWARE.
 
 require 'concurrent'
+require 'tempfile'
+require_relative 'emission'
 require_relative '../log'
 require_relative '../remotes'
 require_relative '../copies'
@@ -44,9 +46,25 @@ module Zold
     end
 
     def push(id, body)
+      check(body)
       @semaphores.put_if_absent(id, Mutex.new)
       @semaphores.get(id).synchronize do
         push_unsafe(id, body)
+      end
+    end
+
+    def check(body)
+      Tempfile.open do |f|
+        File.write(f.path, body)
+        wallet = Wallet.new(f)
+        break unless wallet.network == Wallet::MAIN_NETWORK
+        balance = wallet.balance
+        raise "The balance #{balance} is negative and it's not a root wallet" if balance.negative? && !wallet.root?
+        Emission.new(wallet).check
+        debt = Tax.new(wallet).debt
+        if debt > Tax::TRIAL
+          raise "Taxes are not paid, the debt is #{debt} (#{debt.to_i} zents), won't promote the wallet"
+        end
       end
     end
 
@@ -59,10 +77,6 @@ module Zold
       modified = Merge.new(
         wallets: @wallets, copies: copies.root, log: @log
       ).run(['merge', id.to_s])
-      debt = Tax.new(@wallets.find(id)).debt
-      if debt > Tax::TRIAL
-        raise "Taxes are not paid, the debt is #{debt} (#{debt.to_i} zents), won't promote the wallet"
-      end
       copies.remove('remote', Remotes::PORT)
       modified.each do |m|
         Push.new(
