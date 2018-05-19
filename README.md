@@ -93,3 +93,22 @@ $ zold node --invoice=5f96e731e48ae21f
 
 Grateful users of the system will pay "taxes" to your wallet for processing
 of their transactions.
+
+## How to Contribute
+
+It is a Ruby command line gem. First, install
+[Ruby](https://www.ruby-lang.org/en/documentation/installation/) 2.3+,
+[Rubygems](https://rubygems.org/pages/download),
+and
+[Bundler](https://bundler.io/).
+Then:
+
+```bash
+$ bundle update
+$ rake
+```
+
+The build has to be clean. If it's not, [submit an issue](https://github.com/zerocracy/zold/issues).
+
+Then, make your changes, make sure the build is still clean,
+and [submit a pull request](https://www.yegor256.com/2014/04/15/github-guidelines.html).
