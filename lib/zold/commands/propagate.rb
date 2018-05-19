@@ -64,9 +64,13 @@ Available options:"
           @log.debug("#{t.amount * -1} to #{t.bnf}: wallet is absent")
           next
         end
+        unless target.network == wallet.network
+          @log.error("#{t.amount * -1} to #{t.bnf}: network mismatch, '#{target.network}'!='#{wallet.network}'")
+          next
+        end
         next if target.has?(t.id, me)
         unless Prefixes.new(target).valid?(t.prefix)
-          @log.info("#{t.amount * -1} to #{t.bnf}: wrong prefix")
+          @log.error("#{t.amount * -1} to #{t.bnf}: wrong prefix")
           next
         end
         target.add(t.inverse(me))

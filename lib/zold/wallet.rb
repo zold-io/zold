@@ -38,6 +38,10 @@ require_relative 'signature'
 module Zold
   # A single wallet
   class Wallet
+    # The name of the main production network. All other networks
+    # must have different names.
+    MAIN_NETWORK = 'zold'.freeze
+
     def initialize(file)
       @file = file
     end

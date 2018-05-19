@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require_relative '../log'
+require_relative '../wallet'
 
 # LIST command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -35,7 +36,9 @@ module Zold
     def run(_ = [])
       @wallets.all.each do |id|
         wallet = Wallet.new(File.join(@wallets.path, id))
-        @log.info("#{id}: #{wallet.balance}")
+        msg = "#{id}: #{wallet.balance}"
+        msg += " (net:#{wallet.network})" if wallet.network != Wallet::MAIN_NETWORK
+        @log.info(msg)
       end
     end
   end

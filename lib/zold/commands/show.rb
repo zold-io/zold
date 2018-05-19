@@ -24,6 +24,7 @@ require_relative 'args'
 require_relative '../log'
 require_relative '../id'
 require_relative '../amount'
+require_relative '../wallet'
 
 # SHOW command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -61,7 +62,9 @@ Available options:"
       wallet.txns.each do |t|
         @log.info(t.to_text)
       end
-      @log.info("The balance of #{wallet}: #{balance}")
+      msg = "The balance of #{wallet}: #{balance}"
+      msg += " (net:#{wallet.network})" if wallet.network != Wallet::MAIN_NETWORK
+      @log.info(msg)
       balance
     end
   end
