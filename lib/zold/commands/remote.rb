@@ -133,12 +133,12 @@ Available options:"
         score = Score.parse_json(json['score'])
         unless score.valid?
           error(r[:host], r[:port])
-          @log.info("#{Rainbow(r[:host]).red} invalid score")
+          @log.info("#{Rainbow(r[:host]).red} invalid score: #{score}")
           next
         end
         if score.expired?
           error(r[:host], r[:port])
-          @log.info("#{Rainbow(r[:host]).red} expired score")
+          @log.info("#{Rainbow(r[:host]).red} expired score: #{score}")
           next
         end
         if score.strength < Score::STRENGTH && !opts['ignore-score-weakness']
@@ -158,7 +158,7 @@ Available options:"
           end
         end
         capacity << { host: score.host, port: score.port, count: json['all'].count }
-        @log.info("#{r[:host]}:#{r[:port]}: #{Rainbow(score.value).green} (v.#{json['version']})")
+        @log.info("#{r[:host]}:#{r[:port]}: #{Rainbow(score.value).green} (#{json['version']})")
       end
       max_capacity = capacity.map { |c| c[:count] }.max || 0
       capacity.each do |c|

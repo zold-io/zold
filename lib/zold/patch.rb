@@ -32,9 +32,13 @@ module Zold
       @id = wallet.id
       @key = wallet.key
       @txns = wallet.txns
+      @network = wallet.network
     end
 
     def join(wallet)
+      if wallet.network != @network
+        raise "The wallet is from a different network '#{wallet.version}', ours is '#{@network}'"
+      end
       negative = @txns.select { |t| t.amount.negative? }
       max = negative.empty? ? 0 : negative.max_by(&:id).id
       wallet.txns.each do |txn|
@@ -54,7 +58,7 @@ module Zold
       before = ''
       before = File.read(file) if File.exist?(file)
       wallet = Zold::Wallet.new(file)
-      wallet.init(@id, @key, overwrite: overwrite)
+      wallet.init(@id, @key, overwrite: overwrite, network: @network)
       @txns.each { |t| wallet.add(t) }
       after = File.read(file)
       before != after

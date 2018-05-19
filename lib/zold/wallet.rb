@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'time'
+require_relative 'version'
 require_relative 'key'
 require_relative 'id'
 require_relative 'txn'
@@ -49,6 +50,18 @@ module Zold
       id.to_s
     end
 
+    def network
+      n = lines[0].strip
+      raise "Invalid network name '#{n}'" unless n =~ /[a-z]{4,16}/
+      n
+    end
+
+    def version
+      v = lines[1].strip
+      raise "Invalid version name '#{v}'" unless v =~ /[0-9]+(\.[0-9]+){1,2}/
+      v
+    end
+
     def exists?
       File.exist?(@file)
     end
@@ -57,9 +70,10 @@ module Zold
       @file
     end
 
-    def init(id, pubkey, overwrite: false)
+    def init(id, pubkey, overwrite: false, network: 'test')
       raise "File '#{@file}' already exists" if File.exist?(@file) && !overwrite
-      File.write(@file, "#{id}\n#{pubkey.to_pub}\n\n")
+      raise "Invalid network name '#{network}'" unless network =~ /[a-z]{4,16}/
+      File.write(@file, "#{network}\n#{VERSION}\n#{id}\n#{pubkey.to_pub}\n\n")
     end
 
     def root?
@@ -67,7 +81,7 @@ module Zold
     end
 
     def id
-      Id.new(lines[0])
+      Id.new(lines[2].strip)
     end
 
     def balance
@@ -104,7 +118,7 @@ module Zold
     end
 
     def key
-      Key.new(text: lines[1].strip)
+      Key.new(text: lines[3].strip)
     end
 
     def income
@@ -114,9 +128,9 @@ module Zold
     end
 
     def txns
-      lines.drop(3)
+      lines.drop(5)
         .each_with_index
-        .map { |line, i| Txn.parse(line, i + 4) }
+        .map { |line, i| Txn.parse(line, i + 6) }
         .sort_by(&:date)
     end
 

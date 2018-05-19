@@ -45,6 +45,10 @@ Available options:"
           'The location of RSA public key (default: ~/.ssh/id_rsa.pub)',
           require: true,
           default: '~/.ssh/id_rsa.pub'
+        o.string '--network',
+          'The name of the network',
+          require: true,
+          default: 'zold'
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
@@ -54,7 +58,7 @@ Available options:"
     def create(id, opts)
       wallet = @wallets.find(id)
       key = Zold::Key.new(file: opts['public-key'])
-      wallet.init(id, key)
+      wallet.init(id, key, network: opts['network'])
       @log.info(wallet.id)
       @log.debug("Wallet #{Rainbow(wallet).green} created at #{@wallets.path}")
       wallet

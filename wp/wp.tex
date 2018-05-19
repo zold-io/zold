@@ -202,6 +202,8 @@ Each wallet is an ASCII-text file with the name equal to the wallet ID.
 For example, the wallet in the file \dd{12345678abcdef} may include:
 
 \begin{minted}{text}
+zold
+0.6.4
 12345678abcdef
 AAAAB3NzaC1yc2EAAAADAQABAAABAQCuLuVr4Tl2sXoN5Zb7b6SKMPrVjLxb...
 
@@ -213,9 +215,11 @@ AAAAB3NzaC1yc2EAAAADAQABAAABAQCuLuVr4Tl2sXoN5Zb7b6SKMPrVjLxb...
 
 Lines are separated by either CR or CRLF.
 There is a header and a ledger, separated by an empty line.
-The header includes two lines:
+The header includes four lines:
 
 \begin{enumerate}
+  \item Network name, \dd{[a-z]\{4,16\}};
+  \item Software version, \dd{[0-9]+(\.[0-9]+)\{1,2\}} (\href{https://semver.org/}{semantic versioning});
   \item Wallet ID, a 64-bit unsigned integer in hexadecimal format;
   \item Public \href{https://en.wikipedia.org/wiki/RSA_(cryptosystem)}{RSA}
     key of the wallet owner, in \href{https://en.wikipedia.org/wiki/Base64}{Base64}.
@@ -433,6 +437,7 @@ content the node contains, a
 node responds either with
 \href{https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.3}{202} (if accepted),
 \href{https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.1}{400} (if the data is corrupted),
+\href{https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.3}{402} (if taxes are not paid),
 or
 \href{https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.5}{304}
 (if the content is the same as the one the node already has).

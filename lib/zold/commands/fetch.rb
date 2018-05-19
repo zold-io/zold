@@ -83,6 +83,10 @@ Available options:"
       end
       uri = URI("#{r[:home]}wallet/#{id}")
       res = Http.new(uri).get
+      if res.code == '404'
+        @log.info("#{address} wallet #{Rainbow('not found').red}")
+        return false
+      end
       unless res.code == '200'
         @log.error("#{address} #{Rainbow(res.code).red}/#{res.message} at #{uri}")
         return false
@@ -90,19 +94,19 @@ Available options:"
       json = JSON.parse(res.body)
       score = Score.parse_json(json['score'])
       unless score.valid?
-        @log.error("#{address}: invalid score")
+        @log.error("#{address}: invalid score: #{score}")
         return false
       end
       if score.expired?
-        @log.error("#{address}: score expired")
+        @log.error("#{address}: score expired: #{score}")
         return false
       end
       if score.strength < Score::STRENGTH && !opts['ignore-score-weakness']
-        @log.error("#{address} score is too weak: #{score.strength} (<#{Score::STRENGTH})")
+        @log.error("#{address} score is too weak (#{score.strength}<#{Score::STRENGTH}): #{score}")
         return false
       end
       cps.add(json['body'], score.host, score.port, score.value)
-      @log.info("#{address} #{json['body'].length}b/#{Rainbow(score.value).green} (v.#{json['version']})")
+      @log.info("#{address} #{json['body'].length}b/#{Rainbow(score.value).green} (#{json['version']})")
       true
     end
   end
