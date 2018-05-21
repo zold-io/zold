@@ -152,7 +152,7 @@ For example, the prefix may look like this:
 
 Then, the node attempts to append any arbitrary text, which has to match
 \dd{/[a-zA-Z0-9]+/} regular expression, to the end of the prefix and calculates
-\href{https://en.wikipedia.org/wiki/SHA-2}{SHA-256 hash}
+\href{https://en.wikipedia.org/wiki/SHA-2}{SHA-256 hash} (\colorbox{yellow}{why not SHA-3?})
 of the text in the hexadecimal format. For example, this would be the prefix
 with the attached \dd{117b1f} suffix:
 
@@ -270,6 +270,8 @@ Each transaction takes 900 symbols at most.
 The maximum amount of transactions in one wallet is 65536.
 Thus, a single wallet may be as big as a 59Mb text file, at most.
 
+The order of transactions is not important, as long as their final balance is positive.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -323,10 +325,8 @@ The limitation is hardwired in Zold software and can't be eliminated.
 Each wallet must have to pay \emph{taxes} in order to be promoted by nodes.
 The maximum amount of tax debt a node can tolerate is 1 ZLD. This means
 that if the debt is smaller, all nodes must promote the wallet to their
-remote nodes. If the debt is bigger, a node will accept the wallet but won't
-promote it further, which will seriously decrease wallet's visibility in
-the network---only a limited amount of nodes will see it, unless the owner
-manually pushes it to many nodes, which is an expensive operation.
+remote nodes. If the debt is bigger, a node will reject the wallet,
+which will make it impossible to make any new payments from it.
 
 The amount of taxes to be paid is calculated by the following formula:
 
@@ -345,6 +345,15 @@ take the invoice from the score and send the payment of 1 ZLD or less
 to that node. The score has to be placed into the details of the transaction,
 prefixed by \dd{TAXES }. All tax payments inside a wallet must
 have unique scores.
+
+The most active node with the highest score and the highest availability
+will be selected as tax receiver. It's up to the client which node to select,
+but the built-in mechanism pays attention to the following factors (in order
+of importance):
+
+  * Visibility: the client has to know the node,
+  * Availability: the amount of errors seen recently,
+  * Score: the one reported during the most recent handshake.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
