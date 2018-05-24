@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
-require 'tmpdir'
+require_relative 'fake_home'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/id'
 require_relative '../lib/zold/wallet'
@@ -32,21 +32,19 @@ require_relative '../lib/zold/patch'
 # License:: MIT
 class TestPatch < Minitest::Test
   def test_builds_patch
-    Dir.mktmpdir 'test' do |dir|
-      id = Zold::Id.new
-      key = Zold::Key.new(file: 'fixtures/id_rsa')
-      first = Zold::Wallet.new(File.join(dir, 'first'))
-      second = Zold::Wallet.new(File.join(dir, 'second'))
-      third = Zold::Wallet.new(File.join(dir, 'third'))
-      first.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+    FakeHome.new.run do |home|
+      first = home.create_wallet
+      second = home.create_wallet
+      third = home.create_wallet
       File.write(second.path, File.read(first.path))
+      key = Zold::Key.new(file: 'fixtures/id_rsa')
       first.sub(Zold::Amount.new(zld: 39.0), "NOPREFIX@#{Zold::Id.new}", key)
       first.sub(Zold::Amount.new(zld: 11.0), "NOPREFIX@#{Zold::Id.new}", key)
       first.sub(Zold::Amount.new(zld: 3.0), "NOPREFIX@#{Zold::Id.new}", key)
       second.sub(Zold::Amount.new(zld: 44.0), "NOPREFIX@#{Zold::Id.new}", key)
       File.write(third.path, File.read(first.path))
       t = third.sub(Zold::Amount.new(zld: 10.0), "NOPREFIX@#{Zold::Id.new}", key)
-      third.add(t.inverse(id))
+      third.add(t.inverse(first.id))
       patch = Zold::Patch.new
       patch.start(first)
       patch.join(second)

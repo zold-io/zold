@@ -19,10 +19,11 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
-require 'tmpdir'
 require 'json'
 require 'time'
 require 'webmock/minitest'
+require_relative '../test__helper'
+require_relative '../fake_home'
 require_relative '../../lib/zold/wallets'
 require_relative '../../lib/zold/wallet'
 require_relative '../../lib/zold/id'
@@ -37,24 +38,21 @@ require_relative '../../lib/zold/commands/diff'
 # License:: MIT
 class TestDiff < Minitest::Test
   def test_diff_with_copies
-    Dir.mktmpdir 'test' do |dir|
-      id = Zold::Id.new
-      wallet = Zold::Wallet.new(File.join(dir, id.to_s))
-      wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-      first = Zold::Wallet.new(File.join(dir, 'copy-1'))
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      first = home.create_wallet
       File.write(first.path, File.read(wallet.path))
-      second = Zold::Wallet.new(File.join(dir, 'copy-2'))
+      second = home.create_wallet
       File.write(second.path, File.read(wallet.path))
-      Zold::Pay.new(
-        wallets: Zold::Wallets.new(dir), log: $log
-      ).run(['pay', id.to_s, second.id.to_s, '14.95', '--force', '--private-key=fixtures/id_rsa'])
-      copies = Zold::Copies.new(File.join(dir, "copies/#{id}"))
+      Zold::Pay.new(wallets: home.wallets, log: $log).run(
+        ['pay', wallet.id.to_s, second.id.to_s, '14.95', '--force', '--private-key=fixtures/id_rsa']
+      )
+      copies = home.copies(wallet)
       copies.add(File.read(first.path), 'host-1', 80, 5)
       copies.add(File.read(second.path), 'host-2', 80, 5)
-      diff = Zold::Diff.new(
-        wallets: Zold::Wallets.new(dir),
-        copies: copies.root, log: $log
-      ).run(['diff', id.to_s])
+      diff = Zold::Diff.new(wallets: home.wallets, copies: copies.root, log: $log).run(
+        ['diff', wallet.id.to_s]
+      )
       assert(diff.include?('-0001;'))
     end
   end

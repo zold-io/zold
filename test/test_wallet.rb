@@ -20,6 +20,7 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
+require_relative 'fake_home'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/id'
 require_relative '../lib/zold/wallet'
@@ -33,8 +34,8 @@ require_relative '../lib/zold/commands/pay'
 # License:: MIT
 class TestWallet < Minitest::Test
   def test_adds_transaction
-    Dir.mktmpdir 'test' do |dir|
-      wallet = wallet(dir)
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
       amount = Zold::Amount.new(zld: 39.99)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
@@ -48,8 +49,8 @@ class TestWallet < Minitest::Test
   end
 
   def test_adds_transaction_and_reads_back
-    Dir.mktmpdir 'test' do |dir|
-      wallet = wallet(dir)
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
       amount = Zold::Amount.new(zld: 39.99)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       txn = wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
@@ -58,25 +59,9 @@ class TestWallet < Minitest::Test
     end
   end
 
-  def test_initializes_it
-    Dir.mktmpdir 'test' do |dir|
-      pkey = Zold::Key.new(file: File.join(Dir.pwd, 'fixtures/id_rsa.pub'))
-      Dir.chdir(dir) do
-        file = File.join(dir, 'source')
-        wallet = Zold::Wallet.new(file)
-        id = Zold::Id.new.to_s
-        wallet.init(id, pkey)
-        assert(
-          wallet.id == id,
-          "#{wallet.id} is not equal to #{id}"
-        )
-      end
-    end
-  end
-
   def test_iterates_income_transactions
-    Dir.mktmpdir 'test' do |dir|
-      wallet = wallet(dir)
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
       wallet.add(
         Zold::Txn.new(
           1, Time.now, Zold::Amount.new(zld: 39.99),
@@ -98,15 +83,5 @@ class TestWallet < Minitest::Test
         "#{sum} is not equal to #{Zold::Amount.new(zld: 54.94)}"
       )
     end
-  end
-
-  private
-
-  def wallet(dir)
-    id = Zold::Id.new
-    file = File.join(dir, id.to_s)
-    wallet = Zold::Wallet.new(file)
-    wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-    wallet
   end
 end

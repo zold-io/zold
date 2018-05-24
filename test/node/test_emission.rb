@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
-require 'tmpdir'
+require_relative '../fake_home'
 require_relative '../test__helper'
 require_relative '../../lib/zold/node/emission'
 require_relative '../../lib/zold/amount'
@@ -27,10 +27,8 @@ require_relative '../../lib/zold/amount'
 class EmissionTest < Minitest::Test
   def test_emission
     (1..10).each do |year|
-      Dir.mktmpdir 'test' do |dir|
-        id = Zold::Id.new
-        wallet = Zold::Wallet.new(File.join(dir, id.to_s))
-        wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+      FakeHome.new.run do |home|
+        wallet = home.create_wallet
         wallet.add(
           Zold::Txn.new(
             1, Time.now - 24 * 365 * year,

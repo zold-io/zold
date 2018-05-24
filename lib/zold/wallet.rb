@@ -23,6 +23,7 @@ require_relative 'version'
 require_relative 'key'
 require_relative 'id'
 require_relative 'txn'
+require_relative 'tax'
 require_relative 'amount'
 require_relative 'signature'
 
@@ -116,6 +117,7 @@ module Zold
       raise 'The txn has to be of type Txn' unless txn.is_a?(Txn)
       dup = txns.find { |t| t.bnf == txn.bnf && t.id == txn.id }
       raise "The transaction with the same ID and BNF already exists: #{dup}" unless dup.nil?
+      raise "The tax payment already exists: #{txn}" if Tax.new(self).exists?(txn)
       open(@file, 'a') { |f| f.print "#{txn}\n" }
     end
 

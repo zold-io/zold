@@ -18,28 +18,38 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'minitest/autorun'
 require 'tmpdir'
-require_relative 'fake_home'
-require_relative '../lib/zold/key'
 require_relative '../lib/zold/id'
 require_relative '../lib/zold/wallet'
-require_relative '../lib/zold/prefixes'
+require_relative '../lib/zold/key'
 
-# Prefixes test.
+# Fake home dir.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestPrefixes < Minitest::Test
-  def test_creates_and_validates
-    FakeHome.new.run do |home|
-      wallet = home.create_wallet
-      prefixes = Zold::Prefixes.new(wallet)
-      (8..32).each do |len|
-        prefix = prefixes.create(len)
-        assert_equal(len, prefix.length)
-        assert(prefixes.valid?(prefix))
-      end
+class FakeHome
+  def initialize(dir = Dir.pwd)
+    @dir = dir
+  end
+
+  def run
+    Dir.mktmpdir 'test' do |dir|
+      yield FakeHome.new(dir)
     end
+  end
+
+  def wallets
+    Zold::Wallets.new(@dir)
+  end
+
+  def create_wallet
+    id = Zold::Id.new
+    wallet = Zold::Wallet.new(File.join(@dir, id.to_s))
+    wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+    wallet
+  end
+
+  def copies(wallet)
+    Zold::Copies.new(File.join(@dir, "copies/#{wallet.id}"))
   end
 end

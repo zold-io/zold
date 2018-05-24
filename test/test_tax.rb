@@ -19,14 +19,16 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
-require 'tmpdir'
 require 'time'
+require_relative 'fake_home'
 require_relative '../lib/zold/id'
 require_relative '../lib/zold/txn'
 require_relative '../lib/zold/wallet'
 require_relative '../lib/zold/tax'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/amount'
+require_relative '../lib/zold/prefixes'
+require_relative '../lib/zold/score'
 
 # Tax test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -34,10 +36,8 @@ require_relative '../lib/zold/amount'
 # License:: MIT
 class TestTax < Minitest::Test
   def test_calculates_tax_for_one_year
-    Dir.mktmpdir 'test' do |dir|
-      id = Zold::Id.new
-      wallet = Zold::Wallet.new(File.join(dir, id.to_s))
-      wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
       wallet.add(
         Zold::Txn.new(
           1,
@@ -48,6 +48,45 @@ class TestTax < Minitest::Test
       )
       tax = Zold::Tax.new(wallet)
       assert_equal(Zold::Amount.new(coins: 61_320), tax.debt)
+    end
+  end
+
+  def test_checks_existence_of_duplicates
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      wallet.add(
+        Zold::Txn.new(
+          1,
+          Time.now - 24 * 60 * 365,
+          Zold::Amount.new(zld: 19.99),
+          'NOPREFIX', Zold::Id.new, '-'
+        )
+      )
+      target = home.create_wallet
+      invoice = "#{Zold::Prefixes.new(target).create}@#{target.id}"
+      tax = Zold::Tax.new(wallet)
+      score = Zold::Score.new(Time.now, 'localhost', 80, invoice)
+      tax.pay(Zold::Key.new(file: 'fixtures/id_rsa'), score)
+      assert(
+        tax.exists?(
+          Zold::Txn.new(
+            2,
+            Time.now,
+            Zold::Amount.new(zld: 10.99),
+            'AAPREFIX', target.id, tax.details(score)
+          )
+        )
+      )
+      assert(
+        !tax.exists?(
+          Zold::Txn.new(
+            2,
+            Time.now,
+            Zold::Amount.new(zld: 10.99),
+            'NOPREFIX', target.id, '-'
+          )
+        )
+      )
     end
   end
 end

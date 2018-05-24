@@ -49,20 +49,32 @@ module Zold
     # For how many days to pay at once.
     DAYS_INCREMENT = 32
 
+    # Text prefix for taxes details
+    PREFIX = 'TAXES'.freeze
+
     def initialize(wallet)
       @wallet = wallet
     end
 
+    # Check whether this tax payment already exists in the wallet.
+    def exists?(txn)
+      !@wallet.txns.find { |t| t.details.start_with?("#{Tax::PREFIX} ") && t.details == txn.details }.nil?
+    end
+
+    def details(best)
+      "#{Tax::PREFIX} #{best.to_text}"
+    end
+
     def pay(pvt, best)
-      fee = Tax::FEE * @wallet.txns.count * Tax::DAYS_INCREMENT * 24
-      @wallet.sub(fee, best.invoice, pvt, "TAXES #{best.to_text}")
+      fee = Tax::FEE_TXN_HOUR * @wallet.txns.count * Tax::DAYS_INCREMENT * 24
+      @wallet.sub(fee, best.invoice, pvt, details(best))
     end
 
     def debt
       txns = @wallet.txns
       scores = txns.map do |t|
         pfx, body = t.details.split(' ')
-        next if pfx != 'TAXES' || body.nil?
+        next if pfx != Tax::PREFIX || body.nil?
         score = Score.parse_text(body)
         next if !score.valid? || score.value < MIN_SCORE
         next if t.amount > Tax::MAX_PAYMENT
