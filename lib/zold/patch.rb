@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require_relative 'wallet'
+require_relative 'signature'
 
 # Patch.
 #
@@ -57,7 +58,7 @@ module Zold
     def save(file, overwrite: false)
       before = ''
       before = File.read(file) if File.exist?(file)
-      wallet = Zold::Wallet.new(file)
+      wallet = Wallet.new(file)
       wallet.init(@id, @key, overwrite: overwrite, network: @network)
       @txns.each { |t| wallet.add(t) }
       after = File.read(file)

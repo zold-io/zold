@@ -31,8 +31,8 @@ require_relative 'amount'
 module Zold
   # A single tax payment
   class Tax
-    # The minimum score a wallet can buy in order to pay taxes.
-    MIN_SCORE = 16
+    # The exact score a wallet can buy in order to pay taxes.
+    EXACT_SCORE = 16
 
     # The maximum allowed amount in one transaction.
     MAX_PAYMENT = Amount.new(zld: 1.0)
@@ -62,7 +62,7 @@ module Zold
     end
 
     def details(best)
-      "#{Tax::PREFIX} #{best.to_text}"
+      "#{Tax::PREFIX} #{best.reduced(Tax::EXACT_SCORE).to_text}"
     end
 
     def pay(pvt, best)
@@ -76,7 +76,7 @@ module Zold
         pfx, body = t.details.split(' ')
         next if pfx != Tax::PREFIX || body.nil?
         score = Score.parse_text(body)
-        next if !score.valid? || score.value < MIN_SCORE
+        next if !score.valid? || score.value != Tax::EXACT_SCORE
         next if t.amount > Tax::MAX_PAYMENT
         score
       end.reject(&:nil?).uniq(&:hash)

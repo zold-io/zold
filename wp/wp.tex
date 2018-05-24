@@ -240,7 +240,7 @@ contains fields separated by a semi-colon:
   \item \dd{amount}: Zents, a signed 64-bit integer, 16-symbols hex;
   \item \dd{prefix}: Payment prefix, 8-32 symbols;
   \item \dd{bnf}: Wallet ID of the beneficiary, 16-symbols hex;
-  \item \dd{details}: Arbitrary text, matching \dd{/[a-zA-Z0-9 -.]\{1,128\}/};
+  \item \dd{details}: Arbitrary text, matching \dd{/[a-zA-Z0-9 -.]\{1,512\}/};
   \item \dd{signature}: \href{https://en.wikipedia.org/wiki/RSA_(cryptosystem)}{RSA} signature,
     684 symbols in \href{https://en.wikipedia.org/wiki/Base64}{Base64}.
 \end{enumerate}
@@ -262,9 +262,7 @@ For example, this text may be used as a signing input:
 12345678abcdef 003a 2017-07-19T21:24:51Z ffffffff9c0ccccd Ui0wpLu7 98bb82c81735c4ee For services
 \end{minted}
 
-Each transaction takes 900 symbols at most.
-The maximum amount of transactions in one wallet is 65536.
-Thus, a single wallet may be as big as a 59Mb text file, at most.
+Each transaction takes 1284 symbols at most.
 
 The order of transactions is not important, as long as their final balance is positive.
 
@@ -333,7 +331,7 @@ which is calculated as the difference in hours between the current time
 and the time of the oldest transaction in the wallet.
 $T$ is the total number of transactions in the wallet.
 $F$ is the fee per transaction/hour, which is equal to 7.48 zents
-(a one-year-old wallet with 4096 transactions inside must pay approximately 16 ZLD taxes annually).
+(a one-year-old wallet with 4096 transactions must pay approximately 16 ZLD taxes annually).
 
 In order to pay taxes the owner of the wallet has to select any remote
 node from the network, which has a score of 16 or more. Then, it has to
@@ -343,23 +341,16 @@ to that node. The score with exactly 16 suffixes
 has to be placed into the details of the transaction,
 prefixed by \dd{TAXES }.
 
-The most active node with the highest score and the highest availability
-will be selected as tax receiver. It's up to the payer which node to select,
-but the built-in mechanism pays attention to the following factors (in order
-of importance):
+The most active remote node will be selected as tax receiver.
+It's up to the payer which node to select.
 
-  * Visibility: the payer has to know the node,
-  * Availability: the amount of errors seen recently,
-  * Score: the one reported during the most recent handshake.
-
-All tax payments inside a wallet must have unique scores. Duplicate tax
-payments are ignored. Also, to prevent multiple use of the same score,
-all incoming tax payments must have unique \dd{details}.
+All tax payments inside a wallet must have unique scores.
+Duplicate tax payments are ignored.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Fetch, Merge, and Propagate}
+\section{Remote Nodes}
 
 Each node maintains a list of \emph{remote nodes} (their host names and TCP port numbers),
 their scores and their availability information. When the node is just installed,
@@ -368,6 +359,20 @@ updated both by user request and automatically in order to give priority
 to high-score nodes and the nodes with the highest availability.
 Moreover, the node adds new elements to the list retrieving them from all
 available remote nodes.
+
+The built-in mechanism pays attention to the following factors of
+remote node \emph{quality} (in order of importance):
+
+  * Visibility: the payer has to know the node,
+  * Availability: the amount of errors seen recently,
+  * Knowledgeability: the amount of nodes this node is aware of,
+  * Activity: the frequency of push requests the node originates,
+  * Score: the one reported during the most recent handshake.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Fetch, Merge, and Propagate}
 
 First, to see a wallet, it has to be \emph{fetched} from a number of remote
 nodes. The nodes may provide different versions of the same wallet, either
@@ -427,11 +432,11 @@ if it doesn't yet exist there.
 \section{Pay and Push}
 
 To send money from one wallet to another, the owner of the sending wallet
-has to add a negative transaction to it, signing it with the private RSA key.
+has to add a negative transaction to it and sign it with the private RSA key.
 
 At any moment of time any node may decide to push a wallet to another node.
-The accepts it, merges with the local version, and keeps locally. Then, it
-\emph{promotes} the wallet to all known remote nodes.
+The receiving node accepts it, merges with the local version, and keeps locally.
+Then, it \emph{promotes} the wallet to all known remote nodes.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -443,7 +448,7 @@ Each response has \dd{Content-Type},
 \dd{Content-Length}, and \dd{X-Zold-Version}
 HTTP headers.
 
-\dd{GET /} is a home page of a node that returns JSON response with the
+\dd{GET /} is a home page of a node that returns JSON/200 response with the
 information about the node, for example (other details may be added in
 further versions):
 
@@ -461,7 +466,8 @@ further versions):
 }
 \end{minted}
 
-\dd{GET /remotes} returns the list of remote nodes known by the node, in JSON:
+\dd{GET /remotes} returns the list of remote nodes known by the node,
+in JSON/200:
 
 \begin{minted}{json}
 {
@@ -472,7 +478,7 @@ further versions):
   ]
 }\end{minted}
 
-\dd{GET /wallet/<ID>} returns the content of the wallet:
+\dd{GET /wallet/<ID>} returns the content of the wallet, in JSON/200:
 
 \begin{minted}{json}
 {
@@ -526,13 +532,18 @@ on the wallets coming in? If the node doesn't accept a push request,
 its availability rating decreases and other nodes will stop paying
 taxes to it.
 
-\subsection{To Promote Other Nodes}
+\subsection{To Advertise Other Nodes}
 
-What is the incentive to promote other remote nodes via the \dd{/remotes} RESTful
+What is the incentive to advertise other remote nodes via the \dd{/remotes} RESTful
 entry point and why can't a node always return an empty list, expecting its clients
 to always pay taxes to it? The software automatically prioritizes remote
 nodes by the amount of remote nodes it promotes. The longer the list a node
 returns, the higher its chance to be at the top of the list.
+
+\subsection{To Promote Wallets}
+
+What is the incentive to promote wallets to remote nodes, spending network
+traffic for this operation?
 
 \colorbox{yellow}{We need more here}
 
@@ -561,6 +572,17 @@ This will happen, but very soon one part of the network will dominate the other
 one, and one of the transactions will be rejected from the wallet, after
 a number of merge operations in all nodes of the network. The receiver of the
 money must be careful and always to the full fetch (from as many
+
+\subsection{Fraudulent Tax Refunds}
+
+Some nodes may resell their scores to their affiliated tax payers, and they
+refund them some amount of taxes back. This will be profitable both for
+the tax payers, since they will pay less taxes, and for the node owners,
+since they will receive the payments anyway.
+
+This scenario is indeed possible, but we assume that since tax payments are
+supposed to be made in small increments and automatically, the majority of
+clients won't be interested in this fraudulent scheme.
 
 \colorbox{yellow}{We need more here}
 

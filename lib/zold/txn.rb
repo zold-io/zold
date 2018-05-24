@@ -52,11 +52,12 @@ module Zold
       raise 'Prefix can\'t be NIL' if prefix.nil?
       raise "Prefix is too short: \"#{prefix}\"" if prefix.length < 8
       raise "Prefix is too long: \"#{prefix}\"" if prefix.length > 32
+      raise "Prefix is wrong: \"#{prefix}\"" unless prefix =~ /^[a-zA-Z0-9]+$/
       @prefix = prefix
       raise 'Details can\'t be NIL' if details.nil?
       raise 'Details can\'t be empty' if details.empty?
-      raise "Details are too long: \"#{details}\"" if details.length > 128
-      raise "Details are wrong: \"#{details}\"" unless details =~ /^[a-zA-Z0-9 -\.,]{1,128}$/
+      raise "Details are too long: \"#{details}\"" if details.length > 512
+      raise "Details are wrong: \"#{details}\"" unless details =~ /^[a-zA-Z0-9 -\.,]+$/
       @details = details
     end
 
@@ -101,7 +102,7 @@ module Zold
           '([0-9a-f]{16})',
           '([A-Za-z0-9]{8,32})',
           '([0-9a-f]{16})',
-          '([a-zA-Z0-9 -\.,]{1,128})',
+          '([a-zA-Z0-9 -\.,]{1,512})',
           '([A-Za-z0-9+/]+={0,3})?'
         ].join(';') + '$'
       )

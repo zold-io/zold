@@ -144,8 +144,8 @@ Available options:"
           @log.info("#{name} score #{Rainbow(score.value).red} is too weak (<#{Score::STRENGTH})")
           next
         end
-        if score.value < Tax::MIN_SCORE
-          @log.info("#{name} score #{Rainbow(score.value).red} is too small (<#{Tax::MIN_SCORE})")
+        if score.value < Tax::EXACT_SCORE
+          @log.info("#{name} score #{Rainbow(score.value).red} is too small (<#{Tax::EXACT_SCORE})")
           next
         end
         @log.info("#{score.host}:#{score.port}: #{Rainbow(score.value).green}")

@@ -140,6 +140,7 @@ module Zold
     end
 
     def reduced(max = 4)
+      raise "The length of the score is #{@suffixes.count}, can't reduce to #{max}" if max > @suffixes.count
       Score.new(
         @time, @host, @port, @invoice,
         @suffixes[0..max - 1], strength: @strength
