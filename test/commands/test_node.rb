@@ -54,8 +54,8 @@ class TestNode < Minitest::Test
         ).run(['fetch'])
         copies = Zold::Copies.new(File.join(dir, "copies/#{id}"))
         assert_equal(1, copies.all.count)
-        assert_equal(copies.all[0][:name], '1')
-        assert_equal(copies.all[0][:score], 0)
+        assert_equal('1', copies.all[0][:name])
+        assert_equal(0, copies.all[0][:score])
       end
     end
   end

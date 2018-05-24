@@ -231,34 +231,26 @@ The ledger includes transactions, one per line. Each transaction line
 contains fields separated by a semi-colon:
 
 \begin{enumerate}
-  \item Transaction ID, an unsigned 16-bit integer, 4-symbols hex;
-  \item Date and time, in \href{https://en.wikipedia.org/wiki/ISO_8601}{ISO 8601} format, 20 symbols;
-  \item Amount, a signed 64-bit integer, 16-symbols hex;
-  \item Payment prefix, 8-32 symbols;
-  \item Wallet ID of the beneficiary, 16-symbols hex;
-  \item Details, matching \dd{/[a-zA-Z0-9 -.]\{1,128\}/};
-  \item \href{https://en.wikipedia.org/wiki/RSA_(cryptosystem)}{RSA} signature,
+  \item \dd{id}: Transaction ID, an unsigned 16-bit integer, 4-symbols hex;
+  \item \dd{time}: date and time, in \href{https://en.wikipedia.org/wiki/ISO_8601}{ISO 8601} format, 20 symbols;
+  \item \dd{amount}: Zents, a signed 64-bit integer, 16-symbols hex;
+  \item \dd{prefix}: Payment prefix, 8-32 symbols;
+  \item \dd{bnf}: Wallet ID of the beneficiary, 16-symbols hex;
+  \item \dd{details}: Arbitrary text, matching \dd{/[a-zA-Z0-9 -.]\{1,128\}/};
+  \item \dd{signature}: \href{https://en.wikipedia.org/wiki/RSA_(cryptosystem)}{RSA} signature,
     684 symbols in \href{https://en.wikipedia.org/wiki/Base64}{Base64}.
 \end{enumerate}
 
 Transactions with positive amount don't have signatures.
 Their IDs point to ID fields of corresponding beneficiaries' wallets.
 
-The combination ``ID'' + ``Beneficiary'' is unique in the entire wallet.
+The combination \dd{id}+\dd{bnf}
+must be unique in the entire wallet.
 
 The \href{https://en.wikipedia.org/wiki/RSA_(cryptosystem)}{RSA}
 signature is calculated using the private key of the
 wallet and the following fields of transaction, separated by spaces:
-
-\begin{enumerate}
-  \item Wallet ID;
-  \item Transaction ID, an unsigned 16-bit integer;
-  \item Date and time, in ISO 8601 format;
-  \item Amount, a signed 64-bit integer;
-  \item Payment prefix;
-  \item Wallet ID of the beneficiary;
-  \item Details, matching \dd{/[a-zA-Z0-9 -.]{1,128}/}.
-\end{enumerate}
+\dd{bnf}, \dd{id}, \dd{time}, \dd{amount}, \dd{prefix}, \dd{bnf}, \dd{details}.
 
 For example, this text may be used as a signing input:
 
@@ -341,19 +333,24 @@ $F$ is the fee per transaction/hour, which is equal to 7.48 zents
 
 In order to pay taxes the owner of the wallet has to select any remote
 node from the network, which has a score of 16 or more. Then, it has to
-take the invoice from the score and send the payment of 1 ZLD or less
-to that node. The score has to be placed into the details of the transaction,
-prefixed by \dd{TAXES }. All tax payments inside a wallet must
-have unique scores.
+take the invoice from the score, request the node to lock the score
+for a minute, and send the payment of 1 ZLD or less
+to that node. The score with exactly 16 suffixes
+has to be placed into the details of the transaction,
+prefixed by \dd{TAXES }.
 
 The most active node with the highest score and the highest availability
-will be selected as tax receiver. It's up to the client which node to select,
+will be selected as tax receiver. It's up to the payer which node to select,
 but the built-in mechanism pays attention to the following factors (in order
 of importance):
 
-  * Visibility: the client has to know the node,
+  * Visibility: the payer has to know the node,
   * Availability: the amount of errors seen recently,
   * Score: the one reported during the most recent handshake.
+
+All tax payments inside a wallet must have unique scores. Duplicate tax
+payments are ignored. Also, to prevent multiple use of the same score,
+all incoming tax payments must have unique \dd{details}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

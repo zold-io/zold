@@ -97,8 +97,10 @@ module Zold
       raise "The amount can't be negative: #{amount}" if amount.negative?
       raise 'The pvt has to be of type Key' unless pvt.is_a?(Key)
       prefix, target = invoice.split('@')
+      id = max + 1
+      raise 'Too many transactions already, can\'t add more' if max > 0xffff
       txn = Txn.new(
-        max + 1,
+        id,
         Time.now,
         amount * -1,
         prefix,
@@ -112,6 +114,8 @@ module Zold
 
     def add(txn)
       raise 'The txn has to be of type Txn' unless txn.is_a?(Txn)
+      dup = txns.find { |t| t.bnf == txn.bnf && t.id == txn.id }
+      raise "The transaction with the same ID and BNF already exists: #{dup}" unless dup.nil?
       open(@file, 'a') { |f| f.print "#{txn}\n" }
     end
 

@@ -112,3 +112,11 @@ The build has to be clean. If it's not, [submit an issue](https://github.com/zer
 
 Then, make your changes, make sure the build is still clean,
 and [submit a pull request](https://www.yegor256.com/2014/04/15/github-guidelines.html).
+
+If some test fails and you need to run it individually,
+check the logging configuration inside `test__helper.rb` and make
+sure the `Verbose` log is assigned to `$log`. Then, run, for example:
+
+```bash
+ruby test/commands/test_node.rb
+```
