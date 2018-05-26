@@ -61,9 +61,9 @@ module Zold
         balance = wallet.balance
         raise "The balance #{balance} is negative and it's not a root wallet" if balance.negative? && !wallet.root?
         Emission.new(wallet).check
-        debt = Tax.new(wallet).debt
-        if debt > Tax::TRIAL
-          raise "Taxes are not paid, the debt is #{debt} (#{debt.to_i} zents), won't promote the wallet"
+        tax = Tax.new(wallet)
+        if tax.in_debt?
+          raise "Taxes are not paid, can't accept the wallet; the debt is #{tax.debt} (#{tax.debt.to_i} zents)"
         end
       end
     end

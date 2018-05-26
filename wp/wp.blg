@@ -1,0 +1,15 @@
+[0] Config.pm:343> INFO - This is Biber 2.5
+[0] Config.pm:346> INFO - Logfile is 'wp.blg'
+[46] biber-darwin:290> INFO - === Sat May 26, 2018, 20:38:27
+[65] Biber.pm:351> INFO - Reading 'wp.bcf'
+[153] Biber.pm:776> INFO - Found 12 citekeys in bib section 0
+[165] Biber.pm:3493> INFO - Processing section 0
+[180] Biber.pm:3657> INFO - Looking for bibtex format file 'main.bib' for section 0
+[182] bibtex.pm:1187> INFO - Decoding LaTeX character macros into UTF-8
+[184] bibtex.pm:1048> INFO - Found BibTeX data source 'main.bib'
+[228] UCollate.pm:66> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[228] UCollate.pm:66> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
+[228] Biber.pm:3306> INFO - Sorting list 'nyt/global/' of type 'entry' with scheme 'nyt' and locale 'en-US'
+[228] Biber.pm:3310> INFO - No sort tailoring available for locale 'en-US'
+[239] bbl.pm:526> INFO - Writing 'wp.bbl' with encoding 'UTF-8'
+[241] bbl.pm:619> INFO - Output to wp.bbl

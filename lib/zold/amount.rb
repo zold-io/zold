@@ -27,16 +27,21 @@ require 'rainbow'
 module Zold
   # Amount
   class Amount
+    # How many zents are in one ZLD: 2^FRACTION
+    FRACTION = 32
+
     def initialize(coins: nil, zld: nil)
       if !coins.nil?
         raise "Integer is required, while #{coins.class} provided: #{coins}" unless coins.is_a?(Integer)
         @coins = coins
       elsif !zld.nil?
         raise "Float is required, while #{zld.class} provided: #{zld}" unless zld.is_a?(Float)
-        @coins = (zld * 2**24).to_i
+        @coins = (zld * 2**Amount::FRACTION).to_i
       else
         raise 'You can\'t specify both coints and zld'
       end
+      raise 'The amount is too big: #{@coins}' if @coins > 2**63
+      raise 'The amount is too small: #{@coins}' if @coins < -(2**63)
     end
 
     ZERO = Amount.new(coins: 0)
@@ -46,7 +51,7 @@ module Zold
     end
 
     def to_zld
-      format('%0.2f', @coins.to_f / 2**24)
+      format('%0.2f', @coins.to_f / 2**Amount::FRACTION)
     end
 
     def to_s

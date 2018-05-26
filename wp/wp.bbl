@@ -1,0 +1,348 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 2.7 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \sortlist[entry]{nyt/global/}
+    \entry{andreessen2014}{article}{}
+      \name{author}{1}{}{%
+        {{uniquename=0,hash=a1a51dfe2acf6340d0563ce586ea5d7c}{%
+           family={Andreessen},
+           family_i={A\bibinitperiod},
+           given={Marc},
+           given_i={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{a1a51dfe2acf6340d0563ce586ea5d7c}
+      \strng{fullhash}{a1a51dfe2acf6340d0563ce586ea5d7c}
+      \field{sortinit}{A}
+      \field{sortinithash}{b685c7856330eaee22789815b49de9bb}
+      \field{labelyear}{2014}
+      \field{datelabelsource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{New York Times}
+      \field{title}{Why bitcoin matters}
+      \field{volume}{21}
+      \field{year}{2014}
+    \endentry
+    \entry{boyen2016}{report}{}
+      \name{author}{3}{}{%
+        {{uniquename=0,hash=f44b616203b8941ff108412c228737c2}{%
+           family={Boyen},
+           family_i={B\bibinitperiod},
+           given={Xavier},
+           given_i={X\bibinitperiod}}}%
+        {{uniquename=0,hash=47fe213f04c5d5a2bef83672684ece18}{%
+           family={Carr},
+           family_i={C\bibinitperiod},
+           given={Christopher},
+           given_i={C\bibinitperiod}}}%
+        {{uniquename=0,hash=7ab50a3856b9e00fb6be54fcbd3aeffc}{%
+           family={Haines},
+           family_i={H\bibinitperiod},
+           given={Thomas},
+           given_i={T\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {Cryptology ePrint Archive, Report 2016/871}%
+      }
+      \strng{namehash}{bffc30b5011a67a637a31ab1f549c2cf}
+      \strng{fullhash}{8c14a14cf2da79ee2ba042267807311c}
+      \field{sortinit}{B}
+      \field{sortinithash}{4ecbea03efd0532989d3836d1a048c32}
+      \field{labelyear}{2016}
+      \field{datelabelsource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Blockchain-free cryptocurrencies: A framework for truly decentralised fast transactions}
+      \field{type}{techreport}
+      \field{year}{2016}
+    \endentry
+    \entry{buterin2013}{article}{}
+      \name{author}{1}{}{%
+        {{uniquename=0,hash=850981945102d0f671b6762173c8988a}{%
+           family={Buterin},
+           family_i={B\bibinitperiod},
+           given={Vitalik},
+           given_i={V\bibinitperiod}}}%
+      }
+      \strng{namehash}{850981945102d0f671b6762173c8988a}
+      \strng{fullhash}{850981945102d0f671b6762173c8988a}
+      \field{sortinit}{B}
+      \field{sortinithash}{4ecbea03efd0532989d3836d1a048c32}
+      \field{labelyear}{2013}
+      \field{datelabelsource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Ethereum: A Next-Generation Smart Contract and Decentralized Application Platform}
+      \field{year}{2013}
+      \verb{url}
+      \verb https://github.com/ethereum/wiki/wiki/White-Paper
+      \endverb
+    \endentry
+    \entry{everaere2010}{inproceedings}{}
+      \name{author}{3}{}{%
+        {{uniquename=0,hash=74544c19806b1d08dc853157b63046fd}{%
+           family={Everaere},
+           family_i={E\bibinitperiod},
+           given={Patricia},
+           given_i={P\bibinitperiod}}}%
+        {{uniquename=0,hash=bfc7bd96c226b2f7ee8fdd443a2d1af6}{%
+           family={Simplot-Ryl},
+           family_i={S\bibinithyphendelim R\bibinitperiod},
+           given={Isabelle},
+           given_i={I\bibinitperiod}}}%
+        {{uniquename=0,hash=6ae358854ab2465e6f3b47484e479a88}{%
+           family={Traoré},
+           family_i={T\bibinitperiod},
+           given={Issa},
+           given_i={I\bibinitperiod}}}%
+      }
+      \list{organization}{1}{%
+        {Springer}%
+      }
+      \strng{namehash}{97f20aca654bc65a10b5c832642183a1}
+      \strng{fullhash}{c97bf12c726e19cc8931907a35a82369}
+      \field{sortinit}{E}
+      \field{sortinithash}{fefc5210ef4721525b2a478df41efcd4}
+      \field{labelyear}{2010}
+      \field{datelabelsource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{International Conference on Information Security}
+      \field{title}{Double spending protection for e-cash based on risk management}
+      \field{year}{2010}
+      \field{pages}{394\bibrangedash 408}
+      \range{pages}{15}
+    \endentry
+    \entry{karame2012}{inproceedings}{}
+      \name{author}{3}{}{%
+        {{uniquename=0,hash=e93aa9b69032b0c90cc025969eae3052}{%
+           family={Karame},
+           family_i={K\bibinitperiod},
+           given={Ghassan\bibnamedelima O},
+           given_i={G\bibinitperiod\bibinitdelim O\bibinitperiod}}}%
+        {{uniquename=0,hash=f5c17868bc40b8f88d6b6465fd2d4ab5}{%
+           family={Androulaki},
+           family_i={A\bibinitperiod},
+           given={Elli},
+           given_i={E\bibinitperiod}}}%
+        {{uniquename=0,hash=028ff5c4d1eab5a2f2b2a92fb4d9bf88}{%
+           family={Capkun},
+           family_i={C\bibinitperiod},
+           given={Srdjan},
+           given_i={S\bibinitperiod}}}%
+      }
+      \list{organization}{1}{%
+        {ACM}%
+      }
+      \strng{namehash}{8c0c933a75a776c250efd17a486a2742}
+      \strng{fullhash}{1e42e61af68f7880a2bf2a4e78993f75}
+      \field{sortinit}{K}
+      \field{sortinithash}{a7d5b3aec5a0890aae7baf85a209abfc}
+      \field{labelyear}{2012}
+      \field{datelabelsource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of the 2012 ACM conference on Computer and communications security}
+      \field{title}{Double-spending fast payments in bitcoin}
+      \field{year}{2012}
+      \field{pages}{906\bibrangedash 917}
+      \range{pages}{12}
+    \endentry
+    \entry{kaskaloglu2014}{inproceedings}{}
+      \name{author}{1}{}{%
+        {{uniquename=0,hash=7afc9efb6b19e0c94afed3f5009e9b33}{%
+           family={Kaskaloglu},
+           family_i={K\bibinitperiod},
+           given={Kerem},
+           given_i={K\bibinitperiod}}}%
+      }
+      \list{organization}{2}{%
+        {The Society of Digital Information}%
+        {Wireless Communication}%
+      }
+      \strng{namehash}{7afc9efb6b19e0c94afed3f5009e9b33}
+      \strng{fullhash}{7afc9efb6b19e0c94afed3f5009e9b33}
+      \field{sortinit}{K}
+      \field{sortinithash}{a7d5b3aec5a0890aae7baf85a209abfc}
+      \field{labelyear}{2014}
+      \field{datelabelsource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{The International Conference on Digital Security and Forensics (DigitalSec2014)}
+      \field{title}{Near zero Bitcoin transaction fees cannot last forever}
+      \field{year}{2014}
+      \field{pages}{91\bibrangedash 99}
+      \range{pages}{9}
+    \endentry
+    \entry{kiayias2015}{article}{}
+      \name{author}{2}{}{%
+        {{uniquename=0,hash=a788bdbaf3b805cdc29e079c1e4ae908}{%
+           family={Kiayias},
+           family_i={K\bibinitperiod},
+           given={Aggelos},
+           given_i={A\bibinitperiod}}}%
+        {{uniquename=0,hash=27ae79bc07e2ddb13e4b30343163e901}{%
+           family={Panagiotakos},
+           family_i={P\bibinitperiod},
+           given={Giorgos},
+           given_i={G\bibinitperiod}}}%
+      }
+      \strng{namehash}{b133b45fc91fa791ad081cc170396549}
+      \strng{fullhash}{ae9ae3368e91fa455b0212c1b2eb5573}
+      \field{sortinit}{K}
+      \field{sortinithash}{a7d5b3aec5a0890aae7baf85a209abfc}
+      \field{labelyear}{2015}
+      \field{datelabelsource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{IACR Cryptology ePrint Archive}
+      \field{title}{Speed-Security Tradeoffs in Blockchain Protocols.}
+      \field{volume}{2015}
+      \field{year}{2015}
+      \field{pages}{1019}
+      \range{pages}{1}
+    \endentry
+    \entry{moser2015}{inproceedings}{}
+      \name{author}{2}{}{%
+        {{uniquename=0,hash=7875c2d201799d0d3f15a893bea43d67}{%
+           family={Möser},
+           family_i={M\bibinitperiod},
+           given={Malte},
+           given_i={M\bibinitperiod}}}%
+        {{uniquename=0,hash=b75a90bcdb494423d4d9bed6fbc29f33}{%
+           family={Böhme},
+           family_i={B\bibinitperiod},
+           given={Rainer},
+           given_i={R\bibinitperiod}}}%
+      }
+      \list{organization}{1}{%
+        {Springer}%
+      }
+      \strng{namehash}{cdb05fd13f9fc8686de945982f8f86e1}
+      \strng{fullhash}{1b94adcf93fcc0b3809100df756530bf}
+      \field{sortinit}{M}
+      \field{sortinithash}{2684bec41e9697b92699b46491061da2}
+      \field{labelyear}{2015}
+      \field{datelabelsource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{International Conference on Financial Cryptography and Data Security}
+      \field{title}{Trends, Tips, Tolls: A Longitudinal Study of Bitcoin Transaction Fees}
+      \field{year}{2015}
+      \field{pages}{19\bibrangedash 33}
+      \range{pages}{15}
+    \endentry
+    \entry{nakamoto2008}{article}{}
+      \name{author}{1}{}{%
+        {{uniquename=0,hash=1977190f018b398e43ede3de043de8ea}{%
+           family={Nakamoto},
+           family_i={N\bibinitperiod},
+           given={Satoshi},
+           given_i={S\bibinitperiod}}}%
+      }
+      \strng{namehash}{1977190f018b398e43ede3de043de8ea}
+      \strng{fullhash}{1977190f018b398e43ede3de043de8ea}
+      \field{sortinit}{N}
+      \field{sortinithash}{925374ca63e7594de7fafdb83e64d41d}
+      \field{labelyear}{2008}
+      \field{datelabelsource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Bitcoin: A peer-to-peer electronic cash system}
+      \field{year}{2008}
+    \endentry
+    \entry{pilkington2016}{article}{}
+      \name{author}{1}{}{%
+        {{uniquename=0,hash=667f021aa96e9cbbb8dcf63f8f5aad88}{%
+           family={Pilkington},
+           family_i={P\bibinitperiod},
+           given={Marc},
+           given_i={M\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Edward Elgar Publishing}%
+      }
+      \strng{namehash}{667f021aa96e9cbbb8dcf63f8f5aad88}
+      \strng{fullhash}{667f021aa96e9cbbb8dcf63f8f5aad88}
+      \field{sortinit}{P}
+      \field{sortinithash}{c0a4896d0e424f9ca4d7f14f2b3428e7}
+      \field{labelyear}{2016}
+      \field{datelabelsource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Research handbook on digital transformations}
+      \field{title}{Blockchain technology: principles and applications}
+      \field{year}{2016}
+      \field{pages}{225}
+      \range{pages}{1}
+    \endentry
+    \entry{popov2017}{article}{}
+      \name{author}{1}{}{%
+        {{uniquename=0,hash=61b92d3ce2c6bb0d3734ab6f8dea9697}{%
+           family={Popov},
+           family_i={P\bibinitperiod},
+           given={Serguei},
+           given_i={S\bibinitperiod}}}%
+      }
+      \strng{namehash}{61b92d3ce2c6bb0d3734ab6f8dea9697}
+      \strng{fullhash}{61b92d3ce2c6bb0d3734ab6f8dea9697}
+      \field{sortinit}{P}
+      \field{sortinithash}{c0a4896d0e424f9ca4d7f14f2b3428e7}
+      \field{labelyear}{2017}
+      \field{datelabelsource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{The Tangle}
+      \field{year}{2017}
+      \verb{url}
+      \verb https://iotatoken.com/IOTA_Whitepaper.pdf
+      \endverb
+    \endentry
+    \entry{van2014}{article}{}
+      \name{author}{1}{}{%
+        {{uniquename=0,hash=d14eae9d731b5ffb60e14d8be963a514}{%
+           family={Van\bibnamedelima Alstyne},
+           family_i={V\bibinitperiod\bibinitdelim A\bibinitperiod},
+           given={Marshall},
+           given_i={M\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {ACM}%
+      }
+      \strng{namehash}{d14eae9d731b5ffb60e14d8be963a514}
+      \strng{fullhash}{d14eae9d731b5ffb60e14d8be963a514}
+      \field{sortinit}{V}
+      \field{sortinithash}{d18f5ce25ce0b5ca7f924e3f6c04870e}
+      \field{labelyear}{2014}
+      \field{datelabelsource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Communications of the ACM}
+      \field{number}{5}
+      \field{title}{Why Bitcoin has value}
+      \field{volume}{57}
+      \field{year}{2014}
+      \field{pages}{30\bibrangedash 32}
+      \range{pages}{3}
+    \endentry
+  \endsortlist
+\endrefsection
+\endinput
+

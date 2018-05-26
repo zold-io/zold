@@ -70,6 +70,10 @@ module Zold
       @wallet.sub(fee, best.invoice, pvt, details(best))
     end
 
+    def in_debt?
+      debt > Tax::TRIAL
+    end
+
     def debt
       txns = @wallet.txns
       scores = txns.map do |t|

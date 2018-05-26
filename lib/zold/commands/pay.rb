@@ -30,8 +30,9 @@ require_relative '../log'
 module Zold
   # Money sending command
   class Pay
-    def initialize(wallets:, log: Log::Quiet.new)
+    def initialize(wallets:, remotes:, log: Log::Quiet.new)
       @wallets = wallets
+      @remotes = remotes
       @log = log
     end
 
@@ -51,11 +52,14 @@ Available options:"
         o.bool '--force',
           'Ignore all validations',
           default: false
+        o.bool '--dont-pay-taxes',
+          'Don\'t pay taxes even if the wallet is in debt',
+          default: false
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
       raise 'Payer wallet ID is required as the first argument' if mine[0].nil?
-      from = @wallets.find(Zold::Id.new(mine[0]))
+      from = @wallets.find(Id.new(mine[0]))
       raise 'Wallet doesn\'t exist, do \'fetch\' first' unless from.exists?
       raise 'Recepient\'s invoice or wallet ID is required as the second argument' if mine[1].nil?
       invoice = mine[1]
@@ -64,8 +68,13 @@ Available options:"
         invoice = Invoice.new(wallets: @wallets, log: @log).run(['invoice', invoice])
       end
       raise 'Amount is required (in ZLD) as the third argument' if mine[2].nil?
-      amount = Zold::Amount.new(zld: mine[2].to_f)
+      amount = Amount.new(zld: mine[2].to_f)
       details = mine[3] ? mine[3] : '-'
+      if Tax.new(from).in_debt? && !opts['dont-pay-taxes']
+        Taxes.new(wallets: @wallets, remotes: @remotes, log: @log).run(
+          ['taxes', "--private-key=#{opts['private-key']}", id.to_s]
+        )
+      end
       pay(from, invoice, amount, details, opts)
     end
 

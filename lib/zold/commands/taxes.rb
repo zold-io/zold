@@ -87,7 +87,7 @@ Available options:"
       tax = Tax.new(wallet)
       debt = tax.debt
       @log.debug("The current debt is #{debt} (#{debt.to_i} zents)")
-      if debt <= Tax::TRIAL
+      unless debt.in_debt?
         @log.debug("No need to pay taxes yet, until the debt is less than #{Tax::TRIAL} (#{Tax::TRIAL.to_i} zents)")
         return
       end
