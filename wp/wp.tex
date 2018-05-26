@@ -24,7 +24,6 @@
 \newcommand\dd[1]{\colorbox{gray!30}{\texttt{#1}}}
 \usepackage{hyperref}
   \hypersetup{colorlinks=true,allcolors=blue!40!black}
-\pagestyle{empty}
 \setstretch{1.0}
 \setlength{\topskip}{6pt}
 \setlength{\parindent}{0pt} % indent first line
@@ -321,10 +320,10 @@ zold
 12345678abcdef
 AAAAB3NzaC1yc2EAAAADAQABAAABAQCuLuVr4Tl2sXoN5Zb7b6SKMPrVjLxb...
 
-003a;2017-07-19T21:24:51Z;ffffffff9c0ccccd;Ui0wpLu7;98bb82c81735c4ee;For services;SKMPrVj...
-003b;2017-07-19T21:25:07Z;ffffffffffa72367;xksQuJa9;98bb82c81735c4ee;For food;QCuLuVr4...
-0f34;2017-07-19T21:29:11Z;0000000000647388;kkIZo09s;18bb82dd1735b6e9;-;
-003c;2017-07-19T22:18:43Z;ffffffffff884733;pplIe28s;38ab8fc8e735c4fc;For programming;2sXoN5...
+003a;2017-07-19T21:24:51Z; ffffffff9c0ccccd; Ui0wpLu7; 98bb82c81735c4ee; For services;SKMPrVj...
+003b;2017-07-19T21:25:07Z; ffffffffffa72367; xksQuJa9; 98bb82c81735c4ee; For food;QCuLuVr4...
+0f34;2017-07-19T21:29:11Z; 0000000000647388; kkIZo09s; 18bb82dd1735b6e9; -;
+003c;2017-07-19T22:18:43Z; ffffffffff884733; pplIe28s; 38ab8fc8e735c4fc; For programming;2sXoN5...
 \end{minted}
 
 Lines are separated by either CR or CRLF.
@@ -379,7 +378,8 @@ The order of transactions is not important, as long as their final balance is po
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Mining Formula}
 
-The only way to get ZLD is to receive it from the \emph{root} wallet \dd{0000000000000000}.
+The only way to get ZLD is to receive it from the \emph{root} wallet
+with a system pre-defined ID \dd{0000000000000000}.
 This wallet is the only one that may have a negative ballance.
 However, to prevent an uncontrolled emission of ZLD, the balance
 of this wallet must satisfy the formula:
@@ -589,7 +589,7 @@ If the wallet is not found, a
 \href{https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.5}{404}
 HTTP response is returned.
 
-If the client provided the MD5 hash of the wallet content in the
+If the client provided the pre-calculated MD5 hash of the wallet content in the
 \href{https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.26}{\dd{If-None-Match}}
 HTTP header and it matches with the hash of the
 content the node contains, a
