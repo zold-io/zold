@@ -11,6 +11,7 @@
 \usepackage[style=authoryear,sorting=nyt,backend=biber,
   hyperref=true,abbreviate=true,
   maxcitenames=1,maxbibnames=1]{biblatex}
+  \renewbibmacro{in:}{}
   \addbibresource{main.bib}
 \usepackage{minted}
   \setminted{fontsize=\small}
@@ -223,8 +224,7 @@ The system consists of nodes (server machines), which maintain the data.
 In order to guarantee data consistency among all distributed nodes
 there has to be an algorithm of data segregation.
 Corrupted data must be detected earlier and filtered out as quickly as possible.
-Bitcoin introduced such an algorithm and called it \emph{proof of work}.
-\colorbox{yellow}{link}
+Bitcoin introduced such an algorithm and called it \emph{proof of work}~\parencite{nakamoto2008}.
 
 Its fundamental principle is that each block of data must have a special
 number attached to it, known as \emph{nonce}, which is rather difficult to calculate,
@@ -235,16 +235,15 @@ some data gets corrupted, the amount of CPU power a part of the network
 decides to invest into its nonces calculation would be smaller than what
 the other part of the network invests into legal data. The latter part
 will quickly dominate the former and the nodes with corrupted data will
-be ostracized and eventually ignored.
-\colorbox{yellow}{let's make sure this text is correct and add a link}
+be ostracized and eventually ignored~\parencite{nakamoto2008}.
 
 Zold has borrowed this principle, although modified it. It also requires
 its nodes to invest their CPU power into meaninless and repetative
 calculations just to help us identify which part of the network they belong to:
-corrupted or not. Each Zold node has to calculate its \emph{trust score},
+corrupted or not. Each Zold node has to calculate its \emph{score},
 which is as big as much CPU power the node has invested into its calculation.
 
-Similar to Bitcoin nonces we repetatively calculate cryptographic hashes,
+Similar to Bitcoin nonces we repeatedly calculate cryptographic hashes,
 looking for consecutive zeros inside them. First, in order to calculate a score,
 a node makes the \emph{prefix}, which consists of four parts,
 separated by spaces:
@@ -264,7 +263,7 @@ For example, the prefix may look like this:
 
 Then, the node attempts to append any arbitrary text, which has to match
 \dd{/[a-zA-Z0-9]+/} regular expression, to the end of the prefix and calculates
-\href{https://en.wikipedia.org/wiki/SHA-2}{SHA-256 hash} (\colorbox{yellow}{why not SHA-3?})
+\href{https://en.wikipedia.org/wiki/SHA-2}{SHA-256 hash}
 of the text in the hexadecimal format. For example, this would be the prefix
 with the attached \dd{117b1f} suffix:
 
@@ -301,7 +300,7 @@ Produces:
 And so on.
 
 The score is valid only when the starting time point is earlier than
-the current time, but not earlier than 24 hours ago. The strength of the score
+the current time, but not earlier than 24 hours ago. The \emph{strength} of the score
 is the amount of the trailing zeros in the hash. In the example above the
 strength is six.
 
@@ -310,10 +309,11 @@ strength is six.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Wallets}
 
-There is no central ledger in Zold, like many other digital currencies.
+There is no central ledger in Zold, like in many other digital currencies.
 Instead, each user has their own \emph{wallets} (any number of them) with their own ledgers inside.
 Each wallet is an ASCII-text file with the name equal to the wallet ID.
-For example, the wallet in the file \dd{12345678abcdef} may include:
+For example, the wallet in the file \dd{12345678abcdef} may include
+the following text:
 
 \begin{minted}{text}
 zold
@@ -333,7 +333,7 @@ The header includes four lines:
 
 \begin{enumerate}
   \item Network name, \dd{[a-z]\{4,16\}};
-  \item Software version, \dd{[0-9]+(\.[0-9]+)\{1,2\}} (\href{https://semver.org/}{semantic versioning});
+  \item Software version, \dd{[0-9]+(\\.[0-9]+)\{1,2\}} (\href{https://semver.org/}{semantic versioning});
   \item Wallet ID, a 64-bit unsigned integer in hexadecimal format;
   \item Public \href{https://en.wikipedia.org/wiki/RSA_(cryptosystem)}{RSA}
     key of the wallet owner, in \href{https://en.wikipedia.org/wiki/Base64}{Base64}.
@@ -384,7 +384,7 @@ This wallet is the only one that may have a negative ballance.
 However, to prevent an uncontrolled emission of ZLD, the balance
 of this wallet must satisfy the formula:
 
-$$x = \frac{2048}{h};\quad z = 2^{63 - x}.$$
+$$z = 2^{63} \times (1 - 2^{-h/1024}).$$
 
 Here $h$ is the age of the root wallet in hours and $z$ is the maximum
 amount of zents it can issue at that moment. The first
@@ -394,28 +394,14 @@ six years will look like this:
 \hline
 Year & ZLD & Share \\
 \hline
-1st & 32m & 0.01\% \\
-2nd & 4b & 0.77\% \\
-3rd & 21b & 4\%\\
-4th & 48b & 9\% \\
-5th & 78b & 14\% \\
-6th & 108b & 20\% \\
+1st & 470m & 22\% \\
+2nd & 837m & 39\% \\
+3rd & 1.1b & 52\%\\
+4th & 1.3b & 63\% \\
+5th & 1.5b & 71\% \\
+6th & 1.7b & 77\% \\
 \hline
 \end{tabular}\end{center}
-
-On a large perspective of 25 years total emission of ZLD will look
-like this:
-
-\vspace{\parskip}\begin{center}\begin{tikzpicture}
-\begin{axis}[
-  axis lines=middle,
-  width=12cm,height=5cm,
-  xlabel={Age, in years},
-  ylabel={Billions of ZLD},
-]
-\addplot[domain=-0:25, samples=25]{2^(39-2048/(x*24*365)) / 1000000000};
-\end{axis}
-\end{tikzpicture}\end{center}
 
 The limitation is hardwired in Zold software and can't be eliminated.
 
@@ -471,11 +457,13 @@ available remote nodes.
 The built-in mechanism pays attention to the following factors of
 remote node \emph{quality} (in order of importance):
 
-  * Visibility: the payer has to know the node,
-  * Availability: the amount of errors seen recently,
-  * Knowledgeability: the amount of nodes this node is aware of,
-  * Activity: the frequency of push requests the node originates,
-  * Score: the one reported during the most recent handshake.
+\begin{enumerate}
+  \item Visibility: the payer has to know the node,
+  \item Availability: the amount of errors seen recently,
+  \item Knowledgeability: the amount of nodes this node is aware of,
+  \item Activity: the frequency of push requests the node originates,
+  \item Score: the one reported during the most recent handshake.
+\end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -556,7 +544,9 @@ Each response has \dd{Content-Type},
 \dd{Content-Length}, and \dd{X-Zold-Version}
 HTTP headers.
 
-\dd{GET /} is a home page of a node that returns JSON/200 response with the
+\dd{GET /} is a home page of a node that returns
+JSON/\href{https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.1}{200}
+response with the
 information about the node, for example (other details may be added in
 further versions):
 
@@ -575,7 +565,7 @@ further versions):
 \end{minted}
 
 \dd{GET /remotes} returns the list of remote nodes known by the node,
-in JSON/200:
+in JSON/\href{https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.1}{200}:
 
 \begin{minted}{json}
 {
@@ -586,7 +576,8 @@ in JSON/200:
   ]
 }\end{minted}
 
-\dd{GET /wallet/<ID>} returns the content of the wallet, in JSON/200:
+\dd{GET /wallet/<ID>} returns the content of the wallet, in
+JSON/\href{https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.1}{200}:
 
 \begin{minted}{json}
 {

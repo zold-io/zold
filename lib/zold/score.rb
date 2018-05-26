@@ -29,7 +29,9 @@ require_relative 'remotes'
 module Zold
   # Score
   class Score
+    # Default strength for the entire system, in production mode.
     STRENGTH = 6
+
     attr_reader :time, :host, :port, :invoice, :strength
     # time: UTC ISO 8601 string
     def initialize(time, host, port, invoice, suffixes = [], strength: STRENGTH)

@@ -40,11 +40,12 @@ module Zold
     end
 
     def quota
-      2**(-2048 / @root.age)
+      years = @root.age / (24 * 1024)
+      1 - (2**-years)
     end
 
     def limit
-      max = 2**63
+      max = Amount::MAX
       Amount.new(coins: (max * quota).to_i)
     end
 

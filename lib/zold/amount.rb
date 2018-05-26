@@ -30,6 +30,9 @@ module Zold
     # How many zents are in one ZLD: 2^FRACTION
     FRACTION = 32
 
+    # Maximum amount of zents
+    MAX = 2**63
+
     def initialize(coins: nil, zld: nil)
       if !coins.nil?
         raise "Integer is required, while #{coins.class} provided: #{coins}" unless coins.is_a?(Integer)
@@ -40,8 +43,8 @@ module Zold
       else
         raise 'You can\'t specify both coints and zld'
       end
-      raise 'The amount is too big: #{@coins}' if @coins > 2**63
-      raise 'The amount is too small: #{@coins}' if @coins < -(2**63)
+      raise 'The amount is too big: #{@coins}' if @coins > Amount::MAX
+      raise 'The amount is too small: #{@coins}' if @coins < -(Amount::MAX)
     end
 
     ZERO = Amount.new(coins: 0)
@@ -103,7 +106,7 @@ module Zold
 
     def *(other)
       c = (@coins * other).to_i
-      raise "Overflow, can't multiply #{@coins} by #{m}" if c > 2**63
+      raise "Overflow, can't multiply #{@coins} by #{m}" if c > Amount::MAX
       Amount.new(coins: c)
     end
   end

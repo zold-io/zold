@@ -31,7 +31,7 @@ class EmissionTest < Minitest::Test
         wallet = home.create_wallet
         wallet.add(
           Zold::Txn.new(
-            1, Time.now - 24 * 365 * year,
+            1, Time.now - 60 * 24 * 365 * year,
             Zold::Amount.new(zld: 39.99),
             'NOPREFIX', Zold::Id::ROOT, '-'
           )
