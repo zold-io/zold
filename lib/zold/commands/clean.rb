@@ -34,7 +34,7 @@ require_relative '../copies'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # CLEAN pulling command
+  # CLEAN command
   class Clean
     def initialize(copies:, log: Log::Quiet.new)
       @copies = copies

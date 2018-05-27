@@ -28,6 +28,7 @@ require_relative '../tax'
 require_relative '../commands/merge'
 require_relative '../commands/fetch'
 require_relative '../commands/push'
+require_relative '../commands/clean'
 
 # The entrance of the web front.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -81,6 +82,7 @@ module Zold
       Push.new(
         wallets: @wallets, remotes: @remotes, log: @log
       ).run(['push'] + modified.map(&:to_s))
+      Clean.new(copies: copies.root, log: @log).run(['clean', id.to_s])
       modified
     end
   end
