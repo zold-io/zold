@@ -260,29 +260,29 @@ separated by spaces:
 For example, the prefix may look like this:
 
 \begin{minted}{text}
-2018-05-17T03:50:59Z b2.zold.io 4096 THdonv1E@0000000000000000
+2018-05-17T03:50:59Z b2.zold.io 4096 THdonv1E@abcdabcdabcdabcd
 \end{minted}
 
 Then, the node attempts to append any arbitrary text, which has to match
 \dd{/[a-zA-Z0-9]+/} regular expression, to the end of the prefix and calculates
 \href{https://en.wikipedia.org/wiki/SHA-2}{SHA-256 hash}
 of the text in the hexadecimal format. For example, this would be the prefix
-with the attached \dd{117b1f} suffix:
+with the attached \dd{16bda66} suffix:
 
 \begin{minted}{text}
-2018-05-17T03:50:59Z b2.zold.io 4096 THdonv1E@0000000000000000 117b1f
+2018-05-17T03:50:59Z b2.zold.io 4096 THdonv1E@abcdabcdabcdabcd 16bda66
 \end{minted}
 
-The hash of this text will be:
+The hash of this text will be (pay attention to the trailing zeroes):
 
 \begin{minted}{text}
-670baa704726fe2c837c5ca764202adca5ab12c9b90c94d9fb1b8d629000000
+5fa0681f220a2779b03b46456a19b38c0b635c1573dc01401dafee510000000
 \end{minted}
 
 The node attempts to try different sufficies until one of them produces
 a hash that ends with a few tailing zeroes. The one above ends
 with six zeroes
-(it took three minutes to find it on 2.3GHz Intel Core i7):
+(it took four minutes to find it on 2.3GHz Intel Core i7):
 
 When the first suffix is found, the score is 1. Then, to
 increase the score by one, the next suffix has to be found, which
@@ -290,13 +290,13 @@ can be added to the first 64 characters of the previous hash
 in order to obtain a new hash with trailing zeros, for example:
 
 \begin{minted}{text}
-2018-05-17T03:50:59Z b2.zold.io 4096 THdonv1E@0000000000000000 117b1f 1546e35
+2018-05-17T03:50:59Z b2.zold.io 4096 THdonv1E@abcdabcdabcdabcd 16bda66 13d284b
 \end{minted}
 
 Produces:
 
 \begin{minted}{text}
-99dcd18e4bd03004e1205437866b5b68035cc8985240ae52cbd37640a000000
+ce420bfdd2f6530db795e7ff4aa508bb0092735dd63d209da218cb78b000000
 \end{minted}
 
 And so on.
@@ -304,7 +304,8 @@ And so on.
 The score is valid only when the starting time point is earlier than
 the current time, but not earlier than 24 hours ago. The \emph{strength} of the score
 is the amount of the trailing zeros in the hash. In the example above the
-strength is six.
+strength is six. The larger the strength, the more CPU power it takes to earn
+the score. All nodes in the network must have the same strength of their scores.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

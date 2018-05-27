@@ -52,6 +52,8 @@ Available options:"
           default: 8
         o.bool '--hide-hash', 'Don\'t print hash',
           default: false
+        o.bool '--hide-time', 'Don\'t print calculation time per each score',
+          default: false
         o.bool '--help', 'Print instructions'
       end
       if opts.help?
@@ -63,6 +65,7 @@ Available options:"
 
     def calculate(opts)
       start = Time.now
+      mstart = Time.now
       strength = opts[:strength]
       raise "Invalid strength: #{strength}" if strength <= 0 || strength > 8
       score = Zold::Score.new(
@@ -72,8 +75,10 @@ Available options:"
       loop do
         msg = score.to_s
         msg += (score.value > 0 ? ' ' + score.hash : '') unless opts['hide-hash']
+        msg += " #{(Time.now - mstart).round(2)}s" unless opts['hide-time']
         @log.info(msg)
         break if score.value >= opts[:max].to_i
+        mstart = Time.now
         score = score.next
       end
       seconds = (Time.now - start).round(2)
