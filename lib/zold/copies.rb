@@ -42,7 +42,7 @@ module Zold
 
     def clean
       list = load
-      list.reject! { |s| s[:time] < Time.now - 24 * 60 }
+      list.reject! { |s| s[:time] < Time.now - 24 * 60 * 60 }
       save(list)
       Dir.new(@dir).select { |f| f =~ /[0-9]+/ }.each do |f|
         File.delete(File.join(@dir, f)) if list.find { |s| s[:name] == f }.nil?

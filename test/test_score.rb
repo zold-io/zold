@@ -96,6 +96,22 @@ class TestScore < Minitest::Test
     assert(!score.expired?)
   end
 
+  def test_expires_correctly
+    score = Zold::Score.new(
+      Time.now - 100 * 60 * 60, 'localhost', 443,
+      'NOPREFIX@ffffffffffffffff', strength: 2
+    ).next.next.next
+    assert(score.expired?)
+  end
+
+  def test_dont_expire_correctly
+    score = Zold::Score.new(
+      Time.now - 10 * 60 * 60, 'localhost', 443,
+      'NOPREFIX@ffffffffffffffff', strength: 2
+    ).next.next.next
+    assert(!score.expired?)
+  end
+
   def test_correct_number_of_zeroes
     score = Zold::Score.new(
       Time.now, 'localhost', 443,

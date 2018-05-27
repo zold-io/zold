@@ -168,7 +168,7 @@ module Zold
     end
 
     def expired?
-      @time < Time.now - 24 * 60
+      @time < Time.now - 24 * 60 * 60
     end
 
     def prefix

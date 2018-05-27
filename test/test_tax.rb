@@ -41,14 +41,14 @@ class TestTax < Minitest::Test
       wallet.add(
         Zold::Txn.new(
           1,
-          Time.now - 24 * 60 * 365,
+          Time.now - 24 * 60 * 60 * 365,
           Zold::Amount.new(zld: 19.99),
           'NOPREFIX', Zold::Id.new, '-'
         )
       )
       tax = Zold::Tax.new(wallet)
-      assert(tax.debt > Zold::Amount.new(coins: 16_775_000))
-      assert(tax.debt < Zold::Amount.new(coins: 16_775_999))
+      assert(tax.debt > Zold::Amount.new(coins: 1_006_524_000))
+      assert(tax.debt < Zold::Amount.new(coins: 1_006_524_999))
     end
   end
 
@@ -58,7 +58,7 @@ class TestTax < Minitest::Test
       wallet.add(
         Zold::Txn.new(
           1,
-          Time.now - 24 * 60 * 365,
+          Time.now - 24 * 60 * 60 * 365,
           Zold::Amount.new(zld: 19.99),
           'NOPREFIX', Zold::Id.new, '-'
         )

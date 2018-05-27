@@ -43,7 +43,7 @@ class TestTaxes < Minitest::Test
       wallet.add(
         Zold::Txn.new(
           1,
-          Time.now - 24 * 60 * 365 * 20,
+          Time.now - 24 * 60 * 60 * 365 * 20,
           Zold::Amount.new(zld: 19.99),
           'NOPREFIX', Zold::Id.new, '-'
         )
