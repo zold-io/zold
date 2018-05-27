@@ -53,14 +53,14 @@ and suggests a different architecture for digital wallets maintenance.
 \section{Motivation}
 
 Bitcoin, the first decentralized digital currency, was released in January 2009~\parencite{nakamoto2008}.
-During a few following years a ``a libertarian fairy tale'' and ``a simple Silicon Valley exercise in hype''
-it turned into ``a catalyst to reshape the financial system in ways that are more
+During a few following years ``a libertarian fairy tale'' and ``a simple Silicon Valley exercise in hype''
+turned into ``a catalyst to reshape the financial system in ways that are more
 powerful for individuals and businesses alike,'' according to \textcite{andreessen2014}.
 At the moment, as~\textcite{van2014} claimed, ``the question is not whether Bitcoin has value; it already does.
 The question is whether the efficiencies of a cybercurrency
 like Bitcoin can be merged with the certainties of an honest central bank.''
 
-The core component of Bitcoin is the Blockchain technology, which is
+The core component of Bitcoin is the Blockchain technology, which
 ``ensures the elimination of the double-spend problem, with the help
 of public-key cryptography'' and ``coins are transferred by the
 digital signature of a hash''~\parencite{pilkington2016}.
@@ -85,17 +85,17 @@ including different ``proof-of'' alternatives.%
   ``Proof-of-Elapsed-Time'': one uses Trusted Execution Environment or TEE
   to ensure a random looter production.
 }
-\textcite{everaere2010} gave
-a summary of them and introduced their own.
+For example, \textcite{everaere2010} gave
+a summary of them and introduced their own;
 \textcite{boyen2016} described
-``a truly distributed ledger system based on a lean graph of cross-verifying transactions.''
-Recently IOTA, a ``tangle-based cryptocurrency,'' was launched~\parencite{popov2017}.
+``a truly distributed ledger system based on a lean graph of cross-verifying transactions'';
+recently IOTA, a ``tangle-based cryptocurrency,'' was launched~\parencite{popov2017}.
 
 Zold also is a decentralized digital currency that maintains its ledgers
 at an unpredicable amount of anonymous and untrustable server nodes, trying to guarantee
 data consistency. The architecture of Zold is not Blockchain-based.
 The development of Zold was motivated by the desire to overcome
-two obvious disadvantages of most existing cryptocyrrencies:
+two obvious disadvantages of the majority of all existing cryptocyrrencies:
 
 The first problem is that transaction processing is rather slow.%
 \footnote{%
@@ -241,7 +241,7 @@ calculations just to help us identify which part of the network they belong to:
 corrupted or not. Each Zold node has to calculate its \emph{score},
 which is as big as much CPU power the node has invested into its calculation.
 
-Similar to Bitcoin nonces we repeatedly calculate cryptographic hashes,
+Similar to Bitcoin nonces, Zold nodes repeatedly calculate cryptographic hashes,
 looking for consecutive zeros inside them. First, in order to calculate a score,
 a node makes the \emph{prefix}, which consists of four parts,
 separated by spaces:
@@ -354,8 +354,12 @@ contains fields separated by a semi-colon:
 Transactions with positive amount don't have signatures.
 Their IDs point to ID fields of corresponding beneficiaries' wallets.
 
-The combination \dd{id}+\dd{bnf}
-must be unique in the entire wallet.
+The \dd{prefix} is a piece of text randomly selected from the RSA key
+of the beneficiary wallet. It is used for security reasons, in order
+to make impossible ``wallet masquerading'' (pushing a new wallet with the
+same ID, but a different key).
+
+The combination \dd{id}+\dd{bnf} must be unique in the entire wallet.
 
 The \href{https://en.wikipedia.org/wiki/RSA_(cryptosystem)}{RSA}
 signature is calculated using the private key of the
@@ -690,7 +694,7 @@ refund them some amount of taxes back. This will be profitable both for
 the tax payers, since they will pay less taxes, and for the node owners,
 since they will receive the payments anyway.
 
-This scenario is indeed possible, but we assume that since tax payments are
+This scenario is indeed possible, but it is assumed that since tax payments are
 supposed to be made in small increments and automatically, the majority of
 clients won't be interested in this fraudulent scheme.
 
