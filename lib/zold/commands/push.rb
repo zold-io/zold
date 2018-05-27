@@ -66,6 +66,7 @@ Available options:"
         unless response.code == '200'
           @remotes.error(r[:host], r[:port])
           @log.error("#{uri} failed as #{response.code}/#{response.message}")
+          @log.debug(response.body) unless response.body.empty?
           next
         end
         json = JSON.parse(response.body)['score']

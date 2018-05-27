@@ -42,8 +42,7 @@ class FakeHome
     Zold::Wallets.new(@dir)
   end
 
-  def create_wallet
-    id = Zold::Id.new
+  def create_wallet(id = Zold::Id.new)
     wallet = Zold::Wallet.new(File.join(@dir, id.to_s))
     wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
     wallet

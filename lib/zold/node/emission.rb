@@ -51,7 +51,7 @@ module Zold
 
     def check
       return unless @root.root?
-      allowed = limit
+      allowed = limit * -1
       balance = @root.balance
       raise "The balance #{balance} of the root wallet is too low (max allowed: #{allowed})" if balance < allowed
     end

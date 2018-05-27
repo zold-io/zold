@@ -41,4 +41,18 @@ Limit: #{Zold::Emission.new(wallet).limit}")
       end
     end
   end
+
+  def test_emission_passes
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet(Zold::Id::ROOT)
+      wallet.add(
+        Zold::Txn.new(
+          1, Time.now - 60 * 24,
+          Zold::Amount.new(zld: 10.99),
+          'NOPREFIX', Zold::Id.new, '-'
+        )
+      )
+      Zold::Emission.new(wallet).check
+    end
+  end
 end
