@@ -91,9 +91,9 @@ module Zold
         {
           name: name,
           path: File.join(@dir, name),
-          score: scores.select { |s| s[:time] > Time.now - 24 * 60 }
+          score: scores.select { |s| s[:time] > Time.now - 24 * 60 * 60 }
             .map { |s| s[:score] }
-            .inject(&:+)
+            .inject(&:+) || 0
         }
       end
     end

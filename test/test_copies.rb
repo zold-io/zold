@@ -62,8 +62,8 @@ class TestCopies < Minitest::Test
   def test_cleans_copies
     Dir.mktmpdir 'test' do |dir|
       copies = Zold::Copies.new(dir)
-      copies.add('h1', 'zold.io', 50, 80, Time.now - 25 * 60)
-      copies.add('h1', 'zold.io', 33, 80, Time.now - 26 * 60)
+      copies.add('h1', 'zold.io', 50, 80, Time.now - 25 * 60 * 60)
+      copies.add('h1', 'zold.io', 33, 80, Time.now - 26 * 60 * 60)
       assert(File.exist?(File.join(dir, '1')))
       copies.clean
       assert(copies.all.empty?, "#{copies.all.count} is not empty")
@@ -74,9 +74,17 @@ class TestCopies < Minitest::Test
   def test_ignores_garbage
     Dir.mktmpdir 'test' do |dir|
       copies = Zold::Copies.new(dir)
-      copies.add('h1', 'zold.io', 50, 80, Time.now - 25 * 60)
+      copies.add('h1', 'zold.io', 50, 80, Time.now - 25 * 60 * 60)
       FileUtils.mkdir(File.join(dir, '55'))
       assert_equal(1, copies.all.count)
+    end
+  end
+
+  def test_ignores_too_old_scores
+    Dir.mktmpdir 'test' do |dir|
+      copies = Zold::Copies.new(dir)
+      copies.add('h1', 'zold.io', 50, 80, Time.now - 1000 * 60 * 60)
+      assert_equal(0, copies.all[0][:score])
     end
   end
 end
