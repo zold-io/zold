@@ -17,7 +17,7 @@
 **NOTICE**: It's an experiment and a very early draft! Please, feel free to
 submit your ideas or pull requests.
 
-Here is the [White Paper](https://latexonline.cc/compile?git=https%3A%2F%2Fgithub.com%2Fyegor256%2Fzold&target=wp%2Fwp.tex&command=pdflatex&trackId=1520158941887).
+Here is the [White Paper](https://github.com/zerocracy/zold/raw/master/wp/wp.pdf).
 
 The license is [MIT](https://github.com/zerocracy/zold/blob/master/LICENSE.txt).
 
