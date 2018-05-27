@@ -5,21 +5,21 @@
 [![DevOps By Rultor.com](http://www.rultor.com/b/yegor256/Zold)](http://www.rultor.com/p/yegor256/Zold)
 [![We recommend RubyMine](http://www.elegantobjects.org/rubymine.svg)](https://www.jetbrains.com/ruby/)
 
-[![Build Status](https://travis-ci.org/zerocracy/zold.svg)](https://travis-ci.org/zerocracy/zold)
+[![Build Status](https://travis-ci.org/yegor256/zold.svg)](https://travis-ci.org/yegor256/zold)
 [![Build status](https://ci.appveyor.com/api/projects/status/ypctxm5ohrtp2kr4?svg=true)](https://ci.appveyor.com/project/yegor256/zold)
-[![PDD status](http://www.0pdd.com/svg?name=zerocracy/zold)](http://www.0pdd.com/p?name=zerocracy/zold)
+[![PDD status](http://www.0pdd.com/svg?name=yegor256/zold)](http://www.0pdd.com/p?name=yegor256/zold)
 [![Gem Version](https://badge.fury.io/rb/zold.svg)](http://badge.fury.io/rb/zold)
-[![Test Coverage](https://img.shields.io/codecov/c/github/zerocracy/zold.svg)](https://codecov.io/github/zerocracy/zold?branch=master)
+[![Test Coverage](https://img.shields.io/codecov/c/github/yegor256/zold.svg)](https://codecov.io/github/yegor256/zold?branch=master)
 
-[![Dependency Status](https://gemnasium.com/zerocracy/zold.svg)](https://gemnasium.com/zerocracy/zold)
-[![Maintainability](https://api.codeclimate.com/v1/badges/7489c1d2bacde40ffc09/maintainability)](https://codeclimate.com/github/zerocracy/zold/maintainability)
+[![Dependency Status](https://gemnasium.com/yegor256/zold.svg)](https://gemnasium.com/yegor256/zold)
+[![Maintainability](https://api.codeclimate.com/v1/badges/7489c1d2bacde40ffc09/maintainability)](https://codeclimate.com/github/yegor256/zold/maintainability)
 
 **NOTICE**: It's an experiment and a very early draft! Please, feel free to
 submit your ideas or pull requests.
 
-Here is the [White Paper](https://github.com/zerocracy/zold/raw/master/wp/wp.pdf).
+Here is the [White Paper](https://github.com/yegor256/zold/raw/master/wp/wp.pdf).
 
-The license is [MIT](https://github.com/zerocracy/zold/blob/master/LICENSE.txt).
+The license is [MIT](https://github.com/yegor256/zold/blob/master/LICENSE.txt).
 
 ## How to Use
 
@@ -108,7 +108,7 @@ $ bundle update
 $ rake
 ```
 
-The build has to be clean. If it's not, [submit an issue](https://github.com/zerocracy/zold/issues).
+The build has to be clean. If it's not, [submit an issue](https://github.com/yegor256/zold/issues).
 
 Then, make your changes, make sure the build is still clean,
 and [submit a pull request](https://www.yegor256.com/2014/04/15/github-guidelines.html).
