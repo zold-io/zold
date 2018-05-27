@@ -9,7 +9,7 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/ypctxm5ohrtp2kr4?svg=true)](https://ci.appveyor.com/project/yegor256/zold)
 [![PDD status](http://www.0pdd.com/svg?name=yegor256/zold)](http://www.0pdd.com/p?name=yegor256/zold)
 [![Gem Version](https://badge.fury.io/rb/zold.svg)](http://badge.fury.io/rb/zold)
-[![Test Coverage](https://img.shields.io/codecov/c/github/yegor256/zold.svg)](https://codecov.io/github/yegor256/zold?branch=master)
+[![Test Coverage](https://img.shields.io/codecov/c/github/zerocracy/zold.svg)](https://codecov.io/github/zerocracy/zold?branch=master)
 
 [![Dependency Status](https://gemnasium.com/yegor256/zold.svg)](https://gemnasium.com/yegor256/zold)
 [![Maintainability](https://api.codeclimate.com/v1/badges/7489c1d2bacde40ffc09/maintainability)](https://codeclimate.com/github/yegor256/zold/maintainability)
