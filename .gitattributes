@@ -6,3 +6,4 @@
 *.rb ident
 *.xml ident
 *.png binary
+*.pdf binary
