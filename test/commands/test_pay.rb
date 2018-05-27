@@ -19,8 +19,8 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
-require 'tmpdir'
 require_relative '../test__helper'
+require_relative '../fake_home'
 require_relative '../../lib/zold/wallets'
 require_relative '../../lib/zold/amount'
 require_relative '../../lib/zold/key'
@@ -40,6 +40,21 @@ class TestPay < Minitest::Test
       Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: $log).run(
         [
           'pay', '--force', '--private-key=fixtures/id_rsa',
+          source.id.to_s, target.id.to_s, amount.to_zld, 'For the car'
+        ]
+      )
+      assert_equal(amount * -1, source.balance)
+    end
+  end
+
+  def test_sends_from_root_wallet
+    FakeHome.new.run do |home|
+      source = home.create_wallet(Zold::Id::ROOT)
+      target = home.create_wallet
+      amount = Zold::Amount.new(zld: 14.95)
+      Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: $log).run(
+        [
+          'pay', '--private-key=fixtures/id_rsa',
           source.id.to_s, target.id.to_s, amount.to_zld, 'For the car'
         ]
       )
