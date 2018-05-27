@@ -145,7 +145,7 @@ Available options:"
     Zold::Fetch.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)
   when 'clean'
     require_relative '../lib/zold/commands/clean'
-    Zold::Clean.new(copies: copies, log: log).run(args)
+    Zold::Clean.new(wallets: wallets, copies: copies, log: log).run(args)
   when 'diff'
     require_relative '../lib/zold/commands/diff'
     Zold::Diff.new(wallets: wallets, copies: copies, log: log).run(args)
