@@ -70,4 +70,13 @@ class TestCopies < Minitest::Test
       assert(!File.exist?(File.join(dir, '1')))
     end
   end
+
+  def test_ignores_garbage
+    Dir.mktmpdir 'test' do |dir|
+      copies = Zold::Copies.new(dir)
+      copies.add('h1', 'zold.io', 50, 80, Time.now - 25 * 60)
+      FileUtils.mkdir(File.join(dir, '55'))
+      assert_equal(1, copies.all.count)
+    end
+  end
 end
