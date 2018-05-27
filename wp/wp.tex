@@ -392,7 +392,7 @@ This wallet is the only one that may have a negative ballance.
 However, to prevent an uncontrolled emission of ZLD, the balance
 of this wallet must satisfy the formula:
 
-$$z = 2^{63} \times (1 - 2^{-h/1024}).$$
+$$t = \frac{h}{24 \times 1024}; \quad z = 2^{63} \times (1 - 2^{-t}).$$
 
 Here $h$ is the age of the root wallet in hours and $z$ is the maximum
 amount of zents it can issue at that moment. The first
