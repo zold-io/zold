@@ -75,7 +75,7 @@ Available options:"
         end
         target.add(t.inverse(me))
         @log.info("#{t.amount * -1} arrived to #{t.bnf}: #{t.details}")
-        modified << t.id
+        modified << t.bnf
       end
       modified.uniq!
       @log.debug("Wallet #{me} propagated successfully, #{modified.count} wallets affected")

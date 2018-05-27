@@ -78,11 +78,9 @@ module Zold
         wallets: @wallets, copies: copies.root, log: @log
       ).run(['merge', id.to_s])
       copies.remove('remote', Remotes::PORT)
-      modified.each do |m|
-        Push.new(
-          wallets: @wallets, remotes: @remotes, log: @log
-        ).run(['push', m.to_s])
-      end
+      Push.new(
+        wallets: @wallets, remotes: @remotes, log: @log
+      ).run(['push'] + modified.map(&:to_s))
       modified
     end
   end

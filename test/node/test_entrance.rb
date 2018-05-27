@@ -19,11 +19,42 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
+require_relative '../fake_home'
+require_relative '../test__helper'
+require_relative '../../lib/zold/wallet'
+require_relative '../../lib/zold/wallets'
+require_relative '../../lib/zold/remotes'
+require_relative '../../lib/zold/id'
+require_relative '../../lib/zold/key'
 require_relative '../../lib/zold/node/entrance'
-require_relative '../../lib/zold/amount'
+require_relative '../../lib/zold/commands/pay'
 
-class EntranceTest < Minitest::Test
-  def test_something
-    # tbd...
+# ENTRANCE test.
+# Author:: Yegor Bugayenko (yegor256@gmail.com)
+# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# License:: MIT
+class TestEntrance < Minitest::Test
+  def test_pushes_wallet
+    sid = Zold::Id.new
+    tid = Zold::Id.new
+    body = FakeHome.new.run do |home|
+      source = home.create_wallet(sid)
+      target = home.create_wallet(tid)
+      Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: $log).run(
+        [
+          'pay', '--force', '--private-key=fixtures/id_rsa',
+          source.id.to_s, target.id.to_s, '19.99', 'testing'
+        ]
+      )
+      File.read(source.path)
+    end
+    FakeHome.new.run do |home|
+      source = home.create_wallet(sid)
+      home.create_wallet(tid)
+      modified = Zold::Entrance.new(home.wallets, home.remotes, home.copies(source).root, 'x', log: $log).push(
+        source.id, body
+      )
+      assert_equal(2, modified.count)
+    end
   end
 end
