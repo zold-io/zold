@@ -61,4 +61,25 @@ class TestPay < Minitest::Test
       assert_equal(amount * -1, source.balance)
     end
   end
+
+  def test_sends_from_normal_wallet
+    FakeHome.new.run do |home|
+      source = home.create_wallet
+      target = home.create_wallet
+      amount = Zold::Amount.new(zld: 14.95)
+      source.add(
+        Zold::Txn.new(
+          1, Time.now, amount,
+          'NOPREFIX', Zold::Id.new, '-'
+        )
+      )
+      Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: $log).run(
+        [
+          'pay', '--private-key=fixtures/id_rsa',
+          source.id.to_s, target.id.to_s, amount.to_zld, 'here is the refund'
+        ]
+      )
+      assert_equal(Zold::Amount::ZERO, source.balance)
+    end
+  end
 end

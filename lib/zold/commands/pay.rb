@@ -82,8 +82,8 @@ Available options:"
       unless opts.force?
         raise 'The amount can\'t be zero' if amount.zero?
         raise "The amount can't be negative: #{amount}" if amount.negative?
-        if !from.root? && from.balance < @amount
-          raise "There is not enough funds in #{from} to send #{amount}, only #{payer.balance} left"
+        if !from.root? && from.balance < amount
+          raise "There is not enough funds in #{from} to send #{amount}, only #{from.balance} left"
         end
       end
       key = Zold::Key.new(file: opts['private-key'])
