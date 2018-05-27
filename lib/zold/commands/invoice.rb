@@ -48,8 +48,9 @@ Available options:"
       end
       mine = Args.new(opts, @log).take || return
       raise 'Receiver wallet ID is required' if mine[0].nil?
-      wallet = @wallets.find(Zold::Id.new(mine[0]))
-      raise 'Wallet doesn\'t exist, do \'fetch\' first' unless wallet.exists?
+      id = Zold::Id.new(mine[0])
+      wallet = @wallets.find(id)
+      raise "Wallet #{id} doesn\'t exist in #{@wallets}, do 'fetch' first" unless wallet.exists?
       invoice(wallet, opts)
     end
 

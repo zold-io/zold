@@ -156,12 +156,8 @@ Available options:"
     require_relative '../lib/zold/commands/propagate'
     Zold::Propagate.new(wallets: wallets, log: log).run(args)
   when 'pull'
-    require_relative '../lib/zold/commands/fetch'
-    Zold::Fetch.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)
-    require_relative '../lib/zold/commands/merge'
-    Zold::Merge.new(wallets: wallets, copies: copies, log: log).run(args)
-    require_relative '../lib/zold/commands/clean'
-    Zold::Clean.new(wallets: wallets, copies: copies, log: log).run(args)
+    require_relative '../lib/zold/commands/pull'
+    Zold::Pull.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)
   when 'taxes'
     require_relative '../lib/zold/commands/taxes'
     Zold::Taxes.new(wallets: wallets, log: log).run(args)

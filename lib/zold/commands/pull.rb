@@ -18,45 +18,29 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative 'id'
-require_relative 'wallet'
+require_relative '../log'
+require_relative 'fetch'
+require_relative 'merge'
+require_relative 'clean'
 
-# The local collection of wallets.
+# PULL command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # Collection of local wallets
-  class Wallets
-    def initialize(dir)
-      @dir = dir
+  # PULL command
+  class Pull
+    def initialize(wallets:, remotes:, copies:, log: Log::Quiet.new)
+      @wallets = wallets
+      @remotes = remotes
+      @copies = copies
+      @log = log
     end
 
-    # @todo #70:30min Let's make it smarter. Instead of returning
-    #  the full path let's substract the prefix from it if it's equal
-    #  to the current directory in Dir.pwd.
-    def to_s
-      path
-    end
-
-    def path
-      FileUtils.mkdir_p(@dir)
-      File.expand_path(@dir)
-    end
-
-    # Returns the list of their IDs (as plain text)
-    def all
-      Dir.new(path).select do |f|
-        file = File.join(@dir, f)
-        File.file?(file) &&
-          !File.directory?(file) &&
-          f =~ /[0-9a-fA-F]{16}/ &&
-          Id.new(f).to_s == f
-      end
-    end
-
-    def find(id)
-      Zold::Wallet.new(File.join(path, id.to_s))
+    def run(args = [])
+      Zold::Fetch.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(args)
+      Zold::Merge.new(wallets: @wallets, copies: @copies, log: @log).run(args)
+      Zold::Clean.new(wallets: @wallets, copies: @copies, log: @log).run(args)
     end
   end
 end

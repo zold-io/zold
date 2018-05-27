@@ -96,6 +96,8 @@ module Zold
       Zold::Front.set(:port, opts['bind-port'])
       invoice = opts[:invoice]
       unless invoice.include?('@')
+        require_relative 'pull'
+        Pull.new(wallets: wallets, remotes: remotes, copies: copies, log: @log).run(['pull', invoice])
         require_relative 'invoice'
         invoice = Invoice.new(wallets: wallets, log: @log).run(['invoice', invoice])
       end
