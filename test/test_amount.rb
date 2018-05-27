@@ -38,8 +38,8 @@ class TestAmount < Minitest::Test
   def test_parses_coins
     amount = Zold::Amount.new(coins: 900_000_000)
     assert(
-      amount.to_s.include?('53.64ZLD'),
-      "#{amount} is not equal to '53.64ZLD'"
+      amount.to_s.include?('0.21ZLD'),
+      "#{amount} is not equal to '0.21ZLD'"
     )
   end
 

@@ -45,7 +45,7 @@ class TestMerge < Minitest::Test
       File.write(first.path, File.read(wallet.path))
       second = home.create_wallet
       File.write(second.path, File.read(wallet.path))
-      Zold::Pay.new(wallets: home.wallets, log: $log).run(
+      Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: $log).run(
         ['pay', wallet.id.to_s, second.id.to_s, '14.95', '--force', '--private-key=fixtures/id_rsa']
       )
       copies = home.copies(wallet)
@@ -66,7 +66,7 @@ class TestMerge < Minitest::Test
       File.write(first.path, File.read(wallet.path))
       second = home.create_wallet
       File.write(second.path, File.read(wallet.path))
-      Zold::Pay.new(wallets: home.wallets, log: $log).run(
+      Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: $log).run(
         ['pay', wallet.id.to_s, second.id.to_s, '14.95', '--force', '--private-key=fixtures/id_rsa']
       )
       copies = home.copies(wallet)

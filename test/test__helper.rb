@@ -30,8 +30,8 @@ if ENV['CI'] == 'true'
 end
 
 require_relative '../lib/zold/log'
-# $log = Zold::Log::Quiet.new
-$log = Zold::Log::Verbose.new
+$log = Zold::Log::Quiet.new
+# $log = Zold::Log::Verbose.new
 
 require 'minitest/autorun'
 require_relative '../lib/zold'

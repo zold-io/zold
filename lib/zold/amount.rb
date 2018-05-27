@@ -43,8 +43,8 @@ module Zold
       else
         raise 'You can\'t specify both coints and zld'
       end
-      raise 'The amount is too big: #{@coins}' if @coins > Amount::MAX
-      raise 'The amount is too small: #{@coins}' if @coins < -(Amount::MAX)
+      raise "The amount is too big: #{@coins}" if @coins > Amount::MAX
+      raise "The amount is too small: #{@coins}" if @coins < -Amount::MAX
     end
 
     ZERO = Amount.new(coins: 0)

@@ -79,8 +79,8 @@ class TestWallet < Minitest::Test
         sum += t.amount
       end
       assert(
-        sum == Zold::Amount.new(coins: 921_740_246),
-        "#{sum} is not equal to #{Zold::Amount.new(zld: 54.94)}"
+        sum == Zold::Amount.new(coins: 235_965_503_242),
+        "#{sum} (#{sum.to_i}) is not equal to #{Zold::Amount.new(zld: 54.94)}"
       )
     end
   end

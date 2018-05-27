@@ -52,4 +52,8 @@ class FakeHome
   def copies(wallet)
     Zold::Copies.new(File.join(@dir, "copies/#{wallet.id}"))
   end
+
+  def remotes
+    Zold::Remotes.new(File.join(@dir, 'secrets/remotes'))
+  end
 end
