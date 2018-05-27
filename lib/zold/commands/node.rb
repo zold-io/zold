@@ -97,7 +97,7 @@ module Zold
       invoice = opts[:invoice]
       unless invoice.include?('@')
         require_relative 'invoice'
-        invoice = Invoice.new(wallets: @wallets, log: @log).run(['invoice', invoice])
+        invoice = Invoice.new(wallets: wallets, log: @log).run(['invoice', invoice])
       end
       farm = Farm.new(invoice, log: @log)
       farm.start(

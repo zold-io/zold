@@ -19,10 +19,8 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
-require 'tmpdir'
-require 'json'
-require 'time'
 require 'webmock/minitest'
+require_relative '../fake_home'
 require_relative '../test__helper'
 require_relative '../../lib/zold/wallet'
 require_relative '../../lib/zold/wallets'
@@ -37,16 +35,11 @@ require_relative '../../lib/zold/commands/push'
 # License:: MIT
 class TestPush < Minitest::Test
   def test_pushes_wallet
-    Dir.mktmpdir 'test' do |dir|
-      id = Zold::Id.new
-      wallets = Zold::Wallets.new(dir)
-      wallet = wallets.find(id)
-      wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-      remotes = Zold::Remotes.new(File.join(dir, 'remotes.csv'))
-      remotes.clean
-      stub_request(:put, "http://fake-1/wallet/#{id}").to_return(status: 304)
-      Zold::Push.new(wallets: wallets, remotes: remotes, log: $log).run(
-        ['--ignore-this-stupid-option', 'push', id.to_s]
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      stub_request(:put, "http://fake-1/wallet/#{wallet.id}").to_return(status: 304)
+      Zold::Push.new(wallets: home.wallets, remotes: home.remotes, log: $log).run(
+        ['--ignore-this-stupid-option', 'push', wallet.id.to_s]
       )
     end
   end
