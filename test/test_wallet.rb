@@ -48,6 +48,17 @@ class TestWallet < Minitest::Test
     end
   end
 
+  def test_validate_key_on_payment
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      amount = Zold::Amount.new(zld: 39.99)
+      key = Zold::Key.new(file: 'fixtures/id_rsa-2')
+      assert_raises RuntimeError do
+        wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
+      end
+    end
+  end
+
   def test_adds_transaction_and_reads_back
     FakeHome.new.run do |home|
       wallet = home.create_wallet

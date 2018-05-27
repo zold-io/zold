@@ -98,17 +98,18 @@ module Zold
       raise "The amount can't be negative: #{amount}" if amount.negative?
       raise 'The pvt has to be of type Key' unless pvt.is_a?(Key)
       prefix, target = invoice.split('@')
-      id = max + 1
+      tid = max + 1
       raise 'Too many transactions already, can\'t add more' if max > 0xffff
       txn = Txn.new(
-        id,
+        tid,
         Time.now,
         amount * -1,
         prefix,
         Id.new(target),
         details
       )
-      txn = txn.signed(pvt, self)
+      txn = txn.signed(pvt, id)
+      raise 'This is not the private right key for this wallet' unless Signature.new.valid?(key, id, txn)
       add(txn)
       txn
     end
