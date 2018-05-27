@@ -5,7 +5,7 @@
 [![DevOps By Rultor.com](http://www.rultor.com/b/yegor256/Zold)](http://www.rultor.com/p/yegor256/Zold)
 [![We recommend RubyMine](http://www.elegantobjects.org/rubymine.svg)](https://www.jetbrains.com/ruby/)
 
-[![Build Status](https://travis-ci.org/yegor256/zold.svg)](https://travis-ci.org/yegor256/zold)
+[![Build Status](https://travis-ci.org/zerocracy/zold.svg)](https://travis-ci.org/zerocracy/zold)
 [![Build status](https://ci.appveyor.com/api/projects/status/ypctxm5ohrtp2kr4?svg=true)](https://ci.appveyor.com/project/yegor256/zold)
 [![PDD status](http://www.0pdd.com/svg?name=yegor256/zold)](http://www.0pdd.com/p?name=yegor256/zold)
 [![Gem Version](https://badge.fury.io/rb/zold.svg)](http://badge.fury.io/rb/zold)
@@ -15,7 +15,7 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/7489c1d2bacde40ffc09/maintainability)](https://codeclimate.com/github/yegor256/zold/maintainability)
 
 **NOTICE**: It's an experiment and a very early draft! Please, feel free to
-submit your ideas or pull requests.
+submit your ideas and/or pull requests.
 
 Here is the [White Paper](https://github.com/yegor256/zold/raw/master/wp/wp.pdf).
 
@@ -30,13 +30,7 @@ $ sudo apt-get install ruby-dev rubygems zlib1g-dev
 $ gem install zold
 ```
 
-Then, either run it as a node:
-
-```bash
-$ zold node
-```
-
-For more options and commands just run:
+For more options and commands you can always use this:
 
 ```bash
 $ zold --help
@@ -91,8 +85,8 @@ In order to do that just run:
 $ zold node --invoice=5f96e731e48ae21f
 ```
 
-Grateful users of the system will pay "taxes" to your wallet for processing
-of their transactions.
+Grateful users of the system will pay "taxes" to your wallet
+for the maintenance of their wallets.
 
 ## How to Contribute
 
@@ -118,5 +112,11 @@ check the logging configuration inside `test__helper.rb` and make
 sure the `Verbose` log is assigned to `$log`. Then, run, for example:
 
 ```bash
-ruby test/commands/test_node.rb
+$ ruby test/commands/test_node.rb
+```
+
+If you need to run a single test method, do this:
+
+```bash
+$ ruby test/test_wallet.rb -n test_adds_transaction
 ```
