@@ -19,7 +19,6 @@
 # SOFTWARE.
 
 require 'slop'
-require 'English'
 require_relative '../score'
 require_relative '../wallets'
 require_relative '../remotes'
@@ -65,18 +64,11 @@ module Zold
         o.bool '--never-reboot',
           'Don\'t reboot when a new version shows up in the network',
           default: false
-        o.bool '--skip-install',
-          'Don\'t re-install the gem before running the node',
-          default: false
         o.bool '--help', 'Print instructions'
       end
       if opts.help?
         @log.info(opts.to_s)
         return
-      end
-      unless opts['skip-install']
-        system('gem install zold')
-        raise 'Failed to re-install zold gem' unless $CHILD_STATUS.exitstatus.zero?
       end
       raise '--invoice is mandatory' unless opts[:invoice]
       Zold::Front.set(:log, @log)

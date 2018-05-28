@@ -9,7 +9,7 @@ port=`python -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.gets
 
 mkdir server
 cd server
-zold node --trace --skip-install --invoice=NOPREFIX@ffffffffffffffff \
+zold node --trace --invoice=NOPREFIX@ffffffffffffffff \
   --host=localhost --port=${port} --bind-port=${port} \
   --threads=0 --standalone &
 pid=$!

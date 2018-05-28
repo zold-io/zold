@@ -97,7 +97,7 @@ to start the node and make sure it will be online even when you log off
 (replace `CMD` with the command you just executed before):
 
 ```bash
-$ nohup bash -c 'while CMD; do echo Restarted; done' &
+$ nohup bash -c 'while CMD; do gem install zold; done' &
 ```
 
 Grateful users of the system will pay "taxes" to your wallet
