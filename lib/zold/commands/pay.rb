@@ -90,6 +90,7 @@ Available options:"
       key = Zold::Key.new(file: opts['private-key'])
       txn = from.sub(amount, invoice, key, details)
       @log.debug("#{amount} sent from #{from} to #{txn.bnf}: #{details}")
+      @log.debug("Don't forget to do 'zold push #{from}'")
       @log.info(txn.id)
       txn
     end
