@@ -56,7 +56,7 @@ Available options:"
     def push(wallet, _)
       raise 'The wallet is absent' unless wallet.exists?
       total = 0
-      @remotes.all.each do |r|
+      @remotes.iterate do |r|
         uri = URI("#{r[:home]}wallet/#{wallet.id}")
         response = Http.new(uri).put(File.read(wallet.path))
         if response.code == '304'

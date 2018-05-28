@@ -115,7 +115,7 @@ Available options:"
 
     def update(opts, deep = true)
       capacity = []
-      @remotes.all.each do |r|
+      @remotes.iterate do |r|
         uri = URI("#{r[:home]}remotes")
         res = Http.new(uri).get
         unless res.code == '200'

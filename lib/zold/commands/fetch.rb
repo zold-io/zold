@@ -64,7 +64,7 @@ Available options:"
 
     def fetch(id, cps, opts)
       total = 0
-      @remotes.all.each do |r|
+      @remotes.iterate do |r|
         done = fetch_one(id, r, cps, opts)
         if done
           total += 1

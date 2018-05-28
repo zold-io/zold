@@ -29,12 +29,17 @@ require 'fileutils'
 module Zold
   # All remotes
   class Remotes
+    # The default TCP port all nodes are supposed to use.
     PORT = 4096
 
     # Empty, for standalone mode
     class Empty
       def all
         []
+      end
+
+      def iterate
+        # Nothing to do here
       end
     end
 
@@ -89,10 +94,10 @@ module Zold
       save(list)
     end
 
-    def score(host, port = Remotes::PORT)
-      raise 'Port has to be of type Integer' unless port.is_a?(Integer)
-      raise "#{host}:#{port} is absent" unless exists?(host, port)
-      load.find { |r| r[:host] == host.downcase && r[:port] == port }[:score]
+    def iterate
+      all.each do |r|
+        yield r
+      end
     end
 
     def errors(host, port = Remotes::PORT)

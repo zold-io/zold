@@ -112,6 +112,9 @@ module Zold
         threads: opts[:threads], strength: opts[:strength]
       )
       Zold::Front.set(:farm, farm)
+      Thread.start do
+        Zold::Remote.new(remotes: remotes, log: @log).run(%w[remote update]) unless best.nil?
+      end
       @log.debug('Starting up the web front...')
       begin
         Zold::Front.run!

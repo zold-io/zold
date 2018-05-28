@@ -117,7 +117,7 @@ Available options:"
 
     def top_scores
       best = []
-      @remotes.all.each do |r|
+      @remotes.iterate do |r|
         uri = URI(r[:home])
         name = "#{r[:host]}:#{r[:port]}"
         res = Http.new(uri).get
