@@ -30,7 +30,7 @@ SOFTWARE.
     <meta name="description" content="Full map of visible Zold nodes"/>
     <meta name="keywords" content="zerocracy, management, robotocracy, meritocracy"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <link rel="shortcut icon" href="/logo.png"/>
+    <link rel="shortcut icon" href="https://www.zold.io/logo.png"/>
     <script src="https://maps.google.com/maps/api/js?sensor=false&amp;libraries=places">
       // Should be empty
     </script>
@@ -82,7 +82,7 @@ SOFTWARE.
             var li = $('#remotes li[data-coords="' + coords + '"]');
             if (li.length) {
               $.getJSON('http://' + coords + '/', function(data) {
-                li[0].text(data['version'] + ': ' + data['score']['value'] + '/' + data['wallets']);
+                li[0].html(data['version'] + ': ' + data['score']['value'] + '/' + data['wallets']);
               });
               var ip = host;
               if (!ip.match(/[0-9\.]+/)) {
