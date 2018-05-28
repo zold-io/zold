@@ -1,4 +1,4 @@
-<img src="http://www.zold.io/logo.svg" width="64px" height="64px"/>
+<img src="http://www.zold.io/logo.svg" width="92px" height="92px"/>
 
 [![EO principles respected here](http://www.elegantobjects.org/badge.svg)](http://www.elegantobjects.org)
 [![Managed by Zerocracy](https://www.0crat.com/badge/C91QJT4CF.svg)](https://www.0crat.com/p/C91QJT4CF)
@@ -23,7 +23,8 @@ The license is [MIT](https://github.com/yegor256/zold/blob/master/LICENSE.txt).
 
 ## How to Use
 
-Install Ruby 2.2+, [Rubygems](https://rubygems.org/pages/download), and then run:
+Install [Ruby 2.2+](https://www.ruby-lang.org/en/documentation/installation/),
+[Rubygems](https://rubygems.org/pages/download), and then run:
 
 ```bash
 $ sudo apt-get install ruby-dev rubygems zlib1g-dev
@@ -36,14 +37,15 @@ For more options and commands you can always use this:
 $ zold --help
 ```
 
-You will need PGP keys in `~/.ssh`. To generate them (if you don't have them yet):
+You will need PGP private and public keys in `~/.ssh`.
+If you don't have them yet, run this in order to generate a new pair:
 
 ```bash
 $ ssh-keygen -t rsa -b 4096
 ```
 
-First, create a wallet (instead of `5f96e731e48ae21f` there will be your
-person wallet number, use it everywhere below):
+First, create a new wallet (instead of `5f96e731e48ae21f` there will be your
+personal wallet number, use it everywhere below):
 
 ```bash
 $ zold create
