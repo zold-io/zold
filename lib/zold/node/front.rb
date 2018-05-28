@@ -85,6 +85,7 @@ module Zold
         score: score.to_h,
         uptime: `uptime`.strip,
         wallets: settings.wallets.all.count,
+        remotes: settings.remotes.all.count,
         farm: settings.farm.to_json,
         date: `date  --iso-8601=seconds -u`.strip,
         hours_alive: ((Time.now - settings.start) / (60 * 60)).round(2),
