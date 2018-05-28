@@ -84,7 +84,7 @@ Available options:"
       uri = URI("#{r[:home]}wallet/#{id}")
       res = Http.new(uri).get
       if res.code == '404'
-        @log.info("#{address} wallet #{Rainbow('not found').red}")
+        @log.info("#{address} wallet #{id} #{Rainbow('not found').red}")
         return false
       end
       unless res.code == '200'
