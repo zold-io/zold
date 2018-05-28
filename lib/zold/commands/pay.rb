@@ -59,8 +59,9 @@ Available options:"
       end
       mine = Args.new(opts, @log).take || return
       raise 'Payer wallet ID is required as the first argument' if mine[0].nil?
-      from = @wallets.find(Id.new(mine[0]))
-      raise 'Wallet doesn\'t exist, do \'fetch\' first' unless from.exists?
+      id = Id.new(mine[0])
+      from = @wallets.find(id)
+      raise "Wallet #{id} doesn't exist, do 'pull' first" unless from.exists?
       raise 'Recepient\'s invoice or wallet ID is required as the second argument' if mine[1].nil?
       invoice = mine[1]
       unless invoice.include?('@')
