@@ -23,7 +23,7 @@ STDOUT.sync = true
 require 'json'
 require 'sinatra/base'
 require 'webrick'
-
+require 'semantic'
 require_relative '../version'
 require_relative '../wallet'
 require_relative '../log'
@@ -45,6 +45,7 @@ module Zold
       set :lock, false
       set :show_exceptions, false
       set :server, 'webrick'
+      set :reboot, false # to be injected at node.rb
       set :home, nil? # to be injected at node.rb
       set :logging, true # to be injected at node.rb
       set :log, nil? # to be injected at node.rb
@@ -57,11 +58,16 @@ module Zold
     end
 
     before do
-      if request.env[Http::SCORE_HEADER] && !settings.remotes.empty?
-        s = Score.parse(request.env[Http::SCORE_HEADER])
-        error(400, 'The score is invalid') unless s.valid?
-        settings.remotes.add(s.host, s.port) if s.value > 3
+      if request.env[Http::VERSION_HEADER] &&
+        Semantic::Version.new(VERSION) < Semantic::Version.new(request.env[Http::VERSION_HEADER]) &&
+        settings.reboot
+        exit
       end
+      return unless request.env[Http::SCORE_HEADER]
+      return unless settings.remotes.empty?
+      s = Score.parse(request.env[Http::SCORE_HEADER])
+      error(400, 'The score is invalid') unless s.valid?
+      settings.remotes.add(s.host, s.port) if s.value > 3
     end
 
     after do

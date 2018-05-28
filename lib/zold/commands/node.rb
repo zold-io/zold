@@ -61,6 +61,9 @@ module Zold
         o.bool '--standalone',
           'Never communicate with other nodes (mostly for testing)',
           default: false
+        o.bool '--never-reboot',
+          'Don\'t reboot when a new version shows up in the network',
+          default: false
         o.bool '--help', 'Print instructions'
       end
       if opts.help?
@@ -94,6 +97,7 @@ module Zold
         :entrance, Entrance.new(wallets, remotes, copies, address, log: @log)
       )
       Zold::Front.set(:port, opts['bind-port'])
+      Zold::Front.set(:reboot, !opts['never-reboot'])
       invoice = opts[:invoice]
       unless invoice.include?('@')
         require_relative 'pull'

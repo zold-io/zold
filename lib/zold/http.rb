@@ -30,7 +30,15 @@ require_relative 'score'
 module Zold
   # Http page
   class Http
+    # HTTP header we add to each HTTP request, in order to inform
+    # the other node about the score. If the score is big enough,
+    # the remote node will add us to its list of remote nodes.
     SCORE_HEADER = 'X-Zold-Score'.freeze
+
+    # HTTP header we add, in order to inform the node about our
+    # version. This is done mostly in order to let the other node
+    # reboot itself, if the version is higher.
+    VERSION_HEADER = 'X-Zold-Version'.freeze
 
     def initialize(uri, score = Score::ZERO)
       @uri = uri
@@ -66,7 +74,8 @@ module Zold
         'User-Agent': "Zold #{VERSION}",
         'Connection': 'close'
       }
-      headers[SCORE_HEADER] = score.reduced(4).to_s if @score.valid? && @score.value >= 3 && !score.expired?
+      headers[Http::VERSION_HEADER] = VERSION
+      headers[Http::SCORE_HEADER] = score.reduced(4).to_s if @score.valid? && @score.value >= 3 && !score.expired?
       headers
     end
   end

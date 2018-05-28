@@ -27,7 +27,12 @@ Metrics/PerceivedComplexity:
   Max: 25
 Metrics/LineLength:
   Max: 120
+Layout/MultilineOperationIndentation:
+  Enabled: false
 
-# Get rid of this:
+# @todo #64:30min Let's get rid of this and find a way to pass that
+#  $log global variable to all tests. Now it's defined inside test__helper.rb,
+#  but there should be a better solution. I posted a question about it:
+#  https://stackoverflow.com/questions/50418822
 Style/GlobalVars:
   Enabled: false

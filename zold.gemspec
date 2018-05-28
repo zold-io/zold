@@ -50,6 +50,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'rake', '12.0.0'
   s.add_runtime_dependency 'rubocop', '~>0.52.0'
   s.add_runtime_dependency 'rubocop-rspec', '1.5.1'
+  s.add_runtime_dependency 'semantic', '~>1.5.0'
   s.add_runtime_dependency 'sinatra', '~>2.0.1'
   s.add_runtime_dependency 'slop', '~>4.4'
   s.add_runtime_dependency 'xcop', '~>0.5'
