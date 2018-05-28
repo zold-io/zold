@@ -60,7 +60,7 @@ module Zold
     before do
       if request.env[Http::VERSION_HEADER] &&
         Semantic::Version.new(VERSION) < Semantic::Version.new(request.env[Http::VERSION_HEADER]) &&
-        settings.reboot
+        !settings.remotes.empty? && settings.reboot
         exit(0)
       end
       return unless request.env[Http::SCORE_HEADER]

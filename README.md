@@ -23,37 +23,39 @@ The license is [MIT](https://github.com/yegor256/zold/blob/master/LICENSE.txt).
 
 ## How to Use
 
-Install [Ruby 2.2+](https://www.ruby-lang.org/en/documentation/installation/),
-[Rubygems](https://rubygems.org/pages/download), and then run:
+First, install [Ruby 2.2+](https://www.ruby-lang.org/en/documentation/installation/),
+[Rubygems](https://rubygems.org/pages/download), and
+the [gem](https://rubygems.org/gems/zold):
 
 ```bash
 $ sudo apt-get install ruby-dev rubygems zlib1g-dev
 $ gem install zold
 ```
 
-For more options and commands you can always use this:
+To make sure it's installed, try:
 
 ```bash
 $ zold --help
 ```
 
 You will need PGP private and public keys in `~/.ssh`.
-If you don't have them yet, run this in order to generate a new pair:
+If you don't have them yet, run this in order to generate a new pair
+(just hit <kbd>Enter</kbd> when it asks you for a password):
 
 ```bash
 $ ssh-keygen -t rsa -b 4096
 ```
 
-First, create a new wallet (instead of `5f96e731e48ae21f` there will be your
-personal wallet number, use it everywhere below):
+Then, create a new wallet (instead of `5f96e731e48ae21f` there will be your
+personal wallet ID, use it everywhere below):
 
 ```bash
 $ zold create
 5f96e731e48ae21f
 ```
 
-Then, give its number to your friend, who is going to pay you.
-When the payment is sent, ask him or her for the number of the wallet
+Then, give this ID to your friend, who is going to pay you.
+When the payment is sent, ask him or her for the ID of the wallet
 the payment has been sent from and then fetch that wallet
 (let's say it is `5555444433332222`):
 
@@ -82,10 +84,20 @@ That's it.
 
 You also can contribute to Zold by running a node on your server.
 In order to do that just run (with your own wallet ID, of course,
-and your own IP address instead of `4.4.4.4`):
+and your own public IP address instead of `4.4.4.4`):
 
 ```bash
-$ nohup bash -c 'while zold node --invoice=5f96e731e48ae21f --host=4.4.4.4; do echo Restarted; done' &
+$ zold node --trace --verbose --invoice=5f96e731e48ae21f --host=4.4.4.4
+```
+
+Then, open the page `4.4.4.4:4096` in your browser.
+If you see a simple JSON document, everything is fine.
+Next, hit <kbd>Ctrl</kbd>+<kbd>c</kbd> and run this line, in order
+to start the node and make sure it will be online even when you log off
+(replace `CMD` with the command you just executed before):
+
+```bash
+$ nohup bash -c 'while CMD; do echo Restarted; done' &
 ```
 
 Grateful users of the system will pay "taxes" to your wallet
