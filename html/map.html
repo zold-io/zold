@@ -84,7 +84,7 @@ SOFTWARE.
             if (items.length) {
               var li = items.first();
               $.getJSON('http://' + coords + '/', function(data) {
-                coords + ': ' + data['score']['value'] + '/' + data['wallets'] + ' (' + li.html(data['version'] + ')');
+                li.html(coords + ': ' + data['score']['value'] + '/' + data['wallets'] + ' (' + data['version'] + ')');
               })
                 .done(function() { li.css('color', 'darkgreen'); })
                 .fail(function() { li.css('color', 'red'); });
