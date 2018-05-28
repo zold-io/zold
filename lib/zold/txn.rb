@@ -78,7 +78,8 @@ module Zold
     end
 
     def to_text
-      "##{@id} #{@date.utc.iso8601} #{@amount} #{@bnf} #{@details}"
+      start = @amount.negative? ? "##{@id}" : '-'
+      "#{start} #{@date.utc.iso8601} #{@amount} #{@bnf} #{@details}"
     end
 
     def inverse(bnf)
