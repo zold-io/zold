@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
-require 'tmpdir'
+require_relative 'fake_home'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/id'
 require_relative '../lib/zold/wallets'
@@ -31,23 +31,23 @@ require_relative '../lib/zold/amount'
 # License:: MIT
 class TestWallets < Minitest::Test
   def test_adds_wallet
-    Dir.mktmpdir 'test' do |dir|
-      wallets = Zold::Wallets.new(dir)
+    FakeHome.new.run do |home|
+      wallets = home.wallets
       id = Zold::Id.new
       wallet = wallets.find(id)
       wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-      assert(wallets.all.count == 1, "#{wallets.all.count} is not equal to 1")
+      assert_equal(1, wallets.all.count)
     end
   end
 
-  def test_lists_wallets
-    Dir.mktmpdir 'z1' do |dir|
-      wallets = Zold::Wallets.new(dir)
-      FileUtils.touch(File.join(dir, 'hello'))
+  def test_lists_wallets_and_ignores_garbage
+    FakeHome.new.run do |home|
+      wallets = home.wallets
+      FileUtils.touch(File.join(home.dir, '0xaaaaaaaaaaaaaaaaaaahello'))
       id = Zold::Id.new
       wallet = wallets.find(id)
       wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-      assert(wallets.all.count == 1, "#{wallets.all.count} is not equal to 1")
+      assert_equal(1, wallets.all.count)
     end
   end
 end

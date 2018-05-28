@@ -29,7 +29,7 @@ module Zold
       if id.nil?
         @id = rand(2**32..2**64 - 1)
       else
-        raise "Invalid wallet ID '#{id}'" unless id =~ /[0-9a-fA-F]{16}/
+        raise "Invalid wallet ID '#{id}'" unless id =~ /^[0-9a-fA-F]{16}$/
         @id = Integer("0x#{id}", 16)
       end
     end

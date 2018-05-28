@@ -28,6 +28,7 @@ require_relative '../lib/zold/key'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class FakeHome
+  attr_reader :dir
   def initialize(dir = Dir.pwd)
     @dir = dir
   end

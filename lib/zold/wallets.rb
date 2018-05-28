@@ -50,7 +50,7 @@ module Zold
         file = File.join(@dir, f)
         File.file?(file) &&
           !File.directory?(file) &&
-          f =~ /[0-9a-fA-F]{16}/ &&
+          f =~ /^[0-9a-fA-F]{16}$/ &&
           Id.new(f).to_s == f
       end
     end

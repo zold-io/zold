@@ -19,7 +19,6 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
-require 'tmpdir'
 require_relative 'fake_home'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/id'

@@ -57,13 +57,13 @@ module Zold
 
     def network
       n = lines[0].strip
-      raise "Invalid network name '#{n}'" unless n =~ /[a-z]{4,16}/
+      raise "Invalid network name '#{n}'" unless n =~ /^[a-z]{4,16}$/
       n
     end
 
     def version
       v = lines[1].strip
-      raise "Invalid version name '#{v}'" unless v =~ /[0-9]+(\.[0-9]+){1,2}/
+      raise "Invalid version name '#{v}'" unless v =~ /^[0-9]+(\.[0-9]+){1,2}$/
       v
     end
 
@@ -77,7 +77,7 @@ module Zold
 
     def init(id, pubkey, overwrite: false, network: 'test')
       raise "File '#{@file}' already exists" if File.exist?(@file) && !overwrite
-      raise "Invalid network name '#{network}'" unless network =~ /[a-z]{4,16}/
+      raise "Invalid network name '#{network}'" unless network =~ /^[a-z]{4,16}$/
       File.write(@file, "#{network}\n#{VERSION}\n#{id}\n#{pubkey.to_pub}\n\n")
     end
 

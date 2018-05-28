@@ -44,7 +44,7 @@ module Zold
       list = load
       list.reject! { |s| s[:time] < Time.now - 24 * 60 * 60 }
       save(list)
-      Dir.new(@dir).select { |f| f =~ /[0-9]+/ }.each do |f|
+      Dir.new(@dir).select { |f| f =~ /^[0-9]+$/ }.each do |f|
         File.delete(File.join(@dir, f)) if list.find { |s| s[:name] == f }.nil?
       end
     end
@@ -66,7 +66,7 @@ module Zold
       target = list.find { |s| File.read(File.join(@dir, s[:name])) == content }
       if target.nil?
         max = Dir.new(@dir)
-          .select { |f| f =~ /[0-9]+/ }
+          .select { |f| f =~ /^[0-9]+$/ }
           .map(&:to_i)
           .max
         max = 0 if max.nil?
