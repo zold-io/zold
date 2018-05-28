@@ -96,6 +96,7 @@ module Zold
       Zold::Front.set(
         :entrance, Entrance.new(wallets, remotes, copies, address, log: @log)
       )
+      Zold::Front.set(:root, Dir.pwd)
       Zold::Front.set(:port, opts['bind-port'])
       Zold::Front.set(:reboot, !opts['never-rebootw'])
       invoice = opts[:invoice]

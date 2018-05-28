@@ -74,6 +74,7 @@ module Zold
       headers['Cache-Control'] = 'no-cache'
       headers['Connection'] = 'close'
       headers['X-Zold-Version'] = VERSION
+      headers['Access-Control-Allow-Origin'] = '*'
     end
 
     get '/robots.txt' do
@@ -141,6 +142,11 @@ module Zold
           }
         end
       )
+    end
+
+    get %r{/(?<page>.+\.html)} do
+      content_type 'text/html'
+      File.read(File.join(settings.root, "html/#{params[:page]}"))
     end
 
     not_found do

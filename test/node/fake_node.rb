@@ -22,7 +22,6 @@ require 'tmpdir'
 require 'webmock/minitest'
 require_relative '../../lib/zold/log'
 require_relative '../../lib/zold/http'
-require_relative '../../lib/zold/commands/node'
 
 # Fake node.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -43,6 +42,7 @@ class FakeNode
         begin
           Thread.current.abort_on_exception = true
           home = File.join(dir, 'node-home')
+          require_relative '../../lib/zold/commands/node'
           Zold::Node.new(log: @log).run(
             [
               '--standalone',
@@ -55,7 +55,7 @@ class FakeNode
             ]
           )
         rescue StandardError => e
-          @log.error(e.message + "\n" + e.backtrace.join("\n"))
+          @log.error(e.message + "\n" + e.backtrace.join("\n\t"))
         end
       end
       home = URI("http://localhost:#{port}/")
