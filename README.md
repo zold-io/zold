@@ -23,7 +23,7 @@ The license is [MIT](https://github.com/yegor256/zold/blob/master/LICENSE.txt).
 
 ## How to Use
 
-First, install [Ruby 2.2+](https://www.ruby-lang.org/en/documentation/installation/),
+First, install [Ruby 2.3+](https://www.ruby-lang.org/en/documentation/installation/),
 [Rubygems](https://rubygems.org/pages/download), and
 the [gem](https://rubygems.org/gems/zold):
 
@@ -106,7 +106,7 @@ for the maintenance of their wallets.
 ## How to Contribute
 
 It is a Ruby command line gem. First, install
-[Ruby](https://www.ruby-lang.org/en/documentation/installation/) 2.3+,
+[Ruby 2.3+](https://www.ruby-lang.org/en/documentation/installation/),
 [Rubygems](https://rubygems.org/pages/download),
 and
 [Bundler](https://bundler.io/).
