@@ -79,10 +79,10 @@ $ zold push 5f96e731e48ae21f
 That's it.
 
 You also can contribute to Zold by running a node on your server.
-In order to do that just run:
+In order to do that just run (with your own wallet ID, of course):
 
 ```bash
-$ zold node --invoice=5f96e731e48ae21f
+$ nohup zold node --invoice=5f96e731e48ae21f &
 ```
 
 Grateful users of the system will pay "taxes" to your wallet
