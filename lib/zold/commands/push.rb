@@ -49,44 +49,27 @@ Available options:"
       mine = Args.new(opts, @log).take || return
       mine = @wallets.all if mine.empty?
       mine.each do |id|
-        push(@wallets.find(Id.new(id)), opts)
+        wallet = @wallets.find(Id.new(id))
+        raise "The wallet #{id} is absent" unless wallet.exists?
+        push(wallet, opts)
       end
     end
 
     def push(wallet, _)
-      raise 'The wallet is absent' unless wallet.exists?
       total = 0
-      @remotes.iterate do |r|
-        uri = URI("#{r[:home]}wallet/#{wallet.id}")
-        response = Http.new(uri).put(File.read(wallet.path))
+      @remotes.iterate(@log) do |r|
+        response = r.http("/wallet/#{wallet.id}").put(File.read(wallet.path))
         if response.code == '304'
-          @log.info("#{uri}: same version there")
+          @log.info("#{r}: same version there")
           next
         end
-        unless response.code == '200'
-          @remotes.error(r[:host], r[:port])
-          @log.error("#{uri} failed as #{response.code}/#{response.message}")
-          @log.debug(response.body) unless response.body.empty?
-          next
-        end
+        raise "#{response.code} \"#{response.message}\" at #{response.body}" unless response.code == '200'
         json = JSON.parse(response.body)['score']
         score = Score.parse_json(json)
-        unless score.valid?
-          @remotes.error(r[:host], r[:port])
-          @log.error("#{uri} invalid score: #{score}")
-          next
-        end
-        if score.expired?
-          @remotes.error(r[:host], r[:port])
-          @log.error("#{uri} expired score: #{score}")
-          next
-        end
-        if score.strength < Score::STRENGTH
-          @remotes.error(r[:host], r[:port])
-          @log.error("#{uri} score is too weak")
-          next
-        end
-        @log.info("#{uri} accepted: #{Rainbow(score.value).green}")
+        raise "Invalid score #{score}" unless score.valid?
+        raise "Expired score #{score}" if score.expired?
+        raise "Score is too weak #{score}" if score.strength < Score::STRENGTH
+        @log.info("#{r} accepted: #{Rainbow(score.value).green}")
         total += score.value
       end
       @log.info("Total score is #{total}")

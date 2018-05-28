@@ -64,50 +64,28 @@ Available options:"
 
     def fetch(id, cps, opts)
       total = 0
-      @remotes.iterate do |r|
-        done = fetch_one(id, r, cps, opts)
-        if done
-          total += 1
-        else
-          @remotes.error(r[:host], r[:port])
-        end
+      @remotes.iterate(@log) do |r|
+        fetch_one(id, r, cps, opts)
+        total += 1
       end
       @log.debug("#{total} copies of #{id} fetched, there are #{cps.all.count} available locally")
     end
 
     def fetch_one(id, r, cps, opts)
-      address = "#{r[:host]}:#{r[:port]}".downcase
-      if opts['ignore-node'].include?(address)
-        @log.info("#{address} ignored because of --ignore-node")
+      if opts['ignore-node'].include?(r.to_s)
+        @log.info("#{r} ignored because of --ignore-node")
         return false
       end
-      uri = URI("#{r[:home]}wallet/#{id}")
-      res = Http.new(uri).get
-      if res.code == '404'
-        @log.info("#{address} wallet #{id} #{Rainbow('not found').red}")
-        return false
-      end
-      unless res.code == '200'
-        @log.error("#{address} #{Rainbow(res.code).red}/#{res.message} at #{uri}")
-        return false
-      end
+      res = r.http("/wallet/#{id}").get
+      raise "Wallet #{id} not found" if res.code == '404'
+      raise "#{res.code} \"#{res.message}\"" unless res.code == '200'
       json = JSON.parse(res.body)
       score = Score.parse_json(json['score'])
-      unless score.valid?
-        @log.error("#{address}: invalid score: #{score}")
-        return false
-      end
-      if score.expired?
-        @log.error("#{address}: score expired: #{score}")
-        return false
-      end
-      if score.strength < Score::STRENGTH && !opts['ignore-score-weakness']
-        @log.error("#{address} score is too weak (#{score.strength}<#{Score::STRENGTH}): #{score}")
-        return false
-      end
+      raise "Invalid score #{score}" unless score.valid?
+      raise "Score expired #{score}" if score.expired?
+      raise "Score is too weak #{score.strength}" if score.strength < Score::STRENGTH && !opts['ignore-score-weakness']
       cps.add(json['body'], score.host, score.port, score.value)
-      @log.info("#{address} #{json['body'].length}b/#{Rainbow(score.value).green} (#{json['version']})")
-      true
+      @log.info("#{r} #{json['body'].length}b/#{Rainbow(score.value).green} (#{json['version']})")
     end
   end
 end

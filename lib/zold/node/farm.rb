@@ -29,6 +29,13 @@ require_relative '../score'
 module Zold
   # Farm
   class Farm
+    # Empty farm
+    class Empty
+      def best
+        []
+      end
+    end
+
     attr_reader :best
     def initialize(invoice, log: Log::Quiet.new)
       @log = log

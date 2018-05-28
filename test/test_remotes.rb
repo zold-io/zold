@@ -65,7 +65,7 @@ class TestRemotes < Minitest::Test
       remotes = Zold::Remotes.new(file)
       remotes.add('127.0.0.1', 80)
       remotes.rescore('127.0.0.1', 80, 15)
-      remotes.iterate do |r|
+      remotes.all.each do |r|
         assert_equal(15, r[:score])
       end
     end

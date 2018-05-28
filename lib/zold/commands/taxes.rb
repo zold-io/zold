@@ -117,37 +117,15 @@ Available options:"
 
     def top_scores
       best = []
-      @remotes.iterate do |r|
-        uri = URI(r[:home])
-        name = "#{r[:host]}:#{r[:port]}"
-        res = Http.new(uri).get
-        unless res.code == '200'
-          @log.info("#{name}: #{Rainbow(res.code).red} \"#{res.message}\" at #{uri}")
-          next
-        end
-        begin
-          json = JSON.parse(res.body)
-        rescue JSON::ParserError => e
-          @log.info("#{name}: #{Rainbow('broken').red} JSON \"#{e.message}\": #{res.body}")
-          next
-        end
+      @remotes.iterate(@log) do |r|
+        res = r.http.get
+        raise "#{res.code} \"#{res.message}\" at #{res.body}" unless res.code == '200'
+        json = JSON.parse(res.body)
         score = Score.parse_json(json['score'])
-        unless score.valid?
-          @log.info("#{name}: #{Rainbow('invalid').red} score")
-          next
-        end
-        if score.expired?
-          @log.info("#{name}: #{Rainbow('expired').red} score")
-          next
-        end
-        if score.strength < Score::STRENGTH
-          @log.info("#{name} score #{Rainbow(score.value).red} is too weak (<#{Score::STRENGTH})")
-          next
-        end
-        if score.value < Tax::EXACT_SCORE
-          @log.info("#{name} score #{Rainbow(score.value).red} is too small (<#{Tax::EXACT_SCORE})")
-          next
-        end
+        raise "Invalid score #{score}" unless score.valid?
+        raise "Expired score #{score}" if score.expired?
+        raise "Score is too weak (<#{Score::STRENGTH}) #{score}" if score.strength < Score::STRENGTH
+        raise "Score is too small (<#{Tax::EXACT_SCORE})" if score.value < Tax::EXACT_SCORE
         @log.info("#{score.host}:#{score.port}: #{Rainbow(score.value).green}")
         best << score
       end

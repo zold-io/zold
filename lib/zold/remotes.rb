@@ -21,6 +21,7 @@
 require 'csv'
 require 'uri'
 require 'fileutils'
+require_relative 'node/farm'
 
 # The list of remotes.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -38,13 +39,33 @@ module Zold
         []
       end
 
-      def iterate
+      def iterate(_)
         # Nothing to do here
       end
     end
 
-    def initialize(file)
+    # One remote.
+    class Remote
+      attr_reader :host, :port
+      def initialize(host, port, score)
+        @host = host
+        @port = port
+        @score = score
+      end
+
+      def http(path = '/')
+        uri = URI("http://#{@host}:#{@port}#{path}")
+        Http.new(uri)
+      end
+
+      def to_s
+        "#{@host}:#{@port}"
+      end
+    end
+
+    def initialize(file, farm = Farm::Empty.new)
       @file = file
+      @farm = farm
     end
 
     def all
@@ -94,16 +115,19 @@ module Zold
       save(list)
     end
 
-    def iterate
+    def iterate(log)
+      best = @farm.best[0]
+      require_relative 'score'
+      score = best.nil? ? Score::ZERO : best
       all.each do |r|
-        yield r
+        begin
+          yield Remotes::Remote.new(r[:host], r[:port], score)
+        rescue StandardError => e
+          error(r[:host], r[:port])
+          log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message}")
+          log.debug(e.backtrace[0..5].join("\n\t"))
+        end
       end
-    end
-
-    def errors(host, port = Remotes::PORT)
-      raise 'Port has to be of type Integer' unless port.is_a?(Integer)
-      raise "#{host}:#{port} is absent" unless exists?(host, port)
-      load.find { |r| r[:host] == host.downcase && r[:port] == port }[:errors]
     end
 
     def error(host, port = Remotes::PORT)

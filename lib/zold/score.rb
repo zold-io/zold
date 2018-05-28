@@ -48,10 +48,8 @@ module Zold
       @strength = strength
     end
 
-    ZERO = Score.new(
-      Time.now, 'localhost',
-      Remotes::PORT, 'NOPREFIX@ffffffffffffffff'
-    )
+    # The default no-value score.
+    ZERO = Score.new(Time.now, 'localhost', 80, 'NOPREFIX@ffffffffffffffff')
 
     def self.parse_json(json)
       raise "Time in JSON is broken: #{json}" unless json['time'] =~ /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/

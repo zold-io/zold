@@ -115,42 +115,15 @@ Available options:"
 
     def update(opts, deep = true)
       capacity = []
-      @remotes.iterate do |r|
-        uri = URI("#{r[:home]}remotes")
-        res = Http.new(uri).get
-        unless res.code == '200'
-          @remotes.error(r[:host], r[:port])
-          @log.info("#{Rainbow(r[:host]).red} #{res.code} \"#{res.message}\" #{uri}")
-          next
-        end
-        begin
-          json = JSON.parse(res.body)
-        rescue JSON::ParserError => e
-          error(r[:host], r[:port])
-          @log.info("#{Rainbow(r[:host]).red} \"#{e.message}\": #{res.body}")
-          next
-        end
+      @remotes.iterate(@log) do |r|
+        res = r.http('/remotes').get
+        raise "#{res.code} \"#{res.message}\"" unless res.code == '200'
+        json = JSON.parse(res.body)
         score = Score.parse_json(json['score'])
-        unless score.valid?
-          error(r[:host], r[:port])
-          @log.info("#{Rainbow(r[:host]).red} invalid score: #{score}")
-          next
-        end
-        if score.expired?
-          error(r[:host], r[:port])
-          @log.info("#{Rainbow(r[:host]).red} expired score: #{score}")
-          next
-        end
-        if score.strength < Score::STRENGTH && !opts['ignore-score-weakness']
-          error(r[:host], r[:port])
-          @log.info("#{Rainbow(r[:host]).red} score too weak: #{score.strength}")
-          next
-        end
-        if r[:host] != score.host || r[:port] != score.port
-          @remotes.error(r[:host], r[:port])
-          @remotes.add(score.host, score.port)
-          @log.info("#{r[:host]}:#{r[:port]} renamed to #{score.host}:#{score.port}")
-        end
+        raise "Invalid score #{score}" unless score.valid?
+        raise "Expired score #{score}" if score.expired?
+        raise "Score too weak: #{score.strength}" if score.strength < Score::STRENGTH && !opts['ignore-score-weakness']
+        raise "Masqueraded as #{score.host}:#{score.port}" if r.host != score.host || r.port != score.port
         @remotes.rescore(score.host, score.port, score.value)
         if deep
           json['all'].each do |s|
@@ -158,7 +131,7 @@ Available options:"
           end
         end
         capacity << { host: score.host, port: score.port, count: json['all'].count }
-        @log.info("#{r[:host]}:#{r[:port]}: #{Rainbow(score.value).green} (#{json['version']})")
+        @log.info("#{r}: #{Rainbow(score.value).green} (#{json['version']})")
       end
       max_capacity = capacity.map { |c| c[:count] }.max || 0
       capacity.each do |c|
