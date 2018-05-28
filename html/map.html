@@ -70,7 +70,7 @@ SOFTWARE.
         }, 10000);
         window.setInterval(function() {
           $('#remotes li').each(function (li) {
-            found = $.grep(remotes, function (r, i) { return n['host'] + ':' + n['port'] == li.attr('data-coords'); });
+            found = $.grep(remotes, function (r, i) { return r['host'] + ':' + r['port'] == li.attr('data-coords'); });
             if (!found.length) {
               li.remove();
             }
@@ -83,10 +83,11 @@ SOFTWARE.
             var items = $('#remotes li[data-coords="' + coords + '"]');
             if (items.length) {
               var li = items.first();
-              li.css('color', 'red');
               $.getJSON('http://' + coords + '/', function(data) {
                 li.html(data['version'] + ': ' + data['score']['value'] + '/' + data['wallets']);
-              });
+              })
+                .done(function() { li.css('color', 'darkgreen'); })
+                .fail(function() { li.css('color', 'red'); });
               var ip = host;
               if (!ip.match(/[0-9\.]+/)) {
                 $.get('http://api.konvert.me/forward-dns/' + host, function(data) {
@@ -100,7 +101,6 @@ SOFTWARE.
                   title: coords
                 });
               });
-              li.css('color', 'darkgreen');
             } else {
               $('#remotes').append('<li data-coords="' + coords + '">' + coords + '</li>')
             }
