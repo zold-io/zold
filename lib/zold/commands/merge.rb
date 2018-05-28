@@ -71,7 +71,7 @@ Available options:"
       if modified
         @log.debug("#{cps.count} copies merged successfully into #{wallet.path}")
       else
-        @log.debug("Nothing changed in #{wallet.path} after merge of #{cps.count} copies")
+        @log.debug("Nothing changed in #{wallet.id} after merge of #{cps.count} copies")
       end
       modified
     end

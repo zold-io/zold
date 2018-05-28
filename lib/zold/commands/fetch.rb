@@ -72,7 +72,7 @@ Available options:"
           @remotes.error(r[:host], r[:port])
         end
       end
-      @log.debug("#{total} copies fetched, there are #{cps.all.count} available locally")
+      @log.debug("#{total} copies of #{id} fetched, there are #{cps.all.count} available locally")
     end
 
     def fetch_one(id, r, cps, opts)
