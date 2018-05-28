@@ -108,7 +108,7 @@ The first problem is that transaction processing is rather slow.%
 and is therefore inappropriate for fast payments.''
 It is inevitable, since
 ``processing speed is at odds with the security aspects of the underlying
-proof-of-work based consensus mechanism''~\parencite{kiayias2015}.
+proof-of-work based consensus mechanism'' according to~\textcite{kiayias2015}.
 
 The second problem, as noted by~\textcite{popov2017}, is that ``it is not easy to get rid
 of fees in the blockchain infrastructure since they serve
@@ -133,11 +133,13 @@ Unlike \emph{all} other crypto currencies, there is no central ledger in Zold.
 Each wallet has its own personal ledger.
 All transactions in each ledger are confirmed by
 \href{https://en.wikipedia.org/wiki/RSA_(cryptosystem)}{RSA signatures} of their owners.
+Section~\ref{sec:wallets} explains how it works.
 
 \textbf{Proof of work}.
 Similar to many other digital currencies---including Bitcoin, Etherium, Plancoin, Monero, Trinity, Plancoin, Dero,
 and many others---Zold nodes find consensus by comparing the amount of CPU power invested
 by each of them into finding hash suffixes, performing certain expensive and meaningless calculations.
+Section~\ref{sec:score} describes the algorithm being used.
 
 \textbf{Root Wallet}.
 Zold is a pre-mined%
@@ -181,7 +183,7 @@ EOS, NEO, Loki,%
 and many others.
 The only way to get ZLD is to receive it from someone else.
 The root wallet belongs to the issuer and may have a negative balance,
-which can grow according to a pre-defined restrictive formula.
+which can grow according to a pre-defined restrictive formula, explained in Section~\ref{sec:formula}.
 All other wallets may only have positive balances.
 
 \textbf{Taxes}.
@@ -189,11 +191,13 @@ Unlike many other payment systems, Zold doesn't require its users
 to pay transaction fees. Instead, wallets have to pay regular ``taxes'' for the
 service of their maintenances. Taxes amounts depend on the amount
 of transactions in a wallet and the age of the wallet.
+Section~\ref{sec:taxes} provides more details.
 
 \textbf{No Trust}.
 The network of communicating nodes maintains wallets of users.
 Anyone can add a node to the network.
 It is assumed that any node may contain corrupted data, either by mistake or intentionally.
+Section~\ref{sec:remotes} explains how nodes communicate and rate each other.
 
 \textbf{Open Source}.
 Zold is a command line tool. Its entire code base is open source
@@ -225,7 +229,7 @@ A user may make up any number, even using
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Proof of Work}
+\section{Proof of Work}\label{sec:score}
 
 The system consists of nodes (server machines), which maintain the data.
 In order to guarantee data consistency among all distributed nodes
@@ -315,7 +319,7 @@ the score. All nodes in the network must have the same strength of their scores.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Wallets}
+\section{Wallets}\label{sec:wallets}
 
 There is no central ledger in Zold, like in many other digital currencies.
 Instead, each user has their own \emph{wallets} (any number of them) with their own ledgers inside.
@@ -389,7 +393,7 @@ The order of transactions is not important, as long as their final balance is po
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Mining Formula}
+\section{Mining Formula}\label{sec:formula}
 
 The only way to get ZLD is to receive it from the \emph{root} wallet
 with a system pre-defined ID \dd{0000000000000000}.
@@ -421,7 +425,7 @@ The limitation is hardwired in Zold software and can't be eliminated.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Taxes}
+\section{Taxes}\label{sec:taxes}
 
 Each wallet must have to pay \emph{taxes} in order to be promoted by nodes.
 The maximum amount of tax debt a node can tolerate is 1 ZLD. This means
@@ -457,7 +461,7 @@ Duplicate tax payments are ignored.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Remote Nodes}
+\section{Remote Nodes}\label{sec:remotes}
 
 Each node maintains a list of \emph{remote nodes} (their host names and TCP port numbers),
 their scores and their availability information. When the node is just installed,
@@ -550,7 +554,7 @@ Then, it \emph{promotes} the wallet to all known remote nodes.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{RESTful API}
+\section{RESTful API}\label{sec:api}
 
 There is a limited set of RESTful API entry points in each node.
 Each response has \dd{Content-Type},
@@ -620,7 +624,7 @@ or
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Incentives}
+\section{Incentives}\label{sec:incentives}
 
 It is obvious that anonymous users will participate in Zold and maintain
 their nodes only if they have enough financial motivation to do that. Simply
@@ -663,7 +667,7 @@ each node is interested to push wallets further.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Threats \& Responses}
+\section{Threats and Responses}\label{sec:threats}
 
 It is obvious that a distributed system that consists of anonymous nodes
 even theorecially can't be 100\% safe, reliable, secure and trustworthy.
