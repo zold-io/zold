@@ -45,7 +45,7 @@ SOFTWARE.
       #map { width: 80%; height: 100%; display: inline-block; }
       #nodes { width: 20%; height: 100%; background-color: #f5f5f5; float: right; padding: 1em; }
       #logo { position: absolute; bottom: 1em; right: 1em; width: 48px; height: 48px; }
-      #remotes li { list-style: none; }
+      #remotes li { margin-top: 1em; list-style: none; }
     </style>
     <script>
       function init() {
@@ -79,10 +79,12 @@ SOFTWARE.
           $.each(remotes, function (idx, remote) {
             var host = remote['host'], port = remote['port'];
             var coords = host + ':' + port;
-            var li = $('#remotes li[data-coords="' + coords + '"]');
-            if (li.length) {
+            var items = $('#remotes li[data-coords="' + coords + '"]');
+            if (items.length) {
+              var li = items.get(0);
+              li.css('color', 'red');
               $.getJSON('http://' + coords + '/', function(data) {
-                li[0].html(data['version'] + ': ' + data['score']['value'] + '/' + data['wallets']);
+                li.html(data['version'] + ': ' + data['score']['value'] + '/' + data['wallets']);
               });
               var ip = host;
               if (!ip.match(/[0-9\.]+/)) {
@@ -97,6 +99,7 @@ SOFTWARE.
                   title: coords
                 });
               });
+              li.css('color', 'darkgreen');
             } else {
               $('#remotes').append('<li data-coords="' + coords + '">' + coords + '</li>')
             }
