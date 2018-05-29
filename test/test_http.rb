@@ -31,7 +31,16 @@ require_relative '../lib/zold/http'
 class TestHttp < Minitest::Test
   def test_pings_broken_uri
     stub_request(:get, 'http://bad-host/').to_return(status: 500)
-    assert_equal('500', Zold::Http.new(URI('http://bad-host/')).get.code)
+    res = Zold::Http.new(URI('http://bad-host/')).get
+    assert_equal('500', res.code)
+    assert_equal('', res.body)
+  end
+
+  def test_pings_with_exception
+    stub_request(:get, 'http://exception/').to_return { raise 'Intentionally' }
+    res = Zold::Http.new(URI('http://exception/')).get
+    assert_equal('599', res.code)
+    assert(res.body.include?('Intentionally'))
   end
 
   def test_pings_live_uri

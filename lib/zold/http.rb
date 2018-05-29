@@ -50,7 +50,7 @@ module Zold
       http.read_timeout = 5
       return http.request_get(@uri.path, headers)
     rescue StandardError => e
-      return Net::HTTPServerError.new('1.1', '599', e.message)
+      Error.new(e)
     end
 
     def put(body)
@@ -64,10 +64,29 @@ module Zold
         )
       )
     rescue StandardError => e
-      return Net::HTTPServerError.new('1.1', '599', e.message)
+      Error.new(e)
     end
 
     private
+
+    # The error, if connection fails
+    class Error
+      def initialize(ex)
+        @ex = ex
+      end
+
+      def body
+        @ex.message + "\n" + @ex.backtrace.join("\n\t")
+      end
+
+      def code
+        '599'
+      end
+
+      def message
+        @ex.message
+      end
+    end
 
     def headers
       headers = {

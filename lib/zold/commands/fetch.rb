@@ -72,20 +72,21 @@ Available options:"
     end
 
     def fetch_one(id, r, cps, opts)
+      start = Time.now
       if opts['ignore-node'].include?(r.to_s)
         @log.info("#{r} ignored because of --ignore-node")
         return false
       end
       res = r.http("/wallet/#{id}").get
       raise "Wallet #{id} not found" if res.code == '404'
-      raise "#{res.code} \"#{res.message}\"" unless res.code == '200'
+      r.assert_code(200, res)
       json = JSON.parse(res.body)
       score = Score.parse_json(json['score'])
-      raise "Invalid score #{score}" unless score.valid?
-      raise "Score expired #{score}" if score.expired?
+      r.assert_valid_score(score)
       raise "Score is too weak #{score.strength}" if score.strength < Score::STRENGTH && !opts['ignore-score-weakness']
       cps.add(json['body'], score.host, score.port, score.value)
-      @log.info("#{r} #{json['body'].length}b/#{Rainbow(score.value).green} (#{json['version']})")
+      @log.info("#{r} #{json['body'].length}b/#{Rainbow(score.value).green} (#{json['version']}) \
+in #{(Time.now - start).round(2)}s")
     end
   end
 end

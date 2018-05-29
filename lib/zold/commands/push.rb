@@ -58,18 +58,18 @@ Available options:"
     def push(wallet, _)
       total = 0
       @remotes.iterate(@log) do |r|
+        start = Time.now
         response = r.http("/wallet/#{wallet.id}").put(File.read(wallet.path))
         if response.code == '304'
           @log.info("#{r}: same version there")
           next
         end
-        raise "#{response.code} \"#{response.message}\" at #{response.body}" unless response.code == '200'
+        r.assert_code(200, response)
         json = JSON.parse(response.body)['score']
         score = Score.parse_json(json)
-        raise "Invalid score #{score}" unless score.valid?
-        raise "Expired score #{score}" if score.expired?
+        r.assert_valid_score(score)
         raise "Score is too weak #{score}" if score.strength < Score::STRENGTH
-        @log.info("#{r} accepted: #{Rainbow(score.value).green}")
+        @log.info("#{r} accepted in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green}")
         total += score.value
       end
       @log.info("Total score is #{total}")

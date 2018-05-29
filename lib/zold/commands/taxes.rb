@@ -119,14 +119,13 @@ Available options:"
       best = []
       @remotes.iterate(@log) do |r|
         res = r.http.get
-        raise "#{res.code} \"#{res.message}\" at #{res.body}" unless res.code == '200'
+        r.assert_code(200, res)
         json = JSON.parse(res.body)
         score = Score.parse_json(json['score'])
-        raise "Invalid score #{score}" unless score.valid?
-        raise "Expired score #{score}" if score.expired?
+        r.assert_valid_score(score)
         raise "Score is too weak (<#{Score::STRENGTH}) #{score}" if score.strength < Score::STRENGTH
         raise "Score is too small (<#{Tax::EXACT_SCORE})" if score.value < Tax::EXACT_SCORE
-        @log.info("#{score.host}:#{score.port}: #{Rainbow(score.value).green}")
+        @log.info("#{r}: #{Rainbow(score.value).green}")
         best << score
       end
       best.sort_by(&:value).reverse

@@ -61,6 +61,15 @@ module Zold
       def to_s
         "#{@host}:#{@port}"
       end
+
+      def assert_code(code, response)
+        raise "#{response.code} \"#{response.message}\" at \"#{response.body}\"" unless response.code.to_i == code
+      end
+
+      def assert_valid_score(score)
+        raise "Invalid score #{score}" unless score.valid?
+        raise "Expired score #{score}" if score.expired?
+      end
     end
 
     def initialize(file, farm = Farm::Empty.new)

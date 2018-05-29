@@ -116,12 +116,12 @@ Available options:"
     def update(opts, deep = true)
       capacity = []
       @remotes.iterate(@log) do |r|
+        start = Time.now
         res = r.http('/remotes').get
-        raise "#{res.code} \"#{res.message}\"" unless res.code == '200'
+        r.assert_code(200, res)
         json = JSON.parse(res.body)
         score = Score.parse_json(json['score'])
-        raise "Invalid score #{score}" unless score.valid?
-        raise "Expired score #{score}" if score.expired?
+        r.assert_valid_score(score)
         raise "Score too weak: #{score.strength}" if score.strength < Score::STRENGTH && !opts['ignore-score-weakness']
         raise "Masqueraded as #{score.host}:#{score.port}" if r.host != score.host || r.port != score.port
         @remotes.rescore(score.host, score.port, score.value)
@@ -131,7 +131,7 @@ Available options:"
           end
         end
         capacity << { host: score.host, port: score.port, count: json['all'].count }
-        @log.info("#{r}: #{Rainbow(score.value).green} (#{json['version']})")
+        @log.info("#{r}: #{Rainbow(score.value).green} (#{json['version']}) in #{(Time.now - start).round(2)}")
       end
       max_capacity = capacity.map { |c| c[:count] }.max || 0
       capacity.each do |c|
