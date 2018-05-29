@@ -50,7 +50,7 @@ module Zold
     end
 
     def remove(host, port)
-      save(load.reject! { |s| s[:host] == host && s[:port] == port })
+      save(load.reject { |s| s[:host] == host && s[:port] == port })
     end
 
     def add(content, host, port, score, time = Time.now)

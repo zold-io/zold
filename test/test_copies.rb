@@ -28,13 +28,15 @@ require_relative '../lib/zold/copies'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class TestCopies < Minitest::Test
-  def test_adds_copies
+  def test_adds_and_removes_copies
     Dir.mktmpdir 'test' do |dir|
       copies = Zold::Copies.new(File.join(dir, 'my/a/copies'))
       copies.add('hello 1', '192.168.0.1', 80, 1)
       copies.add('hello 2', '192.168.0.2', 80, 3)
       copies.add('hello 2', '192.168.0.3', 80, 7)
       copies.add('hello 1', '192.168.0.4', 80, 10)
+      copies.add('hello-to-delete', '192.168.0.5', 80, 10)
+      copies.remove('192.168.0.5', 80)
       assert(copies.all.count == 2, "#{copies.all.count} is not equal to 2")
       assert(copies.all.find { |c| c[:name] == '1' }[:score] == 11)
     end
