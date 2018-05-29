@@ -48,6 +48,10 @@ module Zold
       end
     end
 
+    def ==(other)
+      to_s == other.to_s
+    end
+
     def to_s
       rsa.to_s.strip
     end

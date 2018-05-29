@@ -63,9 +63,19 @@ Available options:"
       raise 'There are no remote copies, try FETCH first' if cps.all.empty?
       cps = cps.all.sort_by { |c| c[:score] }.reverse
       patch = Patch.new
-      patch.start(Wallet.new(cps[0][:path]))
+      main = Wallet.new(cps[0][:path])
+      patch.start(main)
       cps[1..-1].each do |c|
-        patch.join(Wallet.new(c[:path]))
+        extra = Wallet.new(c[:path])
+        if extra.network != main.network
+          @log.error("The wallet is from a different network '#{wallet.version}', ours is '#{@network}'")
+          next
+        end
+        if extra.key != main.key
+          @log.error('Public key mismatch')
+          next
+        end
+        patch.join(extra)
       end
       modified = patch.save(wallet.path, overwrite: true)
       if modified

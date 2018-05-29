@@ -37,9 +37,6 @@ module Zold
     end
 
     def join(wallet)
-      if wallet.network != @network
-        raise "The wallet is from a different network '#{wallet.version}', ours is '#{@network}'"
-      end
       negative = @txns.select { |t| t.amount.negative? }
       max = negative.empty? ? 0 : negative.max_by(&:id).id
       wallet.txns.each do |txn|
