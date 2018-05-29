@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'slop'
+require 'semantic'
 require 'rainbow'
 require 'net/http'
 require 'json'
@@ -60,6 +61,9 @@ Available commands:
 Available options:"
         o.bool '--ignore-score-weakness',
           'Don\'t complain when their score is too weak',
+          default: false
+        o.bool '--reboot',
+          'Exit if any node reports version higher than we have',
           default: false
         o.bool '--help', 'Print instructions'
       end
@@ -125,6 +129,10 @@ Available options:"
         raise "Score too weak: #{score.strength}" if score.strength < Score::STRENGTH && !opts['ignore-score-weakness']
         raise "Masqueraded as #{score.host}:#{score.port}" if r.host != score.host || r.port != score.port
         @remotes.rescore(score.host, score.port, score.value)
+        if opts['reboot'] && Semantic::Version.new(VERSION) < Semantic::Version.new(json['version'])
+          @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, reboot!")
+          exit(0)
+        end
         if deep
           json['all'].each do |s|
             add(s['host'], s['port']) unless @remotes.exists?(s['host'], s['port'])

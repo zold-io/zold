@@ -23,7 +23,6 @@ STDOUT.sync = true
 require 'json'
 require 'sinatra/base'
 require 'webrick'
-require 'semantic'
 require_relative '../version'
 require_relative '../wallet'
 require_relative '../log'
@@ -58,11 +57,6 @@ module Zold
     end
 
     before do
-      if request.env[Http::VERSION_HEADER] &&
-        Semantic::Version.new(VERSION) < Semantic::Version.new(request.env[Http::VERSION_HEADER]) &&
-        !settings.remotes.empty? && settings.reboot
-        exit(0)
-      end
       return unless request.env[Http::SCORE_HEADER]
       return unless settings.remotes.empty?
       s = Score.parse(request.env[Http::SCORE_HEADER])
@@ -121,7 +115,7 @@ module Zold
         status 304
         return
       end
-      settings.entrance.push(id, body, sync: params[:sync])
+      settings.entrance.push(id, body, sync: !params[:sync].nil?)
       JSON.pretty_generate(
         version: VERSION,
         score: score.to_h

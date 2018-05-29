@@ -52,7 +52,7 @@ class TestZold < Minitest::Test
 
   def test_show_version
     stdout = exec('--version')
-    assert(stdout.include?('1.0.snapshot'))
+    assert(stdout.include?('0.0.0'))
   end
 
   def test_create_new_wallet

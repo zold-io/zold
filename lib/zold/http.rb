@@ -48,7 +48,9 @@ module Zold
     def get
       http = Net::HTTP.new(@uri.host, @uri.port)
       http.read_timeout = 5
-      return http.request_get(@uri.path, headers)
+      path = @uri.path
+      path += '?' + @uri.query if @uri.query
+      return http.request_get(path, headers)
     rescue StandardError => e
       Error.new(e)
     end
@@ -56,8 +58,10 @@ module Zold
     def put(body)
       http = Net::HTTP.new(@uri.host, @uri.port)
       http.read_timeout = 60
+      path = @uri.path
+      path += '?' + @uri.query if @uri.query
       return http.request_put(
-        @uri.path, body,
+        path, body,
         headers.merge(
           'Content-Type': 'text/plain',
           'Content-Length': body.length.to_s

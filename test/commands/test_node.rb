@@ -47,7 +47,7 @@ class TestNode < Minitest::Test
         remotes = Zold::Remotes.new(File.join(dir, 'remotes.csv'))
         remotes.clean
         remotes.add('localhost', port)
-        Zold::Push.new(wallets: wallets, remotes: remotes, log: $log).run(['push'])
+        Zold::Push.new(wallets: wallets, remotes: remotes, log: $log).run(['push', '--sync'])
         Zold::Fetch.new(
           wallets: wallets, copies: File.join(dir, 'copies'),
           remotes: remotes, log: $log

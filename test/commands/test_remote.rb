@@ -22,6 +22,7 @@ require 'minitest/autorun'
 require 'tmpdir'
 require 'webmock/minitest'
 require_relative '../test__helper'
+require_relative '../../lib/zold/version'
 require_relative '../../lib/zold/wallets'
 require_relative '../../lib/zold/remotes'
 require_relative '../../lib/zold/key'
@@ -41,6 +42,7 @@ class TestRemote < Minitest::Test
       stub_request(:get, "http://#{zero.host}:#{zero.port}/remotes").to_return(
         status: 200,
         body: {
+          version: Zold::VERSION,
           score: zero.to_h,
           all: [
             { host: 'localhost', port: 888 },
