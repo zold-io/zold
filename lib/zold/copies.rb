@@ -98,7 +98,7 @@ module Zold
             .map { |s| s[:score] }
             .inject(&:+) || 0
         }
-      end
+      end.select { |c| File.exist?(c[:path]) }
     end
 
     private

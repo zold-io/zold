@@ -27,6 +27,8 @@ Metrics/PerceivedComplexity:
   Max: 25
 Metrics/LineLength:
   Max: 120
+Style/MultilineBlockChain:
+  Enabled: false
 Layout/MultilineOperationIndentation:
   Enabled: false
 

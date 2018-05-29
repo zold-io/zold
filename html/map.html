@@ -56,7 +56,7 @@ SOFTWARE.
           new google.maps.Marker({
             position: { lat: lat, lng: lon },
             map: map,
-            title: ''
+            title: coords
           });
           console.log('Marker set for ' + coords + ' at ' + lat + '/' + lon);
         }).fail(function() { console.log('Failed to find geo-location for ' + ip) });
@@ -116,11 +116,6 @@ SOFTWARE.
             zoom: 3
           }
         );
-        var marker = new google.maps.Marker({
-          position: { lat: 55, lng: 37 },
-          map: map,
-          title: 'Hello'
-        });
         refresh(map);
       };
     </script>
