@@ -70,7 +70,7 @@ SOFTWARE.
         }, 10000);
         window.setInterval(function() {
           $('#remotes li').each(function (li) {
-            found = $.grep(remotes, function (r, i) { return r['host'] + ':' + r['port'] == li.attr('data-coords'); });
+            found = $.grep(remotes, function (r, i) { return r['host'] + ':' + r['port'] == $(li).attr('data-coords'); });
             if (!found.length) {
               li.remove();
             }
@@ -94,18 +94,19 @@ SOFTWARE.
                   ip = data
                 });
               }
+              li.attr('title', ip);
               $.getJSON('http://ip-api.com/json/' + ip, function(data) {
                 new google.maps.Marker({
                   position: { lat: data['lat'], lng: data['lon'] },
                   map: map,
                   title: coords
-                });
+                }).setMap(map);
               });
             } else {
               $('#remotes').append('<li data-coords="' + coords + '">' + coords + '</li>')
             }
           });
-        }, 1000);
+        }, 10000);
       };
     </script>
   </head>
