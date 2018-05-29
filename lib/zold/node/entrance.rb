@@ -46,11 +46,14 @@ module Zold
       @semaphores = Concurrent::Map.new
     end
 
-    def push(id, body)
+    def push(id, body, sync: true)
       check(body)
-      @semaphores.put_if_absent(id, Mutex.new)
-      @semaphores.get(id).synchronize do
-        push_unsafe(id, body)
+      if sync
+        push_sync(id, body)
+      else
+        Thread.new do
+          push_sync(id, body)
+        end
       end
     end
 
@@ -60,12 +63,23 @@ module Zold
         wallet = Wallet.new(f)
         break unless wallet.network == Wallet::MAIN_NETWORK
         balance = wallet.balance
-        raise "The balance #{balance} is negative and it's not a root wallet" if balance.negative? && !wallet.root?
+        if balance.negative? && !wallet.root?
+          raise "The balance #{balance} of #{wallet.id} is negative and it's not a root wallet"
+        end
         Emission.new(wallet).check
         tax = Tax.new(wallet)
         if tax.in_debt?
           raise "Taxes are not paid, can't accept the wallet; the debt is #{tax.debt} (#{tax.debt.to_i} zents)"
         end
+      end
+    end
+
+    def push_sync(id, body)
+      @semaphores.put_if_absent(id, Mutex.new)
+      @semaphores.get(id).synchronize do
+        modified = push_unsafe(id, body)
+        @log.info("Accepted #{id} and modified: #{modified.join(', ')}")
+        modified
       end
     end
 

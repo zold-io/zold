@@ -44,6 +44,9 @@ module Zold
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = "Usage: zold push [ID...] [options]
 Available options:"
+        o.bool '--sync',
+          'Wait until the server confirms merge and pushes all wallets further (default: false)',
+          default: false
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
@@ -55,13 +58,15 @@ Available options:"
       end
     end
 
-    def push(wallet, _)
+    def push(wallet, opts)
       total = 0
       @remotes.iterate(@log) do |r|
         start = Time.now
-        response = r.http("/wallet/#{wallet.id}").put(File.read(wallet.path))
+        response = r.http(
+          "/wallet/#{wallet.id}#{opts['sync'] ? '?sync' : ''}"
+        ).put(File.read(wallet.path))
         if response.code == '304'
-          @log.info("#{r}: same version there")
+          @log.info("#{r}: same version of #{wallet.id} there")
           next
         end
         r.assert_code(200, response)
@@ -69,10 +74,10 @@ Available options:"
         score = Score.parse_json(json)
         r.assert_valid_score(score)
         raise "Score is too weak #{score}" if score.strength < Score::STRENGTH
-        @log.info("#{r} accepted in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green}")
+        @log.info("#{r} accepted #{wallet.id} in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green}")
         total += score.value
       end
-      @log.info("Total score is #{total}")
+      @log.info("Total score for #{wallet.id} is #{total}")
     end
   end
 end

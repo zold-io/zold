@@ -85,8 +85,8 @@ Available options:"
       r.assert_valid_score(score)
       raise "Score is too weak #{score.strength}" if score.strength < Score::STRENGTH && !opts['ignore-score-weakness']
       cps.add(json['body'], score.host, score.port, score.value)
-      @log.info("#{r} #{json['body'].length}b/#{Rainbow(score.value).green} (#{json['version']}) \
-in #{(Time.now - start).round(2)}s")
+      @log.info("#{r} returned #{json['body'].length}b/#{Rainbow(score.value).green} \
+of #{id} (#{json['version']}) in #{(Time.now - start).round(2)}s")
     end
   end
 end

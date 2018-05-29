@@ -121,12 +121,10 @@ module Zold
         status 304
         return
       end
-      modified = settings.entrance.push(id, body)
+      settings.entrance.push(id, body, sync: params[:sync])
       JSON.pretty_generate(
         version: VERSION,
-        score: score.to_h,
-        balance: wallet.balance,
-        modified: modified.count
+        score: score.to_h
       )
     end
 
