@@ -63,7 +63,10 @@ module Zold
       raise "Score can't be negative: #{score}" if score < 0
       FileUtils.mkdir_p(@dir)
       list = load
-      target = list.find { |s| File.read(File.join(@dir, s[:name])) == content }
+      target = list.find do |s|
+        f = File.join(@dir, s[:name])
+        File.exist?(f) && File.read(f) == content
+      end
       if target.nil?
         max = Dir.new(@dir)
           .select { |f| f =~ /^[0-9]+$/ }
