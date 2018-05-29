@@ -56,8 +56,8 @@ module Zold
           "The strength of the score (default: #{Score::STRENGTH})",
           default: Score::STRENGTH
         o.integer '--threads',
-          'How many threads to use for scores finding (default: 8)',
-          default: 8
+          'How many threads to use for scores finding (default: 4)',
+          default: 4
         o.bool '--standalone',
           'Never communicate with other nodes (mostly for testing)',
           default: false
