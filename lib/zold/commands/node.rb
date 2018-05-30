@@ -98,7 +98,7 @@ module Zold
       )
       Zold::Front.set(:root, Dir.pwd)
       Zold::Front.set(:port, opts['bind-port'])
-      Zold::Front.set(:reboot, !opts['never-rebootw'])
+      Zold::Front.set(:reboot, !opts['never-reboot'])
       invoice = opts[:invoice]
       unless invoice.include?('@')
         require_relative 'pull'
