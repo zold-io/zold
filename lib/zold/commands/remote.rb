@@ -139,7 +139,7 @@ Available options:"
           end
         end
         capacity << { host: score.host, port: score.port, count: json['all'].count }
-        @log.info("#{r}: #{Rainbow(score.value).green} (#{json['version']}) in #{(Time.now - start).round(2)}")
+        @log.info("#{r}: #{Rainbow(score.value).green} (#{json['version']}) in #{(Time.now - start).round(2)}s")
       end
       max_capacity = capacity.map { |c| c[:count] }.max || 0
       capacity.each do |c|
