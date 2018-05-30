@@ -113,7 +113,7 @@ module Zold
         threads: opts[:threads], strength: opts[:strength]
       )
       Zold::Front.set(:farm, farm)
-      Thread.start do
+      update = Thread.start do
         loop do
           sleep(60)
           Zold::Remote.new(remotes: remotes, log: @log).run(%w[remote update --reboot])
@@ -124,6 +124,7 @@ module Zold
         Zold::Front.run!
       ensure
         farm.stop
+        update.exit
       end
     end
 
