@@ -28,7 +28,7 @@ First, install [Ruby 2.3+](https://www.ruby-lang.org/en/documentation/installati
 the [gem](https://rubygems.org/gems/zold):
 
 ```bash
-$ sudo apt-get install ruby-dev rubygems zlib1g-dev
+$ sudo apt-get install ruby-dev rubygems zlib1g-dev libssl-dev
 $ gem install zold
 ```
 
