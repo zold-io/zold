@@ -72,34 +72,34 @@ module Zold
         return
       end
       raise '--invoice is mandatory' unless opts[:invoice]
-      Zold::Front.set(:log, @log)
-      Zold::Front.set(:logging, @log.debug?)
+      Front.set(:log, @log)
+      Front.set(:logging, @log.debug?)
       FileUtils.mkdir_p(opts[:home])
-      Zold::Front.set(:home, opts[:home])
-      Zold::Front.set(
+      Front.set(:home, opts[:home])
+      Front.set(
         :server_settings,
         Logger: WebrickLog.new(@log),
         AccessLog: []
       )
       if opts['standalone']
         remotes = Remotes::Empty.new
-        @log.debug('Running in standalone mode!')
+        @log.debug('Running in standalone mode! (will never talk to other remotes)')
       else
         remotes = Remotes.new(File.join(opts[:home], 'zold-remotes'))
       end
       wallets = Wallets.new(File.join(opts[:home], 'zold-wallets'))
-      Zold::Front.set(:wallets, wallets)
-      Zold::Front.set(:remotes, remotes)
+      Front.set(:wallets, wallets)
+      Front.set(:remotes, remotes)
       copies = File.join(opts[:home], 'zold-copies')
-      Zold::Front.set(:copies, copies)
+      Front.set(:copies, copies)
       address = "#{opts[:host]}:#{opts[:port]}".downcase
-      Zold::Front.set(:address, address)
-      Zold::Front.set(
+      Front.set(:address, address)
+      Front.set(
         :entrance, Entrance.new(wallets, remotes, copies, address, log: @log)
       )
-      Zold::Front.set(:root, Dir.pwd)
-      Zold::Front.set(:port, opts['bind-port'])
-      Zold::Front.set(:reboot, !opts['never-reboot'])
+      Front.set(:root, Dir.pwd)
+      Front.set(:port, opts['bind-port'])
+      Front.set(:reboot, !opts['never-reboot'])
       invoice = opts[:invoice]
       unless invoice.include?('@')
         require_relative 'pull'
@@ -113,19 +113,19 @@ module Zold
         opts[:port],
         threads: opts[:threads], strength: opts[:strength]
       )
-      Zold::Front.set(:farm, farm)
+      Front.set(:farm, farm)
       update = Thread.start do
         VerboseThread.new(@log).run do
           loop do
             sleep(60)
-            Zold::Remote.new(remotes: remotes, log: @log).run(%w[remote update --reboot])
+            Remote.new(remotes: remotes, log: @log).run(%w[remote update --reboot])
             @log.debug('Regular update of remote nodes succeeded')
           end
         end
       end
       @log.debug('Starting up the web front...')
       begin
-        Zold::Front.run!
+        Front.run!
       ensure
         farm.stop
         update.exit
