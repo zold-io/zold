@@ -117,6 +117,7 @@ module Zold
         loop do
           sleep(60)
           Zold::Remote.new(remotes: remotes, log: @log).run(%w[remote update --reboot])
+          @log.debug('Regular update of remote nodes succeeded')
         end
       end
       @log.debug('Starting up the web front...')

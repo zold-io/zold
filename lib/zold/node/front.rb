@@ -23,6 +23,7 @@ STDOUT.sync = true
 require 'json'
 require 'sinatra/base'
 require 'webrick'
+require 'concurrent'
 require_relative '../version'
 require_relative '../wallet'
 require_relative '../log'
@@ -85,6 +86,7 @@ module Zold
         version: VERSION,
         score: score.to_h,
         pid: Process.pid,
+        cpus: Concurrent.processor_count,
         uptime: `uptime`.strip,
         wallets: settings.wallets.all.count,
         remotes: settings.remotes.all.count,
