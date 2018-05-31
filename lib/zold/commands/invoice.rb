@@ -54,6 +54,8 @@ Available options:"
       invoice(wallet, opts)
     end
 
+    private
+
     def invoice(wallet, opts)
       invoice = "#{Prefixes.new(wallet).create(opts[:length])}@#{wallet.id}"
       @log.info(invoice)

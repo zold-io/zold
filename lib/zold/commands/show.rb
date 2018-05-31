@@ -57,6 +57,8 @@ Available options:"
       end
     end
 
+    private
+
     def show(wallet, _)
       balance = wallet.balance
       wallet.txns.each do |t|

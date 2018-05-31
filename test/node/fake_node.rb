@@ -33,7 +33,7 @@ class FakeNode
     @log = log
   end
 
-  def run
+  def run(args = ['--standalone'])
     WebMock.allow_net_connect!
     Dir.mktmpdir 'test' do |dir|
       server = TCPServer.new('127.0.0.1', 0)
@@ -46,14 +46,13 @@ class FakeNode
           require_relative '../../lib/zold/commands/node'
           Zold::Node.new(log: @log).run(
             [
-              '--standalone',
-              '--invoice', 'NOPREFIX@ffffffffffffffff',
               '--port', port.to_s,
               '--host=locahost',
               '--bind-port', port.to_s,
               '--threads=1',
-              '--home', home
-            ]
+              '--home', home,
+              '--invoice=NOPREFIX@ffffffffffffffff'
+            ] + args
           )
         end
       end

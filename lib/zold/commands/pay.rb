@@ -79,6 +79,8 @@ Available options:"
       pay(from, invoice, amount, details, opts)
     end
 
+    private
+
     def pay(from, invoice, amount, details, opts)
       unless opts.force?
         raise 'The amount can\'t be zero' if amount.zero?

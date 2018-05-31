@@ -45,6 +45,7 @@ module Zold
       set :lock, false
       set :show_exceptions, false
       set :server, 'webrick'
+      set :ignore_score_weakness, false # to be injected at node.rb
       set :reboot, false # to be injected at node.rb
       set :home, nil? # to be injected at node.rb
       set :logging, true # to be injected at node.rb
@@ -58,11 +59,18 @@ module Zold
     end
 
     before do
-      return unless request.env[Http::SCORE_HEADER]
-      return unless settings.remotes.empty?
-      s = Score.parse(request.env[Http::SCORE_HEADER])
+      header = request.env["HTTP-#{Http::SCORE_HEADER}".upcase.tr('-', '_')]
+      return unless header
+      return if settings.remotes.all.empty?
+      s = Score.parse_text(header)
       error(400, 'The score is invalid') unless s.valid?
-      settings.remotes.add(s.host, s.port) if s.value > 3
+      error(400, 'The score is weak') if s.strength < Score::STRENGTH && !settings.ignore_score_weakness
+      if s.value > 3
+        require_relative '../commands/remote'
+        Remote.new(remotes: settings.remotes, log: settings.log).run(
+          ['remote', 'add', s.host, s.port.to_s, '--force']
+        )
+      end
     end
 
     after do
@@ -70,6 +78,7 @@ module Zold
       headers['Connection'] = 'close'
       headers['X-Zold-Version'] = VERSION
       headers['Access-Control-Allow-Origin'] = '*'
+      headers[Http::SCORE_HEADER] = score.reduced(16).to_s
     end
 
     get '/robots.txt' do

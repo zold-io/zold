@@ -82,6 +82,8 @@ Available options:"
       end
     end
 
+    private
+
     def pay(wallet, _)
       raise 'The wallet is absent' unless wallet.exists?
       tax = Tax.new(wallet)
@@ -112,8 +114,6 @@ Available options:"
     def show(_, _)
       raise 'Not implemented yet'
     end
-
-    private
 
     def top_scores
       best = []

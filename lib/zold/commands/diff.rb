@@ -59,6 +59,8 @@ Available options:"
       stdout
     end
 
+    private
+
     def diff(wallet, cps, _)
       raise 'There are no remote copies, try FETCH first' if cps.all.empty?
       cps = cps.all.sort_by { |c| c[:score] }.reverse

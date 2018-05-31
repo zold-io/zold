@@ -62,6 +62,9 @@ Available options:"
         o.bool '--ignore-score-weakness',
           'Don\'t complain when their score is too weak',
           default: false
+        o.bool '--force',
+          'Add/remove if if this operation is not possible',
+          default: false
         o.bool '--reboot',
           'Exit if any node reports version higher than we have',
           default: false
@@ -77,9 +80,9 @@ Available options:"
       when 'reset'
         reset
       when 'add'
-        add(mine[1], mine[2] ? mine[2].to_i : Remotes::PORT)
+        add(mine[1], mine[2] ? mine[2].to_i : Remotes::PORT, opts)
       when 'remove'
-        remove(mine[1], mine[2] ? mine[2].to_i : Remotes::PORT)
+        remove(mine[1], mine[2] ? mine[2].to_i : Remotes::PORT, opts)
       when 'update'
         update(opts)
         update(opts, false)
@@ -87,6 +90,8 @@ Available options:"
         raise "Unknown command '#{command}'"
       end
     end
+
+    private
 
     def show
       @remotes.all.each do |r|
@@ -105,15 +110,25 @@ Available options:"
       @log.debug('Remote nodes set back to default')
     end
 
-    def add(host, port)
-      @remotes.add(host, port)
-      @log.info("#{host}:#{port} added to the list")
+    def add(host, port, opts)
+      if @remotes.exists?(host, port)
+        raise "#{host}:#{port} already exists in the list" unless opts['force']
+        @log.info("#{host}:#{port} already exists in the list")
+      else
+        @remotes.add(host, port)
+        @log.info("#{host}:#{port} added to the list")
+      end
       @log.info("There are #{@remotes.all.count} remote nodes in the list")
     end
 
-    def remove(host, port)
-      @remotes.remove(host, port)
-      @log.info("#{host}:#{port} removed from the list")
+    def remove(host, port, opts)
+      if @remotes.exists?(host, port)
+        @remotes.remove(host, port)
+        @log.info("#{host}:#{port} removed from the list")
+      else
+        raise "#{host}:#{port} is not in the list" unless opts['force']
+        @log.info("#{host}:#{port} is not in the list")
+      end
       @log.info("There are #{@remotes.all.count} remote nodes in the list")
     end
 
@@ -135,7 +150,7 @@ Available options:"
         end
         if deep
           json['all'].each do |s|
-            add(s['host'], s['port']) unless @remotes.exists?(s['host'], s['port'])
+            add(s['host'], s['port'], opts) unless @remotes.exists?(s['host'], s['port'])
           end
         end
         capacity << { host: score.host, port: score.port, count: json['all'].count }

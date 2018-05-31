@@ -62,6 +62,9 @@ module Zold
         o.bool '--standalone',
           'Never communicate with other nodes (mostly for testing)',
           default: false
+        o.bool '--ignore-score-weakness',
+          'Ignore score weakness of incoming requests and register those nodes anyway',
+          default: false
         o.bool '--never-reboot',
           'Don\'t reboot when a new version shows up in the network',
           default: false
@@ -87,6 +90,7 @@ module Zold
       else
         remotes = Remotes.new(File.join(opts[:home], 'zold-remotes'))
       end
+      Front.set(:ignore_score_weakness, opts['ignore-score-weakness'])
       wallets = Wallets.new(File.join(opts[:home], 'zold-wallets'))
       Front.set(:wallets, wallets)
       Front.set(:remotes, remotes)

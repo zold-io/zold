@@ -54,6 +54,8 @@ Available options:"
       modified
     end
 
+    private
+
     # Returns list of Wallet IDs which were affected
     def propagate(wallet, _)
       me = wallet.id

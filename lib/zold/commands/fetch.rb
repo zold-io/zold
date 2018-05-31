@@ -62,6 +62,8 @@ Available options:"
       end
     end
 
+    private
+
     def fetch(id, cps, opts)
       total = 0
       @remotes.iterate(@log) do |r|

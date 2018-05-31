@@ -19,18 +19,15 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
-require 'tmpdir'
-require_relative '../../lib/zold/key'
-require_relative '../../lib/zold/id'
-require_relative '../../lib/zold/log'
-require_relative '../../lib/zold/amount'
-require_relative '../../lib/zold/wallet'
-require_relative '../../lib/zold/http'
+require 'json'
+require_relative '../test__helper'
 require_relative 'fake_node'
+require_relative '../../lib/zold/http'
+require_relative '../../lib/zold/score'
 
 class FrontTest < Minitest::Test
   def test_renders_public_pages
-    FakeNode.new.run do |port|
+    FakeNode.new(log: $log).run(['--ignore-score-weakness']) do |port|
       {
         '200' => [
           '/robots.txt',
@@ -52,6 +49,14 @@ class FrontTest < Minitest::Test
           )
         end
       end
+      score = Zold::Score.new(
+        Time.now, 'localhost', 999,
+        'NOPREFIX@ffffffffffffffff',
+        strength: 1
+      ).next.next.next.next
+      Zold::Http.new(URI("http://localhost:#{port}/"), score).get
+      json = JSON.parse(Zold::Http.new(URI("http://localhost:#{port}/remotes"), score).get.body)
+      assert(json['all'].find { |r| r['host'] == 'localhost' })
     end
   end
 end

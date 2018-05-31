@@ -35,3 +35,6 @@ $log = Zold::Log::Verbose.new
 
 require 'minitest/autorun'
 require_relative '../lib/zold'
+
+gem 'openssl'
+require 'openssl'

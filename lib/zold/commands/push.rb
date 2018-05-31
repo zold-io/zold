@@ -58,6 +58,8 @@ Available options:"
       end
     end
 
+    private
+
     def push(wallet, opts)
       total = 0
       @remotes.iterate(@log) do |r|

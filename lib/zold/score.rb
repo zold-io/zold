@@ -64,10 +64,10 @@ module Zold
       )
     end
 
-    def self.parse(text, strength: STRENGTH)
+    def self.parse(text)
       m = Regexp.new(
         '^' + [
-          '([0-9]+:)',
+          '([0-9]+)/(?<strength>[0-9]+):',
           '(?<time>[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z)',
           '(?<host>[0-9a-z\.\-]+)',
           '(?<port>[0-9]+)',
@@ -80,19 +80,19 @@ module Zold
         Time.parse(m[:time]), m[:host],
         m[:port].to_i, m[:invoice],
         m[:suffixes].split(' '),
-        strength: strength
+        strength: m[:strength].to_i
       )
     end
 
-    def self.parse_text(text, strength: STRENGTH)
-      parts = text.split(' ', 6)
+    def self.parse_text(text)
+      parts = text.split(' ', 7)
       Score.new(
-        Time.at(parts[0].hex),
-        parts[1],
-        parts[2].hex,
-        "#{parts[3]}@#{parts[4]}",
-        parts[5].split(' '),
-        strength: strength
+        Time.at(parts[1].hex),
+        parts[2],
+        parts[3].hex,
+        "#{parts[4]}@#{parts[5]}",
+        parts[6] ? parts[6].split(' ') : [],
+        strength: parts[0].to_i
       )
     end
 
@@ -106,6 +106,7 @@ module Zold
     def to_text
       pfx, bnf = @invoice.split('@')
       [
+        @strength,
         @time.to_i.to_s(16),
         @host,
         @port.to_s(16),
@@ -117,7 +118,7 @@ module Zold
 
     def to_s
       [
-        "#{value}:",
+        "#{value}/#{@strength}:",
         @time.utc.iso8601,
         @host,
         @port,
@@ -140,10 +141,9 @@ module Zold
     end
 
     def reduced(max = 4)
-      raise "The length of the score is #{@suffixes.count}, can't reduce to #{max}" if max > @suffixes.count
       Score.new(
         @time, @host, @port, @invoice,
-        @suffixes[0..max - 1], strength: @strength
+        @suffixes[0..[max, @suffixes.count].min - 1], strength: @strength
       )
     end
 

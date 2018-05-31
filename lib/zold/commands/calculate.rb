@@ -63,6 +63,8 @@ Available options:"
       calculate(opts)
     end
 
+    private
+
     def calculate(opts)
       start = Time.now
       mstart = Time.now

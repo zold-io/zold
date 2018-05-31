@@ -55,6 +55,8 @@ Available options:"
       create(mine.empty? ? Id.new : Id.new(mine[0]), opts)
     end
 
+    private
+
     def create(id, opts)
       wallet = @wallets.find(id)
       key = Zold::Key.new(file: opts['public-key'])

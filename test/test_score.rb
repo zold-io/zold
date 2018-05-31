@@ -52,10 +52,10 @@ class TestScore < Minitest::Test
     score = Zold::Score.parse(
       Zold::Score.new(
         time, 'localhost', 999, 'NOPREFIX@ffffffffffffffff',
-        %w[FIRST SECOND THIRD]
-      ).to_s
+        strength: 1
+      ).next.next.to_s
     )
-    assert_equal(3, score.value)
+    assert_equal(2, score.value)
     assert_equal(score.time.to_s, time.to_s)
     assert_equal('localhost', score.host)
     assert_equal(999, score.port)
@@ -66,11 +66,11 @@ class TestScore < Minitest::Test
     score = Zold::Score.parse_text(
       Zold::Score.new(
         time, 'a.example.com', 999, 'NOPREFIX@ffffffffffffffff',
-        %w[FIRST SECOND THIRD]
-      ).to_text
+        strength: 1
+      ).next.next.next.to_text
     )
     assert_equal(3, score.value)
-    assert_equal(score.time.to_s, time.to_s)
+    assert_equal(score.time.utc.to_s, time.utc.to_s)
     assert_equal('a.example.com', score.host)
     assert_equal(999, score.port)
   end
