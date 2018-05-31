@@ -59,7 +59,7 @@ $ zold create
 Then, push it to the network:
 
 ```bash
-$ zold push
+$ zold push 5f96e731e48ae21f
 ```
 
 Then, give this ID to your friend, who is going to pay you.
