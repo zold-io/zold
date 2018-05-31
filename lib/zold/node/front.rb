@@ -84,6 +84,7 @@ module Zold
       JSON.pretty_generate(
         version: VERSION,
         score: score.to_h,
+        pid: Process.pid,
         uptime: `uptime`.strip,
         wallets: settings.wallets.all.count,
         remotes: settings.remotes.all.count,
