@@ -124,7 +124,7 @@ module Zold
           end
         end
       end
-      @log.debug('Starting up the web front...')
+      @log.debug("Starting up the web front at http://#{opts[:host]}:#{opts[:port]}...")
       begin
         Front.run!
       ensure
