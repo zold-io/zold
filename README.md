@@ -54,6 +54,12 @@ $ zold create
 5f96e731e48ae21f
 ```
 
+Then, push it to the network:
+
+```bash
+$ zold push
+```
+
 Then, give this ID to your friend, who is going to pay you.
 When the payment is sent, ask him or her for the ID of the wallet
 the payment has been sent from and then fetch that wallet
