@@ -98,7 +98,9 @@ and your own public IP address instead of `4.4.4.4`):
 $ zold node --trace --verbose --invoice=5f96e731e48ae21f --host=4.4.4.4
 ```
 
-Then, open the page `4.4.4.4:4096` in your browser.
+Then, open the page `4.4.4.4:4096` in your browser
+(you may need to open the inbound port at your
+[IP firewall](https://www.howtogeek.com/177621/the-beginners-guide-to-iptables-the-linux-firewall/)).
 If you see a simple JSON document, everything is fine.
 Next, hit <kbd>Ctrl</kbd>+<kbd>c</kbd> and run this line, in order
 to start the node and make sure it will be online even when you log off
