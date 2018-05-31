@@ -47,7 +47,7 @@ class TestTax < Minitest::Test
         )
       )
       tax = Zold::Tax.new(wallet)
-      assert(tax.debt > Zold::Amount.new(coins: 1_006_524_000))
+      assert(tax.debt > Zold::Amount.new(coins: 1_006_523_000))
       assert(tax.debt < Zold::Amount.new(coins: 1_006_524_999))
     end
   end

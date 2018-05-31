@@ -22,6 +22,7 @@ require 'slop'
 require_relative '../score'
 require_relative '../wallets'
 require_relative '../remotes'
+require_relative '../verbose_thread'
 require_relative '../node/entrance'
 require_relative '../node/front'
 require_relative '../node/farm'
@@ -114,10 +115,12 @@ module Zold
       )
       Zold::Front.set(:farm, farm)
       update = Thread.start do
-        loop do
-          sleep(60)
-          Zold::Remote.new(remotes: remotes, log: @log).run(%w[remote update --reboot])
-          @log.debug('Regular update of remote nodes succeeded')
+        VerboseThread.new(@log).run do
+          loop do
+            sleep(60)
+            Zold::Remote.new(remotes: remotes, log: @log).run(%w[remote update --reboot])
+            @log.debug('Regular update of remote nodes succeeded')
+          end
         end
       end
       @log.debug('Starting up the web front...')

@@ -21,6 +21,7 @@
 require 'time'
 require_relative '../log'
 require_relative '../score'
+require_relative '../verbose_thread'
 
 # The farm of scores.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -63,24 +64,26 @@ module Zold
       @scores << first
       @threads = (1..threads).map do |t|
         Thread.new do
-          Thread.current.name = "farm-#{t}"
-          loop do
-            s = @scores.pop
-            next unless s.valid?
-            @semaphore.synchronize do
-              before = @best.map(&:value).max
-              @best << s
-              after = @best.map(&:value).max
-              @best.reject! { |b| b.value < after }
-              @log.debug("#{Thread.current.name}: best is #{@best[0]}") if before != after
+          VerboseThread.new(@log).run do
+            Thread.current.name = "farm-#{t}"
+            loop do
+              s = @scores.pop
+              next unless s.valid?
+              @semaphore.synchronize do
+                before = @best.map(&:value).max
+                @best << s
+                after = @best.map(&:value).max
+                @best.reject! { |b| b.value < after }
+                @log.debug("#{Thread.current.name}: best is #{@best[0]}") if before != after
+              end
+              if @scores.length < 4
+                @scores << Score.new(
+                  Time.now, host, port, @invoice,
+                  strength: strength
+                )
+              end
+              @scores << s.next
             end
-            if @scores.length < 4
-              @scores << Score.new(
-                Time.now, host, port, @invoice,
-                strength: strength
-              )
-            end
-            @scores << s.next
           end
         end
       end

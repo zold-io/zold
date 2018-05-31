@@ -18,18 +18,24 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'minitest/autorun'
-require 'rack/test'
-require 'tmpdir'
-require_relative '../../lib/zold/log'
-require_relative '../../lib/zold/node/farm'
+require_relative 'log'
 
-class FarmTest < Minitest::Test
-  def test_makes_best_score_in_background
-    farm = Zold::Farm.new('NOPREFIX@ffffffffffffffff')
-    farm.start('localhost', 80, threads: 4, strength: 2)
-    sleep 0.1 while farm.best.empty? || farm.best[0].value.zero?
-    assert(farm.best[0].value > 0)
-    farm.stop
+# Verbose thread.
+# Author:: Yegor Bugayenko (yegor256@gmail.com)
+# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# License:: MIT
+module Zold
+  # Verbose thread
+  class VerboseThread
+    def initialize(log = Log::Quiet.new)
+      @log = log
+    end
+
+    def run
+      yield
+    rescue StandardError => e
+      @log.error("#{e.class.name}: #{e.message} #{e.backtrace.join("\n\t")}")
+      raise e
+    end
   end
 end
