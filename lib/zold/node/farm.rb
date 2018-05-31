@@ -38,8 +38,9 @@ module Zold
     end
 
     attr_reader :best
-    def initialize(invoice, log: Log::Quiet.new)
+    def initialize(invoice, cache, log: Log::Quiet.new)
       @log = log
+      @cache = cache
       @invoice = invoice
       @scores = []
       @threads = []
@@ -59,9 +60,10 @@ module Zold
     def start(host, port, strength: 8, threads: 8)
       @log.debug('Zero-threads farm won\'t score anything!') if threads.zero?
       @scores = Queue.new
-      first = Score.new(Time.now, host, port, @invoice, strength: strength)
-      @best = [first]
-      @scores << first
+      history(host, port, strength).each do |s|
+        @best << s
+        @scores << s
+      end
       @threads = (1..threads).map do |t|
         Thread.new do
           VerboseThread.new(@log).run do
@@ -74,6 +76,7 @@ module Zold
                 @best << s
                 after = @best.map(&:value).max
                 @best.reject! { |b| b.value < after }
+                File.write(@cache, @best.map(&:to_s).join("\n"))
                 @log.debug("#{Thread.current.name}: best is #{@best[0]}") if before != after
               end
               if @scores.length < 4
@@ -96,6 +99,16 @@ module Zold
         @log.debug("Thread #{t.name} terminated")
       end
       @log.debug('Farm stopped')
+    end
+
+    private
+
+    def history(host, port, strength)
+      if File.exist?(@cache)
+        File.readlines(@cache).map { |t| Score.parse(t) }
+      else
+        [Score.new(Time.now, host, port, @invoice, strength: strength)]
+      end
     end
   end
 end

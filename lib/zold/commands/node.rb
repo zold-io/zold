@@ -111,7 +111,7 @@ module Zold
         require_relative 'invoice'
         invoice = Invoice.new(wallets: wallets, log: @log).run(['invoice', invoice])
       end
-      farm = Farm.new(invoice, log: @log)
+      farm = Farm.new(invoice, File.join(opts[:home], 'farm'), log: @log)
       farm.start(
         opts[:host],
         opts[:port],
