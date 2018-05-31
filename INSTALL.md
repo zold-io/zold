@@ -13,7 +13,8 @@ then the [gem](https://rubygems.org/gems/zold).
 ## Ubuntu 16.04
 
 ```bash
-$ sudo apt-get install ruby-dev rubygems zlib1g-dev libssl-dev
+$ sudo apt-get update -y
+$ sudo apt-get install -y ruby-dev rubygems zlib1g-dev libssl-dev
 $ gem install zold
 ```
 
