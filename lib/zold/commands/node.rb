@@ -118,6 +118,7 @@ module Zold
         VerboseThread.new(@log).run do
           loop do
             sleep(60)
+            require_relative 'remote'
             Remote.new(remotes: remotes, log: @log).run(%w[remote update --reboot])
             @log.debug('Regular update of remote nodes succeeded')
           end
