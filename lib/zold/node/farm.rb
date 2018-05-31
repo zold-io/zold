@@ -45,7 +45,6 @@ module Zold
       @scores = []
       @threads = []
       @best = []
-      @best << Score::ZERO
       @semaphore = Mutex.new
     end
 

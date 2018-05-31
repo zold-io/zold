@@ -34,4 +34,16 @@ class FarmTest < Minitest::Test
       farm.stop
     end
   end
+
+  def test_correct_score_from_empty_farm
+    Dir.mktmpdir 'test' do |dir|
+      farm = Zold::Farm.new('NOPREFIX@cccccccccccccccc', File.join(dir, 'f'))
+      farm.start('example.com', 8080, threads: 0, strength: 1)
+      score = farm.best[0]
+      assert_equal(0, score.value)
+      assert_equal('example.com', score.host)
+      assert_equal(8080, score.port)
+      farm.stop
+    end
+  end
 end
