@@ -103,6 +103,30 @@ $ nohup bash -c 'while CMD; do gem install zold; done' &
 Grateful users of the system will pay "taxes" to your wallet
 for the maintenance of their wallets.
 
+## Frequently Asked Questions
+
+> Where are my PGP private/public keys?
+
+They are are `~/.ssh/id_rsa` (private key) and `~/.ssh/id_rsa.pub` (public key).
+Make sure you have a copy of your private key in some safe place.
+If you lose the public key, it's not a problem, since your wallet has it.
+But the private key is your personal asset.
+Anyone can use your wallet if he/she has the private key.
+Keep it safe and secure!
+
+> What is the best way to check the balance of the rewards collected by nodes?
+
+You just do `zold pull <Wallet_ID>` and the rewards (taxes) will be visible there.
+
+> Can I setup multiple nodes with one wallet address?
+
+Yes, you can run many nodes with the same wallet ID.
+
+> Is there a way to increase the number of threads in order to maximize computing power of multiple core machines?
+
+Yes, you can use `--threads` command line argument for your node
+and the number of threads will be as big as you wish.
+
 ## How to Contribute
 
 It is a Ruby command line gem. First, install
