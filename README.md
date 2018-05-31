@@ -27,12 +27,8 @@ The license is [MIT](https://github.com/yegor256/zold/blob/master/LICENSE.txt).
 
 First, install [Ruby 2.3+](https://www.ruby-lang.org/en/documentation/installation/),
 [Rubygems](https://rubygems.org/pages/download), and
-the [gem](https://rubygems.org/gems/zold):
-
-```bash
-$ sudo apt-get install ruby-dev rubygems zlib1g-dev libssl-dev
-$ gem install zold
-```
+the [gem](https://rubygems.org/gems/zold).
+Here is [how](https://github.com/yegor256/zold/blob/master/INSTALL.md).
 
 To make sure it's installed, try:
 
