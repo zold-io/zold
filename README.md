@@ -19,6 +19,8 @@ submit your ideas and/or pull requests.
 
 Here is the [White Paper](https://github.com/yegor256/zold/raw/master/wp/wp.pdf).
 
+Join our [Telegram group](https://t.me/zold_io) to discuss it all live.
+
 The license is [MIT](https://github.com/yegor256/zold/blob/master/LICENSE.txt).
 
 ## How to Use
@@ -113,11 +115,11 @@ for the maintenance of their wallets.
 
 > Where are my PGP private/public keys?
 
-They are are `~/.ssh/id_rsa` (private key) and `~/.ssh/id_rsa.pub` (public key).
+They are in `~/.ssh/id_rsa` (private key) and `~/.ssh/id_rsa.pub` (public key).
 Make sure you have a copy of your private key in some safe place.
 If you lose the public key, it's not a problem, since your wallet has it.
 But the private key is your personal asset.
-Anyone can use your wallet if he/she has the private key.
+Anyone can use your wallet if they have the private key.
 Keep it safe and secure!
 
 > What is the best way to check the balance of the rewards collected by nodes?
