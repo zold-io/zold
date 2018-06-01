@@ -59,9 +59,15 @@ module Zold
     end
 
     before do
-      header = request.env["HTTP-#{Http::SCORE_HEADER}".upcase.tr('-', '_')]
-      return unless header
-      return if settings.remotes.all.empty?
+      name = "HTTP-#{Http::SCORE_HEADER}".upcase.tr('-', '_')
+      header = request.env[name]
+      unless header
+        settings.log.debug("#{request.url}: HTTP header #{Http::SCORE_HEADER} is absent (#{name})")
+        return
+      end
+      if settings.remotes.all.empty?
+        settings.log.debug("#{request.url}: we are in standalone mode, won't update remotes")
+      end
       s = Score.parse_text(header)
       error(400, 'The score is invalid') unless s.valid?
       error(400, 'The score is weak') if s.strength < Score::STRENGTH && !settings.ignore_score_weakness
@@ -139,12 +145,7 @@ module Zold
       JSON.pretty_generate(
         version: VERSION,
         score: score.to_h,
-        all: settings.remotes.all.map do |r|
-          {
-            host: r[:host],
-            port: r[:port]
-          }
-        end
+        all: settings.remotes.all
       )
     end
 
