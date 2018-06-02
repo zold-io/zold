@@ -106,6 +106,8 @@ to start the node and make sure it will be online even when you log off
 $ nohup bash -c 'while CMD; do gem install zold; done' &
 ```
 
+The software will update itself automatically to new versions.
+
 Grateful users of the system will pay "taxes" to your wallet
 for the maintenance of their wallets.
 
