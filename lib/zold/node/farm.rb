@@ -61,6 +61,7 @@ module Zold
       @best << Score.new(Time.now, host, port, @invoice, strength: strength)
       @scores = Queue.new
       history.each { |s| @scores << s }
+      @log.debug("#{@scores.size} scores pre-loaded") unless @scores.size.zero?
       @threads = (1..threads).map do |t|
         Thread.new do
           VerboseThread.new(@log).run do
