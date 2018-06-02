@@ -72,6 +72,7 @@ Available options:"
       end
       mine = Args.new(opts, @log).take || return
       command = mine[0]
+      raise "A command is required, try 'zold remote --help'" unless command
       case command
       when 'show'
         show
