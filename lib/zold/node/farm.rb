@@ -58,31 +58,31 @@ module Zold
 
     def start(host, port, strength: 8, threads: 8)
       @log.debug('Zero-threads farm won\'t score anything!') if threads.zero?
+      @best << Score.new(Time.now, host, port, @invoice, strength: strength)
       @scores = Queue.new
-      history(host, port, strength).each do |s|
-        @best << s
-        @scores << s
-      end
+      history.each { |s| @scores << s }
       @threads = (1..threads).map do |t|
         Thread.new do
           VerboseThread.new(@log).run do
             Thread.current.name = "farm-#{t}"
             loop do
-              s = @scores.pop
-              next unless s.valid?
-              @semaphore.synchronize do
-                before = @best.map(&:value).max
-                @best << s
-                after = @best.map(&:value).max
-                @best.reject! { |b| b.value < after }
-                File.write(@cache, @best.map(&:to_s).join("\n"))
-                @log.debug("#{Thread.current.name}: best is #{@best[0]}") if before != after
-              end
               if @scores.length < 4
                 @scores << Score.new(
                   Time.now, host, port, @invoice,
                   strength: strength
                 )
+              end
+              s = @scores.pop
+              next unless s.valid?
+              next if s.expired?
+              next if s.strength < strength
+              @semaphore.synchronize do
+                save(s)
+                before = @best.map(&:value).max
+                @best << s
+                after = @best.map(&:value).max
+                @best.reject! { |b| b.value < after }
+                @log.debug("#{Thread.current.name}: best score is #{@best[0]}") if before != after
               end
               @scores << s.next
             end
@@ -102,11 +102,15 @@ module Zold
 
     private
 
-    def history(host, port, strength)
+    def save(score)
+      File.write(@cache, (history.reject(&:expired?) + [score]).map(&:to_s).join("\n"))
+    end
+
+    def history
       if File.exist?(@cache)
         File.readlines(@cache).map { |t| Score.parse(t) }
       else
-        [Score.new(Time.now, host, port, @invoice, strength: strength)]
+        []
       end
     end
   end

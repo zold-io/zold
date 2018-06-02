@@ -86,6 +86,17 @@ class TestScore < Minitest::Test
     assert(!score.expired?)
   end
 
+  def test_prints_and_parses_zero_score
+    time = Time.now
+    score = Zold::Score.parse(
+      Zold::Score.new(
+        time, '192.168.0.1', 1, 'NOPREFIX@ffffffffffffffff', []
+      ).to_s
+    )
+    assert_equal(0, score.value)
+    assert(!score.expired?)
+  end
+
   def test_finds_next_score
     score = Zold::Score.new(
       Time.now, 'localhost', 443,

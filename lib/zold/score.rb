@@ -65,17 +65,18 @@ module Zold
     end
 
     def self.parse(text)
-      m = Regexp.new(
+      re = Regexp.new(
         '^' + [
           '([0-9]+)/(?<strength>[0-9]+):',
-          '(?<time>[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z)',
-          '(?<host>[0-9a-z\.\-]+)',
-          '(?<port>[0-9]+)',
-          '(?<invoice>[a-zA-Z0-9]{8,32}@[a-f0-9]{16})',
-          '(?<suffixes>[a-zA-Z0-9 ]+)'
-        ].join(' ') + '$'
-      ).match(text)
-      raise "Invalid score '#{text}'" if m.nil?
+          ' (?<time>[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z)',
+          ' (?<host>[0-9a-z\.\-]+)',
+          ' (?<port>[0-9]+)',
+          ' (?<invoice>[a-zA-Z0-9]{8,32}@[a-f0-9]{16})',
+          '(?<suffixes>( [a-zA-Z0-9]+)*)'
+        ].join + '$'
+      )
+      m = re.match(text.strip)
+      raise "Invalid score '#{text}', doesn't match: #{re}" if m.nil?
       Score.new(
         Time.parse(m[:time]), m[:host],
         m[:port].to_i, m[:invoice],
@@ -136,7 +137,8 @@ module Zold
         time: @time.utc.iso8601,
         suffixes: @suffixes,
         strength: @strength,
-        hash: value.zero? ? nil : hash
+        hash: value.zero? ? nil : hash,
+        minutes: ((Time.now - @time) / 60).to_i
       }
     end
 
