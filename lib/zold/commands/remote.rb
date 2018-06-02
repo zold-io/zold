@@ -25,6 +25,7 @@ require 'net/http'
 require 'json'
 require 'time'
 require_relative 'args'
+require_relative '../node/farm'
 require_relative '../log'
 require_relative '../http'
 require_relative '../remotes'
@@ -37,8 +38,9 @@ require_relative '../score'
 module Zold
   # Remote command
   class Remote
-    def initialize(remotes:, log: Log::Quiet.new)
+    def initialize(remotes:, farm: Farm::Empty.new, log: Log::Quiet.new)
       @remotes = remotes
+      @farm = farm
       @log = log
     end
 
@@ -135,7 +137,7 @@ Available options:"
 
     def update(opts, deep = true)
       capacity = []
-      @remotes.iterate(@log) do |r|
+      @remotes.iterate(@log, farm: @farm) do |r|
         start = Time.now
         res = r.http('/remotes').get
         r.assert_code(200, res)

@@ -123,7 +123,7 @@ module Zold
           loop do
             sleep(60)
             require_relative 'remote'
-            Remote.new(remotes: remotes, log: @log).run(%w[remote update --reboot])
+            Remote.new(remotes: remotes, log: @log, farm: farm).run(%w[remote update --reboot])
             @log.debug('Regular update of remote nodes succeeded')
           end
         end

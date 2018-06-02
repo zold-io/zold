@@ -72,9 +72,8 @@ module Zold
       end
     end
 
-    def initialize(file, farm = Farm::Empty.new)
+    def initialize(file)
       @file = file
-      @farm = farm
     end
 
     def all
@@ -124,8 +123,8 @@ module Zold
       save(list)
     end
 
-    def iterate(log)
-      best = @farm.best[0]
+    def iterate(log, farm: Farm::Empty.new)
+      best = farm.best[0]
       require_relative 'score'
       score = best.nil? ? Score::ZERO : best
       all.each do |r|
