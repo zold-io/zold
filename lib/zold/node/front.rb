@@ -76,6 +76,8 @@ module Zold
         Remote.new(remotes: settings.remotes, log: settings.log).run(
           ['remote', 'add', s.host, s.port.to_s, '--force']
         )
+      else
+        settings.log.debug("#{request.url}: the score is too weak: #{s}")
       end
     end
 
