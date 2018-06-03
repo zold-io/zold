@@ -59,4 +59,35 @@ class FrontTest < Minitest::Test
       assert(json['all'].find { |r| r['host'] == 'localhost' })
     end
   end
+
+  def test_different_logos
+    FakeNode.new(log: $log).run(['--ignore-score-weakness']) do |port|
+      {
+        '0' => 'https://zold.io/logo-red.png',
+        '4' => 'https://zold.io/logo-orange.png',
+        '16' => 'https://zold.io/logo-green.png'
+      }.each do |num, path|
+        score = Zold::Score.new(
+          Time.now, 'localhost', 999,
+          'NOPREFIX@ffffffffffffffff',
+          strength: 1
+        )
+
+        num.to_i.times do
+          score = score.next
+        end
+
+        Zold::Http.new(URI("http://localhost:#{port}/favicon.ico"), score).get do |response|
+          assert_equal(
+            302, response.code,
+            "Invalid response code for #{response.uri}: #{response.message}"
+          )
+          assert_equal(
+            path, response.uri,
+            "Unxpected path for #{response.uri}: Expected #{path}"
+          )
+        end
+      end
+    end
+  end
 end
