@@ -59,7 +59,7 @@ class TestTaxes < Minitest::Test
         }.to_json
       )
       Zold::Taxes.new(
-        wallets: wallets, remotes: remotes, log: $log
+        wallets: wallets, remotes: remotes, log: log
       ).run(['taxes', '--private-key=fixtures/id_rsa', id.to_s])
       assert_equal(Zold::Amount.new(coins: 85_856_396_247), wallet.balance)
     end
