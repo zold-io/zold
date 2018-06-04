@@ -61,10 +61,7 @@ module Zold
     before do
       name = "HTTP-#{Http::SCORE_HEADER}".upcase.tr('-', '_')
       header = request.env[name]
-      unless header
-        settings.log.debug("#{request.url}: HTTP header #{Http::SCORE_HEADER} is absent (#{name})")
-        return
-      end
+      return unless header
       if settings.remotes.all.empty?
         settings.log.debug("#{request.url}: we are in standalone mode, won't update remotes")
       end
