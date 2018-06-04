@@ -91,7 +91,13 @@ module Zold
     end
 
     get '/favicon.ico' do
-      redirect 'https://www.zold.io/logo.png'
+      if score.value >= 16
+        redirect 'https://www.zold.io/images/logo-green.png'
+      elsif score.value >= 4
+        redirect 'https://www.zold.io/images/logo-orange.png'
+      else
+        redirect 'https://www.zold.io/images/logo-red.png'
+      end
     end
 
     get '/' do
