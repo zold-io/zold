@@ -66,7 +66,7 @@ class FrontTest < Minitest::Test
       '4' => 'https://www.zold.io/images/logo-orange.png',
       '16' => 'https://www.zold.io/images/logo-green.png'
     }.each do |num, path|
-      puts "Calculating score #{num}..."
+      $log.info("Calculating score #{num}...")
       score = Zold::Score.new(
         Time.now, 'localhost', 999,
         'NOPREFIX@ffffffffffffffff',
@@ -75,7 +75,7 @@ class FrontTest < Minitest::Test
       num.to_i.times do
         score = score.next
       end
-      puts "Score #{num} calculated."
+      $log.info("Score #{num} calculated.")
       if score.value >= 16
         assert_equal(
           path, 'https://www.zold.io/images/logo-green.png',
