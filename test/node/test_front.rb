@@ -61,32 +61,36 @@ class FrontTest < Minitest::Test
   end
 
   def test_different_logos
-    FakeNode.new(log: $log).run(['--ignore-score-weakness']) do |port|
-      {
-        '0' => 'https://zold.io/logo-red.png',
-        '4' => 'https://zold.io/logo-orange.png',
-        '16' => 'https://zold.io/logo-green.png'
-      }.each do |num, path|
-        score = Zold::Score.new(
-          Time.now, 'localhost', 999,
-          'NOPREFIX@ffffffffffffffff',
-          strength: 1
+    {
+      '0' => 'https://www.zold.io/images/logo-red.png',
+      '4' => 'https://www.zold.io/images/logo-orange.png',
+      '16' => 'https://www.zold.io/images/logo-green.png'
+    }.each do |num, path|
+      puts "Calculating score #{num}..."
+      score = Zold::Score.new(
+        Time.now, 'localhost', 999,
+        'NOPREFIX@ffffffffffffffff',
+        strength: 1
+      )
+      num.to_i.times do
+        score = score.next
+      end
+      puts "Score #{num} calculated."
+      if score.value >= 16
+        assert_equal(
+          path, 'https://www.zold.io/images/logo-green.png',
+          "Expected #{path} for score #{score.value}"
         )
-
-        num.to_i.times do
-          score = score.next
-        end
-
-        Zold::Http.new(URI("http://localhost:#{port}/favicon.ico"), score).get do |response|
-          assert_equal(
-            302, response.code,
-            "Invalid response code for #{response.uri}: #{response.message}"
-          )
-          assert_equal(
-            path, response.uri,
-            "Unxpected path for #{response.uri}: Expected #{path}"
-          )
-        end
+      elsif score.value >= 4
+        assert_equal(
+          path, 'https://www.zold.io/images/logo-orange.png',
+          "Expected #{path} for score #{score.value}"
+        )
+      else
+        assert_equal(
+          path, 'https://www.zold.io/images/logo-red.png',
+          "Expected #{path} for score #{score.value}"
+        )
       end
     end
   end
