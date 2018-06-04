@@ -148,11 +148,6 @@ module Zold
       )
     end
 
-    get %r{/(?<page>.+\.html)} do
-      content_type 'text/html'
-      File.read(File.join(settings.root, "html/#{params[:page]}"))
-    end
-
     not_found do
       status 404
       content_type 'text/plain'

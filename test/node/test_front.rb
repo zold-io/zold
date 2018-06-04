@@ -32,7 +32,6 @@ class FrontTest < Minitest::Test
         '200' => [
           '/robots.txt',
           '/',
-          '/map.html',
           '/remotes'
         ],
         '404' => [
