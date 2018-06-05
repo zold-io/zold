@@ -32,11 +32,18 @@ module Zold
       @dir = dir
     end
 
-    # @todo #70:30min Let's make it smarter. Instead of returning
-    #  the full path let's substract the prefix from it if it's equal
-    #  to the current directory in Dir.pwd.
+    # Returns wallets directory path
     def to_s
-      path
+      dir = Dir.pwd[1..-1].split('/')
+      diff = false
+      pwd = path[1..-1].split('/').each_with_index.with_object([]) do |(fld, idx), obj|
+        break if idx.zero? && fld != dir[idx]
+        next if fld == dir[idx]
+        obj << fld
+        diff ||= true
+      end
+      return path if pwd.nil? || pwd.empty?
+      pwd[0] == '/' ? pwd.join('/') : ('./' << pwd.join('/'))
     end
 
     def path
