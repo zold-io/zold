@@ -40,7 +40,7 @@ class TestEntrance < Minitest::Test
     body = FakeHome.new.run do |home|
       source = home.create_wallet(sid)
       target = home.create_wallet(tid)
-      Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: $log).run(
+      Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: log).run(
         [
           'pay', '--force', '--private-key=fixtures/id_rsa',
           source.id.to_s, target.id.to_s, '19.99', 'testing'
@@ -51,7 +51,7 @@ class TestEntrance < Minitest::Test
     FakeHome.new.run do |home|
       source = home.create_wallet(sid)
       home.create_wallet(tid)
-      modified = Zold::Entrance.new(home.wallets, home.remotes, home.copies(source).root, 'x', log: $log).push(
+      modified = Zold::Entrance.new(home.wallets, home.remotes, home.copies(source).root, 'x', log: log).push(
         source.id, body
       )
       assert_equal(2, modified.count)
