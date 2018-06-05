@@ -34,16 +34,17 @@ module Zold
 
     # Returns wallets directory path
     def to_s
-      dir = Dir.pwd[1..-1].split('/')
+      dir = Dir.pwd.sub(path_start, '').split('/')
       diff = false
-      pwd = path[1..-1].split('/').each_with_index.with_object([]) do |(fld, idx), obj|
+      dir_path = path.sub(path_start, '').split('/')
+      pwd = dir_path.each_with_index.with_object([]) do |(fld, idx), obj|
         break if idx.zero? && fld != dir[idx]
         next if fld == dir[idx]
         obj << fld
         diff ||= true
       end
       return path if pwd.nil? || pwd.empty?
-      pwd[0] == '/' ? pwd.join('/') : ('./' << pwd.join('/'))
+      pwd[0] == path_start ? pwd.join('/') : ('./' << pwd.join('/'))
     end
 
     def path
@@ -64,6 +65,16 @@ module Zold
 
     def find(id)
       Zold::Wallet.new(File.join(path, id.to_s))
+    end
+
+    private
+
+    def path_start
+      windows? ? Dir.pwd[0..1] : '/'
+    end
+
+    def windows?
+      (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
     end
   end
 end
