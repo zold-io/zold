@@ -24,6 +24,9 @@ require 'json'
 require 'sinatra/base'
 require 'webrick'
 require 'concurrent'
+require 'zlib'
+require 'stringio'
+require 'rack/utils'
 require_relative '../version'
 require_relative '../wallet'
 require_relative '../log'
@@ -84,6 +87,15 @@ module Zold
       headers['X-Zold-Version'] = VERSION
       headers['Access-Control-Allow-Origin'] = '*'
       headers[Http::SCORE_HEADER] = score.reduced(16).to_s
+      if Rack::Utils.select_best_encoding(%w(gzip), request.accept_encoding) == 'gzip'
+        headers['Content-Encoding'] = 'gzip'
+        headers['Content-Length'] = nil
+        c = StringIO.new("w")
+        cgz = Zlib::GzipWriter.new(c)
+        cgz.write(response.body)
+        cgz.close
+        response.body = c.string
+      end
     end
 
     get '/robots.txt' do
