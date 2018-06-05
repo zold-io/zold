@@ -61,10 +61,7 @@ module Zold
     before do
       name = "HTTP-#{Http::SCORE_HEADER}".upcase.tr('-', '_')
       header = request.env[name]
-      unless header
-        settings.log.debug("#{request.url}: HTTP header #{Http::SCORE_HEADER} is absent (#{name})")
-        return
-      end
+      return unless header
       if settings.remotes.all.empty?
         settings.log.debug("#{request.url}: we are in standalone mode, won't update remotes")
       end
@@ -94,7 +91,13 @@ module Zold
     end
 
     get '/favicon.ico' do
-      redirect 'https://www.zold.io/logo.png'
+      if score.value >= 16
+        redirect 'https://www.zold.io/images/logo-green.png'
+      elsif score.value >= 4
+        redirect 'https://www.zold.io/images/logo-orange.png'
+      else
+        redirect 'https://www.zold.io/images/logo-red.png'
+      end
     end
 
     get '/' do
@@ -149,11 +152,6 @@ module Zold
         score: score.to_h,
         all: settings.remotes.all
       )
-    end
-
-    get %r{/(?<page>.+\.html)} do
-      content_type 'text/html'
-      File.read(File.join(settings.root, "html/#{params[:page]}"))
     end
 
     not_found do

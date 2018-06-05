@@ -32,7 +32,6 @@ class FrontTest < Minitest::Test
         '200' => [
           '/robots.txt',
           '/',
-          '/map.html',
           '/remotes'
         ],
         '404' => [
@@ -57,6 +56,41 @@ class FrontTest < Minitest::Test
       Zold::Http.new(URI("http://localhost:#{port}/"), score).get
       json = JSON.parse(Zold::Http.new(URI("http://localhost:#{port}/remotes"), score).get.body)
       assert(json['all'].find { |r| r['host'] == 'localhost' })
+    end
+  end
+
+  def test_different_logos
+    {
+      '0' => 'https://www.zold.io/images/logo-red.png',
+      '4' => 'https://www.zold.io/images/logo-orange.png',
+      '16' => 'https://www.zold.io/images/logo-green.png'
+    }.each do |num, path|
+      $log.info("Calculating score #{num}...")
+      score = Zold::Score.new(
+        Time.now, 'localhost', 999,
+        'NOPREFIX@ffffffffffffffff',
+        strength: 1
+      )
+      num.to_i.times do
+        score = score.next
+      end
+      $log.info("Score #{num} calculated.")
+      if score.value >= 16
+        assert_equal(
+          path, 'https://www.zold.io/images/logo-green.png',
+          "Expected #{path} for score #{score.value}"
+        )
+      elsif score.value >= 4
+        assert_equal(
+          path, 'https://www.zold.io/images/logo-orange.png',
+          "Expected #{path} for score #{score.value}"
+        )
+      else
+        assert_equal(
+          path, 'https://www.zold.io/images/logo-red.png',
+          "Expected #{path} for score #{score.value}"
+        )
+      end
     end
   end
 end

@@ -104,12 +104,12 @@ module Zold
     private
 
     def save(score)
-      File.write(@cache, (history.reject(&:expired?) + [score]).map(&:to_s).join("\n"))
+      File.write(@cache, (history + [score]).map(&:to_s).join("\n"))
     end
 
     def history
       if File.exist?(@cache)
-        File.readlines(@cache).map { |t| Score.parse(t) }
+        File.readlines(@cache).map { |t| Score.parse(t) }.reject(&:expired?)
       else
         []
       end

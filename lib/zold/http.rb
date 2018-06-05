@@ -98,7 +98,7 @@ module Zold
         'Connection': 'close'
       }
       headers[Http::VERSION_HEADER] = VERSION
-      headers[Http::SCORE_HEADER] = @score.reduced(4).to_text if @score.valid? && !@score.expired?
+      headers[Http::SCORE_HEADER] = @score.reduced(4).to_text if @score.valid? && !@score.expired? && @score.value > 3
       headers
     end
   end

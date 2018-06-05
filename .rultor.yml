@@ -37,7 +37,7 @@ merge:
   script: |-
     bundle install
     rake
-    pdd
+    pdd -f /dev/null -v
 deploy:
   script: |-
     echo "There is nothing to deploy"
