@@ -119,7 +119,7 @@ module Zold
       dup = txns.find { |t| t.bnf == txn.bnf && t.id == txn.id }
       raise "The transaction with the same ID and BNF already exists: #{dup}" unless dup.nil?
       raise "The tax payment already exists: #{txn}" if Tax.new(self).exists?(txn)
-      open(@file, 'a') { |f| f.print "#{txn}\n" }
+      File.open(@file, 'a') { |f| f.print "#{txn}\n" }
     end
 
     def has?(id, bnf)
@@ -141,7 +141,7 @@ module Zold
     # Age of wallet in hours
     def age
       list = txns
-      list.empty? ? 0 : (Time.now - list.sort_by(&:date)[0].date) / 60
+      list.empty? ? 0 : (Time.now - list.min_by(&:date).date) / 60
     end
 
     def txns
