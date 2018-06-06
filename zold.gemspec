@@ -43,6 +43,7 @@ Gem::Specification.new do |s|
   s.rdoc_options = ['--charset=UTF-8']
   s.extra_rdoc_files = ['README.md', 'LICENSE.txt']
   s.add_runtime_dependency 'concurrent-ruby', '~>1.0.5'
+  s.add_runtime_dependency 'cucumber', '3.1.1' # has to stay here for Heroku
   s.add_runtime_dependency 'diffy', '~>3.2.0'
   s.add_runtime_dependency 'json', '~>1.8.6'
   s.add_runtime_dependency 'openssl', '~>2.1.1'
@@ -55,7 +56,6 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'slop', '~>4.4'
   s.add_runtime_dependency 'xcop', '~>0.5'
   s.add_development_dependency 'codecov', '0.1.10'
-  s.add_development_dependency 'cucumber', '3.1.1'
   s.add_development_dependency 'minitest', '5.11.3'
   s.add_development_dependency 'rdoc', '4.2.0'
   s.add_development_dependency 'rspec-rails', '3.1.0'
