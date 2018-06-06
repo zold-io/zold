@@ -48,6 +48,8 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'openssl', '~>2.1.1'
   s.add_runtime_dependency 'rainbow', '~>3.0'
   s.add_runtime_dependency 'rake', '12.3.1' # has to stay here for Heroku
+  s.add_runtime_dependency 'rubocop', '0.52.0' # has to stay here for Heroku
+  s.add_runtime_dependency 'rubocop-rspec' # has to stay here for Heroku
   s.add_runtime_dependency 'semantic', '~>1.6.1'
   s.add_runtime_dependency 'sinatra', '~>2.0.1'
   s.add_runtime_dependency 'slop', '~>4.4'
@@ -57,7 +59,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'minitest', '5.11.3'
   s.add_development_dependency 'rdoc', '4.2.0'
   s.add_development_dependency 'rspec-rails', '3.1.0'
-  s.add_development_dependency 'rubocop', '0.52.0'
-  s.add_development_dependency 'rubocop-rspec'
   s.add_development_dependency 'webmock', '3.4.2'
 end
