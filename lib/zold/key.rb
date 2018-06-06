@@ -38,6 +38,7 @@ module Zold
           return File.read(path)
         end
         unless text.nil?
+          return text if text.start_with?('-----')
           return [
             '-----BEGIN PUBLIC KEY-----',
             text.gsub(/(?<=\G.{64})/, "\n"),
