@@ -35,6 +35,20 @@ class TestAmount < Minitest::Test
     )
   end
 
+  def test_prints_zld_with_many_digits
+    amount = Zold::Amount.new(zld: 0.12345678)
+    assert_equal('0.123', amount.to_zld(3))
+    assert_equal('0.1235', amount.to_zld(4))
+    assert_equal('0.12346', amount.to_zld(5))
+    assert_equal('0.123457', amount.to_zld(6))
+  end
+
+  def test_compares_with_zero
+    amount = Zold::Amount.new(zld: 0.00001)
+    assert(!amount.zero?)
+    assert(amount != Zold::Amount::ZERO)
+  end
+
   def test_parses_coins
     amount = Zold::Amount.new(coins: 900_000_000)
     assert(
