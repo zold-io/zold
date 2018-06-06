@@ -42,14 +42,14 @@ Gem::Specification.new do |s|
   s.test_files = s.files.grep(%r{^(test|spec|features|wp)/})
   s.rdoc_options = ['--charset=UTF-8']
   s.extra_rdoc_files = ['README.md', 'LICENSE.txt']
-  s.add_runtime_dependency 'concurrent-ruby', '1.0.5'
-  s.add_runtime_dependency 'cucumber', '1.3.17'
-  s.add_runtime_dependency 'diffy', '3.2.0'
-  s.add_runtime_dependency 'openssl', '2.0.1'
+  s.add_runtime_dependency 'concurrent-ruby', '~>1.0.5'
+  s.add_runtime_dependency 'cucumber', '~>1.3.17'
+  s.add_runtime_dependency 'diffy', '~>3.2.0'
+  s.add_runtime_dependency 'openssl', '~>2.0.1'
   s.add_runtime_dependency 'rainbow', '~>3.0'
-  s.add_runtime_dependency 'rake', '12.0.0'
+  s.add_runtime_dependency 'rake', '~>12.0.0'
   s.add_runtime_dependency 'rubocop', '~>0.52.0'
-  s.add_runtime_dependency 'rubocop-rspec', '1.5.1'
+  s.add_runtime_dependency 'rubocop-rspec', '~>1.5.1'
   s.add_runtime_dependency 'semantic', '~>1.5.0'
   s.add_runtime_dependency 'sinatra', '~>2.0.1'
   s.add_runtime_dependency 'slop', '~>4.4'
