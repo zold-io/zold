@@ -94,4 +94,27 @@ class TestWallet < Minitest::Test
       )
     end
   end
+
+  def test_age
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      time_first = Time.new(2018, 1, 1)
+      wallet.add(
+        Zold::Txn.new(
+          1, time_first, Zold::Amount.new(zld: 1.00),
+          'NOPREFIX', Zold::Id.new, '-'
+        )
+      )
+      wallet.add(
+        Zold::Txn.new(
+          2, time_first + (60 * 60 * 24), Zold::Amount.new(zld: 1.00),
+          'NOPREFIX', Zold::Id.new, '-'
+        )
+      )
+      assert_equal(
+        24, wallet.age,
+        "Expected age 24hours: Actual age is #{wallet.age} hours"
+      )
+    end
+  end
 end
