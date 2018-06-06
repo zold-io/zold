@@ -10,6 +10,14 @@ install [Ruby 2.3+](https://www.ruby-lang.org/en/documentation/installation/),
 [Rubygems](https://rubygems.org/pages/download), and
 then the [gem](https://rubygems.org/gems/zold).
 
+## Debian 9.4
+
+```bash
+$ sudo apt update -y
+$ sudo apt install -y ruby-dev rubygems zlib1g-dev libssl-dev make
+$ gem install zold
+```
+
 ## Ubuntu 16.04
 
 ```bash
