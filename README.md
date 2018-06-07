@@ -91,7 +91,7 @@ In order to do that just run (with your own wallet ID, of course,
 and your own public IP address instead of `4.4.4.4`):
 
 ```bash
-$ zold --trace --verbose --invoice=5f96e731e48ae21f --host=4.4.4.4
+$ zold node --trace --verbose --invoice=5f96e731e48ae21f --host=4.4.4.4
 ```
 
 Then, open the page `4.4.4.4:4096` in your browser
@@ -102,7 +102,7 @@ Next, hit <kbd>Ctrl</kbd>+<kbd>c</kbd> and run it again, but instead
 of `zold` say `zold-nohup` and add an ampersand (`&`) at the end:
 
 ```bash
-$ zold-nohup --trace --verbose --invoice=5f96e731e48ae21f --host=4.4.4.4 &
+$ zold-nohup node --trace --verbose --invoice=5f96e731e48ae21f --host=4.4.4.4 &
 ```
 
 Now you can close console, it will work in the background, saving the
