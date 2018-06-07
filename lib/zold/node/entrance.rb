@@ -97,7 +97,7 @@ module Zold
       copies.remove('remote', Remotes::PORT)
       Push.new(
         wallets: @wallets, remotes: @remotes, log: @log
-      ).run(['push'] + modified.map(&:to_s))
+      ).run(['push', "--ignore-node=#{@address}"] + modified.map(&:to_s))
       modified
     end
   end
