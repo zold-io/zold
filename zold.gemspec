@@ -28,18 +28,28 @@ Gem::Specification.new do |s|
   s.specification_version = 2 if s.respond_to? :specification_version=
   s.required_rubygems_version = Gem::Requirement.new('>= 0') if s.respond_to? :required_rubygems_version=
   s.rubygems_version = '2.2'
-  s.required_ruby_version = '>= 2.2'
+  s.required_ruby_version = '~>2.2'
   s.name = 'zold'
   s.version = Zold::VERSION
   s.license = 'MIT'
-  s.summary = 'ZOLD, a cryptocurrency'
-  s.description = 'Non-blockchain cryptocurrency'
+  s.summary = 'A fast cryptocurrency for micro payments'
+  s.description = 'In the last few years digital currencies have successfully demonstrated
+their ability to become an alternative financial instrument in many
+different markets. Most of the technologies available at the moment are
+based on the principles of Blockchain architecture, including
+dominating currencies like Bitcoin and Etherium. Despite its
+popularity, Blockchain is not the best possible solution for all scenarios.
+One such example is for fast micro-payments.
+Zold is an experimental alternative that enables distributed transactions between
+anonymous users, making micro-payments financially feasible.
+It borrows the proof-of-work principle from Bitcoin,
+and suggests a different architecture for digital wallet maintenance.'
   s.authors = ['Yegor Bugayenko']
   s.email = 'yegor256@gmail.com'
   s.homepage = 'http://github.com/zold-io/zold'
   s.files = `git ls-files`.split($RS)
   s.executables = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
-  s.test_files = s.files.grep(%r{^(test|spec|features|wp)/})
+  s.test_files = s.files.grep(%r{^(test|features)/})
   s.rdoc_options = ['--charset=UTF-8']
   s.extra_rdoc_files = ['README.md', 'LICENSE.txt']
   s.add_runtime_dependency 'concurrent-ruby', '~>1.0'

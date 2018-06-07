@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env ruby
+# encoding: utf-8
+#
 # Copyright (c) 2018 Yegor Bugayenko
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,6 +21,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-args=$@
+if ARGV.include?('--skip-install')
+  cmd = 'echo re-run'
+else
+  cmd = 'gem install zold'
+end
 
-nohup bash -c 'while zold ${args}; do gem install zold; done'
+`nohup bash -c 'while zold #{ARGV.join(' ')}; do #{cmd}; done'`
