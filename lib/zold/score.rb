@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'digest'
+require 'score_index/score_index'
 require 'time'
 require_relative 'remotes'
 
@@ -151,16 +152,11 @@ module Zold
 
     def next
       raise 'This score is not valid' unless valid?
-      idx = 0
-      loop do
-        suffix = idx.to_s(16)
-        score = Score.new(
-          @time, @host, @port, @invoice, @suffixes + [suffix],
-          strength: @strength
-        )
-        return score if score.valid?
-        idx += 1
-      end
+      suffix = ScoreIndex.new(@suffixes.empty? ? prefix : hash, @strength)
+      Score.new(
+        @time, @host, @port, @invoice, @suffixes + [suffix.value],
+        strength: @strength
+      )
     end
 
     def age_hours
