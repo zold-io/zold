@@ -44,6 +44,7 @@ module Zold
       @address = address
       @log = log
       @semaphores = Concurrent::Map.new
+      @pool = Concurrent::FixedThreadPool.new(16)
     end
 
     def push(id, body, sync: true)
@@ -51,7 +52,7 @@ module Zold
       if sync
         push_sync(id, body)
       else
-        Thread.new do
+        @pool.post do
           push_sync(id, body)
         end
       end
