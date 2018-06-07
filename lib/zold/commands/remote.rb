@@ -148,7 +148,8 @@ Available options:"
         raise "Masqueraded as #{score.host}:#{score.port}" if r.host != score.host || r.port != score.port
         @remotes.rescore(score.host, score.port, score.value)
         if opts['reboot'] && Semantic::Version.new(VERSION) < Semantic::Version.new(json['version'])
-          @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, reboot!")
+          @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, reboot! \
+(use --never-reboot to avoid this from happening)")
           exit(0)
         end
         if deep
