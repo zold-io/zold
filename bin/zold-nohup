@@ -1,5 +1,4 @@
 #!/usr/bin/env ruby
-# encoding: utf-8
 #
 # Copyright (c) 2018 Yegor Bugayenko
 #
@@ -21,10 +20,47 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-if ARGV.include?('--skip-install')
-  cmd = 'echo re-run'
-else
-  cmd = 'gem install zold'
+STDOUT.sync = true
+
+require 'slop'
+require 'tempfile'
+require 'open3'
+
+$opts = Slop.parse(ARGV, strict: false, suppress_errors: true) do |o|
+  o.string '--log-file', 'The file to save logs into', default: 'zold-node.log'
+  o.bool '--skip-install', 'Don\'t re-install Zold gem', default: false
 end
 
-`nohup bash -c 'while zold #{ARGV.join(' ')}; do #{cmd}; done'`
+def log(line)
+  File.open($opts['log-file'], 'a') { |f| f.print(line) }
+end
+
+def exec(cmd)
+  Open3.popen2e(cmd) do |stdin, stdout, thr|
+    stdin.close
+    loop do
+      line = stdout.gets
+      break if line.nil?
+      log(line)
+    end
+    code = thr.value.exitstatus
+    raise "Exit code #{code} (non zero)" unless code.zero?
+  end
+end
+
+$pid = fork do
+  Signal.trap('HUP') do
+    print('Received HUP, ignoring...')
+  end
+  Signal.trap('TERM') do
+    print('Received TERM, terminating...')
+    exit(-1)
+  end
+  loop do
+    exec("zold #{$opts.arguments.join(' ')}")
+    exec('gem install zold') unless $opts['skip-install']
+  end
+end
+Process.detach($pid)
+
+puts($pid)

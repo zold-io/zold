@@ -16,5 +16,6 @@ Feature: Command Line Processing
     Then Exit code is zero
 
   Scenario: Failure through nohup
-    When I run bin/zold-nohup with "badcommand --skip-install"
+    When I run bin/zold-nohup with "badcommand --skip-install --log-file=log.txt; sleep 2; cat log.txt"
+    And Stdout contains "Command 'badcommand' is not supported"
     Then Exit code is zero
