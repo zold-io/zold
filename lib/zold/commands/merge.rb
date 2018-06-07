@@ -62,7 +62,7 @@ Available options:"
     private
 
     def merge(wallet, cps, _)
-      raise 'There are no remote copies, try FETCH first' if cps.all.empty?
+      raise "There are no remote copies of #{wallet.id}, try FETCH first" if cps.all.empty?
       cps = cps.all.sort_by { |c| c[:score] }.reverse
       patch = Patch.new
       main = Wallet.new(cps[0][:path])
