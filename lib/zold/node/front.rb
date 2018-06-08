@@ -58,6 +58,7 @@ module Zold
       set :remotes, nil? # to be injected at node.rb
       set :copies, nil? # to be injected at node.rb
     end
+    use Rack::Deflater
 
     before do
       name = "HTTP-#{Http::SCORE_HEADER}".upcase.tr('-', '_')
