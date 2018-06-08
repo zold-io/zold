@@ -30,7 +30,7 @@ class TestAtomicFile < Minitest::Test
   def test_writes_and_reads
     Dir.mktmpdir 'test' do |dir|
       file = Zold::AtomicFile.new(File.join(dir, 'test.txt'))
-      ['', 'hello, dude!', 'как дела?'].each do |t|
+      ['', 'hello, dude!'].each do |t|
         file.write(t)
         assert_equal(t, file.read)
       end
