@@ -88,7 +88,7 @@ Available options:"
       score = Score.parse_json(json)
       r.assert_valid_score(score)
       raise "Score is too weak #{score}" if score.strength < Score::STRENGTH
-      @log.info("#{r} accepted #{wallet.id}/#{content.length}b \
+      @log.info("#{r} accepted #{content.length}b/#{wallet.txns.count}txns of #{wallet.id} \
 in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green} (#{json['version']})")
       score.value
     end

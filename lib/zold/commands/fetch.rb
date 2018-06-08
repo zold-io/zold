@@ -21,6 +21,7 @@
 require 'uri'
 require 'json'
 require 'time'
+require 'tempfile'
 require 'slop'
 require 'rainbow'
 require_relative 'args'
@@ -86,9 +87,14 @@ Available options:"
       score = Score.parse_json(json['score'])
       r.assert_valid_score(score)
       raise "Score is too weak #{score.strength}" if score.strength < Score::STRENGTH && !opts['ignore-score-weakness']
-      cps.add(json['body'], score.host, score.port, score.value)
-      @log.info("#{r} returned #{json['body'].length}b/#{Rainbow(score.value).green} \
-of #{id} (#{json['version']}) in #{(Time.now - start).round(2)}s")
+      Tempfile.open do |f|
+        body = json['body']
+        File.write(f, body)
+        wallet = Wallet.new(f.path)
+        cps.add(body, score.host, score.port, score.value)
+        @log.info("#{r} returned #{body.length}b/#{wallet.txns.count} \
+of #{id} in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green} (#{json['version']})")
+      end
     end
   end
 end
