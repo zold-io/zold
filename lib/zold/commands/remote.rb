@@ -155,8 +155,8 @@ Available options:"
         json = JSON.parse(res.body)
         score = Score.parse_json(json['score'])
         r.assert_valid_score(score)
-        raise "Score too weak: #{score.strength}" if score.strength < Score::STRENGTH && !opts['ignore-score-weakness']
-        raise "Masqueraded as #{score.host}:#{score.port}" if r.host != score.host || r.port != score.port
+        r.assert_score_ownership(score)
+        r.assert_score_strength(score) unless opts['ignore-score-weakness']
         @remotes.rescore(score.host, score.port, score.value)
         if opts['reboot'] && Semantic::Version.new(VERSION) < Semantic::Version.new(json['version'])
           @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, reboot! \

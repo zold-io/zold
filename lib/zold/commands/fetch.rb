@@ -86,7 +86,9 @@ Available options:"
       json = JSON.parse(res.body)
       score = Score.parse_json(json['score'])
       r.assert_valid_score(score)
-      raise "Score is too weak #{score.strength}" if score.strength < Score::STRENGTH && !opts['ignore-score-weakness']
+      r.assert_score_ownership(score)
+      r.assert_score_strength(score)
+      r.assert_score_strength(score) unless opts['ignore-score-weakness']
       Tempfile.open do |f|
         body = json['body']
         File.write(f, body)

@@ -53,7 +53,9 @@ module Zold
       attr_reader :host, :port
       def initialize(host, port, score, log: Log::Quiet.new)
         @host = host
+        raise 'Post must be Integer' unless port.is_a?(Integer)
         @port = port
+        raise 'Score must be of type Score' unless score.is_a?(Score)
         @score = score
         @log = log
       end
@@ -78,6 +80,15 @@ module Zold
       def assert_valid_score(score)
         raise "Invalid score #{score}" unless score.valid?
         raise "Expired score #{score}" if score.expired?
+      end
+
+      def assert_score_ownership(score)
+        raise "Masqueraded host #{@host} as #{score.host}: #{score}" if @host != score.host
+        raise "Masqueraded port #{@port} as #{score.port}: #{score}" if @port != score.port
+      end
+
+      def assert_score_strength(score)
+        raise "Score is too weak #{score.strength}" if score.strength < Score::STRENGTH
       end
     end
 

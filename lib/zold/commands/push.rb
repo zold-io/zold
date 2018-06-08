@@ -69,7 +69,7 @@ Available options:"
       @remotes.iterate(@log) do |r|
         total += push_one(wallet, r, opts)
       end
-      @log.info("Total score for #{wallet.id} is #{total}")
+      @log.info("Push finished, total score for #{wallet.id} is #{total}")
     end
 
     def push_one(wallet, r, opts)
@@ -88,7 +88,8 @@ Available options:"
       json = JSON.parse(response.body)
       score = Score.parse_json(json['score'])
       r.assert_valid_score(score)
-      raise "Score is too weak #{score}" if score.strength < Score::STRENGTH
+      r.assert_score_ownership(score)
+      r.assert_score_strength(score)
       @log.info("#{r} accepted #{content.length}b/#{wallet.txns.count}t of #{wallet.id} \
 in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green} (#{json['version']})")
       score.value

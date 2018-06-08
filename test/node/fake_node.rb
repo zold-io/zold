@@ -47,7 +47,7 @@ class FakeNode
           Zold::Node.new(log: @log).run(
             [
               '--port', port.to_s,
-              '--host=locahost',
+              '--host=localhost',
               '--bind-port', port.to_s,
               '--threads=1',
               '--home', home,

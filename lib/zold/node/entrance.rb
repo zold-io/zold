@@ -101,11 +101,16 @@ module Zold
 
     # Returns a list of modifed wallets (as Zold::Id)
     def push_sync(id, body)
-      @semaphores.put_if_absent(id, Mutex.new)
-      @semaphores.get(id).synchronize do
+      @semaphores.put_if_absent(id.to_s, Mutex.new)
+      @semaphores.get(id.to_s).synchronize do
         start = Time.now
         modified = push_unsafe(id, body)
-        @log.info("Accepted #{id} in #{(Time.now - start) / 60}s and modified #{modified.join(', ')}")
+        if modified.empty?
+          @log.info("Accepted #{id} in #{((Time.now - start) / 60).round(2)}s \
+and modified nothing (this is most likely a bug!)")
+        else
+          @log.info("Accepted #{id} in #{((Time.now - start) / 60).round(2)}s and modified #{modified.join(', ')}")
+        end
         modified
       end
     end
@@ -113,7 +118,8 @@ module Zold
     # Returns a list of modifed wallets (as Zold::Id)
     def push_unsafe(id, body)
       copies = Copies.new(File.join(@copies, id.to_s))
-      copies.add(body, '0.0.0.0', Remotes::PORT, 0)
+      localhost = '0.0.0.0'
+      copies.add(body, localhost, Remotes::PORT, 0)
       Fetch.new(
         wallets: @wallets, remotes: @remotes, copies: copies.root, log: @log
       ).run(['fetch', id.to_s, "--ignore-node=#{@address}"])
@@ -121,7 +127,7 @@ module Zold
         wallets: @wallets, copies: copies.root, log: @log
       ).run(['merge', id.to_s])
       Clean.new(wallets: @wallets, copies: copies.root, log: @log).run(['clean', id.to_s])
-      copies.remove('remote', Remotes::PORT)
+      copies.remove(localhost, Remotes::PORT)
       @push_mutex.synchronize { @modified += modified }
       @pushes.post { push_one } if @pushes.length < 2
       modified
@@ -130,6 +136,7 @@ module Zold
     def push_one
       @push_mutex.synchronize do
         id = @modified.to_a[0]
+        @modified.delete(id)
         return if id.nil?
         Push.new(
           wallets: @wallets, remotes: @remotes, log: @log

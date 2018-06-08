@@ -123,7 +123,7 @@ Available options:"
         json = JSON.parse(res.body)
         score = Score.parse_json(json['score'])
         r.assert_valid_score(score)
-        raise "Score is too weak (<#{Score::STRENGTH}) #{score}" if score.strength < Score::STRENGTH
+        r.assert_score_strength(score)
         raise "Score is too small (<#{Tax::EXACT_SCORE})" if score.value < Tax::EXACT_SCORE
         @log.info("#{r}: #{Rainbow(score.value).green}")
         best << score
