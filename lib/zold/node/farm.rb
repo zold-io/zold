@@ -111,7 +111,8 @@ module Zold
 
     def history(max = 16)
       if File.exist?(@cache)
-        File.readlines(@cache)
+        AtomicFile.new(@cache).read
+          .split(/\n/)
           .map { |t| Score.parse(t) }
           .reject(&:expired?)
           .sort_by(&:value)

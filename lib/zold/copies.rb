@@ -66,7 +66,7 @@ module Zold
       list = load
       target = list.find do |s|
         f = File.join(@dir, s[:name])
-        File.exist?(f) && File.read(f) == content
+        File.exist?(f) && AtomicFile.new(f).read == content
       end
       if target.nil?
         max = Dir.new(@dir)

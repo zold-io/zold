@@ -29,6 +29,7 @@ require_relative '../wallet'
 require_relative '../log'
 require_relative '../id'
 require_relative '../http'
+require_relative '../atomic_file'
 
 # The web front of the node.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -137,7 +138,7 @@ module Zold
       {
         version: VERSION,
         score: score.to_h,
-        body: File.read(wallet.path)
+        body: AtomicFile.new(wallet.path).read
       }.to_json
     end
 
@@ -146,7 +147,7 @@ module Zold
       wallet = settings.wallets.find(id)
       request.body.rewind
       body = request.body.read
-      if wallet.exists? && File.read(wallet.path) == body
+      if wallet.exists? && AtomicFile.new(wallet.path).read == body
         status 304
         return
       end

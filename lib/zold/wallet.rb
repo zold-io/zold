@@ -161,7 +161,7 @@ module Zold
 
     def lines
       raise "File '#{@file}' is absent" unless File.exist?(@file)
-      File.readlines(@file)
+      AtomicFile.new(@file).read.split(/\n/)
     end
   end
 end

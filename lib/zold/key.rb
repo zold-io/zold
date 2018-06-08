@@ -22,6 +22,7 @@ gem 'openssl'
 require 'openssl'
 require 'base64'
 require 'tempfile'
+require_relative 'atomic_file'
 
 # The RSA key (either private or public).
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -35,7 +36,7 @@ module Zold
         unless file.nil?
           path = File.expand_path(file)
           raise "Can't find RSA key at #{file} (#{path})" unless File.exist?(path)
-          return File.read(path)
+          return AtomicFile.new(path).read
         end
         unless text.nil?
           return text if text.start_with?('-----')

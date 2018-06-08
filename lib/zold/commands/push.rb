@@ -26,6 +26,7 @@ require_relative 'args'
 require_relative '../log'
 require_relative '../id'
 require_relative '../http'
+require_relative '../atomic_file'
 
 # PUSH command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -77,7 +78,7 @@ Available options:"
         return 0
       end
       start = Time.now
-      content = File.read(wallet.path)
+      content = AtomicFile.new(wallet.path).read
       response = r.http("/wallet/#{wallet.id}#{opts['sync'] ? '?sync=true' : ''}").put(content)
       if response.code == '304'
         @log.info("#{r}: same version of #{wallet.id} there")
