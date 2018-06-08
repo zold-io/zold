@@ -22,6 +22,7 @@ require 'time'
 require_relative '../log'
 require_relative '../score'
 require_relative '../verbose_thread'
+require_relative '../atomic_file'
 
 # The farm of scores.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -105,7 +106,7 @@ module Zold
     private
 
     def save(score)
-      File.write(@cache, (history + [score]).map(&:to_s).join("\n"))
+      AtomicFile.new(@cache).write((history + [score]).map(&:to_s).join("\n"))
     end
 
     def history(max = 16)

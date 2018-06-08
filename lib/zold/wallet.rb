@@ -26,6 +26,7 @@ require_relative 'txn'
 require_relative 'tax'
 require_relative 'amount'
 require_relative 'signature'
+require_relative 'atomic_file'
 
 # The wallet.
 #
@@ -78,7 +79,7 @@ module Zold
     def init(id, pubkey, overwrite: false, network: 'test')
       raise "File '#{@file}' already exists" if File.exist?(@file) && !overwrite
       raise "Invalid network name '#{network}'" unless network =~ /^[a-z]{4,16}$/
-      File.write(@file, "#{network}\n#{VERSION}\n#{id}\n#{pubkey.to_pub}\n\n")
+      AtomicFile.new(@file).write("#{network}\n#{VERSION}\n#{id}\n#{pubkey.to_pub}\n\n")
     end
 
     def root?

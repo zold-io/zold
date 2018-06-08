@@ -20,6 +20,8 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
+require_relative 'test__helper'
+require_relative '../lib/zold/log'
 require_relative '../lib/zold/remotes'
 
 # Remotes test.
@@ -34,6 +36,18 @@ class TestRemotes < Minitest::Test
       remotes = Zold::Remotes.new(file)
       remotes.add('127.0.0.1')
       assert(1, remotes.all.count)
+    end
+  end
+
+  def test_iterates_and_fails
+    Dir.mktmpdir 'test' do |dir|
+      file = File.join(dir, 'remotes')
+      FileUtils.touch(file)
+      remotes = Zold::Remotes.new(file)
+      ips = (0..50)
+      ips.each { |i| remotes.add("0.0.0.#{i}", 9999) }
+      remotes.iterate(Zold::Log::Quiet.new) { raise 'Intended' }
+      ips.each { |i| assert(1, remotes.all[i][:errors]) }
     end
   end
 

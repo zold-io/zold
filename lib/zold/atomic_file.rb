@@ -18,25 +18,23 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative 'log'
-
-# Verbose thread.
+# Atomic file.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # Verbose thread
-  class VerboseThread
-    def initialize(log = Log::Quiet.new)
-      @log = log
+  # Atomic file
+  class AtomicFile
+    def initialize(file)
+      @file = file
     end
 
-    def run(safe = false)
-      yield
-    rescue StandardError => e
-      @log.error("#{e.class.name}: #{e.message}")
-      @log.debug(e.backtrace.join("\n\t"))
-      raise e unless safe
+    def read
+      File.read(@file)
+    end
+
+    def write(content)
+      File.write(@file, content)
     end
   end
 end

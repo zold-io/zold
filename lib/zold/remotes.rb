@@ -22,6 +22,7 @@ require 'csv'
 require 'uri'
 require 'fileutils'
 require_relative 'node/farm'
+require_relative 'atomic_file'
 
 # The list of remotes.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -145,11 +146,9 @@ module Zold
 
     def error(host, port = Remotes::PORT)
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
-      raise "#{host}:#{port} is absent" unless exists?(host, port)
       list = load
-      list.find do |r|
-        r[:host] == host.downcase && r[:port] == port
-      end[:errors] += 1
+      raise "#{host}:#{port} is absent among #{list.count} remotes" unless exists?(host, port)
+      list.find { |r| r[:host] == host.downcase && r[:port] == port }[:errors] += 1
       save(list)
     end
 
@@ -157,9 +156,7 @@ module Zold
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
       raise "#{host}:#{port} is absent" unless exists?(host, port)
       list = load
-      list.find do |r|
-        r[:host] == host.downcase && r[:port] == port
-      end[:score] = score
+      list.find { |r| r[:host] == host.downcase && r[:port] == port }[:score] = score
       save(list)
     end
 
@@ -178,8 +175,7 @@ module Zold
     end
 
     def save(list)
-      File.write(
-        file,
+      AtomicFile.new(file).write(
         list.map do |r|
           [
             r[:host],
