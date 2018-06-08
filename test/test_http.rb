@@ -31,21 +31,21 @@ require_relative '../lib/zold/http'
 class TestHttp < Minitest::Test
   def test_pings_broken_uri
     stub_request(:get, 'http://bad-host/').to_return(status: 500)
-    res = Zold::Http.new(URI('http://bad-host/')).get
+    res = Zold::Http.new('http://bad-host/').get
     assert_equal('500', res.code)
     assert_equal('', res.body)
   end
 
   def test_pings_with_exception
     stub_request(:get, 'http://exception/').to_return { raise 'Intentionally' }
-    res = Zold::Http.new(URI('http://exception/')).get
+    res = Zold::Http.new('http://exception/').get
     assert_equal('599', res.code)
     assert(res.body.include?('Intentionally'))
   end
 
   def test_pings_live_uri
     stub_request(:get, 'http://good-host/').to_return(status: 200)
-    res = Zold::Http.new(URI('http://good-host/')).get
+    res = Zold::Http.new('http://good-host/').get
     assert_equal('200', res.code)
   end
 end

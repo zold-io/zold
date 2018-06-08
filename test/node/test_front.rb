@@ -22,6 +22,7 @@ require 'minitest/autorun'
 require 'json'
 require_relative '../test__helper'
 require_relative 'fake_node'
+require_relative '../fake_home'
 require_relative '../../lib/zold/http'
 require_relative '../../lib/zold/score'
 
@@ -50,14 +51,18 @@ class FrontTest < Minitest::Test
           )
         end
       end
-      score = Zold::Score.new(
-        Time.now, 'localhost', 999,
-        'NOPREFIX@ffffffffffffffff',
-        strength: 1
-      ).next.next.next.next
-      Zold::Http.new(URI("http://localhost:#{port}/"), score).get
-      json = JSON.parse(Zold::Http.new(URI("http://localhost:#{port}/remotes"), score).get.body)
-      assert(json['all'].find { |r| r['host'] == 'localhost' })
+    end
+  end
+
+  def test_pushes_twice
+    FakeNode.new(log: test_log).run do |port|
+      FakeHome.new.run do |home|
+        wallet = home.create_wallet
+        response = Zold::Http.new("http://localhost:#{port}/wallet/#{wallet.id}?sync=true").put(File.read(wallet.path))
+        assert_equal('200', response.code, response.body)
+        response = Zold::Http.new("http://localhost:#{port}/wallet/#{wallet.id}?sync=true").put(File.read(wallet.path))
+        assert_equal('304', response.code, response.body)
+      end
     end
   end
 

@@ -56,7 +56,7 @@ class FakeNode
           )
         end
       end
-      home = URI("http://localhost:#{port}/")
+      home = "http://localhost:#{port}/"
       while Zold::Http.new(home).get.code == '599' && node.alive?
         sleep 1
         @log.debug("Waiting for #{home}...")

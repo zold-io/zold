@@ -115,6 +115,7 @@ module Zold
           .split(/\n/)
           .map { |t| Score.parse(t) }
           .reject(&:expired?)
+          .select(&:valid?)
           .sort_by(&:value)
           .reverse
           .take(max)

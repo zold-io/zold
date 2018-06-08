@@ -128,8 +128,10 @@ and modified nothing (this is most likely a bug!)")
       ).run(['merge', id.to_s])
       Clean.new(wallets: @wallets, copies: copies.root, log: @log).run(['clean', id.to_s])
       copies.remove(localhost, Remotes::PORT)
-      @push_mutex.synchronize { @modified += modified }
-      @pushes.post { push_one } if @pushes.length < 2
+      unless modified.empty?
+        @push_mutex.synchronize { @modified += modified }
+        @pushes.post { push_one } if @pushes.length < 2
+      end
       modified
     end
 

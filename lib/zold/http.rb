@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'rainbow'
+require 'uri'
 require 'net/http'
 require_relative 'version'
 require_relative 'score'
@@ -41,7 +42,9 @@ module Zold
     VERSION_HEADER = 'X-Zold-Version'.freeze
 
     def initialize(uri, score = Score::ZERO)
-      @uri = uri
+      raise 'URI can\'t be nil' if uri.nil?
+      @uri = uri.is_a?(String) ? URI(uri) : uri
+      raise 'Score can\'t be nil' if score.nil?
       @score = score
     end
 

@@ -61,8 +61,7 @@ module Zold
       end
 
       def http(path = '/')
-        uri = URI("http://#{@host}:#{@port}#{path}")
-        Http.new(uri, @score)
+        Http.new("http://#{@host}:#{@port}#{path}", @score)
       end
 
       def to_s
