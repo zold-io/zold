@@ -60,8 +60,10 @@ class FrontTest < Minitest::Test
         wallet = home.create_wallet
         response = Zold::Http.new("http://localhost:#{port}/wallet/#{wallet.id}?sync=true").put(File.read(wallet.path))
         assert_equal('200', response.code, response.body)
-        response = Zold::Http.new("http://localhost:#{port}/wallet/#{wallet.id}?sync=true").put(File.read(wallet.path))
-        assert_equal('304', response.code, response.body)
+        3.times do
+          r = Zold::Http.new("http://localhost:#{port}/wallet/#{wallet.id}?sync=true").put(File.read(wallet.path))
+          assert_equal('304', r.code, r.body)
+        end
       end
     end
   end
