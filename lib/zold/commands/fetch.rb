@@ -77,7 +77,7 @@ Available options:"
     def fetch_one(id, r, cps, opts)
       start = Time.now
       if opts['ignore-node'].include?(r.to_s)
-        @log.info("#{r} ignored because of --ignore-node")
+        @log.debug("#{r} ignored because of --ignore-node")
         return false
       end
       res = r.http("/wallet/#{id}").get

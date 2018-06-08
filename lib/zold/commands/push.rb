@@ -73,7 +73,7 @@ Available options:"
 
     def push_one(wallet, r, opts)
       if opts['ignore-node'].include?(r.to_s)
-        @log.info("#{r} ignored because of --ignore-node")
+        @log.debug("#{r} ignored because of --ignore-node")
         return 0
       end
       start = Time.now
