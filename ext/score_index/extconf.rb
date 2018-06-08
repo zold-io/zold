@@ -20,7 +20,7 @@
 
 require "mkmf"
 
-$CXXFLAGS << " -Wall -Wextra -Werror"
+$CXXFLAGS << " -std=c++11 -Wall -Wextra -Werror"
 $LDFLAGS << " -pthread -lcrypto"
 
 create_makefile "score_index/score_index"
