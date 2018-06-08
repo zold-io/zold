@@ -41,7 +41,7 @@ module Zold
     configure do
       set :bind, '0.0.0.0'
       set :suppress_messages, true
-      set :dump_errors, true
+      set :dump_errors, false
       set :start, Time.now
       set :lock, false
       set :show_exceptions, false

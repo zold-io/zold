@@ -53,7 +53,7 @@ module Zold
     def to_json
       {
         'semaphores': @semaphores.size,
-        'modified': @modified.size,
+        'modified': @modified.length,
         'pool': {
           'completed_task_count': @pool.completed_task_count,
           'largest_length': @pool.largest_length,

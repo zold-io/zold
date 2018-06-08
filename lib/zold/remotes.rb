@@ -141,10 +141,11 @@ module Zold
           yield Remotes::Remote.new(r[:host], r[:port], score, log: log)
         rescue StandardError => e
           error(r[:host], r[:port])
-          log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message}")
+          errors = errors(r[:host], r[:port])
+          log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message}; errors=#{errors}")
           log.debug(e.backtrace[0..5].join("\n\t"))
+          remove(r[:host], r[:port]) if errors > Remotes::TOLERANCE
         end
-        remove(r[:host], r[:port]) if errors(r[:host], r[:port]) > Remotes::TOLERANCE
       end
     end
 
