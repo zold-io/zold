@@ -34,7 +34,8 @@ class TestScore < Minitest::Test
       'localhost', 443, 'NOPREFIX@ffffffffffffffff',
       %w[A B C D E F G]
     ).reduced(2)
-    assert_equal(score.value, 2)
+    assert_equal(2, score.value)
+    assert_equal(64, score.hash.length)
   end
 
   def test_validates_wrong_score

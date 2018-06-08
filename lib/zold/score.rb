@@ -100,7 +100,7 @@ module Zold
     def hash
       raise 'Score has zero value, there is no hash' if @suffixes.empty?
       @suffixes.reduce(prefix) do |pfx, suffix|
-        Digest::SHA256.hexdigest(pfx + ' ' + suffix)[0, 63]
+        Digest::SHA256.hexdigest(pfx + ' ' + suffix)[0, 64]
       end
     end
 
