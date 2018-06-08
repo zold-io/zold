@@ -86,7 +86,7 @@ module Zold
 
     def push_unsafe(id, body)
       copies = Copies.new(File.join(@copies, id.to_s))
-      copies.add(body, 'remote', Remotes::PORT, 0)
+      copies.add(body, '0.0.0.0', Remotes::PORT, 0)
       Fetch.new(
         wallets: @wallets, remotes: @remotes, copies: copies.root, log: @log
       ).run(['fetch', id.to_s, "--ignore-node=#{@address}"])
