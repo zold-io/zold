@@ -147,12 +147,14 @@ module Zold
       id = Id.new(params[:id])
       wallet = settings.wallets.find(id)
       request.body.rewind
-      body = request.body.read
-      if wallet.exists? && AtomicFile.new(wallet.path).read == body
+      after = request.body.read
+      before = wallet.exists? ? AtomicFile.new(wallet.path).read : ''
+      if before == after
         status 304
         return
       end
-      settings.entrance.push(id, body, sync: !params[:sync].nil?)
+      settings.log.info("Wallet #{id} is new: #{before.length}b != #{after.length}b")
+      settings.entrance.push(id, after, sync: !params[:sync].nil?)
       JSON.pretty_generate(
         version: VERSION,
         score: score.to_h
