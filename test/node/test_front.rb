@@ -27,12 +27,14 @@ require_relative '../../lib/zold/score'
 
 class FrontTest < Minitest::Test
   def test_renders_public_pages
-    FakeNode.new(log: $log).run(['--ignore-score-weakness']) do |port|
+    FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
       {
         '200' => [
           '/robots.txt',
           '/',
-          '/remotes'
+          '/remotes',
+          '/version',
+          '/score'
         ],
         '404' => [
           '/this-is-absent',
@@ -65,7 +67,7 @@ class FrontTest < Minitest::Test
       '4' => 'https://www.zold.io/images/logo-orange.png',
       '16' => 'https://www.zold.io/images/logo-green.png'
     }.each do |num, path|
-      $log.info("Calculating score #{num}...")
+      test_log.info("Calculating score #{num}...")
       score = Zold::Score.new(
         Time.now, 'localhost', 999,
         'NOPREFIX@ffffffffffffffff',
@@ -74,7 +76,7 @@ class FrontTest < Minitest::Test
       num.to_i.times do
         score = score.next
       end
-      $log.info("Score #{num} calculated.")
+      test_log.info("Score #{num} calculated.")
       if score.value >= 16
         assert_equal(
           path, 'https://www.zold.io/images/logo-green.png',

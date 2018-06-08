@@ -119,11 +119,12 @@ module Zold
       )
       Front.set(:farm, farm)
       update = Thread.start do
-        VerboseThread.new(@log).run do
+        VerboseThread.new(@log).run(true) do
           loop do
             sleep(60)
             require_relative 'remote'
             Remote.new(remotes: remotes, log: @log, farm: farm).run(%w[remote update --reboot])
+            Remote.new(remotes: remotes, log: @log).run(%w[remote trim])
             @log.debug('Regular update of remote nodes succeeded')
           end
         end

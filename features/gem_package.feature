@@ -4,7 +4,7 @@ Feature: Gem Package
 
   Scenario: Gem can be packaged
     Given It is Unix
-    Given I have a "execs.rb" file with content:
+    Given I have "execs.rb" file with content:
     """
     #!/usr/bin/env ruby
     require 'rubygems'
@@ -15,6 +15,8 @@ Feature: Gem Package
     """
     When I run bash with:
     """
+    set -x
+    set -e
     cd zold
     gem build zold.gemspec
     gem specification --ruby zold-*.gem > ../spec.rb

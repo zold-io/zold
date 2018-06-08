@@ -22,6 +22,7 @@ require 'csv'
 require 'uri'
 require 'fileutils'
 require_relative 'node/farm'
+require_relative 'atomic_file'
 
 # The list of remotes.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -47,10 +48,11 @@ module Zold
     # One remote.
     class Remote
       attr_reader :host, :port
-      def initialize(host, port, score)
+      def initialize(host, port, score, log: Log::Quiet.new)
         @host = host
         @port = port
         @score = score
+        @log = log
       end
 
       def http(path = '/')
@@ -63,7 +65,11 @@ module Zold
       end
 
       def assert_code(code, response)
-        raise "#{response.code} \"#{response.message}\" at \"#{response.body}\"" unless response.code.to_i == code
+        msg = response.message.strip
+        return if response.code.to_i == code
+        @log.debug("#{response.code} \"#{response.message}\" at \"#{response.body}\"")
+        raise "Unexpected HTTP code #{response.code}, instead of #{code}" if msg.empty?
+        raise "#{msg} (HTTP code #{response.code}, instead of #{code})"
       end
 
       def assert_valid_score(score)
@@ -108,7 +114,7 @@ module Zold
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
       raise 'Port can\'t be negative' if port < 0
       raise 'Port can\'t be over 65536' if port > 0xffff
-      raise "#{host}:#{port} alread exists" if exists?(host, port)
+      raise "#{host}:#{port} already exists" if exists?(host, port)
       list = load
       list << { host: host.downcase, port: port, score: 0 }
       list.uniq! { |r| "#{r[:host]}:#{r[:port]}" }
@@ -129,7 +135,7 @@ module Zold
       score = best.nil? ? Score::ZERO : best
       all.each do |r|
         begin
-          yield Remotes::Remote.new(r[:host], r[:port], score)
+          yield Remotes::Remote.new(r[:host], r[:port], score, log: log)
         rescue StandardError => e
           error(r[:host], r[:port])
           log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message}")
@@ -140,11 +146,9 @@ module Zold
 
     def error(host, port = Remotes::PORT)
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
-      raise "#{host}:#{port} is absent" unless exists?(host, port)
       list = load
-      list.find do |r|
-        r[:host] == host.downcase && r[:port] == port
-      end[:errors] += 1
+      raise "#{host}:#{port} is absent among #{list.count} remotes" unless exists?(host, port)
+      list.find { |r| r[:host] == host.downcase && r[:port] == port }[:errors] += 1
       save(list)
     end
 
@@ -152,9 +156,7 @@ module Zold
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
       raise "#{host}:#{port} is absent" unless exists?(host, port)
       list = load
-      list.find do |r|
-        r[:host] == host.downcase && r[:port] == port
-      end[:score] = score
+      list.find { |r| r[:host] == host.downcase && r[:port] == port }[:score] = score
       save(list)
     end
 
@@ -173,8 +175,7 @@ module Zold
     end
 
     def save(list)
-      File.write(
-        file,
+      AtomicFile.new(file).write(
         list.map do |r|
           [
             r[:host],

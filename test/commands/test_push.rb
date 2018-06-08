@@ -38,7 +38,7 @@ class TestPush < Minitest::Test
     FakeHome.new.run do |home|
       wallet = home.create_wallet
       stub_request(:put, "http://fake-1/wallet/#{wallet.id}").to_return(status: 304)
-      Zold::Push.new(wallets: home.wallets, remotes: home.remotes, log: $log).run(
+      Zold::Push.new(wallets: home.wallets, remotes: home.remotes, log: test_log).run(
         ['--ignore-this-stupid-option', 'push', wallet.id.to_s]
       )
     end

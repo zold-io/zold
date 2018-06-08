@@ -26,6 +26,7 @@ require_relative 'txn'
 require_relative 'tax'
 require_relative 'amount'
 require_relative 'signature'
+require_relative 'atomic_file'
 
 # The wallet.
 #
@@ -78,7 +79,7 @@ module Zold
     def init(id, pubkey, overwrite: false, network: 'test')
       raise "File '#{@file}' already exists" if File.exist?(@file) && !overwrite
       raise "Invalid network name '#{network}'" unless network =~ /^[a-z]{4,16}$/
-      File.write(@file, "#{network}\n#{VERSION}\n#{id}\n#{pubkey.to_pub}\n\n")
+      AtomicFile.new(@file).write("#{network}\n#{VERSION}\n#{id}\n#{pubkey.to_pub}\n\n")
     end
 
     def root?
@@ -119,7 +120,7 @@ module Zold
       dup = txns.find { |t| t.bnf == txn.bnf && t.id == txn.id }
       raise "The transaction with the same ID and BNF already exists: #{dup}" unless dup.nil?
       raise "The tax payment already exists: #{txn}" if Tax.new(self).exists?(txn)
-      open(@file, 'a') { |f| f.print "#{txn}\n" }
+      File.open(@file, 'a') { |f| f.print "#{txn}\n" }
     end
 
     def has?(id, bnf)
@@ -141,7 +142,7 @@ module Zold
     # Age of wallet in hours
     def age
       list = txns
-      list.empty? ? 0 : (Time.now - list.sort_by(&:date)[0].date) / 60
+      list.empty? ? 0 : (Time.now - list.min_by(&:date).date) / 60
     end
 
     def txns
@@ -160,7 +161,7 @@ module Zold
 
     def lines
       raise "File '#{@file}' is absent" unless File.exist?(@file)
-      File.readlines(@file)
+      AtomicFile.new(@file).read.split(/\n/)
     end
   end
 end

@@ -20,6 +20,7 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
+require 'openssl'
 require_relative '../lib/zold/key'
 
 # Key test.
@@ -79,5 +80,11 @@ class TestKey < Minitest::Test
       signature = pvt.sign(text)
       assert(pub.verify(signature, text))
     end
+  end
+
+  def test_parses_openssl_generated_keys
+    rsa = OpenSSL::PKey::RSA.new(2048)
+    Zold::Key.new(text: rsa.to_pem).to_s
+    Zold::Key.new(text: rsa.public_key.to_pem).to_s
   end
 end

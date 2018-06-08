@@ -15,3 +15,7 @@ Feature: Command Line Processing
     When I run bin/zold with "--trace --public-key=id_rsa.pub create"
     Then Exit code is zero
 
+  Scenario: Failure through nohup
+    When I run bin/zold-nohup with "badcommand --skip-install --log-file=log.txt; sleep 2; cat log.txt"
+    And Stdout contains "Command 'badcommand' is not supported"
+    Then Exit code is zero

@@ -58,6 +58,8 @@ Available commands:
       Add a new remote node
     #{Rainbow('remote remove').green} host [port]
       Remove the remote node
+    #{Rainbow('remote trim').green}
+      Remote the least reliable nodes
     #{Rainbow('remote update').green}
       Check each registered remote node for availability
 Available options:"
@@ -86,6 +88,8 @@ Available options:"
         add(mine[1], mine[2] ? mine[2].to_i : Remotes::PORT, opts)
       when 'remove'
         remove(mine[1], mine[2] ? mine[2].to_i : Remotes::PORT, opts)
+      when 'trim'
+        trim(opts)
       when 'update'
         update(opts)
         update(opts, false)
@@ -110,7 +114,7 @@ Available options:"
 
     def reset
       @remotes.reset
-      @log.debug('Remote nodes set back to default')
+      @log.debug("Remote nodes set back to default, #{@remotes.all.count} total")
     end
 
     def add(host, port, opts)
@@ -119,7 +123,7 @@ Available options:"
         @log.info("#{host}:#{port} already exists in the list")
       else
         @remotes.add(host, port)
-        @log.info("#{host}:#{port} added to the list")
+        @log.info("#{host}:#{port} added to the list, #{@remotes.all.count} total")
       end
       @log.info("There are #{@remotes.all.count} remote nodes in the list")
     end
@@ -135,6 +139,13 @@ Available options:"
       @log.info("There are #{@remotes.all.count} remote nodes in the list")
     end
 
+    def trim(opts)
+      @remotes.all.each do |r|
+        remove(r[:host], r[:port], opts) if r[:errors] > 20
+      end
+      @log.info("The list of remotes trimmed, #{@remotes.all.count} nodes left there")
+    end
+
     def update(opts, deep = true)
       capacity = []
       @remotes.iterate(@log, farm: @farm) do |r|
@@ -148,7 +159,8 @@ Available options:"
         raise "Masqueraded as #{score.host}:#{score.port}" if r.host != score.host || r.port != score.port
         @remotes.rescore(score.host, score.port, score.value)
         if opts['reboot'] && Semantic::Version.new(VERSION) < Semantic::Version.new(json['version'])
-          @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, reboot!")
+          @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, reboot! \
+(use --never-reboot to avoid this from happening)")
           exit(0)
         end
         if deep

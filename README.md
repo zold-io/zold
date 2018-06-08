@@ -98,18 +98,19 @@ Then, open the page `4.4.4.4:4096` in your browser
 (you may need to open the inbound port at your
 [IP firewall](https://www.howtogeek.com/177621/the-beginners-guide-to-iptables-the-linux-firewall/)).
 If you see a simple JSON document, everything is fine.
-Next, hit <kbd>Ctrl</kbd>+<kbd>c</kbd> and run this line, in order
-to start the node and make sure it will be online even when you log off
-(replace `CMD` with the command you just executed before):
+Next, hit <kbd>Ctrl</kbd>+<kbd>c</kbd> and run it again, but instead
+of `zold` say `zold-nohup` and add an ampersand (`&`) at the end:
 
 ```bash
-$ nohup bash -c 'while CMD; do gem install zold; done' &
+$ zold-nohup node --trace --verbose --invoice=5f96e731e48ae21f --host=4.4.4.4 &
 ```
 
-The software will update itself automatically to new versions.
+Now you can close console, it will work in the background, saving the
+output logs to `nohup.out`. The software will update itself automatically to new versions.
 
 Grateful users of the system will pay "taxes" to your wallet
-for the maintenance of their wallets.
+for the maintenance of their wallets, and the system will occasionally
+send you rewards for keeping the node online (approximately 1 ZLD per day).
 
 ## Frequently Asked Questions
 

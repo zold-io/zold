@@ -61,7 +61,7 @@ end
 
 require 'cucumber/rake/task'
 Cucumber::Rake::Task.new(:features) do |t|
-  t.cucumber_opts = 'features --format progress'
+  t.cucumber_opts = 'features --format pretty'
   Rake::Cleaner.cleanup_files(['coverage'])
 end
 Cucumber::Rake::Task.new(:'features:html') do |t|

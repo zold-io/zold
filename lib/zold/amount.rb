@@ -53,8 +53,8 @@ module Zold
       @coins
     end
 
-    def to_zld
-      format('%0.2f', @coins.to_f / 2**Amount::FRACTION)
+    def to_zld(digits = 2)
+      format("%0.#{digits}f", @coins.to_f / 2**Amount::FRACTION)
     end
 
     def to_s

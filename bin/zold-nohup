@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+#
 # Copyright (c) 2018 Yegor Bugayenko
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -18,28 +20,47 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'minitest/autorun'
-require 'tmpdir'
-require_relative '../test__helper'
-require_relative '../../lib/zold/wallets'
-require_relative '../../lib/zold/key'
-require_relative '../../lib/zold/commands/create'
+STDOUT.sync = true
 
-# CREATE test.
-# Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
-# License:: MIT
-class TestCreate < Minitest::Test
-  def test_creates_wallet
-    Dir.mktmpdir 'test' do |dir|
-      wallet = Zold::Create.new(wallets: Zold::Wallets.new(dir), log: test_log).run(
-        ['create', '--public-key=fixtures/id_rsa.pub']
-      )
-      assert wallet.balance.zero?
-      assert(
-        File.exist?(File.join(dir, wallet.id.to_s)),
-        "Wallet file not found: #{wallet.id}"
-      )
+require 'slop'
+require 'tempfile'
+require 'open3'
+
+$opts = Slop.parse(ARGV, strict: false, suppress_errors: true) do |o|
+  o.string '--log-file', 'The file to save logs into', default: 'zold-node.log'
+  o.bool '--skip-install', 'Don\'t re-install Zold gem', default: false
+end
+
+def log(line)
+  File.open($opts['log-file'], 'a') { |f| f.print(line) }
+end
+
+def exec(cmd)
+  Open3.popen2e(cmd) do |stdin, stdout, thr|
+    stdin.close
+    loop do
+      line = stdout.gets
+      break if line.nil?
+      log(line)
     end
+    code = thr.value.exitstatus
+    raise "Exit code #{code} (non zero)" unless code.zero?
   end
 end
+
+$pid = fork do
+  Signal.trap('HUP') do
+    print('Received HUP, ignoring...')
+  end
+  Signal.trap('TERM') do
+    print('Received TERM, terminating...')
+    exit(-1)
+  end
+  loop do
+    exec("zold #{$opts.arguments.join(' ')}")
+    exec('gem install zold') unless $opts['skip-install']
+  end
+end
+Process.detach($pid)
+
+puts($pid)

@@ -38,7 +38,7 @@ require_relative '../node/fake_node'
 # License:: MIT
 class TestNode < Minitest::Test
   def test_push_and_fetch
-    FakeNode.new(log: $log).run do |port|
+    FakeNode.new(log: test_log).run do |port|
       Dir.mktmpdir 'test' do |dir|
         id = Zold::Id.new
         wallets = Zold::Wallets.new(dir)
@@ -47,10 +47,10 @@ class TestNode < Minitest::Test
         remotes = Zold::Remotes.new(File.join(dir, 'remotes.csv'))
         remotes.clean
         remotes.add('localhost', port)
-        Zold::Push.new(wallets: wallets, remotes: remotes, log: $log).run(['push', '--sync'])
+        Zold::Push.new(wallets: wallets, remotes: remotes, log: test_log).run(['push', '--sync'])
         Zold::Fetch.new(
           wallets: wallets, copies: File.join(dir, 'copies'),
-          remotes: remotes, log: $log
+          remotes: remotes, log: test_log
         ).run(['fetch'])
         copies = Zold::Copies.new(File.join(dir, "copies/#{id}"))
         assert_equal(1, copies.all.count)

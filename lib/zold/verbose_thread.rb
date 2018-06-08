@@ -31,11 +31,12 @@ module Zold
       @log = log
     end
 
-    def run
+    def run(safe = false)
       yield
     rescue StandardError => e
-      @log.error("#{e.class.name}: #{e.message} #{e.backtrace.join("\n\t")}")
-      raise e
+      @log.error("#{e.class.name}: #{e.message}")
+      @log.debug(e.backtrace.join("\n\t"))
+      raise e unless safe
     end
   end
 end

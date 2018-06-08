@@ -50,8 +50,7 @@ Available options:"
       mine = @wallets.all if mine.empty?
       modified = []
       mine.each do |id|
-        wallet = @wallets.find(Id.new(id))
-        next unless merge(wallet, Copies.new(File.join(@copies, id)), opts)
+        next unless merge(Id.new(id), Copies.new(File.join(@copies, id)), opts)
         modified << Id.new(id)
         require_relative 'propagate'
         modified += Propagate.new(wallets: @wallets, log: @log).run(args)
@@ -61,8 +60,9 @@ Available options:"
 
     private
 
-    def merge(wallet, cps, _)
-      raise 'There are no remote copies, try FETCH first' if cps.all.empty?
+    def merge(id, cps, _)
+      raise "There are no remote copies of #{id}, try FETCH first" if cps.all.empty?
+      wallet = @wallets.find(id)
       cps = cps.all.sort_by { |c| c[:score] }.reverse
       patch = Patch.new
       main = Wallet.new(cps[0][:path])
@@ -70,7 +70,7 @@ Available options:"
       cps[1..-1].each do |c|
         extra = Wallet.new(c[:path])
         if extra.network != main.network
-          @log.error("The wallet is from a different network '#{wallet.version}', ours is '#{@network}'")
+          @log.error("The wallet is from a different network '#{extra.network}', ours is '#{main.network}'")
           next
         end
         if extra.key != main.key

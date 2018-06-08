@@ -59,7 +59,7 @@ class TestFetch < Minitest::Test
       remotes.add('fake-1', 80)
       remotes.add('fake-2', 80)
       copies = Zold::Copies.new(File.join(dir, "copies/#{id}"))
-      Zold::Fetch.new(wallets: wallets, copies: copies.root, remotes: remotes, log: $log).run(
+      Zold::Fetch.new(wallets: wallets, copies: copies.root, remotes: remotes, log: test_log).run(
         ['fetch', '--ignore-score-weakness', id.to_s]
       )
       assert_equal(copies.all[0][:name], '1')
@@ -83,7 +83,7 @@ class TestFetch < Minitest::Test
       remotes.add('fake-1', 80)
       copies = Zold::Copies.new(File.join(dir, "copies/#{id}"))
       Zold::Fetch.new(
-        wallets: wallets, copies: copies.root, remotes: remotes, log: $log
+        wallets: wallets, copies: copies.root, remotes: remotes, log: test_log
       ).run(['fetch', id.to_s])
       assert_equal(copies.all[0][:name], '1')
       assert_equal(copies.all[0][:score], 0)

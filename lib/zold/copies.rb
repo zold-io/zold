@@ -20,6 +20,7 @@
 
 require 'time'
 require 'csv'
+require_relative 'atomic_file'
 
 # The list of copies.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -65,7 +66,7 @@ module Zold
       list = load
       target = list.find do |s|
         f = File.join(@dir, s[:name])
-        File.exist?(f) && File.read(f) == content
+        File.exist?(f) && AtomicFile.new(f).read == content
       end
       if target.nil?
         max = Dir.new(@dir)
@@ -74,7 +75,7 @@ module Zold
           .max
         max = 0 if max.nil?
         name = (max + 1).to_s
-        File.write(File.join(@dir, name), content)
+        AtomicFile.new(File.join(@dir, name)).write(content)
       else
         name = target[:name]
       end
@@ -118,8 +119,7 @@ module Zold
     end
 
     def save(list)
-      File.write(
-        file,
+      AtomicFile.new(file).write(
         list.map do |r|
           [
             r[:name], r[:host],

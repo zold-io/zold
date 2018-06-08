@@ -18,28 +18,31 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'minitest/autorun'
-require 'tmpdir'
-require_relative '../test__helper'
-require_relative '../../lib/zold/wallets'
-require_relative '../../lib/zold/key'
-require_relative '../../lib/zold/commands/create'
-
-# CREATE test.
+# Atomic file.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestCreate < Minitest::Test
-  def test_creates_wallet
-    Dir.mktmpdir 'test' do |dir|
-      wallet = Zold::Create.new(wallets: Zold::Wallets.new(dir), log: test_log).run(
-        ['create', '--public-key=fixtures/id_rsa.pub']
-      )
-      assert wallet.balance.zero?
-      assert(
-        File.exist?(File.join(dir, wallet.id.to_s)),
-        "Wallet file not found: #{wallet.id}"
-      )
+module Zold
+  # Atomic file
+  class AtomicFile
+    def initialize(file)
+      raise 'File can\'t be nil' if file.nil?
+      @file = file
+    end
+
+    def read
+      File.open(@file, 'r') do |f|
+        f.flock(File::LOCK_SH)
+        f.read
+      end
+    end
+
+    def write(content)
+      raise 'Content can\'t be nil' if content.nil?
+      File.open(@file, 'w+') do |f|
+        f.flock(File::LOCK_EX)
+        f.write(content)
+      end
     end
   end
 end
