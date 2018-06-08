@@ -64,9 +64,9 @@ module Zold
       end
 
       def assert_code(code, response)
-        @log.debug("#{response.code} \"#{response.message}\" at \"#{response.body}\"")
         msg = response.message
         return if response.code.to_i == code
+        @log.debug("#{response.code} \"#{response.message}\" at \"#{response.body}\"")
         raise "Unexpected HTTP code #{response.code}, instead of #{code}" if msg.empty?
         raise "#{msg} (HTTP code #{response.code}, instead of #{code})"
       end

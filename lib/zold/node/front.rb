@@ -90,6 +90,10 @@ module Zold
       'User-agent: *'
     end
 
+    get '/v' do
+      VERSION
+    end
+
     get '/favicon.ico' do
       if score.value >= 16
         redirect 'https://www.zold.io/images/logo-green.png'
@@ -108,7 +112,7 @@ module Zold
         pid: Process.pid,
         cpus: Concurrent.processor_count,
         uptime: `uptime`.strip,
-        threads: Thread.list.select { |t| t.status == 'run' }.count,
+        threads: "#{Thread.list.select { |t| t.status == 'run' }.count}/#{Thread.list.count}",
         wallets: settings.wallets.all.count,
         remotes: settings.remotes.all.count,
         farm: settings.farm.to_json,

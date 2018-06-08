@@ -47,4 +47,17 @@ class FarmTest < Minitest::Test
       farm.stop
     end
   end
+
+  def test_pre_loads_history
+    Dir.mktmpdir 'test' do |dir|
+      cache = File.join(dir, 'cache')
+      farm = Zold::Farm.new('NOPREFIX@cccccccccccccccc', cache, log: log)
+      farm.start('example.com', 8080, threads: 0, strength: 1)
+      score = farm.best[0]
+      assert_equal(0, score.value)
+      assert_equal('example.com', score.host)
+      assert_equal(8080, score.port)
+      farm.stop
+    end
+  end
 end
