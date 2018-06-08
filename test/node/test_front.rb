@@ -102,4 +102,18 @@ class FrontTest < Minitest::Test
       end
     end
   end
+
+  def test_gzip
+    FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
+      response = Zold::Http.new(URI("http://localhost:#{port}/")).get
+      assert_equal(
+        '200', response.code,
+        "Expected HTTP 200 OK: Found #{response.code}"
+      )
+      assert_operator(
+        500, :>, response['content-length'].to_i,
+        'Expected the content to be smaller than 500bytes for gzip'
+      )
+    end
+  end
 end
