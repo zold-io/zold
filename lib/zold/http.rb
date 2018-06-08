@@ -57,7 +57,7 @@ module Zold
 
     def put(body)
       http = Net::HTTP.new(@uri.host, @uri.port)
-      http.read_timeout = 60
+      http.read_timeout = 10
       path = @uri.path
       path += '?' + @uri.query if @uri.query
       http.request_put(

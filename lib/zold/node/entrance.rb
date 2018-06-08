@@ -44,7 +44,7 @@ module Zold
       @address = address
       @log = log
       @semaphores = Concurrent::Map.new
-      @pool = Concurrent::FixedThreadPool.new(16)
+      @pool = Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
     end
 
     def push(id, body, sync: true)
@@ -78,8 +78,9 @@ module Zold
     def push_sync(id, body)
       @semaphores.put_if_absent(id, Mutex.new)
       @semaphores.get(id).synchronize do
+        start = Time.now
         modified = push_unsafe(id, body)
-        @log.info("Accepted #{id} and modified: #{modified.join(', ')}")
+        @log.info("Accepted #{id} in #{(Time.now - start) / 60}s and modified #{modified.join(', ')}")
         modified
       end
     end
