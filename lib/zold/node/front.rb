@@ -108,6 +108,7 @@ module Zold
         pid: Process.pid,
         cpus: Concurrent.processor_count,
         uptime: `uptime`.strip,
+        threads: Thread.list.select { |t| t.status == 'run' }.count,
         wallets: settings.wallets.all.count,
         remotes: settings.remotes.all.count,
         farm: settings.farm.to_json,

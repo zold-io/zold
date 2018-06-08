@@ -47,10 +47,11 @@ module Zold
     # One remote.
     class Remote
       attr_reader :host, :port
-      def initialize(host, port, score)
+      def initialize(host, port, score, log: Log::Quiet.new)
         @host = host
         @port = port
         @score = score
+        @log = log
       end
 
       def http(path = '/')
@@ -63,7 +64,11 @@ module Zold
       end
 
       def assert_code(code, response)
-        raise "#{response.code} \"#{response.message}\" at \"#{response.body}\"" unless response.code.to_i == code
+        @log.debug("#{response.code} \"#{response.message}\" at \"#{response.body}\"")
+        msg = response.message
+        return if response.code.to_i == code
+        raise "Unexpected HTTP code #{response.code}, instead of #{code}" if msg.empty?
+        raise "#{msg} (HTTP code #{response.code}, instead of #{code})"
       end
 
       def assert_valid_score(score)
@@ -129,7 +134,7 @@ module Zold
       score = best.nil? ? Score::ZERO : best
       all.each do |r|
         begin
-          yield Remotes::Remote.new(r[:host], r[:port], score)
+          yield Remotes::Remote.new(r[:host], r[:port], score, log: log)
         rescue StandardError => e
           error(r[:host], r[:port])
           log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message}")
