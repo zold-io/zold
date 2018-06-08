@@ -29,6 +29,7 @@ require 'open3'
 $opts = Slop.parse(ARGV, strict: false, suppress_errors: true) do |o|
   o.string '--log-file', 'The file to save logs into', default: 'zold-node.log'
   o.bool '--skip-install', 'Don\'t re-install Zold gem', default: false
+  o.bool '--sudo-install', 'Install Zold gem via sudo', default: false
 end
 
 def log(line)
@@ -58,7 +59,7 @@ $pid = fork do
   end
   loop do
     exec("zold #{$opts.arguments.join(' ')}")
-    exec('gem install zold') unless $opts['skip-install']
+    exec(($opts['sudo-install'] ? 'sudo ' : '') + 'gem install zold') unless $opts['skip-install']
   end
 end
 Process.detach($pid)

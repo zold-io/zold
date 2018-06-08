@@ -147,7 +147,7 @@ module Zold
       id = Id.new(params[:id])
       wallet = settings.wallets.find(id)
       request.body.rewind
-      after = request.body.read
+      after = request.body.read.to_s
       before = wallet.exists? ? AtomicFile.new(wallet.path).read : ''
       if before == after
         status 304
