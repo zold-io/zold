@@ -19,5 +19,5 @@
 # SOFTWARE.
 
 source 'https://rubygems.org'
-ruby '2.3.3'
+ruby ENV['CUSTOM_RUBY'] || '2.3.3'
 gemspec
