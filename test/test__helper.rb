@@ -39,8 +39,8 @@ module Minitest
   class Test
     def test_log
       require_relative '../lib/zold/log'
-      # $log = Zold::Log::Quiet.new
-      @log ||= Zold::Log::Verbose.new
+      # @test_log = Zold::Log::Quiet.new
+      @test_log ||= Zold::Log::Verbose.new
     end
   end
 end
