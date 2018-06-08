@@ -141,7 +141,7 @@ Available options:"
 
     def trim(opts)
       @remotes.all.each do |r|
-        remove(r[:host], r[:port], opts) if r[:errors] > 20
+        remove(r[:host], r[:port], opts) if r[:errors] > Remotes::TOLERANCE
       end
       @log.info("The list of remotes trimmed, #{@remotes.all.count} nodes left there")
     end

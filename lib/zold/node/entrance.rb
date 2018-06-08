@@ -44,7 +44,29 @@ module Zold
       @address = address
       @log = log
       @semaphores = Concurrent::Map.new
+      @push_mutex = Mutex.new
+      @modified = Set.new
       @pool = Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
+      @pushes = Concurrent::FixedThreadPool.new(1, max_queue: 64, fallback_policy: :abort)
+    end
+
+    def to_json
+      {
+        'semaphores': @semaphores.size,
+        'modified': @modified.size,
+        'pool': {
+          'completed_task_count': @pool.completed_task_count,
+          'largest_length': @pool.largest_length,
+          'length': @pool.length,
+          'queue_length': @pool.queue_length
+        },
+        'pushes': {
+          'completed_task_count': @pushes.completed_task_count,
+          'largest_length': @pushes.largest_length,
+          'length': @pushes.length,
+          'queue_length': @pushes.queue_length
+        }
+      }
     end
 
     def push(id, body, sync: true)
@@ -75,6 +97,9 @@ module Zold
       end
     end
 
+    private
+
+    # Returns a list of modifed wallets (as Zold::Id)
     def push_sync(id, body)
       @semaphores.put_if_absent(id, Mutex.new)
       @semaphores.get(id).synchronize do
@@ -85,6 +110,7 @@ module Zold
       end
     end
 
+    # Returns a list of modifed wallets (as Zold::Id)
     def push_unsafe(id, body)
       copies = Copies.new(File.join(@copies, id.to_s))
       copies.add(body, '0.0.0.0', Remotes::PORT, 0)
@@ -96,10 +122,19 @@ module Zold
       ).run(['merge', id.to_s])
       Clean.new(wallets: @wallets, copies: copies.root, log: @log).run(['clean', id.to_s])
       copies.remove('remote', Remotes::PORT)
-      Push.new(
-        wallets: @wallets, remotes: @remotes, log: @log
-      ).run(['push', "--ignore-node=#{@address}"] + modified.map(&:to_s))
+      @push_mutex.synchronize { @modified += modified }
+      @pushes.post { push_one } if @pushes.length < 2
       modified
+    end
+
+    def push_one
+      @push_mutex.synchronize do
+        id = @modified.to_a[0]
+        return if id.nil?
+        Push.new(
+          wallets: @wallets, remotes: @remotes, log: @log
+        ).run(['push', "--ignore-node=#{@address}"] + [id.to_s])
+      end
     end
   end
 end

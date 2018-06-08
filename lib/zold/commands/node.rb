@@ -98,9 +98,8 @@ module Zold
       Front.set(:copies, copies)
       address = "#{opts[:host]}:#{opts[:port]}".downcase
       Front.set(:address, address)
-      Front.set(
-        :entrance, Entrance.new(wallets, remotes, copies, address, log: @log)
-      )
+      entrance = Entrance.new(wallets, remotes, copies, address, log: @log)
+      Front.set(:entrance, entrance)
       Front.set(:root, Dir.pwd)
       Front.set(:port, opts['bind-port'])
       Front.set(:reboot, !opts['never-reboot'])

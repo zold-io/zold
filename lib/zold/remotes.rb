@@ -34,6 +34,9 @@ module Zold
     # The default TCP port all nodes are supposed to use.
     PORT = 4096
 
+    # At what amount of errors we delete the remote automatically
+    TOLERANCE = 50
+
     # Empty, for standalone mode
     class Empty
       def all
@@ -141,7 +144,15 @@ module Zold
           log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message}")
           log.debug(e.backtrace[0..5].join("\n\t"))
         end
+        remove(r[:host], r[:port]) if errors(r[:host], r[:port]) > Remotes::TOLERANCE
       end
+    end
+
+    def errors(host, port = Remotes::PORT)
+      raise 'Port has to be of type Integer' unless port.is_a?(Integer)
+      list = load
+      raise "#{host}:#{port} is absent among #{list.count} remotes" unless exists?(host, port)
+      list.find { |r| r[:host] == host.downcase && r[:port] == port }[:errors]
     end
 
     def error(host, port = Remotes::PORT)
