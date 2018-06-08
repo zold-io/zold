@@ -21,6 +21,7 @@
 require 'uri'
 require 'json'
 require 'time'
+require 'tempfile'
 require 'slop'
 require 'rainbow'
 require_relative 'args'
@@ -76,7 +77,7 @@ Available options:"
     def fetch_one(id, r, cps, opts)
       start = Time.now
       if opts['ignore-node'].include?(r.to_s)
-        @log.info("#{r} ignored because of --ignore-node")
+        @log.debug("#{r} ignored because of --ignore-node")
         return false
       end
       res = r.http("/wallet/#{id}").get
@@ -86,9 +87,14 @@ Available options:"
       score = Score.parse_json(json['score'])
       r.assert_valid_score(score)
       raise "Score is too weak #{score.strength}" if score.strength < Score::STRENGTH && !opts['ignore-score-weakness']
-      cps.add(json['body'], score.host, score.port, score.value)
-      @log.info("#{r} returned #{json['body'].length}b/#{Rainbow(score.value).green} \
-of #{id} (#{json['version']}) in #{(Time.now - start).round(2)}s")
+      Tempfile.open do |f|
+        body = json['body']
+        File.write(f, body)
+        wallet = Wallet.new(f.path)
+        cps.add(body, score.host, score.port, score.value)
+        @log.info("#{r} returned #{body.length}b/#{wallet.txns.count}t \
+of #{id} in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green} (#{json['version']})")
+      end
     end
   end
 end

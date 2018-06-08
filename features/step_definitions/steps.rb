@@ -37,10 +37,24 @@ After do
   FileUtils.rm_rf(@dir) if File.exist?(@dir)
 end
 
-When(%r{^I run bin/zold with "([^"]*)"$}) do |arg|
+When(%r{^I run ([a-z/-]+) with "([^"]*)"$}) do |cmd, args|
   home = File.join(File.dirname(__FILE__), '../..')
-  @stdout = `ruby -I#{home}/lib #{home}/bin/zold #{arg}`
+  @stdout = `ruby -I#{home}/lib #{home}/#{cmd} #{args} 2>&1`
   @exitstatus = $CHILD_STATUS.exitstatus
+end
+
+When(/^I run bash with:$/) do |text|
+  FileUtils.copy_entry(@cwd, File.join(@dir, 'zold'))
+  File.write('run.sh', text)
+  @stdout = `/bin/bash run.sh 2>&1`
+  @exitstatus = $CHILD_STATUS.exitstatus
+end
+
+When(/^I have "([^"]*)" file with content:$/) do |file, text|
+  FileUtils.mkdir_p(File.dirname(file)) unless File.exist?(file)
+  File.open(file, 'w:ASCII-8BIT') do |f|
+    f.write(text.gsub(/\\xFF/, 0xFF.chr))
+  end
 end
 
 Then(/^Stdout contains "([^"]*)"$/) do |txt|

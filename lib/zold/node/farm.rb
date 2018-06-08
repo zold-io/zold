@@ -22,6 +22,7 @@ require 'time'
 require_relative '../log'
 require_relative '../score'
 require_relative '../verbose_thread'
+require_relative '../atomic_file'
 
 # The farm of scores.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -58,10 +59,11 @@ module Zold
 
     def start(host, port, strength: 8, threads: 8)
       @log.debug('Zero-threads farm won\'t score anything!') if threads.zero?
-      @best << Score.new(Time.now, host, port, @invoice, strength: strength)
       @scores = Queue.new
-      history.each { |s| @scores << s }
-      @log.debug("#{@scores.size} scores pre-loaded") unless @scores.size.zero?
+      h = history(threads)
+      h.each { |s| @scores << s }
+      @best << (h[0] || Score.new(Time.now, host, port, @invoice, strength: strength))
+      @log.info("#{@scores.size} scores pre-loaded, the best is: #{@best[0]}")
       @threads = (1..threads).map do |t|
         Thread.new do
           VerboseThread.new(@log).run do
@@ -104,12 +106,18 @@ module Zold
     private
 
     def save(score)
-      File.write(@cache, (history + [score]).map(&:to_s).join("\n"))
+      AtomicFile.new(@cache).write((history + [score]).map(&:to_s).join("\n"))
     end
 
-    def history
+    def history(max = 16)
       if File.exist?(@cache)
-        File.readlines(@cache).map { |t| Score.parse(t) }.reject(&:expired?)
+        AtomicFile.new(@cache).read
+          .split(/\n/)
+          .map { |t| Score.parse(t) }
+          .reject(&:expired?)
+          .sort_by(&:value)
+          .reverse
+          .take(max)
       else
         []
       end

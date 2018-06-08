@@ -70,7 +70,7 @@ Available options:"
       end
       raise 'Amount is required (in ZLD) as the third argument' if mine[2].nil?
       amount = Amount.new(zld: mine[2].to_f)
-      details = mine[3] ? mine[3] : '-'
+      details = mine[3] || '-'
       if Tax.new(from).in_debt? && !opts['dont-pay-taxes']
         Taxes.new(wallets: @wallets, remotes: @remotes, log: @log).run(
           ['taxes', "--private-key=#{opts['private-key']}", id.to_s]

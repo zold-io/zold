@@ -23,6 +23,7 @@ done
 
 zold remote clean
 zold remote add localhost ${port}
+zold remote trim
 zold remote show
 
 zold --public-key=id_rsa.pub create 0000000000000000

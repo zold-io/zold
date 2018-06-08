@@ -20,26 +20,20 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
-require_relative '../test__helper'
-require_relative '../../lib/zold/wallets'
-require_relative '../../lib/zold/key'
-require_relative '../../lib/zold/commands/create'
+require_relative '../lib/zold/atomic_file'
 
-# CREATE test.
+# AtomicFile test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestCreate < Minitest::Test
-  def test_creates_wallet
+class TestAtomicFile < Minitest::Test
+  def test_writes_and_reads
     Dir.mktmpdir 'test' do |dir|
-      wallet = Zold::Create.new(wallets: Zold::Wallets.new(dir), log: test_log).run(
-        ['create', '--public-key=fixtures/id_rsa.pub']
-      )
-      assert wallet.balance.zero?
-      assert(
-        File.exist?(File.join(dir, wallet.id.to_s)),
-        "Wallet file not found: #{wallet.id}"
-      )
+      file = Zold::AtomicFile.new(File.join(dir, 'test.txt'))
+      ['', 'hello, dude!'].each do |t|
+        file.write(t)
+        assert_equal(t, file.read)
+      end
     end
   end
 end

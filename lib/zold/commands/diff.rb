@@ -26,6 +26,7 @@ require_relative 'args'
 require_relative '../log'
 require_relative '../patch'
 require_relative '../wallet'
+require_relative '../atomic_file'
 
 # DIFF command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -69,7 +70,7 @@ Available options:"
       cps[1..-1].each do |c|
         patch.join(Wallet.new(c[:path]))
       end
-      before = File.read(wallet.path)
+      before = AtomicFile.new(wallet.path).read
       after = ''
       Tempfile.open do |f|
         patch.save(f, overwrite: true)

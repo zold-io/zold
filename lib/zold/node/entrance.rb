@@ -44,6 +44,7 @@ module Zold
       @address = address
       @log = log
       @semaphores = Concurrent::Map.new
+      @pool = Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
     end
 
     def push(id, body, sync: true)
@@ -51,7 +52,7 @@ module Zold
       if sync
         push_sync(id, body)
       else
-        Thread.new do
+        @pool.post do
           push_sync(id, body)
         end
       end
@@ -77,15 +78,16 @@ module Zold
     def push_sync(id, body)
       @semaphores.put_if_absent(id, Mutex.new)
       @semaphores.get(id).synchronize do
+        start = Time.now
         modified = push_unsafe(id, body)
-        @log.info("Accepted #{id} and modified: #{modified.join(', ')}")
+        @log.info("Accepted #{id} in #{(Time.now - start) / 60}s and modified #{modified.join(', ')}")
         modified
       end
     end
 
     def push_unsafe(id, body)
       copies = Copies.new(File.join(@copies, id.to_s))
-      copies.add(body, 'remote', Remotes::PORT, 0)
+      copies.add(body, '0.0.0.0', Remotes::PORT, 0)
       Fetch.new(
         wallets: @wallets, remotes: @remotes, copies: copies.root, log: @log
       ).run(['fetch', id.to_s, "--ignore-node=#{@address}"])
@@ -96,7 +98,7 @@ module Zold
       copies.remove('remote', Remotes::PORT)
       Push.new(
         wallets: @wallets, remotes: @remotes, log: @log
-      ).run(['push'] + modified.map(&:to_s))
+      ).run(['push', "--ignore-node=#{@address}"] + modified.map(&:to_s))
       modified
     end
   end

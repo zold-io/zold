@@ -31,10 +31,5 @@ Style/MultilineBlockChain:
   Enabled: false
 Layout/MultilineOperationIndentation:
   Enabled: false
-
-# @todo #64:30min Let's get rid of this and find a way to pass that
-#  $log global variable to all tests. Now it's defined inside test__helper.rb,
-#  but there should be a better solution. I posted a question about it:
-#  https://stackoverflow.com/questions/50418822
-Style/GlobalVars:
-  Enabled: false
+Naming/UncommunicativeMethodParamName:
+  MinNameLength: 1

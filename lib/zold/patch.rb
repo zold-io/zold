@@ -20,6 +20,7 @@
 
 require_relative 'wallet'
 require_relative 'signature'
+require_relative 'atomic_file'
 
 # Patch.
 #
@@ -54,11 +55,11 @@ module Zold
     # Returns TRUE if the file was actually modified
     def save(file, overwrite: false)
       before = ''
-      before = File.read(file) if File.exist?(file)
+      before = AtomicFile.new(file).read if File.exist?(file)
       wallet = Wallet.new(file)
       wallet.init(@id, @key, overwrite: overwrite, network: @network)
       @txns.each { |t| wallet.add(t) }
-      after = File.read(file)
+      after = AtomicFile.new(file).read
       before != after
     end
   end

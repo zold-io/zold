@@ -26,6 +26,7 @@ require_relative 'args'
 require_relative '../log'
 require_relative '../id'
 require_relative '../http'
+require_relative '../atomic_file'
 
 # PUSH command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -44,6 +45,9 @@ module Zold
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = "Usage: zold push [ID...] [options]
 Available options:"
+        o.array '--ignore-node',
+          'Ignore this node and don\'t push to it',
+          default: []
         o.bool '--sync',
           'Wait until the server confirms merge and pushes all wallets further (default: false)',
           default: false
@@ -63,23 +67,31 @@ Available options:"
     def push(wallet, opts)
       total = 0
       @remotes.iterate(@log) do |r|
-        start = Time.now
-        response = r.http(
-          "/wallet/#{wallet.id}#{opts['sync'] ? '?sync=true' : ''}"
-        ).put(File.read(wallet.path))
-        if response.code == '304'
-          @log.info("#{r}: same version of #{wallet.id} there")
-          next
-        end
-        r.assert_code(200, response)
-        json = JSON.parse(response.body)['score']
-        score = Score.parse_json(json)
-        r.assert_valid_score(score)
-        raise "Score is too weak #{score}" if score.strength < Score::STRENGTH
-        @log.info("#{r} accepted #{wallet.id} in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green}")
-        total += score.value
+        total += push_one(wallet, r, opts)
       end
       @log.info("Total score for #{wallet.id} is #{total}")
+    end
+
+    def push_one(wallet, r, opts)
+      if opts['ignore-node'].include?(r.to_s)
+        @log.debug("#{r} ignored because of --ignore-node")
+        return 0
+      end
+      start = Time.now
+      content = AtomicFile.new(wallet.path).read
+      response = r.http("/wallet/#{wallet.id}#{opts['sync'] ? '?sync=true' : ''}").put(content)
+      if response.code == '304'
+        @log.info("#{r}: same version of #{wallet.id} there")
+        return 0
+      end
+      r.assert_code(200, response)
+      json = JSON.parse(response.body)
+      score = Score.parse_json(json['score'])
+      r.assert_valid_score(score)
+      raise "Score is too weak #{score}" if score.strength < Score::STRENGTH
+      @log.info("#{r} accepted #{content.length}b/#{wallet.txns.count}t of #{wallet.id} \
+in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green} (#{json['version']})")
+      score.value
     end
   end
 end
