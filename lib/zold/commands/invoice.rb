@@ -50,7 +50,7 @@ Available options:"
       raise 'Receiver wallet ID is required' if mine[0].nil?
       id = Zold::Id.new(mine[0])
       wallet = @wallets.find(id)
-      raise "Wallet #{id} doesn\'t exist in #{@wallets}, do 'pull' first" unless wallet.exists?
+      raise "Wallet #{id} doesn\'t exist in #{@wallets}, do 'zold pull' first" unless wallet.exists?
       invoice(wallet, opts)
     end
 

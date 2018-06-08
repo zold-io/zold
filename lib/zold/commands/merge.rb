@@ -61,7 +61,10 @@ Available options:"
     private
 
     def merge(id, cps, _)
-      raise "There are no remote copies of #{id}, try FETCH first" if cps.all.empty?
+      if cps.all.empty?
+        @log.error("There are no remote copies of #{id}, try 'zold fetch' first")
+        return
+      end
       wallet = @wallets.find(id)
       cps = cps.all.sort_by { |c| c[:score] }.reverse
       patch = Patch.new
