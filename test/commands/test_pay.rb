@@ -37,7 +37,7 @@ class TestPay < Minitest::Test
       source = home.create_wallet
       target = home.create_wallet
       amount = Zold::Amount.new(zld: 14.95)
-      Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: log).run(
+      Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: test_log).run(
         [
           'pay', '--force', '--private-key=fixtures/id_rsa',
           source.id.to_s, target.id.to_s, amount.to_zld, 'For the car'
@@ -52,7 +52,7 @@ class TestPay < Minitest::Test
       source = home.create_wallet(Zold::Id::ROOT)
       target = home.create_wallet
       amount = Zold::Amount.new(zld: 14.95)
-      Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: log).run(
+      Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: test_log).run(
         [
           'pay', '--private-key=fixtures/id_rsa',
           source.id.to_s, target.id.to_s, amount.to_zld, 'For the car'
@@ -73,7 +73,7 @@ class TestPay < Minitest::Test
           'NOPREFIX', Zold::Id.new, '-'
         )
       )
-      Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: log).run(
+      Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: test_log).run(
         [
           'pay', '--private-key=fixtures/id_rsa',
           source.id.to_s, target.id.to_s, amount.to_zld, 'here is the refund'

@@ -29,18 +29,18 @@ if ENV['CI'] == 'true'
   SimpleCov.formatter = SimpleCov::Formatter::Codecov
 end
 
-require_relative '../lib/zold/log'
-
 require 'minitest/autorun'
 require_relative '../lib/zold'
 
 gem 'openssl'
 require 'openssl'
 
-require_relative 'support/logs'
-
 module Minitest
   class Test
-    include Logs
+    def test_log
+      require_relative '../lib/zold/log'
+      # $log = Zold::Log::Quiet.new
+      @log ||= Zold::Log::Verbose.new
+    end
   end
 end

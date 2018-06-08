@@ -84,11 +84,11 @@ Available options:"
         return 0
       end
       r.assert_code(200, response)
-      json = JSON.parse(response.body)['score']
-      score = Score.parse_json(json)
+      json = JSON.parse(response.body)
+      score = Score.parse_json(json['score'])
       r.assert_valid_score(score)
       raise "Score is too weak #{score}" if score.strength < Score::STRENGTH
-      @log.info("#{r} accepted #{content.length}b/#{wallet.txns.count}txns of #{wallet.id} \
+      @log.info("#{r} accepted #{content.length}b/#{wallet.txns.count}t of #{wallet.id} \
 in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green} (#{json['version']})")
       score.value
     end

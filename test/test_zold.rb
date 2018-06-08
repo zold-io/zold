@@ -38,7 +38,7 @@ class TestZold < Minitest::Test
         bin = File.join(Dir.pwd, 'bin/zold')
         Dir.chdir(dir) do
           stdout = `/bin/bash #{f} #{bin} 2>&1`
-          log.info(stdout)
+          test_log.info(stdout)
           assert_equal(0, $CHILD_STATUS.exitstatus)
         end
       end

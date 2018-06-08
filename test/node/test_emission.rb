@@ -36,7 +36,7 @@ class EmissionTest < Minitest::Test
             'NOPREFIX', Zold::Id::ROOT, '-'
           )
         )
-        log.info("Year: #{year}, Quota: #{(Zold::Emission.new(wallet).quota * 100).round(2)}%, \
+        test_log.info("Year: #{year}, Quota: #{(Zold::Emission.new(wallet).quota * 100).round(2)}%, \
 Limit: #{Zold::Emission.new(wallet).limit}")
       end
     end

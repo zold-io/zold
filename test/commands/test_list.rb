@@ -37,7 +37,7 @@ class TestList < Minitest::Test
       wallets = Zold::Wallets.new(dir)
       wallet = wallets.find(id)
       wallet.init(Zold::Id.new, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-      Zold::List.new(wallets: wallets, log: log).run
+      Zold::List.new(wallets: wallets, log: test_log).run
     end
   end
 end

@@ -44,13 +44,13 @@ class TestDiff < Minitest::Test
       File.write(first.path, File.read(wallet.path))
       second = home.create_wallet
       File.write(second.path, File.read(wallet.path))
-      Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: log).run(
+      Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: test_log).run(
         ['pay', wallet.id.to_s, second.id.to_s, '14.95', '--force', '--private-key=fixtures/id_rsa']
       )
       copies = home.copies(wallet)
       copies.add(File.read(first.path), 'host-1', 80, 5)
       copies.add(File.read(second.path), 'host-2', 80, 5)
-      diff = Zold::Diff.new(wallets: home.wallets, copies: copies.root, log: log).run(
+      diff = Zold::Diff.new(wallets: home.wallets, copies: copies.root, log: test_log).run(
         ['diff', wallet.id.to_s]
       )
       assert(diff.include?('-0001;'))

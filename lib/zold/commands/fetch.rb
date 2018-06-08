@@ -92,7 +92,7 @@ Available options:"
         File.write(f, body)
         wallet = Wallet.new(f.path)
         cps.add(body, score.host, score.port, score.value)
-        @log.info("#{r} returned #{body.length}b/#{wallet.txns.count} \
+        @log.info("#{r} returned #{body.length}b/#{wallet.txns.count}t \
 of #{id} in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green} (#{json['version']})")
       end
     end

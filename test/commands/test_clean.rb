@@ -36,7 +36,7 @@ class TestClean < Minitest::Test
       copies = home.copies(wallet)
       copies.add('a1', 'host-1', 80, 1, Time.now - 26 * 60 * 60)
       copies.add('a2', 'host-2', 80, 2, Time.now - 26 * 60 * 60)
-      Zold::Clean.new(wallets: home.wallets, copies: copies.root, log: log).run(['clean', wallet.id.to_s])
+      Zold::Clean.new(wallets: home.wallets, copies: copies.root, log: test_log).run(['clean', wallet.id.to_s])
       assert(copies.all.empty?)
     end
   end

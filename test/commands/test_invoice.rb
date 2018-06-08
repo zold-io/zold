@@ -38,7 +38,7 @@ class TestInvoice < Minitest::Test
       wallets = Zold::Wallets.new(dir)
       source = wallets.find(id)
       source.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-      invoice = Zold::Invoice.new(wallets: wallets, log: log).run(
+      invoice = Zold::Invoice.new(wallets: wallets, log: test_log).run(
         ['invoice', id.to_s, '--length=16']
       )
       assert_equal(33, invoice.length)

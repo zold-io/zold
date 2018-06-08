@@ -59,7 +59,7 @@ class TestRemote < Minitest::Test
       stub_request(:get, 'http://localhost:999/remotes').to_return(
         status: 404
       )
-      cmd = Zold::Remote.new(remotes: remotes, log: log)
+      cmd = Zold::Remote.new(remotes: remotes, log: test_log)
       cmd.run(%w[remote clean])
       cmd.run(['remote', 'add', zero.host, zero.port.to_s])
       cmd.run(%w[remote add localhost 2])
