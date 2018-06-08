@@ -58,6 +58,8 @@ Available commands:
       Add a new remote node
     #{Rainbow('remote remove').green} host [port]
       Remove the remote node
+    #{Rainbow('remote trim').green}
+      Remote the least reliable nodes
     #{Rainbow('remote update').green}
       Check each registered remote node for availability
 Available options:"
@@ -86,6 +88,8 @@ Available options:"
         add(mine[1], mine[2] ? mine[2].to_i : Remotes::PORT, opts)
       when 'remove'
         remove(mine[1], mine[2] ? mine[2].to_i : Remotes::PORT, opts)
+      when 'trim'
+        trim(opts)
       when 'update'
         update(opts)
         update(opts, false)
@@ -133,6 +137,12 @@ Available options:"
         @log.info("#{host}:#{port} is not in the list")
       end
       @log.info("There are #{@remotes.all.count} remote nodes in the list")
+    end
+
+    def trim(opts)
+      @remotes.all.each do |r|
+        remove(r[:host], r[:port], opts) if r[:errors] > 20
+      end
     end
 
     def update(opts, deep = true)
