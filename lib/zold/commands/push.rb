@@ -77,9 +77,8 @@ Available options:"
         return 0
       end
       start = Time.now
-      response = r.http(
-        "/wallet/#{wallet.id}#{opts['sync'] ? '?sync=true' : ''}"
-      ).put(File.read(wallet.path))
+      content = File.read(wallet.path)
+      response = r.http("/wallet/#{wallet.id}#{opts['sync'] ? '?sync=true' : ''}").put(content)
       if response.code == '304'
         @log.info("#{r}: same version of #{wallet.id} there")
         return 0
@@ -89,7 +88,8 @@ Available options:"
       score = Score.parse_json(json)
       r.assert_valid_score(score)
       raise "Score is too weak #{score}" if score.strength < Score::STRENGTH
-      @log.info("#{r} accepted #{wallet.id} in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green}")
+      @log.info("#{r} accepted #{wallet.id}/#{content.length}b \
+in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green} (#{json['version']})")
       score.value
     end
   end
