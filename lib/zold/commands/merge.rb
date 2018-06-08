@@ -70,7 +70,7 @@ Available options:"
       cps[1..-1].each do |c|
         extra = Wallet.new(c[:path])
         if extra.network != main.network
-          @log.error("The wallet is from a different network '#{wallet.version}', ours is '#{@network}'")
+          @log.error("The wallet is from a different network '#{extra.network}', ours is '#{main.network}'")
           next
         end
         if extra.key != main.key

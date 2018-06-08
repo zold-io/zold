@@ -33,7 +33,8 @@ class FrontTest < Minitest::Test
           '/robots.txt',
           '/',
           '/remotes',
-          '/v'
+          '/version',
+          '/score'
         ],
         '404' => [
           '/this-is-absent',

@@ -87,11 +87,18 @@ module Zold
     end
 
     get '/robots.txt' do
+      content_type 'text/plain'
       'User-agent: *'
     end
 
-    get '/v' do
+    get '/version' do
+      content_type 'text/plain'
       VERSION
+    end
+
+    get '/score' do
+      content_type 'text/plain'
+      score.to_s
     end
 
     get '/favicon.ico' do

@@ -61,6 +61,7 @@ class TestRemote < Minitest::Test
       )
       cmd = Zold::Remote.new(remotes: remotes, log: test_log)
       cmd.run(%w[remote clean])
+      assert(remotes.all.empty?)
       cmd.run(['remote', 'add', zero.host, zero.port.to_s])
       cmd.run(%w[remote add localhost 2])
       assert_equal(2, remotes.all.count)

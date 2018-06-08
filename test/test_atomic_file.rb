@@ -18,30 +18,21 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Atomic file.
+require 'minitest/autorun'
+require 'tmpdir'
+require_relative '../lib/zold/atomic_file'
+
+# AtomicFile test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # Atomic file
-  class AtomicFile
-    def initialize(file)
-      raise 'File can\'t be nil' if file.nil?
-      @file = file
-    end
-
-    def read
-      File.open(@file, 'r') do |f|
-        f.flock(File::LOCK_SH)
-        f.read
-      end
-    end
-
-    def write(content)
-      raise 'Content can\'t be nil' if content.nil?
-      File.open(@file, 'w+') do |f|
-        f.flock(File::LOCK_EX)
-        f.write(content)
+class TestAtomicFile < Minitest::Test
+  def test_writes_and_reads
+    Dir.mktmpdir 'test' do |dir|
+      file = Zold::AtomicFile.new(File.join(dir, 'test.txt'))
+      ['', 'hello, dude!', 'как дела?'].each do |t|
+        file.write(t)
+        assert_equal(t, file.read)
       end
     end
   end

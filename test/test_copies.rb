@@ -37,7 +37,7 @@ class TestCopies < Minitest::Test
       copies.add('hello 1', '192.168.0.4', 80, 10)
       copies.add('hello-to-delete', '192.168.0.5', 80, 10)
       copies.remove('192.168.0.5', 80)
-      assert(copies.all.count == 2, "#{copies.all.count} is not equal to 2")
+      assert(2, copies.all.count)
       assert(copies.all.find { |c| c[:name] == '1' }[:score] == 11)
     end
   end

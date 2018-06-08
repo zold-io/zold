@@ -65,7 +65,7 @@ module Zold
       end
 
       def assert_code(code, response)
-        msg = response.message
+        msg = response.message.strip
         return if response.code.to_i == code
         @log.debug("#{response.code} \"#{response.message}\" at \"#{response.body}\"")
         raise "Unexpected HTTP code #{response.code}, instead of #{code}" if msg.empty?
@@ -114,7 +114,7 @@ module Zold
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
       raise 'Port can\'t be negative' if port < 0
       raise 'Port can\'t be over 65536' if port > 0xffff
-      raise "#{host}:#{port} alread exists" if exists?(host, port)
+      raise "#{host}:#{port} already exists" if exists?(host, port)
       list = load
       list << { host: host.downcase, port: port, score: 0 }
       list.uniq! { |r| "#{r[:host]}:#{r[:port]}" }

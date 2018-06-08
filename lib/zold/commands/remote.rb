@@ -114,7 +114,7 @@ Available options:"
 
     def reset
       @remotes.reset
-      @log.debug('Remote nodes set back to default')
+      @log.debug("Remote nodes set back to default, #{@remotes.all.count} total")
     end
 
     def add(host, port, opts)
@@ -123,7 +123,7 @@ Available options:"
         @log.info("#{host}:#{port} already exists in the list")
       else
         @remotes.add(host, port)
-        @log.info("#{host}:#{port} added to the list")
+        @log.info("#{host}:#{port} added to the list, #{@remotes.all.count} total")
       end
       @log.info("There are #{@remotes.all.count} remote nodes in the list")
     end
@@ -143,6 +143,7 @@ Available options:"
       @remotes.all.each do |r|
         remove(r[:host], r[:port], opts) if r[:errors] > 20
       end
+      @log.info("The list of remotes trimmed, #{@remotes.all.count} nodes left there")
     end
 
     def update(opts, deep = true)
