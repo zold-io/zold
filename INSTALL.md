@@ -14,16 +14,16 @@ then the [gem](https://rubygems.org/gems/zold).
 
 ```bash
 $ sudo apt update -y
-$ sudo apt install -y ruby-dev rubygems zlib1g-dev libssl-dev make
-$ gem install zold
+$ sudo apt install -y ruby-dev rubygems zlib1g-dev libssl-dev make build-essential
+$ gem install --no-ri --no-rdoc zold
 ```
 
 ## Ubuntu 16.04
 
 ```bash
 $ sudo apt-get update -y
-$ sudo apt-get install -y ruby-dev rubygems zlib1g-dev libssl-dev
-$ gem install zold
+$ sudo apt-get install -y ruby-dev rubygems zlib1g-dev libssl-dev build-essential
+$ gem install --no-ri --no-rdoc zold
 ```
 
 ## OSX
@@ -35,7 +35,7 @@ $ brew install rbenv ruby-build
 $ rbenv install 2.5.1
 $ rbenv global 2.5.1
 $ ruby -v
-$ gem install zold
+$ gem install --no-ri --no-rdoc zold
 ```
 
 Without homebrew:
