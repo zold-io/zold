@@ -87,7 +87,11 @@ module Zold
       end
 
       def assert_score_strength(score)
-        raise "Score is too weak #{score.strength}" if score.strength < Score::STRENGTH
+        raise "Score is too weak #{score.strength}: #{score}" if score.strength < Score::STRENGTH
+      end
+
+      def assert_score_value(score, min)
+        raise "Score is too small (<#{min}): #{score}" if score.value < min
       end
     end
 

@@ -20,12 +20,15 @@
 
 require 'slop'
 require_relative '../score'
+require_relative '../routines'
 require_relative '../wallets'
 require_relative '../remotes'
 require_relative '../verbose_thread'
 require_relative '../node/entrance'
 require_relative '../node/front'
 require_relative '../node/farm'
+require_relative 'push'
+require_relative 'pay'
 
 # NODE command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -68,6 +71,14 @@ module Zold
         o.bool '--never-reboot',
           'Don\'t reboot when a new version shows up in the network',
           default: false
+        o.string '--bonus-wallet',
+          'The ID of the wallet to regularly send bonuses from (for nodes online)'
+        o.string '--bonus-amount',
+          'The amount of ZLD to pay to each remote as a bonus',
+          default: '1'
+        o.string '--private-key',
+          'The location of RSA private key (default: ~/.ssh/id_rsa)',
+          default: '~/.ssh/id_rsa'
         o.bool '--help', 'Print instructions'
       end
       if opts.help?
@@ -117,25 +128,51 @@ module Zold
         threads: opts[:threads], strength: opts[:strength]
       )
       Front.set(:farm, farm)
-      update = Thread.start do
-        VerboseThread.new(@log).run(true) do
-          loop do
-            sleep(60)
-            require_relative 'remote'
-            Remote.new(remotes: remotes, log: @log, farm: farm).run(%w[remote add b1.zold.io 80 --force])
-            Remote.new(remotes: remotes, log: @log, farm: farm).run(%w[remote trim])
-            Remote.new(remotes: remotes, log: @log, farm: farm).run(%w[remote update --reboot])
-            @log.info("Regular update of remote nodes succeeded, total=#{remotes.all.count}")
-          end
-        end
-      end
+      routines = routines(wallets, remotes, farm, opts)
       @log.debug("Starting up the web front at http://#{opts[:host]}:#{opts[:port]}...")
       begin
         Front.run!
       ensure
         farm.stop
-        update.exit
+        routines.stop
       end
+    end
+
+    private
+
+    def routines(wallets, remotes, farm, opts)
+      routines = Routines.new(@log)
+      routines.add do
+        require_relative 'remote'
+        Remote.new(remotes: remotes, log: @log, farm: farm).run(%w[remote add b1.zold.io 80 --force])
+        Remote.new(remotes: remotes, log: @log, farm: farm).run(%w[remote trim])
+        Remote.new(remotes: remotes, log: @log, farm: farm).run(%w[remote update --reboot])
+      end
+      if opts['bonus-wallet']
+        routines.add do
+          require_relative 'remote'
+          winners = Remote.new(remotes: remotes, log: @log, farm: farm).run(
+            ['remote', 'elect', opts['bonus-wallet'], '--private-key', opts['private-key']]
+          )
+          if winners.empty?
+            @log.info('No winners elected, won\'t pay any bonuses')
+          else
+            winners.each do |score|
+              Pay.new(wallets: wallets, remotes: remotes, log: @log).run(
+                [
+                  'pay', opts['bonus-wallet'], score.invoice, opts['bonus-amount'],
+                  "Hosting bonus for #{score.host}:#{score.port} #{score.value}",
+                  '--private-key', opts['private-key']
+                ]
+              )
+              Push.new(wallets: wallets, remotes: remotes, log: @log).run(
+                ['push', opts['bonus-wallet']]
+              )
+            end
+          end
+        end
+      end
+      routines
     end
 
     # Fake logging facility for Webrick

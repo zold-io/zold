@@ -124,7 +124,7 @@ Available options:"
         score = Score.parse_json(json['score'])
         r.assert_valid_score(score)
         r.assert_score_strength(score)
-        raise "Score is too small (<#{Tax::EXACT_SCORE})" if score.value < Tax::EXACT_SCORE
+        r.assert_score_value(score, Tax::EXACT_SCORE)
         @log.info("#{r}: #{Rainbow(score.value).green}")
         best << score
       end

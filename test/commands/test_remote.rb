@@ -69,4 +69,23 @@ class TestRemote < Minitest::Test
       assert_equal(4, remotes.all.count)
     end
   end
+
+  def test_elects_a_remote
+    Dir.mktmpdir 'test' do |dir|
+      zero = Zold::Score::ZERO
+      remotes = Zold::Remotes.new(File.join(dir, 'remotes.txt'))
+      remotes.clean
+      remotes.add(zero.host, zero.port)
+      stub_request(:get, "http://#{zero.host}:#{zero.port}/").to_return(
+        status: 200,
+        body: {
+          version: Zold::VERSION,
+          score: zero.to_h
+        }.to_json
+      )
+      cmd = Zold::Remote.new(remotes: remotes, log: test_log)
+      winners = cmd.run(%w[remote elect --ignore-score-value])
+      assert_equal(1, winners.count)
+    end
+  end
 end

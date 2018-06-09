@@ -58,6 +58,8 @@ Available commands:
       Add a new remote node
     #{Rainbow('remote remove').green} host [port]
       Remove the remote node
+    #{Rainbow('remote elect').green}
+      Pick a random remote node as a target for a bonus awarding
     #{Rainbow('remote trim').green}
       Remote the least reliable nodes
     #{Rainbow('remote update').green}
@@ -65,6 +67,9 @@ Available commands:
 Available options:"
         o.bool '--ignore-score-weakness',
           'Don\'t complain when their score is too weak',
+          default: false
+        o.bool '--ignore-score-value',
+          'Don\'t complain when their score is too small',
           default: false
         o.bool '--force',
           'Add/remove if if this operation is not possible',
@@ -88,6 +93,8 @@ Available options:"
         add(mine[1], mine[2] ? mine[2].to_i : Remotes::PORT, opts)
       when 'remove'
         remove(mine[1], mine[2] ? mine[2].to_i : Remotes::PORT, opts)
+      when 'elect'
+        elect(opts)
       when 'trim'
         trim(opts)
       when 'update'
@@ -137,6 +144,26 @@ Available options:"
         @log.info("#{host}:#{port} is not in the list")
       end
       @log.info("There are #{@remotes.all.count} remote nodes in the list")
+    end
+
+    # Returns an array of Zold::Score
+    def elect(opts)
+      scores = []
+      @remotes.all.sample(1).each do |winner|
+        @remotes.iterate(@log, farm: @farm) do |r|
+          next if r.host != winner[:host] || r.port != winner[:port]
+          res = r.http('/').get
+          r.assert_code(200, res)
+          score = Score.parse_json(JSON.parse(res.body)['score'])
+          r.assert_valid_score(score)
+          r.assert_score_ownership(score)
+          r.assert_score_strength(score) unless opts['ignore-score-weakness']
+          r.assert_score_value(score, Tax::EXACT_SCORE) unless opts['ignore-score-value']
+          @log.info("Elected: #{score}")
+          scores << score
+        end
+      end
+      scores
     end
 
     def trim(opts)
