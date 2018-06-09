@@ -94,6 +94,8 @@ module Zold
       load.group_by { |s| s[:name] }.map do |name, scores|
         {
           name: name,
+          host: scores[0][:host],
+          port: scores[0][:port],
           path: File.join(@dir, name),
           score: scores.select { |s| s[:time] > Time.now - 24 * 60 * 60 }
             .map { |s| s[:score] }

@@ -30,14 +30,17 @@ require_relative 'atomic_file'
 module Zold
   # A patch
   class Patch
-    def start(wallet)
-      @id = wallet.id
-      @key = wallet.key
-      @txns = wallet.txns
-      @network = wallet.network
-    end
-
     def join(wallet)
+      if @id.nil?
+        @id = wallet.id
+        @key = wallet.key
+        @txns = wallet.txns
+        @network = wallet.network
+      end
+      if wallet.network != @network
+        raise "The wallet is from a different network '#{wallet.network}', ours is '#{@network}'"
+      end
+      raise 'Public key mismatch' if wallet.key != @key
       negative = @txns.select { |t| t.amount.negative? }
       max = negative.empty? ? 0 : negative.max_by(&:id).id
       wallet.txns.each do |txn|
@@ -47,13 +50,16 @@ module Zold
           (txn.id <= max ||
           @txns.find { |t| t.id == txn.id } ||
           @txns.map(&:amount).inject(&:+) < txn.amount)
-        next unless Signature.new.valid?(@key, wallet.id, txn)
+        unless Signature.new.valid?(@key, wallet.id, txn)
+          raise "Invalid RSA signature at transaction ##{txn.id} of #{wallet.id}"
+        end
         @txns << txn
       end
     end
 
     # Returns TRUE if the file was actually modified
     def save(file, overwrite: false)
+      raise 'You have to join at least one wallet in' if @id.nil?
       before = ''
       before = AtomicFile.new(file).read if File.exist?(file)
       wallet = Wallet.new(file)

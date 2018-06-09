@@ -68,19 +68,13 @@ Available options:"
       wallet = @wallets.find(id)
       cps = cps.all.sort_by { |c| c[:score] }.reverse
       patch = Patch.new
-      main = Wallet.new(cps[0][:path])
-      patch.start(main)
-      cps[1..-1].each do |c|
-        extra = Wallet.new(c[:path])
-        if extra.network != main.network
-          @log.error("The wallet is from a different network '#{extra.network}', ours is '#{main.network}'")
-          next
+      cps.each do |c|
+        begin
+          patch.join(Wallet.new(c[:path]))
+        rescue StandardError => e
+          @log.error("Can't merge a copy of #{id} coming from #{c[:host]}:#{c[:port]}; #{e.class.name}: #{e.message}")
+          @log.debug(e.backtrace.join("\n\t"))
         end
-        if extra.key != main.key
-          @log.error('Public key mismatch')
-          next
-        end
-        patch.join(extra)
       end
       modified = patch.save(wallet.path, overwrite: true)
       if modified

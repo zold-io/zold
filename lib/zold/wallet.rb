@@ -160,8 +160,10 @@ module Zold
     end
 
     def lines
-      raise "File '#{@file}' is absent" unless File.exist?(@file)
-      AtomicFile.new(@file).read.split(/\n/)
+      raise "Wallet file '#{@file}' is absent" unless File.exist?(@file)
+      lines = AtomicFile.new(@file).read.split(/\n/)
+      raise "Not enough lines in #{@file}, just #{lines.count}" if lines.count < 4
+      lines
     end
   end
 end

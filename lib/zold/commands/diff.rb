@@ -66,9 +66,13 @@ Available options:"
       raise 'There are no remote copies, try FETCH first' if cps.all.empty?
       cps = cps.all.sort_by { |c| c[:score] }.reverse
       patch = Patch.new
-      patch.start(Wallet.new(cps[0][:path]))
-      cps[1..-1].each do |c|
-        patch.join(Wallet.new(c[:path]))
+      cps.each do |c|
+        begin
+          patch.join(Wallet.new(c[:path]))
+        rescue StandardError => e
+          @log.error("Can't use a copy of #{wallet.id} from #{c[:host]}:#{c[:port]}; #{e.class.name}: #{e.message}")
+          @log.debug(e.backtrace.join("\n\t"))
+        end
       end
       before = AtomicFile.new(wallet.path).read
       after = ''

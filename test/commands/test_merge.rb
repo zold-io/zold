@@ -79,4 +79,17 @@ class TestMerge < Minitest::Test
       assert(wallet.id, modified[0])
     end
   end
+
+  def test_merges_with_a_broken_copy
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      copies = home.copies(wallet)
+      copies.add(File.read(wallet.path), 'good-host', 80, 5)
+      copies.add('some garbage', 'bad-host', 80, 5)
+      modified = Zold::Merge.new(wallets: home.wallets, copies: copies.root, log: test_log).run(
+        ['merge', wallet.id.to_s]
+      )
+      assert(modified.empty?)
+    end
+  end
 end
