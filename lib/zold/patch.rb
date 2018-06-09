@@ -30,6 +30,11 @@ require_relative 'atomic_file'
 module Zold
   # A patch
   class Patch
+    def to_s
+      return 'empty' if @id.nil?
+      "#{@txns.count} txns"
+    end
+
     def join(wallet)
       if @id.nil?
         @id = wallet.id
@@ -41,6 +46,7 @@ module Zold
         raise "The wallet is from a different network '#{wallet.network}', ours is '#{@network}'"
       end
       raise 'Public key mismatch' if wallet.key != @key
+      raise "Wallet ID mismatch: #{@id} != #{wallet.id}" if wallet.id != @id
       negative = @txns.select { |t| t.amount.negative? }
       max = negative.empty? ? 0 : negative.max_by(&:id).id
       wallet.txns.each do |txn|

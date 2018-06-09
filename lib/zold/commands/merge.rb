@@ -65,16 +65,18 @@ Available options:"
         @log.error("There are no remote copies of #{id}, try 'zold fetch' first")
         return
       end
-      wallet = @wallets.find(id)
       cps = cps.all.sort_by { |c| c[:score] }.reverse
       patch = Patch.new
       cps.each do |c|
-        begin
-          patch.join(Wallet.new(c[:path]))
-        rescue StandardError => e
-          @log.error("Can't merge a copy of #{id} coming from #{c[:host]}:#{c[:port]}; #{e.class.name}: #{e.message}")
-          @log.debug(e.backtrace.join("\n\t"))
-        end
+        merge_one(patch, Wallet.new(c[:path]), "#{c[:host]}:#{c[:port]}")
+        @log.debug("#{c[:host]}:#{c[:port]} merged: #{patch}")
+      end
+      wallet = @wallets.find(id)
+      if wallet.exists?
+        merge_one(patch, wallet, 'localhost')
+        @log.debug("Local copy merged: #{patch}")
+      else
+        @log.debug("Local copy is absent, won't merge")
       end
       modified = patch.save(wallet.path, overwrite: true)
       if modified
@@ -83,6 +85,13 @@ Available options:"
         @log.debug("Nothing changed in #{wallet.id} after merge of #{cps.count} copies")
       end
       modified
+    end
+
+    def merge_one(patch, wallet, name)
+      patch.join(wallet)
+    rescue StandardError => e
+      @log.error("Can't merge a copy coming from #{name}; #{e.class.name}: #{e.message}")
+      @log.debug(e.backtrace.join("\n\t"))
     end
   end
 end

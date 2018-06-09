@@ -63,7 +63,7 @@ Available options:"
     private
 
     def diff(wallet, cps, _)
-      raise 'There are no remote copies, try FETCH first' if cps.all.empty?
+      raise "There are no remote copies, try 'zold fetch' first" if cps.all.empty?
       cps = cps.all.sort_by { |c| c[:score] }.reverse
       patch = Patch.new
       cps.each do |c|
