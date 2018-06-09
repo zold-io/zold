@@ -7,8 +7,8 @@
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
 //
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
 // THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -69,7 +69,7 @@ string create_nonce(uint64_t i)
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 	string rv;
-	for (int l = 0; l < 6; l++) {	// Cut to 6 sym
+	for (int l = 0; l < 6; l++) {  // Cut to 6 sym
 		rv += chars[i % chars.size()];
 		if (i < chars.size()) {
 			break;
