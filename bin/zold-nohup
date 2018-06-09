@@ -45,6 +45,7 @@ def exec(cmd)
       log(line)
     end
     code = thr.value.exitstatus
+    log("Exit code is #{code}: #{cmd}")
     raise "Exit code #{code} (non zero)" unless code.zero?
   end
 end
