@@ -7,7 +7,7 @@ branches:
     - master
 install:
   - travis_retry bundle update
-  - apt-get install cppcheck
+  - sudo apt-get install cppcheck
 script:
   - cppcheck --enable=all --quiet --suppress=unusedFunction .
   - rake
