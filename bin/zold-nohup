@@ -38,6 +38,7 @@ end
 
 def exec(cmd)
   Open3.popen2e(cmd) do |stdin, stdout, thr|
+    log("Started: #{cmd}")
     stdin.close
     loop do
       line = stdout.gets
