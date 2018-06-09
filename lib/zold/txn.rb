@@ -83,9 +83,11 @@ module Zold
     end
 
     def inverse(bnf)
+      raise 'You can\'t reverse a positive transaction' unless amount.negative?
       t = clone
       t.amount = amount * -1
       t.bnf = bnf
+      t.sign = ''
       t
     end
 

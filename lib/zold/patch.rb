@@ -56,8 +56,11 @@ module Zold
           (txn.id <= max ||
           @txns.find { |t| t.id == txn.id } ||
           @txns.map(&:amount).inject(&:+) < txn.amount)
-        unless Signature.new.valid?(@key, wallet.id, txn)
-          raise "Invalid RSA signature at transaction ##{txn.id} of #{wallet.id}"
+        if !txn.amount.negative? && !txn.sign.empty?
+          raise "RSA signature is redundant at ##{txn.id} of #{wallet.id}: #{txn.to_text}"
+        end
+        if txn.amount.negative? && !Signature.new.valid?(@key, wallet.id, txn)
+          raise "Invalid RSA signature at transaction ##{txn.id} of #{wallet.id}: #{txn.to_text}"
         end
         @txns << txn
       end
