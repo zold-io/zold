@@ -167,8 +167,8 @@ module Zold
       (Time.now - @time) / 60
     end
 
-    def expired?
-      @time < Time.now - 24 * 60 * 60
+    def expired?(hours = 24)
+      @time < Time.now - hours * 60 * 60
     end
 
     def prefix

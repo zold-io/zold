@@ -77,7 +77,7 @@ module Zold
               end
               s = @scores.pop
               next unless s.valid?
-              next if s.expired?
+              next if s.expired?(20)
               next if s.strength < strength
               @semaphore.synchronize do
                 save(s)
