@@ -70,7 +70,7 @@ Available options:"
       when 'debt'
         raise 'At least one wallet ID is required' unless mine[1]
         mine[1..-1].each do |id|
-          debt(@wallets.find(Id.new(id), opts))
+          debt(@wallets.find(Id.new(id)), opts)
         end
       when 'pay'
         raise 'At least one wallet ID is required' unless mine[1]

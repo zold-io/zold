@@ -136,6 +136,46 @@ Yes, you can run many nodes with the same wallet ID.
 Yes, you can use `--threads` command line argument for your node
 and the number of threads will be as big as you wish.
 
+## JSON Details
+
+When you open up the front web page of your node, you will see a JSON document
+with a lot of technical details. Here is the explanation of the majority of them:
+
+`version` is the current version of the running software.
+The node is supposed to update update itself automatically (if you run it via `zold-nohup`)
+every time it discovers another node with a higher version.
+
+`score` is the current score your node is exposing to the network now.
+All other nodes are using this information in order to decide how much
+they can trust your node with the information it provides, about wallets.
+The higher the score, the better.
+
+  * `value` is the amount of suffixes the score contains; this is the
+    number all other nodes rely on.
+
+  * `host` is the host name of the node, it must be equal to the public
+    IP or domain name of the node; it is provided in `--host` command line
+    option of `zold-nohup`.
+
+  * `port` is the TCP port number, which usually is equal to 4096;
+    it is provided in `--port` command line option.
+
+  * `invoice` is the address of your wallet, where the system
+    will send you rewards for keeping the node online and some
+    users will pay taxes; it is provided in `--invoice` command line option.
+
+  * `time` is the ISO-8601 UTC date and time of when your node
+    started to calculate the score.
+
+  * `strength` is the amount of tailing zeros the hash contains.
+
+  * `hash` is the SHA-256 hash of the score text.
+
+  * `minutes` is the age of the score, in minutes since the moment
+    it was created.
+
+To be continued...
+
 ## How to Contribute
 
 It is a Ruby command line gem. First, install
