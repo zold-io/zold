@@ -185,10 +185,15 @@ Available options:"
         r.assert_score_ownership(score)
         r.assert_score_strength(score) unless opts['ignore-score-weakness']
         @remotes.rescore(score.host, score.port, score.value)
-        if opts['reboot'] && Semantic::Version.new(VERSION) < Semantic::Version.new(json['version'])
-          @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, reboot! \
+        if Semantic::Version.new(VERSION) < Semantic::Version.new(json['version'])
+          if opts['reboot']
+            @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, reboot! \
 (use --never-reboot to avoid this from happening)")
-          exit(0)
+            exit(0)
+          else
+            @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, \
+it's recommended to reboot, but I don't do it because of --never-reboot")
+          end
         end
         if deep
           json['all'].each do |s|
