@@ -28,6 +28,7 @@ require 'open3'
 
 $opts = Slop.parse(ARGV, strict: false, suppress_errors: true) do |o|
   o.string '--log-file', 'The file to save logs into', default: 'zold-node.log'
+  o.bool '--skip-log-trim', 'Don\'t trim the log file before start', default: false
   o.bool '--skip-install', 'Don\'t re-install Zold gem', default: false
   o.bool '--sudo-install', 'Install Zold gem via sudo', default: false
 end
@@ -50,6 +51,8 @@ def exec(cmd)
     raise "Exit code #{code} (non zero)" unless code.zero?
   end
 end
+
+File.delete($opts['log-file']) if File.exist?($opts['log-file']) && !$opts['skip-log-trim']
 
 $pid = fork do
   Signal.trap('HUP') do
