@@ -8,6 +8,7 @@ install: |
   sudo gem install pdd
 release:
   script: |-
+    [[ "${tag}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || exit -1
     bundle install
     rake
     rm -rf *.gem
