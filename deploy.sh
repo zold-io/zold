@@ -4,7 +4,7 @@ set -x
 
 cd $(dirname $0)
 bundle update
-rake
+# rake
 trap 'git reset HEAD~1 && rm bonus.key && git checkout -- .gitignore' EXIT
 cp /code/home/assets/zold/bonus.key .
 sed -i -s 's|Gemfile.lock||g' .gitignore
