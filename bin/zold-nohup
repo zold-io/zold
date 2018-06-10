@@ -27,10 +27,26 @@ require 'tempfile'
 require 'open3'
 
 $opts = Slop.parse(ARGV, strict: false, suppress_errors: true) do |o|
-  o.string '--log-file', 'The file to save logs into', default: 'zold-node.log'
-  o.bool '--skip-log-trim', 'Don\'t trim the log file before start', default: false
-  o.bool '--skip-install', 'Don\'t re-install Zold gem', default: false
-  o.bool '--sudo-install', 'Install Zold gem via sudo', default: false
+  o.banner = "Usage: zold-nohup [options] ...
+Run 'zold --help' for the full list of options and commands"
+  o.bool '-h', '--help', 'Show these instructions'
+  o.string '--log-file',
+    'The file to save logs into (default: ./zold-nohup.log)',
+    default: './zold-nohup.log'
+  o.bool '--skip-log-trim',
+    'Don\'t trim the log file before start (default: false)',
+    default: false
+  o.bool '--skip-install',
+    'Don\'t re-install Zold gem (default: false)',
+    default: false
+  o.bool '--sudo-install',
+    'Install Zold gem via sudo (default: false)',
+    default: false
+end
+
+if $opts.help?
+  puts($opts.to_s)
+  exit(0)
 end
 
 def log(line)
