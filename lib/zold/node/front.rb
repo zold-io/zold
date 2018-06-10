@@ -145,6 +145,14 @@ module Zold
       }.to_json
     end
 
+    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/balance} do
+      id = Id.new(params[:id])
+      wallet = settings.wallets.find(id)
+      error 404 unless wallet.exists?
+      content_type 'text/plain'
+      wallet.balance.to_i.to_s
+    end
+
     put %r{/wallet/(?<id>[A-Fa-f0-9]{16})/?} do
       id = Id.new(params[:id])
       wallet = settings.wallets.find(id)
