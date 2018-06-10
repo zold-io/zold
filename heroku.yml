@@ -1,6 +1,8 @@
 build:
   languages:
     - ruby
+  post:
+    - curl -f --connect-timeout 15 --retry 5 --retry-delay 30 http://b1.zold.io > /dev/null
 run:
   web: |
     LC_ALL=UTF-8 ./bin/zold node --no-colors --verbose --trace \
