@@ -99,10 +99,10 @@ Then, open the page `4.4.4.4:4096` in your browser
 [IP firewall](https://www.howtogeek.com/177621/the-beginners-guide-to-iptables-the-linux-firewall/)).
 If you see a simple JSON document, everything is fine.
 Next, hit <kbd>Ctrl</kbd>+<kbd>c</kbd> and run it again, but instead
-of `zold` say `zold-nohup` and add an ampersand (`&`) at the end:
+of `zold` say `zold-nohup`:
 
 ```bash
-$ zold-nohup node --trace --verbose --invoice=5f96e731e48ae21f --host=4.4.4.4 &
+$ zold-nohup node --trace --verbose --invoice=5f96e731e48ae21f --host=4.4.4.4
 ```
 
 Now you can close console, it will work in the background, saving the

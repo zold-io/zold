@@ -77,6 +77,8 @@ module Zold
               end
               s = @scores.pop
               next unless s.valid?
+              next unless s.host == host
+              next unless s.port == port
               next if s.expired?(20)
               next if s.strength < strength
               @semaphore.synchronize do
