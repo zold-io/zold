@@ -33,13 +33,13 @@ module Zold
       @threads = []
     end
 
-    def add(seconds = 60)
+    def add(minutes = 1)
       @threads << Thread.start do
         VerboseThread.new(@log).run(true) do
           Thread.current.name = 'routines'
           count = 0
           loop do
-            sleep(seconds)
+            sleep(minutes * 60)
             yield count
             count += 1
           end

@@ -27,6 +27,7 @@ require_relative '../verbose_thread'
 require_relative '../node/entrance'
 require_relative '../node/front'
 require_relative '../node/farm'
+require_relative 'pull'
 require_relative 'push'
 require_relative 'pay'
 
@@ -52,8 +53,8 @@ module Zold
         o.integer '--bind-port',
           "TCP port to listen on (default: #{Remotes::PORT})",
           default: Remotes::PORT
-        o.string '--host', 'Host name (default: 127.0.0.1)',
-          default: '127.0.0.1'
+        o.string '--host', "Host name (default: #{ip})",
+          default: ip
         o.string '--home', 'Home directory (default: .)',
           default: Dir.pwd
         o.integer '--strength',
@@ -128,7 +129,7 @@ module Zold
         threads: opts[:threads], strength: opts[:strength]
       )
       Front.set(:farm, farm)
-      routines = routines(wallets, remotes, farm, opts)
+      routines = routines(wallets, remotes, copies, farm, opts)
       @log.debug("Starting up the web front at http://#{opts[:host]}:#{opts[:port]}...")
       begin
         Front.run!
@@ -140,7 +141,7 @@ module Zold
 
     private
 
-    def routines(wallets, remotes, farm, opts)
+    def routines(wallets, remotes, copies, farm, opts)
       routines = Routines.new(@log)
       routines.add do
         require_relative 'remote'
@@ -151,7 +152,7 @@ module Zold
         )
       end
       if opts['bonus-wallet']
-        routines.add do
+        routines.add(60) do
           require_relative 'remote'
           winners = Remote.new(remotes: remotes, log: @log, farm: farm).run(
             ['remote', 'elect', opts['bonus-wallet'], '--private-key', opts['private-key']]
@@ -160,6 +161,9 @@ module Zold
             @log.info('No winners elected, won\'t pay any bonuses')
           else
             winners.each do |score|
+              Pull.new(wallets: wallets, remotes: remotes, copies: copies, log: @log).run(
+                ['pull', opts['bonus-wallet']]
+              )
               Pay.new(wallets: wallets, remotes: remotes, log: @log).run(
                 [
                   'pay', opts['bonus-wallet'], score.invoice, opts['bonus-amount'],
@@ -175,6 +179,13 @@ module Zold
         end
       end
       routines
+    end
+
+    def ip
+      addr = Socket.ip_address_list.detect do |i|
+        i.ipv4? && !i.ipv4_loopback? && !i.ipv4_multicast? && !i.ipv4_private?
+      end
+      addr.nil? ? '127.0.0.1' : addr.ip_address
     end
 
     # Fake logging facility for Webrick

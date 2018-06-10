@@ -55,7 +55,7 @@ end
 
 def exec(cmd)
   Open3.popen2e(cmd) do |stdin, stdout, thr|
-    log("Started: #{cmd}")
+    log("Started: #{cmd}\n")
     stdin.close
     loop do
       line = stdout.gets
@@ -63,7 +63,7 @@ def exec(cmd)
       log(line)
     end
     code = thr.value.exitstatus
-    log("Exit code is #{code}: #{cmd}")
+    log("Exit code is #{code}: #{cmd}\n")
     raise "Exit code #{code} (non zero)" unless code.zero?
   end
 end
@@ -72,10 +72,10 @@ File.delete($opts['log-file']) if File.exist?($opts['log-file']) && !$opts['skip
 
 $pid = fork do
   Signal.trap('HUP') do
-    print('Received HUP, ignoring...')
+    log('Received HUP, ignoring...')
   end
   Signal.trap('TERM') do
-    print('Received TERM, terminating...')
+    log('Received TERM, terminating...')
     exit(-1)
   end
   loop do
