@@ -65,14 +65,9 @@ Available options:"
     def diff(wallet, cps, _)
       raise "There are no remote copies, try 'zold fetch' first" if cps.all.empty?
       cps = cps.all.sort_by { |c| c[:score] }.reverse
-      patch = Patch.new
+      patch = Patch.new(log: @log)
       cps.each do |c|
-        begin
-          patch.join(Wallet.new(c[:path]))
-        rescue StandardError => e
-          @log.error("Can't use a copy of #{wallet.id} from #{c[:host]}:#{c[:port]}; #{e.class.name}: #{e.message}")
-          @log.debug(e.backtrace.join("\n\t"))
-        end
+        patch.join(Wallet.new(c[:path]))
       end
       before = AtomicFile.new(wallet.path).read
       after = ''

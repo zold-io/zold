@@ -18,6 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require_relative 'log'
 require_relative 'wallet'
 require_relative 'signature'
 require_relative 'atomic_file'
@@ -30,6 +31,10 @@ require_relative 'atomic_file'
 module Zold
   # A patch
   class Patch
+    def initialize(log: Log::Quiet.new)
+      @log = log
+    end
+
     def to_s
       return 'empty' if @id.nil?
       "#{@txns.count} txns"
@@ -40,6 +45,7 @@ module Zold
         @id = wallet.id
         @key = wallet.key
         @txns = wallet.txns
+        @log.debug("The baseline: #{@txns.count} transactions, the balance is #{wallet.balance}")
         @network = wallet.network
       end
       if wallet.network != @network
@@ -51,17 +57,28 @@ module Zold
       max = negative.empty? ? 0 : negative.max_by(&:id).id
       wallet.txns.each do |txn|
         next if @txns.find { |t| t == txn }
-        next if
-          txn.amount.negative? && !@txns.empty? &&
-          (txn.id <= max ||
-          @txns.find { |t| t.id == txn.id } ||
-          @txns.map(&:amount).inject(&:+) < txn.amount)
-        if !txn.amount.negative? && !txn.sign.empty?
-          raise "RSA signature is redundant at ##{txn.id} of #{wallet.id}: #{txn.to_text}"
+        if txn.amount.negative?
+          if txn.id <= max
+            @log.debug("Transaction ID is less than max #{max}: #{txn.to_text}")
+            next
+          end
+          if @txns.find { |t| t.id == txn.id }
+            @log.debug("Transaction ##{txn.id} already exists: #{txn.to_text}")
+            next
+          end
+          if !@txns.empty? && @txns.map(&:amount).inject(&:+) < txn.amount
+            @log.debug("Transaction ##{txn.id} attempts to make the balance negative: #{txn.to_text}")
+            next
+          end
+          unless Signature.new.valid?(@key, wallet.id, txn)
+            @log.debug("Invalid RSA signature at transaction ##{txn.id} of #{wallet.id}: #{txn.to_text}")
+            next
+          end
+        elsif !txn.sign.nil? && !txn.sign.empty?
+          @log.debug("RSA signature is redundant at ##{txn.id} of #{wallet.id}: #{txn.to_text}")
+          next
         end
-        if txn.amount.negative? && !Signature.new.valid?(@key, wallet.id, txn)
-          raise "Invalid RSA signature at transaction ##{txn.id} of #{wallet.id}: #{txn.to_text}"
-        end
+        @log.debug("Merged on top: #{txn.to_text}")
         @txns << txn
       end
     end

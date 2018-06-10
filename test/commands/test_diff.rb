@@ -53,7 +53,7 @@ class TestDiff < Minitest::Test
       diff = Zold::Diff.new(wallets: home.wallets, copies: copies.root, log: test_log).run(
         ['diff', wallet.id.to_s]
       )
-      assert(diff.include?('-0001;'))
+      assert(diff.include?('-0001;'), diff)
     end
   end
 end
