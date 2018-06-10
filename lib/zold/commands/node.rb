@@ -146,7 +146,9 @@ module Zold
         require_relative 'remote'
         Remote.new(remotes: remotes, log: @log, farm: farm).run(%w[remote add b1.zold.io 80 --force])
         Remote.new(remotes: remotes, log: @log, farm: farm).run(%w[remote trim])
-        Remote.new(remotes: remotes, log: @log, farm: farm).run(%w[remote update --reboot])
+        Remote.new(remotes: remotes, log: @log, farm: farm).run(
+          %w[remote update] + (opts['never-reboot'] ? [] : ['--reboot'])
+        )
       end
       if opts['bonus-wallet']
         routines.add do
