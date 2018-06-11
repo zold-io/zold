@@ -35,16 +35,16 @@ module Zold
 
     def add(routine)
       @threads << Thread.start do
-        VerboseThread.new(@log).run(true) do
-          Thread.current.name = routine.class.name
-          step = 0
-          loop do
-            start = Time.now
+        Thread.current.name = routine.class.name
+        step = 0
+        loop do
+          start = Time.now
+          VerboseThread.new(@log).run(true) do
             routine.exec(step)
-            sleep(1)
-            step += 1
-            @log.debug("Routine #{routine.class.name} ##{step} done in #{((Time.now - start) / 60).round(2)}s")
           end
+          sleep(1)
+          step += 1
+          @log.debug("Routine #{routine.class.name} ##{step} done in #{((Time.now - start) / 60).round(2)}s")
         end
       end
       @log.info("Added #{routine.class.name} to the metronome")

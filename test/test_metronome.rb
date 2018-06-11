@@ -28,12 +28,21 @@ require_relative '../lib/zold/metronome'
 # License:: MIT
 class TestMetronome < Minitest::Test
   def test_start_and_stop
-    routines = Zold::Metronome.new(test_log)
+    metronome = Zold::Metronome.new(test_log)
     list = []
-    routines.add(FakeRoutine.new(list))
+    metronome.add(FakeRoutine.new(list))
     sleep 0.1 while list.empty?
-    routines.stop
+    metronome.stop
     assert_equal(1, list.count)
+  end
+
+  def test_continues_even_after_error
+    metronome = Zold::Metronome.new(test_log)
+    routine = BrokenRoutine.new
+    metronome.add(routine)
+    sleep 0.1 while routine.count < 2
+    metronome.stop
+    assert(routine.count > 1)
   end
 
   class FakeRoutine
@@ -44,6 +53,14 @@ class TestMetronome < Minitest::Test
     def exec(i)
       @list << i
       sleep(6000)
+    end
+  end
+
+  class BrokenRoutine
+    attr_reader :count
+    def exec(i)
+      @count = i
+      raise
     end
   end
 end
