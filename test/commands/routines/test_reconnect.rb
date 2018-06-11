@@ -18,28 +18,26 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-gem 'openssl'
-require 'openssl'
 require 'minitest/autorun'
-require_relative '../lib/zold'
+require 'tmpdir'
+require 'webmock/minitest'
+require_relative '../../test__helper'
+require_relative '../../../lib/zold/remotes'
+require_relative '../../../lib/zold/commands/routines/reconnect.rb'
 
-STDOUT.sync = true
-
-ENV['RACK_ENV'] = 'test'
-
-require 'simplecov'
-SimpleCov.start
-if ENV['CI'] == 'true'
-  require 'codecov'
-  SimpleCov.formatter = SimpleCov::Formatter::Codecov
-end
-
-module Minitest
-  class Test
-    def test_log
-      require_relative '../lib/zold/log'
-      # @test_log = Zold::Log::Quiet.new
-      @test_log ||= Zold::Log::Verbose.new
+# Reconnect test.
+# Author:: Yegor Bugayenko (yegor256@gmail.com)
+# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# License:: MIT
+class TestReconnect < Minitest::Test
+  def test_reconnects
+    Dir.mktmpdir 'test' do |dir|
+      remotes = Zold::Remotes.new(File.join(dir, 'remotes.csv'))
+      remotes.clean
+      stub_request(:get, 'http://b1.zold.io:80/remotes').to_return(status: 404)
+      opts = { 'never-reboot' => true, 'routine-immediately' => true }
+      routine = Zold::Routines::Reconnect.new(opts, remotes, log: test_log)
+      routine.exec
     end
   end
 end

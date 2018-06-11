@@ -20,6 +20,7 @@
 
 require 'tmpdir'
 require 'webmock/minitest'
+require_relative '../fake_home'
 require_relative '../../lib/zold/log'
 require_relative '../../lib/zold/http'
 require_relative '../../lib/zold/verbose_thread'
@@ -35,36 +36,37 @@ class FakeNode
 
   def run(args = ['--standalone'])
     WebMock.allow_net_connect!
-    Dir.mktmpdir 'test' do |dir|
+    start = Dir.pwd
+    FakeHome.new.run do |home|
       server = TCPServer.new('127.0.0.1', 0)
       port = server.addr[1]
       server.close
       node = Thread.new do
         Zold::VerboseThread.new(@log).run do
           Thread.current.abort_on_exception = true
-          home = File.join(dir, 'node-home')
+          Dir.chdir(home.dir)
           require_relative '../../lib/zold/commands/node'
-          Zold::Node.new(log: @log).run(
+          Zold::Node.new(wallets: home.wallets, remotes: home.remotes, copies: home.copies.root, log: @log).run(
             [
               '--port', port.to_s,
               '--host=localhost',
               '--bind-port', port.to_s,
               '--threads=1',
-              '--home', home,
               '--invoice=NOPREFIX@ffffffffffffffff'
             ] + args
           )
         end
       end
-      home = "http://localhost:#{port}/"
-      while Zold::Http.new(home).get.code == '599' && node.alive?
+      uri = "http://localhost:#{port}/"
+      while Zold::Http.new(uri).get.code == '599' && node.alive?
         sleep 1
-        @log.debug("Waiting for #{home}...")
+        @log.debug("Waiting for #{uri}...")
       end
       begin
         yield port
       ensure
         node.exit
+        Dir.chdir(start)
       end
     end
   end

@@ -20,22 +20,30 @@
 
 require 'minitest/autorun'
 require_relative 'test__helper'
-require_relative '../lib/zold/routines'
+require_relative '../lib/zold/metronome'
 
-# Routines test.
+# Metronome test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestRoutines < Minitest::Test
+class TestMetronome < Minitest::Test
   def test_start_and_stop
-    routines = Zold::Routines.new
+    routines = Zold::Metronome.new(test_log)
     list = []
-    routines.add(0) do |i|
-      list << i
-      sleep(6000)
-    end
+    routines.add(FakeRoutine.new(list))
     sleep 0.1 while list.empty?
     routines.stop
     assert_equal(1, list.count)
+  end
+
+  class FakeRoutine
+    def initialize(list)
+      @list = list
+    end
+
+    def exec(i)
+      @list << i
+      sleep(6000)
+    end
   end
 end

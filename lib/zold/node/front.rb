@@ -47,6 +47,7 @@ module Zold
       set :lock, false
       set :show_exceptions, false
       set :server, 'webrick'
+      set :version, VERSION # to be injected at node.rb
       set :ignore_score_weakness, false # to be injected at node.rb
       set :reboot, false # to be injected at node.rb
       set :home, nil? # to be injected at node.rb
@@ -84,7 +85,7 @@ module Zold
     after do
       headers['Cache-Control'] = 'no-cache'
       headers['Connection'] = 'close'
-      headers['X-Zold-Version'] = VERSION
+      headers['X-Zold-Version'] = settings.version
       headers['Access-Control-Allow-Origin'] = '*'
       headers[Http::SCORE_HEADER] = score.reduced(16).to_s
     end
@@ -96,7 +97,7 @@ module Zold
 
     get '/version' do
       content_type 'text/plain'
-      VERSION
+      settings.version
     end
 
     get '/score' do
@@ -117,7 +118,7 @@ module Zold
     get '/' do
       content_type 'application/json'
       JSON.pretty_generate(
-        version: VERSION,
+        version: settings.version,
         score: score.to_h,
         pid: Process.pid,
         cpus: Concurrent.processor_count,
@@ -139,7 +140,7 @@ module Zold
       error 404 unless wallet.exists?
       content_type 'application/json'
       {
-        version: VERSION,
+        version: settings.version,
         score: score.to_h,
         body: AtomicFile.new(wallet.path).read
       }.to_json
@@ -172,7 +173,7 @@ module Zold
       settings.log.info("Wallet #{id} is new: #{before.length}b != #{after.length}b")
       settings.entrance.push(id, after, sync: !params[:sync].nil?)
       JSON.pretty_generate(
-        version: VERSION,
+        version: settings.version,
         score: score.to_h
       )
     end
@@ -180,7 +181,7 @@ module Zold
     get '/remotes' do
       content_type 'application/json'
       JSON.pretty_generate(
-        version: VERSION,
+        version: settings.version,
         score: score.to_h,
         all: settings.remotes.all
       )

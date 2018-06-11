@@ -18,28 +18,33 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-gem 'openssl'
-require 'openssl'
-require 'minitest/autorun'
-require_relative '../lib/zold'
+require_relative '../remote'
 
-STDOUT.sync = true
+# Reconnect routine.
+# Author:: Yegor Bugayenko (yegor256@gmail.com)
+# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# License:: MIT
+module Zold
+  # Routines module
+  module Routines
+    # Reconnect to the network
+    class Reconnect
+      def initialize(opts, remotes, log: Log::Quiet.new)
+        @opts = opts
+        @remotes = remotes
+        @log = log
+      end
 
-ENV['RACK_ENV'] = 'test'
-
-require 'simplecov'
-SimpleCov.start
-if ENV['CI'] == 'true'
-  require 'codecov'
-  SimpleCov.formatter = SimpleCov::Formatter::Codecov
-end
-
-module Minitest
-  class Test
-    def test_log
-      require_relative '../lib/zold/log'
-      # @test_log = Zold::Log::Quiet.new
-      @test_log ||= Zold::Log::Verbose.new
+      def exec(_ = 0)
+        sleep(60) unless @opts['routine-immediately']
+        unless @opts['routine-immediately']
+          Remote.new(remotes: @remotes, log: @log).run(%w[remote add b1.zold.io 80 --force])
+        end
+        Remote.new(remotes: @remotes, log: @log).run(%w[remote trim])
+        Remote.new(remotes: @remotes, log: @log).run(
+          %w[remote update] + (@opts['never-reboot'] ? [] : ['--reboot'])
+        )
+      end
     end
   end
 end

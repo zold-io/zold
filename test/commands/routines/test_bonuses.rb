@@ -18,28 +18,31 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-gem 'openssl'
-require 'openssl'
 require 'minitest/autorun'
-require_relative '../lib/zold'
+require_relative '../../test__helper'
+require_relative '../../fake_home'
+require_relative '../../../lib/zold/node/farm.rb'
+require_relative '../../../lib/zold/commands/routines/bonuses.rb'
 
-STDOUT.sync = true
-
-ENV['RACK_ENV'] = 'test'
-
-require 'simplecov'
-SimpleCov.start
-if ENV['CI'] == 'true'
-  require 'codecov'
-  SimpleCov.formatter = SimpleCov::Formatter::Codecov
-end
-
-module Minitest
-  class Test
-    def test_log
-      require_relative '../lib/zold/log'
-      # @test_log = Zold::Log::Quiet.new
-      @test_log ||= Zold::Log::Verbose.new
+# Bonuses test.
+# Author:: Yegor Bugayenko (yegor256@gmail.com)
+# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# License:: MIT
+class TestBonuses < Minitest::Test
+  def test_pays_bonuses
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      opts = {
+        'routine-immediately' => true,
+        'private-key' => 'fixtures/id_rsa',
+        'bonus-wallet' => wallet.id.to_s,
+        'bonus-amount' => 1
+      }
+      routine = Zold::Routines::Bonuses.new(
+        opts, home.wallets, home.remotes, home.copies(wallet).root,
+        Zold::Farm::Empty, log: test_log
+      )
+      routine.exec
     end
   end
 end

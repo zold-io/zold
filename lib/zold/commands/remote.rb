@@ -127,7 +127,7 @@ Available options:"
     def add(host, port, opts)
       if @remotes.exists?(host, port)
         raise "#{host}:#{port} already exists in the list" unless opts['force']
-        @log.info("#{host}:#{port} already exists in the list")
+        @log.debug("#{host}:#{port} already exists in the list")
       else
         @remotes.add(host, port)
         @log.info("#{host}:#{port} added to the list, #{@remotes.all.count} total")
@@ -141,7 +141,7 @@ Available options:"
         @log.info("#{host}:#{port} removed from the list")
       else
         raise "#{host}:#{port} is not in the list" unless opts['force']
-        @log.info("#{host}:#{port} is not in the list")
+        @log.debug("#{host}:#{port} is not in the list")
       end
       @log.info("There are #{@remotes.all.count} remote nodes in the list")
     end
@@ -209,8 +209,7 @@ it's recommended to reboot, but I don't do it because of --never-reboot")
       end
       total = @remotes.all.size
       if total.zero?
-        @log.debug("The list of remotes is #{Rainbow('empty').red}!")
-        @log.debug("Run 'zold remote add b1.zold.io` and then `zold update`")
+        @log.debug("The list of remotes is #{Rainbow('empty').red}, run 'zold reset'!")
       else
         @log.debug("There are #{total} known remotes")
       end

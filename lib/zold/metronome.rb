@@ -26,25 +26,28 @@ require_relative 'verbose_thread'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # NODE command
-  class Routines
+  # Metronome
+  class Metronome
     def initialize(log = Log::Quiet.new)
       @log = log
       @threads = []
     end
 
-    def add(minutes = 1)
+    def add(routine)
       @threads << Thread.start do
         VerboseThread.new(@log).run(true) do
-          Thread.current.name = 'routines'
-          count = 0
+          Thread.current.name = routine.class.name
+          step = 0
           loop do
-            sleep(minutes * 60)
-            yield count
-            count += 1
+            start = Time.now
+            routine.exec(step)
+            sleep(1)
+            step += 1
+            @log.debug("Routine #{routine.class.name} ##{step} done in #{((Time.now - start) / 60).round(2)}s)")
           end
         end
       end
+      @log.info("Added #{routine.class.name} to the metronome")
     end
 
     def stop

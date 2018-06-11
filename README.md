@@ -87,26 +87,25 @@ $ zold push 5f96e731e48ae21f
 That's it.
 
 You also can contribute to Zold by running a node on your server.
-In order to do that just run (with your own wallet ID, of course,
-and your own public IP address instead of `4.4.4.4`):
+In order to do that just run (with your own wallet ID, of course):
 
 ```bash
-$ zold node --trace --verbose --invoice=5f96e731e48ae21f --host=4.4.4.4
+$ zold node --invoice=5f96e731e48ae21f
 ```
 
-Then, open the page `4.4.4.4:4096` in your browser
+Then, open the page `localhost:4096` in your browser
 (you may need to open the inbound port at your
 [IP firewall](https://www.howtogeek.com/177621/the-beginners-guide-to-iptables-the-linux-firewall/)).
 If you see a simple JSON document, everything is fine.
-Next, hit <kbd>Ctrl</kbd>+<kbd>c</kbd> and run it again, but instead
-of `zold` say `zold-nohup`:
+Next, hit <kbd>Ctrl</kbd>+<kbd>c</kbd> and run it again, but with `--nohup`:
 
 ```bash
-$ zold-nohup node --trace --verbose --invoice=5f96e731e48ae21f --host=4.4.4.4
+$ zold node --nohup --invoice=5f96e731e48ae21f > log.txt
 ```
 
-Now you can close console, it will work in the background, saving the
-output logs to `nohup.out`. The software will update itself automatically to new versions.
+Now you can close the console;
+the softsare will work in the background, saving the output logs to `log.txt`.
+The software will update itself automatically to new versions.
 
 Grateful users of the system will pay "taxes" to your wallet
 for the maintenance of their wallets, and the system will occasionally
