@@ -58,6 +58,10 @@ class TestMetronome < Minitest::Test
 
   class BrokenRoutine
     attr_reader :count
+    def initialize
+      @count = 0
+    end
+
     def exec(i)
       @count = i
       raise
