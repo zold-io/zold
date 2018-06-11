@@ -199,7 +199,9 @@ module Zold
           begin
             exec("#{myself} #{args.join(' ')}", nohup_log)
             exec(opts['nohup-command'], nohup_log)
-          rescue StandardError => e
+            # rubocop:disable Lint/RescueException
+          rescue Exception => e
+            # rubocop:enable Lint/RescueException
             nohup_log.print(Backtrace.new(e).to_s)
             raise e
           end
