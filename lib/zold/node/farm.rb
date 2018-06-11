@@ -94,15 +94,18 @@ module Zold
           end
         end
       end
-      @log.debug("Farm started with #{threads} threads at #{host}:#{port}")
+      @log.info("Farm started with #{threads} threads at #{host}:#{port}")
     end
 
     def stop
+      @log.info("Terminating the farm with #{@threads.count} threads...")
+      start = Time.now
       @threads.each do |t|
+        tstart = Time.now
         t.exit
-        @log.debug("Thread #{t.name} terminated")
+        @log.info("Thread #{t.name} terminated in #{((Time.now - tstart) / 60).round(2)}s")
       end
-      @log.debug('Farm stopped')
+      @log.info("Farm stopped in #{((Time.now - start) / 60).round(2)}s")
     end
 
     private

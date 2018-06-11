@@ -168,6 +168,7 @@ module Zold
     private
 
     def exec(cmd, nohup_log)
+      start = Time.now
       Open3.popen2e(cmd) do |stdin, stdout, thr|
         nohup_log.print("Started process ##{thr.pid} from process ##{Process.pid}: #{cmd}\n")
         stdin.close
@@ -179,8 +180,10 @@ module Zold
           end
           nohup_log.print(line)
         end
+        nohup_log.print("Nothing else left to read from ##{thr.pid}\n")
         code = thr.value.to_i
-        nohup_log.print("Exit code of process ##{thr.pid} is #{code}: #{cmd}\n")
+        nohup_log.print("Exit code of process ##{thr.pid} is #{code}, was alive for \
+#{((Time.now - start) / (60 * 60)).round} min: #{cmd}\n")
         raise unless code.zero?
       end
     end

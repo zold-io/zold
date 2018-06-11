@@ -51,11 +51,14 @@ module Zold
     end
 
     def stop
+      @log.info("Terminating the metronome with #{@threads.count} threads...")
+      start = Time.now
       @threads.each do |t|
+        tstart = Time.now
         t.exit
-        @log.debug("#{t.name} thread stopped")
+        @log.info("Thread #{t.name} terminated in #{((Time.now - tstart) / 60).round(2)}s")
       end
-      @log.info("#{@threads.count} routine threads stopped")
+      @log.info("Metronome stopped in #{((Time.now - start) / 60).round(2)}s")
     end
   end
 end
