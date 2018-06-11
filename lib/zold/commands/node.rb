@@ -194,9 +194,10 @@ module Zold
           exit(-1)
         end
         myself = File.expand_path($PROGRAM_NAME)
+        args = ARGV.delete_if { |a| a.start_with?('--nohup', '--home') }
         loop do
           begin
-            exec("#{myself} #{ARGV.delete_if { |a| a.start_with?('--nohup') }.join(' ')}", nohup_log)
+            exec("#{myself} #{args.join(' ')}", nohup_log)
             exec(opts['nohup-command'], nohup_log)
           rescue StandardError => e
             nohup_log.print(Backtrace.new(e).to_s)
