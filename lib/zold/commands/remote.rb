@@ -190,7 +190,7 @@ Available options:"
           if opts['reboot']
             @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, reboot! \
 (use --never-reboot to avoid this from happening)")
-            exit(0)
+            Kernel.exit(0)
           else
             @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, \
 it's recommended to reboot, but I don't do it because of --never-reboot")

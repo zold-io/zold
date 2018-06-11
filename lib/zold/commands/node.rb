@@ -120,6 +120,8 @@ module Zold
       Front.set(:logging, @log.debug?)
       Front.set(:home, Dir.pwd)
       @log.info("Home directory: #{Dir.pwd}")
+      @log.info("Ruby version: #{RUBY_VERSION}")
+      @log.info("Zold gem version: #{Zold::VERSION}")
       Front.set(
         :server_settings,
         Logger: WebrickLog.new(@log),
