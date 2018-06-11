@@ -175,6 +175,6 @@ Available options:"
   end
 rescue StandardError => ex
   log.error("#{ex.message} (#{ex.class.name})")
-  puts ex.backtrace if opts['trace']
+  puts(ex.backtrace) if opts['trace']
   exit -1
 end

@@ -25,6 +25,7 @@ require 'sinatra/base'
 require 'webrick'
 require 'diffy'
 require 'concurrent'
+require_relative '../backtrace'
 require_relative '../version'
 require_relative '../wallet'
 require_relative '../log'
@@ -203,7 +204,7 @@ module Zold
       status 503
       e = env['sinatra.error']
       content_type 'text/plain'
-      "#{e.message}\n\t#{e.backtrace.join("\n\t")}"
+      Backtrace.new(e).to_s
     end
 
     private

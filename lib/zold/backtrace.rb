@@ -18,25 +18,19 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative 'log'
-require_relative 'backtrace'
-
-# Verbose thread.
+# Backtrace.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # Verbose thread
-  class VerboseThread
-    def initialize(log = Log::Quiet.new)
-      @log = log
+  # Backtrace of an exception
+  class Backtrace
+    def initialize(error)
+      @error = error
     end
 
-    def run(safe = false)
-      yield
-    rescue StandardError => e
-      @log.error(Backtrace.new(e).to_s)
-      raise e unless safe
+    def to_s
+      "#{@error.class.name}: #{@error.message}\n#{@error.backtrace.join("\n\t")}"
     end
   end
 end

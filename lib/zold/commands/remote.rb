@@ -163,6 +163,7 @@ Available options:"
           scores << score
         end
       end
+      @log.info("No winners elected out of #{@remotes.all.count} remotes") if scores.empty?
       scores
     end
 

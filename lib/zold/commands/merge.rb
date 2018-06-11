@@ -21,6 +21,7 @@
 require 'slop'
 require 'rainbow'
 require_relative 'args'
+require_relative '../backtrace'
 require_relative '../log'
 require_relative '../id'
 require_relative '../wallet'
@@ -90,8 +91,8 @@ Available options:"
     def merge_one(patch, wallet, name)
       patch.join(wallet)
     rescue StandardError => e
-      @log.error("Can't merge a copy coming from #{name}; #{e.class.name}: #{e.message}")
-      @log.debug(e.backtrace.join("\n\t"))
+      @log.error("Can't merge a copy coming from #{name}: #{e.message}")
+      @log.debug(Backtrace.new(e).to_s)
     end
   end
 end

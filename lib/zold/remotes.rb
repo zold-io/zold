@@ -21,6 +21,7 @@
 require 'csv'
 require 'uri'
 require 'fileutils'
+require_relative 'backtrace'
 require_relative 'node/farm'
 require_relative 'atomic_file'
 
@@ -157,7 +158,7 @@ module Zold
           error(r[:host], r[:port])
           errors = errors(r[:host], r[:port])
           log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message}; errors=#{errors}")
-          log.debug(e.backtrace[0..5].join("\n\t"))
+          log.debug(Backtrace.new(e).to_s)
           remove(r[:host], r[:port]) if errors > Remotes::TOLERANCE
         end
       end

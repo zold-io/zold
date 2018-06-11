@@ -42,17 +42,14 @@ module Zold
       end
 
       def exec(_ = 0)
-        sleep(60 * 60) unless @opts['routine-immediately']
+        sleep(10 * 60) unless @opts['routine-immediately']
         raise '--private-key is required to pay bonuses' unless @opts['private-key']
         raise '--bonus-wallet is required to pay bonuses' unless @opts['bonus-wallet']
         raise '--bonus-amount is required to pay bonuses' unless @opts['bonus-amount']
         winners = Remote.new(remotes: @remotes, log: @log, farm: @farm).run(
           ['remote', 'elect', @opts['bonus-wallet'], '--private-key', @opts['private-key']]
         )
-        if winners.empty?
-          @log.info('No winners elected, won\'t pay any bonuses')
-          return
-        end
+        return if winners.empty?
         winners.each do |score|
           Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
             ['pull', opts['bonus-wallet']]

@@ -21,6 +21,7 @@
 require 'slop'
 require_relative '../version'
 require_relative '../score'
+require_relative '../backtrace'
 require_relative '../metronome'
 require_relative '../wallets'
 require_relative '../remotes'
@@ -169,12 +170,16 @@ module Zold
         nohup_log.print("Started process ##{thr.pid} from process ##{Process.pid}: #{cmd}\n")
         stdin.close
         until stdout.eof?
-          line = stdout.gets
+          begin
+            line = stdout.gets
+          rescue IOError => e
+            line = Backtrace.new(e).to_s
+          end
           nohup_log.print(line)
         end
         code = thr.value.to_i
         nohup_log.print("Exit code of process ##{thr.pid} is #{code}: #{cmd}\n")
-        raise "Exit code #{code} (non zero)" unless code.zero?
+        raise unless code.zero?
       end
     end
 
@@ -190,9 +195,12 @@ module Zold
         end
         myself = File.expand_path($PROGRAM_NAME)
         loop do
-          VerboseThread.new.run do
+          begin
             exec("#{myself} #{ARGV.delete_if { |a| a.start_with?('--nohup') }.join(' ')}", nohup_log)
             exec(opts['nohup-command'], nohup_log)
+          rescue StandardError => e
+            nohup_log.print(Backtrace.new(e).to_s)
+            raise e
           end
         end
       end
