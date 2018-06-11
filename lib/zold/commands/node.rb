@@ -217,7 +217,7 @@ module Zold
       metronome = Metronome.new(@log)
       unless opts[:standalone]
         require_relative 'routines/reconnect'
-        metronome.add(Routines::Reconnect.new(opts, @remotes, log: @log))
+        metronome.add(Routines::Reconnect.new(opts, @remotes, farm, log: @log))
       end
       if opts['bonus-wallet']
         require_relative 'routines/bonuses'

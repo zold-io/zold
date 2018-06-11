@@ -20,6 +20,7 @@
 
 require 'minitest/autorun'
 require 'json'
+require 'time'
 require_relative '../test__helper'
 require_relative 'fake_node'
 require_relative '../fake_home'
@@ -51,6 +52,19 @@ class FrontTest < Minitest::Test
           )
         end
       end
+    end
+  end
+
+  def test_updates_list_of_remotes
+    FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
+      score = Zold::Score.new(
+        Time.now, 'a.example.com',
+        999, 'NOPREFIX@ffffffffffffffff',
+        strength: 1
+      ).next.next.next.next
+      response = Zold::Http.new("http://localhost:#{port}/remotes", score).get
+      body = response.body
+      assert_equal(1, JSON.parse(body)['all'].count, body)
     end
   end
 

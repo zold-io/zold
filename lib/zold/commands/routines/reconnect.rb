@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require_relative '../remote'
+require_relative '../../node/farm'
 
 # Reconnect routine.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -29,9 +30,10 @@ module Zold
   module Routines
     # Reconnect to the network
     class Reconnect
-      def initialize(opts, remotes, log: Log::Quiet.new)
+      def initialize(opts, remotes, farm = Farm::Empty.new, log: Log::Quiet.new)
         @opts = opts
         @remotes = remotes
+        @farm = farm
         @log = log
       end
 
@@ -41,7 +43,7 @@ module Zold
           Remote.new(remotes: @remotes, log: @log).run(%w[remote add b1.zold.io 80 --force])
         end
         Remote.new(remotes: @remotes, log: @log).run(%w[remote trim])
-        Remote.new(remotes: @remotes, log: @log).run(
+        Remote.new(remotes: @remotes, farm: @farm, log: @log).run(
           %w[remote update] + (@opts['never-reboot'] ? [] : ['--reboot'])
         )
       end

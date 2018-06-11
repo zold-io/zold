@@ -43,7 +43,7 @@ module Zold
             routine.exec(step)
             sleep(1)
             step += 1
-            @log.debug("Routine #{routine.class.name} ##{step} done in #{((Time.now - start) / 60).round(2)}s)")
+            @log.debug("Routine #{routine.class.name} ##{step} done in #{((Time.now - start) / 60).round(2)}s")
           end
         end
       end
