@@ -100,16 +100,16 @@ If you see a simple JSON document, everything is fine.
 Next, hit <kbd>Ctrl</kbd>+<kbd>c</kbd> and run it again, but with `--nohup`:
 
 ```bash
-$ zold node --nohup --invoice=5f96e731e48ae21f > log.txt
+$ zold node --nohup --invoice=5f96e731e48ae21f
 ```
 
 Now you can close the console;
-the softsare will work in the background, saving the output logs to `log.txt`.
+the software will work in the background, saving the output logs to `zold.log`.
 The software will update itself automatically to new versions.
 
 Grateful users of the system will pay "taxes" to your wallet
 for the maintenance of their wallets, and the system will occasionally
-send you rewards for keeping the node online (approximately 1 ZLD per day).
+send you bonuses for keeping the node online (approximately 1 ZLD per day).
 
 ## Frequently Asked Questions
 
@@ -173,7 +173,49 @@ The higher the score, the better.
   * `minutes` is the age of the score, in minutes since the moment
     it was created.
 
+`pid` is the Unix process ID of the running software.
+
+`cpus` is the amount of CPUs detected on the server.
+
+`threads` is the amount of running threads vs. the total amount of
+threads in the Ruby process. If the second number is over 100 there
+is definitely something wrong with the software.
+
+`wallets` is the total number of wallets managed by the server.
+The bigger the number, the better. When the server starts, the number
+is small and it starts growing when other nodes are pushing wallets
+to your node.
+
+`remotes` is the total number of remote nodes your node is aware of.
+The bigger the number, the more "connected" your node is to the
+network. You can see the full list of nodes at `/remotes` URL of your node.
+
+`farm` is the score calculating software.
+
+  * `threads` is the amount of threads this software module is using.
+    This number is configured via the `--threads` command line option.
+    The bigger the number, the more intensively the software will use
+    your CPUs. It is recommended to make this number equal to the
+    number of CPUs available.
+
+  * `scores` is ... something not important to you.
+
+  * `best` is ... something not important to you.
+
+`entrance` is the place where all new wallets arive and get merged and pushed
+further. The health of this point is critical to the entire node. Some
+numbers it includes must be watched carefully.
+
+  * `semaphores` is the amount of locks the server maintain, one per wallet.
+    The number may be large (>100), if the node has processed a lot of wallets
+    recently. If it's larger [than 1024](https://github.com/zold-io/zold/issues/199),
+    it's a good reason to worry.
+
 To be continued...
+
+`date` is the current date and time on the server.
+
+`hours_alive` is the time in hours your server is alive without a reboot.
 
 ## How to Contribute
 
