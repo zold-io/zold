@@ -18,6 +18,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+gem 'openssl'
+require 'openssl'
+require 'minitest/autorun'
+require_relative '../lib/zold'
+
 STDOUT.sync = true
 
 ENV['RACK_ENV'] = 'test'
@@ -28,12 +33,6 @@ if ENV['CI'] == 'true'
   require 'codecov'
   SimpleCov.formatter = SimpleCov::Formatter::Codecov
 end
-
-require 'minitest/autorun'
-require_relative '../lib/zold'
-
-gem 'openssl'
-require 'openssl'
 
 module Minitest
   class Test

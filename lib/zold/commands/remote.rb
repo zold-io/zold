@@ -58,6 +58,8 @@ Available commands:
       Add a new remote node
     #{Rainbow('remote remove').green} host [port]
       Remove the remote node
+    #{Rainbow('remote elect').green}
+      Pick a random remote node as a target for a bonus awarding
     #{Rainbow('remote trim').green}
       Remote the least reliable nodes
     #{Rainbow('remote update').green}
@@ -65,6 +67,9 @@ Available commands:
 Available options:"
         o.bool '--ignore-score-weakness',
           'Don\'t complain when their score is too weak',
+          default: false
+        o.bool '--ignore-score-value',
+          'Don\'t complain when their score is too small',
           default: false
         o.bool '--force',
           'Add/remove if if this operation is not possible',
@@ -88,6 +93,8 @@ Available options:"
         add(mine[1], mine[2] ? mine[2].to_i : Remotes::PORT, opts)
       when 'remove'
         remove(mine[1], mine[2] ? mine[2].to_i : Remotes::PORT, opts)
+      when 'elect'
+        elect(opts)
       when 'trim'
         trim(opts)
       when 'update'
@@ -120,7 +127,7 @@ Available options:"
     def add(host, port, opts)
       if @remotes.exists?(host, port)
         raise "#{host}:#{port} already exists in the list" unless opts['force']
-        @log.info("#{host}:#{port} already exists in the list")
+        @log.debug("#{host}:#{port} already exists in the list")
       else
         @remotes.add(host, port)
         @log.info("#{host}:#{port} added to the list, #{@remotes.all.count} total")
@@ -134,9 +141,31 @@ Available options:"
         @log.info("#{host}:#{port} removed from the list")
       else
         raise "#{host}:#{port} is not in the list" unless opts['force']
-        @log.info("#{host}:#{port} is not in the list")
+        @log.debug("#{host}:#{port} is not in the list")
       end
       @log.info("There are #{@remotes.all.count} remote nodes in the list")
+    end
+
+    # Returns an array of Zold::Score
+    def elect(opts)
+      scores = []
+      @remotes.iterate(@log, farm: @farm) do |r|
+        res = r.http('/').get
+        r.assert_code(200, res)
+        score = Score.parse_json(JSON.parse(res.body)['score'])
+        r.assert_valid_score(score)
+        r.assert_score_ownership(score)
+        r.assert_score_strength(score) unless opts['ignore-score-weakness']
+        r.assert_score_value(score, Tax::EXACT_SCORE) unless opts['ignore-score-value']
+        scores << score
+      end
+      scores = scores.sample(1)
+      if scores.empty?
+        @log.info("No winners elected out of #{@remotes.all.count} remotes")
+      else
+        @log.info("Elected: #{scores[0]}")
+      end
+      scores
     end
 
     def trim(opts)
@@ -158,10 +187,14 @@ Available options:"
         r.assert_score_ownership(score)
         r.assert_score_strength(score) unless opts['ignore-score-weakness']
         @remotes.rescore(score.host, score.port, score.value)
-        if opts['reboot'] && Semantic::Version.new(VERSION) < Semantic::Version.new(json['version'])
-          @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, reboot! \
+        if Semantic::Version.new(VERSION) < Semantic::Version.new(json['version'])
+          if opts['reboot']
+            @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, reboot! \
 (use --never-reboot to avoid this from happening)")
-          exit(0)
+            terminate
+          end
+          @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, \
+it's recommended to reboot, but I don't do it because of --never-reboot")
         end
         if deep
           json['all'].each do |s|
@@ -177,11 +210,15 @@ Available options:"
       end
       total = @remotes.all.size
       if total.zero?
-        @log.debug("The list of remotes is #{Rainbow('empty').red}!")
-        @log.debug("Run 'zold remote add b1.zold.io` and then `zold update`")
+        @log.debug("The list of remotes is #{Rainbow('empty').red}, run 'zold reset'!")
       else
         @log.debug("There are #{total} known remotes")
       end
+    end
+
+    def terminate
+      @log.info("All threads before exit: #{Thread.list.map { |t| "#{t.name}/#{t.status}" }.join(', ')}")
+      Kernel.exit(0)
     end
   end
 end

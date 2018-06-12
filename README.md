@@ -87,30 +87,29 @@ $ zold push 5f96e731e48ae21f
 That's it.
 
 You also can contribute to Zold by running a node on your server.
-In order to do that just run (with your own wallet ID, of course,
-and your own public IP address instead of `4.4.4.4`):
+In order to do that just run (with your own wallet ID, of course):
 
 ```bash
-$ zold node --trace --verbose --invoice=5f96e731e48ae21f --host=4.4.4.4
+$ zold node --invoice=5f96e731e48ae21f
 ```
 
-Then, open the page `4.4.4.4:4096` in your browser
+Then, open the page `localhost:4096` in your browser
 (you may need to open the inbound port at your
 [IP firewall](https://www.howtogeek.com/177621/the-beginners-guide-to-iptables-the-linux-firewall/)).
 If you see a simple JSON document, everything is fine.
-Next, hit <kbd>Ctrl</kbd>+<kbd>c</kbd> and run it again, but instead
-of `zold` say `zold-nohup` and add an ampersand (`&`) at the end:
+Next, hit <kbd>Ctrl</kbd>+<kbd>c</kbd> and run it again, but with `--nohup`:
 
 ```bash
-$ zold-nohup node --trace --verbose --invoice=5f96e731e48ae21f --host=4.4.4.4 &
+$ zold node --nohup --invoice=5f96e731e48ae21f
 ```
 
-Now you can close console, it will work in the background, saving the
-output logs to `nohup.out`. The software will update itself automatically to new versions.
+Now you can close the console;
+the software will work in the background, saving the output logs to `zold.log`.
+The software will update itself automatically to new versions.
 
 Grateful users of the system will pay "taxes" to your wallet
 for the maintenance of their wallets, and the system will occasionally
-send you rewards for keeping the node online (approximately 1 ZLD per day).
+send you bonuses for keeping the node online (approximately 1 ZLD per day).
 
 ## Frequently Asked Questions
 
@@ -135,6 +134,88 @@ Yes, you can run many nodes with the same wallet ID.
 
 Yes, you can use `--threads` command line argument for your node
 and the number of threads will be as big as you wish.
+
+## JSON Details
+
+When you open up the front web page of your node, you will see a JSON document
+with a lot of technical details. Here is the explanation of the majority of them:
+
+`version` is the current version of the running software.
+The node is supposed to update update itself automatically (if you run it via `zold-nohup`)
+every time it discovers another node with a higher version.
+
+`score` is the current score your node is exposing to the network now.
+All other nodes are using this information in order to decide how much
+they can trust your node with the information it provides, about wallets.
+The higher the score, the better.
+
+  * `value` is the amount of suffixes the score contains; this is the
+    number all other nodes rely on.
+
+  * `host` is the host name of the node, it must be equal to the public
+    IP or domain name of the node; it is provided in `--host` command line
+    option of `zold-nohup`.
+
+  * `port` is the TCP port number, which usually is equal to 4096;
+    it is provided in `--port` command line option.
+
+  * `invoice` is the address of your wallet, where the system
+    will send you rewards for keeping the node online and some
+    users will pay taxes; it is provided in `--invoice` command line option.
+
+  * `time` is the ISO-8601 UTC date and time of when your node
+    started to calculate the score.
+
+  * `strength` is the amount of tailing zeros the hash contains.
+
+  * `hash` is the SHA-256 hash of the score text.
+
+  * `minutes` is the age of the score, in minutes since the moment
+    it was created.
+
+`pid` is the Unix process ID of the running software.
+
+`cpus` is the amount of CPUs detected on the server.
+
+`threads` is the amount of running threads vs. the total amount of
+threads in the Ruby process. If the second number is over 100 there
+is definitely something wrong with the software.
+
+`wallets` is the total number of wallets managed by the server.
+The bigger the number, the better. When the server starts, the number
+is small and it starts growing when other nodes are pushing wallets
+to your node.
+
+`remotes` is the total number of remote nodes your node is aware of.
+The bigger the number, the more "connected" your node is to the
+network. You can see the full list of nodes at `/remotes` URL of your node.
+
+`farm` is the score calculating software.
+
+  * `threads` is the amount of threads this software module is using.
+    This number is configured via the `--threads` command line option.
+    The bigger the number, the more intensively the software will use
+    your CPUs. It is recommended to make this number equal to the
+    number of CPUs available.
+
+  * `scores` is ... something not important to you.
+
+  * `best` is ... something not important to you.
+
+`entrance` is the place where all new wallets arive and get merged and pushed
+further. The health of this point is critical to the entire node. Some
+numbers it includes must be watched carefully.
+
+  * `semaphores` is the amount of locks the server maintain, one per wallet.
+    The number may be large (>100), if the node has processed a lot of wallets
+    recently. If it's larger [than 1024](https://github.com/zold-io/zold/issues/199),
+    it's a good reason to worry.
+
+To be continued...
+
+`date` is the current date and time on the server.
+
+`hours_alive` is the time in hours your server is alive without a reboot.
 
 ## How to Contribute
 

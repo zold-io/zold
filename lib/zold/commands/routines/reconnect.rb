@@ -18,95 +18,34 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'rainbow'
+require_relative '../remote'
+require_relative '../../node/farm'
 
-STDOUT.sync = true
-
-# The log.
+# Reconnect routine.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # Logging
-  module Log
-    # Extra verbose log
-    class Verbose
-      def debug(msg)
-        print(msg)
+  # Routines module
+  module Routines
+    # Reconnect to the network
+    class Reconnect
+      def initialize(opts, remotes, farm = Farm::Empty.new, log: Log::Quiet.new)
+        @opts = opts
+        @remotes = remotes
+        @farm = farm
+        @log = log
       end
 
-      def debug?
-        true
-      end
-
-      def info(msg)
-        print(msg)
-      end
-
-      def info?
-        true
-      end
-
-      def error(msg)
-        print("#{Rainbow('ERROR').red}: #{msg}")
-      end
-
-      private
-
-      def print(text)
-        puts(text)
-      end
-    end
-
-    # Regular log
-    class Regular
-      def debug(msg)
-        # nothing
-      end
-
-      def debug?
-        false
-      end
-
-      def info(msg)
-        print(msg)
-      end
-
-      def info?
-        true
-      end
-
-      def error(msg)
-        print("#{Rainbow('ERROR').red}: #{msg}")
-      end
-
-      private
-
-      def print(text)
-        puts(text)
-      end
-    end
-
-    # Log that doesn't log anything
-    class Quiet
-      def debug(msg)
-        # nothing to do here
-      end
-
-      def debug?
-        false
-      end
-
-      def info(msg)
-        # nothing to do here
-      end
-
-      def info?
-        false
-      end
-
-      def error(msg)
-        # nothing to do here
+      def exec(_ = 0)
+        sleep(60) unless @opts['routine-immediately']
+        unless @opts['routine-immediately']
+          Remote.new(remotes: @remotes, log: @log).run(%w[remote add b1.zold.io 80 --force])
+        end
+        Remote.new(remotes: @remotes, log: @log).run(%w[remote trim])
+        Remote.new(remotes: @remotes, farm: @farm, log: @log).run(
+          %w[remote update] + (@opts['never-reboot'] ? [] : ['--reboot'])
+        )
       end
     end
   end

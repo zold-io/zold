@@ -21,6 +21,7 @@
 require 'csv'
 require 'uri'
 require 'fileutils'
+require_relative 'backtrace'
 require_relative 'node/farm'
 require_relative 'atomic_file'
 
@@ -87,7 +88,11 @@ module Zold
       end
 
       def assert_score_strength(score)
-        raise "Score is too weak #{score.strength}" if score.strength < Score::STRENGTH
+        raise "Score is too weak #{score.strength}: #{score}" if score.strength < Score::STRENGTH
+      end
+
+      def assert_score_value(score, min)
+        raise "Score is too small (<#{min}): #{score}" if score.value < min
       end
     end
 
@@ -153,7 +158,7 @@ module Zold
           error(r[:host], r[:port])
           errors = errors(r[:host], r[:port])
           log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message}; errors=#{errors}")
-          log.debug(e.backtrace[0..5].join("\n\t"))
+          log.debug(Backtrace.new(e).to_s)
           remove(r[:host], r[:port]) if errors > Remotes::TOLERANCE
         end
       end

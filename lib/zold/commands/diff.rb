@@ -63,11 +63,10 @@ Available options:"
     private
 
     def diff(wallet, cps, _)
-      raise 'There are no remote copies, try FETCH first' if cps.all.empty?
+      raise "There are no remote copies, try 'zold fetch' first" if cps.all.empty?
       cps = cps.all.sort_by { |c| c[:score] }.reverse
-      patch = Patch.new
-      patch.start(Wallet.new(cps[0][:path]))
-      cps[1..-1].each do |c|
+      patch = Patch.new(log: @log)
+      cps.each do |c|
         patch.join(Wallet.new(c[:path]))
       end
       before = AtomicFile.new(wallet.path).read

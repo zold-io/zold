@@ -21,6 +21,7 @@
 require 'rainbow'
 require 'uri'
 require 'net/http'
+require_relative 'backtrace'
 require_relative 'version'
 require_relative 'score'
 
@@ -83,7 +84,7 @@ module Zold
       end
 
       def body
-        @ex.message + "\n" + @ex.backtrace.join("\n\t")
+        Backtrace.new(@ex).to_s
       end
 
       def code

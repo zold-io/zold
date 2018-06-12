@@ -1,5 +1,3 @@
-#!/usr/bin/env ruby
-#
 # Copyright (c) 2018 Yegor Bugayenko
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,48 +18,26 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-STDOUT.sync = true
+require 'minitest/autorun'
+require 'tmpdir'
+require 'webmock/minitest'
+require_relative '../../test__helper'
+require_relative '../../../lib/zold/remotes'
+require_relative '../../../lib/zold/commands/routines/reconnect.rb'
 
-require 'slop'
-require 'tempfile'
-require 'open3'
-
-$opts = Slop.parse(ARGV, strict: false, suppress_errors: true) do |o|
-  o.string '--log-file', 'The file to save logs into', default: 'zold-node.log'
-  o.bool '--skip-install', 'Don\'t re-install Zold gem', default: false
-  o.bool '--sudo-install', 'Install Zold gem via sudo', default: false
-end
-
-def log(line)
-  File.open($opts['log-file'], 'a') { |f| f.print(line) }
-end
-
-def exec(cmd)
-  Open3.popen2e(cmd) do |stdin, stdout, thr|
-    stdin.close
-    loop do
-      line = stdout.gets
-      break if line.nil?
-      log(line)
+# Reconnect test.
+# Author:: Yegor Bugayenko (yegor256@gmail.com)
+# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# License:: MIT
+class TestReconnect < Minitest::Test
+  def test_reconnects
+    Dir.mktmpdir 'test' do |dir|
+      remotes = Zold::Remotes.new(File.join(dir, 'remotes.csv'))
+      remotes.clean
+      stub_request(:get, 'http://b1.zold.io:80/remotes').to_return(status: 404)
+      opts = { 'never-reboot' => true, 'routine-immediately' => true }
+      routine = Zold::Routines::Reconnect.new(opts, remotes, log: test_log)
+      routine.exec
     end
-    code = thr.value.exitstatus
-    raise "Exit code #{code} (non zero)" unless code.zero?
   end
 end
-
-$pid = fork do
-  Signal.trap('HUP') do
-    print('Received HUP, ignoring...')
-  end
-  Signal.trap('TERM') do
-    print('Received TERM, terminating...')
-    exit(-1)
-  end
-  loop do
-    exec("zold #{$opts.arguments.join(' ')}")
-    exec(($opts['sudo-install'] ? 'sudo ' : '') + 'gem install zold') unless $opts['skip-install']
-  end
-end
-Process.detach($pid)
-
-puts($pid)

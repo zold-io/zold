@@ -139,6 +139,8 @@ module Zold
         suffixes: @suffixes,
         strength: @strength,
         hash: value.zero? ? nil : hash,
+        expired: expired?,
+        valid: valid?,
         minutes: ((Time.now - @time) / 60).to_i
       }
     end
@@ -152,19 +154,17 @@ module Zold
 
     def next
       raise 'This score is not valid' unless valid?
-      suffix = ScoreIndex.new(@suffixes.empty? ? prefix : hash, @strength)
-      Score.new(
-        @time, @host, @port, @invoice, @suffixes + [suffix.value],
-        strength: @strength
-      )
+      suffix = ScoreIndex.new(@suffixes.empty? ? prefix : hash, @strength).value
+      return Score.new(Time.now, @host, @port, @invoice, [], strength: @strength) if expired?
+      Score.new(@time, @host, @port, @invoice, @suffixes + [suffix], strength: @strength)
     end
 
     def age_hours
-      (Time.now - @time) / 60
+      (Time.now - @time) / (60 * 60)
     end
 
-    def expired?
-      @time < Time.now - 24 * 60 * 60
+    def expired?(hours = 24)
+      age_hours > hours
     end
 
     def prefix

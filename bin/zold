@@ -23,6 +23,10 @@
 
 STDOUT.sync = true
 
+# For debug in production, see https://github.com/frsyuki/sigdump
+ENV['SIGDUMP_SIGNAL'] = 'TSTP'
+require 'sigdump/setup'
+
 require 'slop'
 require 'rainbow'
 require_relative '../lib/zold'
@@ -38,7 +42,7 @@ require_relative '../lib/zold/remotes'
 Encoding.default_external = Encoding::UTF_8
 Encoding.default_internal = Encoding::UTF_8
 
-log = Zold::Log.new
+log = Zold::Log::Regular.new
 
 args = []
 unless ENV['RACK_ENV'] == 'test' || ARGV.find { |a| a == '--ignore-global-config' }
@@ -87,8 +91,8 @@ Available commands:
     #{Rainbow('score').green} host port strength [options]
       Generate score for the given host and port
 Available options:"
-    o.string '-d', '--dir',
-      'The directory where wallets are stored (default: .)',
+    o.string '--home',
+      "Home directory (default: #{Dir.pwd})",
       default: Dir.pwd
     o.bool '-h', '--help', 'Show these instructions'
     o.bool '--trace', 'Show full stack trace in case of a problem'
@@ -117,14 +121,17 @@ Available options:"
   args = opts.arguments
   args << '--help' if opts.help?
 
-  wallets = Zold::Wallets.new(opts['dir'])
-  remotes = Zold::Remotes.new(File.join(opts['dir'], '.zoldata/remotes'))
-  copies = File.join(opts['dir'], '.zoldata/copies')
+  FileUtils.mkdir_p(opts[:home])
+  Dir.chdir(opts[:home])
+
+  wallets = Zold::Wallets.new('.')
+  remotes = Zold::Remotes.new('./.zoldata/remotes')
+  copies = './.zoldata/copies'
 
   case command
   when 'node'
     require_relative '../lib/zold/commands/node'
-    Zold::Node.new(log: log).run(args)
+    Zold::Node.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)
   when 'create'
     require_relative '../lib/zold/commands/create'
     Zold::Create.new(wallets: wallets, log: log).run(args)
@@ -160,7 +167,7 @@ Available options:"
     Zold::Pull.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)
   when 'taxes'
     require_relative '../lib/zold/commands/taxes'
-    Zold::Taxes.new(wallets: wallets, log: log).run(args)
+    Zold::Taxes.new(wallets: wallets, remotes: remotes, log: log).run(args)
   when 'push'
     require_relative '../lib/zold/commands/push'
     Zold::Push.new(wallets: wallets, remotes: remotes, log: log).run(args)
@@ -172,6 +179,6 @@ Available options:"
   end
 rescue StandardError => ex
   log.error("#{ex.message} (#{ex.class.name})")
-  puts ex.backtrace if opts['trace']
+  puts(ex.backtrace) if opts['trace']
   exit -1
 end

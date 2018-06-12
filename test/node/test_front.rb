@@ -20,6 +20,7 @@
 
 require 'minitest/autorun'
 require 'json'
+require 'time'
 require_relative '../test__helper'
 require_relative 'fake_node'
 require_relative '../fake_home'
@@ -50,6 +51,31 @@ class FrontTest < Minitest::Test
             "Invalid response code for #{uri}: #{response.message}"
           )
         end
+      end
+    end
+  end
+
+  def test_updates_list_of_remotes
+    FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
+      score = Zold::Score.new(
+        Time.now, 'a.example.com',
+        999, 'NOPREFIX@ffffffffffffffff',
+        strength: 1
+      ).next.next.next.next
+      response = Zold::Http.new("http://localhost:#{port}/remotes", score).get
+      body = response.body
+      assert_equal(1, JSON.parse(body)['all'].count, body)
+    end
+  end
+
+  def test_renders_wallet_pages
+    FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
+      FakeHome.new.run do |home|
+        wallet = home.create_wallet
+        test_log.debug("Wallet created: #{wallet.id}")
+        response = Zold::Http.new("http://localhost:#{port}/wallet/#{wallet.id}?sync=true").put(File.read(wallet.path))
+        assert_equal('200', response.code, response.body)
+        assert_equal('0', Zold::Http.new("http://localhost:#{port}/wallet/#{wallet.id}/balance").get.body)
       end
     end
   end

@@ -23,7 +23,9 @@ STDOUT.sync = true
 require 'json'
 require 'sinatra/base'
 require 'webrick'
+require 'diffy'
 require 'concurrent'
+require_relative '../backtrace'
 require_relative '../version'
 require_relative '../wallet'
 require_relative '../log'
@@ -46,6 +48,7 @@ module Zold
       set :lock, false
       set :show_exceptions, false
       set :server, 'webrick'
+      set :version, VERSION # to be injected at node.rb
       set :ignore_score_weakness, false # to be injected at node.rb
       set :reboot, false # to be injected at node.rb
       set :home, nil? # to be injected at node.rb
@@ -83,7 +86,7 @@ module Zold
     after do
       headers['Cache-Control'] = 'no-cache'
       headers['Connection'] = 'close'
-      headers['X-Zold-Version'] = VERSION
+      headers['X-Zold-Version'] = settings.version
       headers['Access-Control-Allow-Origin'] = '*'
       headers[Http::SCORE_HEADER] = score.reduced(16).to_s
     end
@@ -95,7 +98,7 @@ module Zold
 
     get '/version' do
       content_type 'text/plain'
-      VERSION
+      settings.version
     end
 
     get '/score' do
@@ -116,7 +119,7 @@ module Zold
     get '/' do
       content_type 'application/json'
       JSON.pretty_generate(
-        version: VERSION,
+        version: settings.version,
         score: score.to_h,
         pid: Process.pid,
         cpus: Concurrent.processor_count,
@@ -126,7 +129,7 @@ module Zold
         remotes: settings.remotes.all.count,
         farm: settings.farm.to_json,
         entrance: settings.entrance.to_json,
-        date: `date  --iso-8601=seconds -u`.strip,
+        date: Time.now.utc.iso8601,
         hours_alive: ((Time.now - settings.start) / (60 * 60)).round(2),
         home: 'https://www.zold.io'
       )
@@ -138,10 +141,18 @@ module Zold
       error 404 unless wallet.exists?
       content_type 'application/json'
       {
-        version: VERSION,
+        version: settings.version,
         score: score.to_h,
         body: AtomicFile.new(wallet.path).read
       }.to_json
+    end
+
+    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/balance} do
+      id = Id.new(params[:id])
+      wallet = settings.wallets.find(id)
+      error 404 unless wallet.exists?
+      content_type 'text/plain'
+      wallet.balance.to_i.to_s
     end
 
     put %r{/wallet/(?<id>[A-Fa-f0-9]{16})/?} do
@@ -149,15 +160,21 @@ module Zold
       wallet = settings.wallets.find(id)
       request.body.rewind
       after = request.body.read.to_s
-      before = wallet.exists? ? AtomicFile.new(wallet.path).read : ''
+      before = wallet.exists? ? AtomicFile.new(wallet.path).read.to_s : ''
       if before == after
         status 304
         return
       end
+      if before != after && before.length == after.length
+        settings.log.debug(
+          "Weird... the wallet #{id} is of the same length #{after.length}, but the content is different:\n" +
+          Diffy::Diff.new(before, after, context: 0).to_s
+        )
+      end
       settings.log.info("Wallet #{id} is new: #{before.length}b != #{after.length}b")
       settings.entrance.push(id, after, sync: !params[:sync].nil?)
       JSON.pretty_generate(
-        version: VERSION,
+        version: settings.version,
         score: score.to_h
       )
     end
@@ -165,7 +182,7 @@ module Zold
     get '/remotes' do
       content_type 'application/json'
       JSON.pretty_generate(
-        version: VERSION,
+        version: settings.version,
         score: score.to_h,
         all: settings.remotes.all
       )
@@ -187,7 +204,7 @@ module Zold
       status 503
       e = env['sinatra.error']
       content_type 'text/plain'
-      "#{e.message}\n\t#{e.backtrace.join("\n\t")}"
+      Backtrace.new(e).to_s
     end
 
     private

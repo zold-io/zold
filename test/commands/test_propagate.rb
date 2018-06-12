@@ -18,96 +18,31 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'rainbow'
+require 'minitest/autorun'
+require_relative '../test__helper'
+require_relative '../fake_home'
+require_relative '../../lib/zold/amount'
+require_relative '../../lib/zold/commands/propagate'
+require_relative '../../lib/zold/commands/pay'
 
-STDOUT.sync = true
-
-# The log.
+# PROPAGATE test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # Logging
-  module Log
-    # Extra verbose log
-    class Verbose
-      def debug(msg)
-        print(msg)
-      end
-
-      def debug?
-        true
-      end
-
-      def info(msg)
-        print(msg)
-      end
-
-      def info?
-        true
-      end
-
-      def error(msg)
-        print("#{Rainbow('ERROR').red}: #{msg}")
-      end
-
-      private
-
-      def print(text)
-        puts(text)
-      end
-    end
-
-    # Regular log
-    class Regular
-      def debug(msg)
-        # nothing
-      end
-
-      def debug?
-        false
-      end
-
-      def info(msg)
-        print(msg)
-      end
-
-      def info?
-        true
-      end
-
-      def error(msg)
-        print("#{Rainbow('ERROR').red}: #{msg}")
-      end
-
-      private
-
-      def print(text)
-        puts(text)
-      end
-    end
-
-    # Log that doesn't log anything
-    class Quiet
-      def debug(msg)
-        # nothing to do here
-      end
-
-      def debug?
-        false
-      end
-
-      def info(msg)
-        # nothing to do here
-      end
-
-      def info?
-        false
-      end
-
-      def error(msg)
-        # nothing to do here
-      end
+class TestPropagate < Minitest::Test
+  def test_propagates_wallet
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      friend = home.create_wallet
+      amount = Zold::Amount.new(zld: 14.95)
+      Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: test_log).run(
+        ['pay', wallet.id.to_s, friend.id.to_s, amount.to_zld, '--force', '--private-key=fixtures/id_rsa']
+      )
+      Zold::Propagate.new(wallets: home.wallets, log: test_log).run(
+        ['merge', wallet.id.to_s]
+      )
+      assert(amount, friend.balance)
+      assert('', friend.txns[0].sign)
     end
   end
 end

@@ -21,6 +21,7 @@
 require 'tmpdir'
 require_relative '../lib/zold/id'
 require_relative '../lib/zold/wallet'
+require_relative '../lib/zold/wallets'
 require_relative '../lib/zold/key'
 
 # Fake home dir.
@@ -29,12 +30,13 @@ require_relative '../lib/zold/key'
 # License:: MIT
 class FakeHome
   attr_reader :dir
-  def initialize(dir = Dir.pwd)
+  def initialize(dir = __dir__)
     @dir = dir
   end
 
   def run
     Dir.mktmpdir 'test' do |dir|
+      FileUtils.copy(File.join(__dir__, '../fixtures/id_rsa'), File.join(dir, 'id_rsa'))
       yield FakeHome.new(dir)
     end
   end
@@ -45,11 +47,11 @@ class FakeHome
 
   def create_wallet(id = Zold::Id.new)
     wallet = Zold::Wallet.new(File.join(@dir, id.to_s))
-    wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+    wallet.init(id, Zold::Key.new(file: File.join(__dir__, '../fixtures/id_rsa.pub')))
     wallet
   end
 
-  def copies(wallet)
+  def copies(wallet = create_wallet)
     Zold::Copies.new(File.join(@dir, "copies/#{wallet.id}"))
   end
 

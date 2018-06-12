@@ -22,6 +22,7 @@ require 'minitest/autorun'
 require 'tmpdir'
 require 'webmock/minitest'
 require_relative '../test__helper'
+require_relative '../fake_home'
 require_relative '../../lib/zold/wallets'
 require_relative '../../lib/zold/amount'
 require_relative '../../lib/zold/key'
@@ -35,11 +36,9 @@ require_relative '../../lib/zold/commands/taxes'
 # License:: MIT
 class TestTaxes < Minitest::Test
   def test_pays_taxes
-    Dir.mktmpdir 'test' do |dir|
-      id = Zold::Id.new
-      wallets = Zold::Wallets.new(dir)
-      wallet = wallets.find(id)
-      wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+    FakeHome.new.run do |home|
+      wallets = home.wallets
+      wallet = home.create_wallet
       wallet.add(
         Zold::Txn.new(
           1,
@@ -48,8 +47,7 @@ class TestTaxes < Minitest::Test
           'NOPREFIX', Zold::Id.new, '-'
         )
       )
-      remotes = Zold::Remotes.new(File.join(dir, 'a/remotes'))
-      remotes.clean
+      remotes = home.remotes
       zero = Zold::Score::ZERO
       remotes.add(zero.host, zero.port)
       stub_request(:get, "http://#{zero.host}:#{zero.port}/").to_return(
@@ -60,7 +58,7 @@ class TestTaxes < Minitest::Test
       )
       Zold::Taxes.new(
         wallets: wallets, remotes: remotes, log: test_log
-      ).run(['taxes', '--private-key=fixtures/id_rsa', id.to_s])
+      ).run(['taxes', '--private-key=fixtures/id_rsa', wallet.id.to_s])
       assert_equal(Zold::Amount.new(coins: 85_856_396_247), wallet.balance)
     end
   end

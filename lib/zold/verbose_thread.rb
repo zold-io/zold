@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require_relative 'log'
+require_relative 'backtrace'
 
 # Verbose thread.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -34,8 +35,7 @@ module Zold
     def run(safe = false)
       yield
     rescue StandardError => e
-      @log.error("#{e.class.name}: #{e.message}")
-      @log.debug(e.backtrace.join("\n\t"))
+      @log.error(Backtrace.new(e).to_s)
       raise e unless safe
     end
   end

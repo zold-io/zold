@@ -18,96 +18,53 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'rainbow'
+require 'minitest/autorun'
+require_relative 'test__helper'
+require_relative '../lib/zold/metronome'
 
-STDOUT.sync = true
-
-# The log.
+# Metronome test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # Logging
-  module Log
-    # Extra verbose log
-    class Verbose
-      def debug(msg)
-        print(msg)
-      end
+class TestMetronome < Minitest::Test
+  def test_start_and_stop
+    metronome = Zold::Metronome.new(test_log)
+    list = []
+    metronome.add(FakeRoutine.new(list))
+    sleep 0.1 while list.empty?
+    metronome.stop
+    assert_equal(1, list.count)
+  end
 
-      def debug?
-        true
-      end
+  def test_continues_even_after_error
+    metronome = Zold::Metronome.new(test_log)
+    routine = BrokenRoutine.new
+    metronome.add(routine)
+    sleep 0.1 while routine.count < 2
+    metronome.stop
+    assert(routine.count > 1)
+  end
 
-      def info(msg)
-        print(msg)
-      end
-
-      def info?
-        true
-      end
-
-      def error(msg)
-        print("#{Rainbow('ERROR').red}: #{msg}")
-      end
-
-      private
-
-      def print(text)
-        puts(text)
-      end
+  class FakeRoutine
+    def initialize(list)
+      @list = list
     end
 
-    # Regular log
-    class Regular
-      def debug(msg)
-        # nothing
-      end
+    def exec(i)
+      @list << i
+      sleep(6000)
+    end
+  end
 
-      def debug?
-        false
-      end
-
-      def info(msg)
-        print(msg)
-      end
-
-      def info?
-        true
-      end
-
-      def error(msg)
-        print("#{Rainbow('ERROR').red}: #{msg}")
-      end
-
-      private
-
-      def print(text)
-        puts(text)
-      end
+  class BrokenRoutine
+    attr_reader :count
+    def initialize
+      @count = 0
     end
 
-    # Log that doesn't log anything
-    class Quiet
-      def debug(msg)
-        # nothing to do here
-      end
-
-      def debug?
-        false
-      end
-
-      def info(msg)
-        # nothing to do here
-      end
-
-      def info?
-        false
-      end
-
-      def error(msg)
-        # nothing to do here
-      end
+    def exec(i)
+      @count = i
+      raise
     end
   end
 end

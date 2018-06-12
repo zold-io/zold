@@ -21,6 +21,8 @@
 require 'slop'
 require 'rainbow'
 require_relative 'args'
+require_relative '../id'
+require_relative '../amount'
 require_relative '../log'
 
 # PAY command.
@@ -55,6 +57,9 @@ Available options:"
         o.bool '--dont-pay-taxes',
           'Don\'t pay taxes even if the wallet is in debt',
           default: false
+        o.bool '--skip-propagate',
+          'Don\'t propagate the paying wallet after successful pay',
+          default: false
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
@@ -72,11 +77,15 @@ Available options:"
       amount = Amount.new(zld: mine[2].to_f)
       details = mine[3] || '-'
       if Tax.new(from).in_debt? && !opts['dont-pay-taxes']
+        require_relative 'taxes'
         Taxes.new(wallets: @wallets, remotes: @remotes, log: @log).run(
           ['taxes', "--private-key=#{opts['private-key']}", id.to_s]
         )
       end
       pay(from, invoice, amount, details, opts)
+      return if opts['skip-propagate']
+      require_relative 'propagate'
+      Propagate.new(wallets: @wallets, log: @log).run(['propagate', from.id.to_s])
     end
 
     private

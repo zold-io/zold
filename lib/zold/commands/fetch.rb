@@ -67,11 +67,12 @@ Available options:"
 
     def fetch(id, cps, opts)
       total = 0
+      nodes = 0
       @remotes.iterate(@log) do |r|
-        fetch_one(id, r, cps, opts)
-        total += 1
+        total += fetch_one(id, r, cps, opts)
+        nodes += 1
       end
-      @log.debug("#{total} copies of #{id} fetched, there are #{cps.all.count} available locally")
+      @log.debug("#{nodes} copies of #{id} fetched for the total score of #{total}, #{cps.all.count} local copies")
     end
 
     def fetch_one(id, r, cps, opts)
@@ -97,6 +98,7 @@ Available options:"
         @log.info("#{r} returned #{body.length}b/#{wallet.txns.count}t \
 of #{id} in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green} (#{json['version']})")
       end
+      score.value
     end
   end
 end

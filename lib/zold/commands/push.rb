@@ -66,10 +66,12 @@ Available options:"
 
     def push(wallet, opts)
       total = 0
+      nodes = 0
       @remotes.iterate(@log) do |r|
         total += push_one(wallet, r, opts)
+        nodes += 1
       end
-      @log.info("Push finished, total score for #{wallet.id} is #{total}")
+      @log.info("Push finished to #{nodes} nodes, total score for #{wallet.id} is #{total}")
     end
 
     def push_one(wallet, r, opts)

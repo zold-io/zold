@@ -21,6 +21,7 @@
 require 'slop'
 require 'rainbow'
 require_relative 'args'
+require_relative '../backtrace'
 require_relative '../log'
 require_relative '../id'
 require_relative '../wallet'
@@ -65,22 +66,18 @@ Available options:"
         @log.error("There are no remote copies of #{id}, try 'zold fetch' first")
         return
       end
-      wallet = @wallets.find(id)
       cps = cps.all.sort_by { |c| c[:score] }.reverse
-      patch = Patch.new
-      main = Wallet.new(cps[0][:path])
-      patch.start(main)
-      cps[1..-1].each do |c|
-        extra = Wallet.new(c[:path])
-        if extra.network != main.network
-          @log.error("The wallet is from a different network '#{extra.network}', ours is '#{main.network}'")
-          next
-        end
-        if extra.key != main.key
-          @log.error('Public key mismatch')
-          next
-        end
-        patch.join(extra)
+      patch = Patch.new(log: @log)
+      cps.each do |c|
+        merge_one(patch, Wallet.new(c[:path]), "#{c[:host]}:#{c[:port]}")
+        @log.debug("#{c[:host]}:#{c[:port]} merged: #{patch}")
+      end
+      wallet = @wallets.find(id)
+      if wallet.exists?
+        merge_one(patch, wallet, 'localhost')
+        @log.debug("Local copy merged: #{patch}")
+      else
+        @log.debug("Local copy is absent, won't merge")
       end
       modified = patch.save(wallet.path, overwrite: true)
       if modified
@@ -89,6 +86,13 @@ Available options:"
         @log.debug("Nothing changed in #{wallet.id} after merge of #{cps.count} copies")
       end
       modified
+    end
+
+    def merge_one(patch, wallet, name)
+      patch.join(wallet)
+    rescue StandardError => e
+      @log.error("Can't merge a copy coming from #{name}: #{e.message}")
+      @log.debug(Backtrace.new(e).to_s)
     end
   end
 end

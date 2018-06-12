@@ -1,11 +1,6 @@
 #!/bin/bash
-set -x
-set -e
-shopt -s expand_aliases
 
-alias zold="$1 --ignore-global-config --trace --ignore-this-stupid-option --network=test"
-
-port=`python -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()'`
+port=$(reserve_port)
 
 mkdir server
 cd server
@@ -27,12 +22,13 @@ zold remote trim
 zold remote show
 
 zold --public-key=id_rsa.pub create 0000000000000000
-target=`zold create --public-key=id_rsa.pub`
-invoice=`zold invoice ${target}`
+target=$(zold create --public-key=id_rsa.pub)
+invoice=$(zold invoice ${target})
 zold pay --private-key=id_rsa 0000000000000000 ${invoice} 14.99 'To save the world!'
 zold propagate 0000000000000000
 zold show
 zold show 0000000000000000
+zold taxes debt 0000000000000000
 
 zold remote show
 zold push 0000000000000000 --sync

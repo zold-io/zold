@@ -2,15 +2,17 @@ assets:
   rubygems.yml: zerocracy/home#assets/rubygems.yml
   id_rsa: zerocracy/home#assets/heroku-key
   id_rsa.pub: zerocracy/home#assets/heroku-key.pub
+  bonus.key: zerocracy/home#assets/zold/bonus.key
 install: |
   sudo apt-get -y update
   sudo gem install pdd
 release:
   script: |-
-    bundle install
-    rake
+    [[ "${tag}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || exit -1
     rm -rf *.gem
     sed -i "s/0\.0\.0/${tag}/g" lib/zold/version.rb
+    bundle install
+    rake
     git add lib/zold/version.rb
     git commit -m "version set to ${tag}"
     gem build zold.gemspec
@@ -28,7 +30,8 @@ release:
     git add Gemfile.lock
     git add .gitignore
     git fetch
-    git commit -m 'ignores' && git push -f heroku $(git symbolic-ref --short HEAD):master
+    cp ../bonus.key . && git add bonus.key
+    git commit -m 'config' && git push -f heroku $(git symbolic-ref --short HEAD):master
     curl -f --connect-timeout 15 --retry 5 --retry-delay 30 http://b1.zold.io > /dev/null
 architect:
 - yegor256

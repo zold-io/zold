@@ -20,6 +20,7 @@
 
 require 'minitest/autorun'
 require_relative 'fake_home'
+require_relative 'test__helper'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/id'
 require_relative '../lib/zold/wallet'
@@ -45,13 +46,13 @@ class TestPatch < Minitest::Test
       File.write(third.path, File.read(first.path))
       t = third.sub(Zold::Amount.new(zld: 10.0), "NOPREFIX@#{Zold::Id.new}", key)
       third.add(t.inverse(first.id))
-      patch = Zold::Patch.new
-      patch.start(first)
+      patch = Zold::Patch.new(log: test_log)
+      patch.join(first)
       patch.join(second)
       patch.join(third)
       FileUtils.rm(first.path)
       assert_equal(true, patch.save(first.path))
-      assert_equal(Zold::Amount.new(zld: -53.0), first.balance)
+      assert_equal(Zold::Amount.new(zld: -43.0), first.balance)
     end
   end
 end

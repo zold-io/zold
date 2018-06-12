@@ -22,6 +22,7 @@ require 'minitest/autorun'
 require 'tmpdir'
 require 'English'
 require_relative 'test__helper'
+require_relative '../lib/zold/version'
 
 # Zold main module test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -29,12 +30,12 @@ require_relative 'test__helper'
 # License:: MIT
 class TestZold < Minitest::Test
   def test_all_scripts
-    Dir.new('fixtures/scripts').each.select { |f| f =~ /\.sh$/ }.each do |f|
+    Dir.new('fixtures/scripts').each.select { |f| f =~ /\.sh$/ && !f.start_with?('_') }.each do |f|
       Dir.mktmpdir 'test' do |dir|
         FileUtils.cp('fixtures/id_rsa.pub', dir)
         FileUtils.cp('fixtures/id_rsa', dir)
         script = File.join(dir, f)
-        FileUtils.cp("fixtures/scripts/#{f}", script)
+        File.write(script, File.read('fixtures/scripts/_head.sh') + File.read(File.join('fixtures/scripts', f)))
         bin = File.join(Dir.pwd, 'bin/zold')
         Dir.chdir(dir) do
           stdout = `/bin/bash #{f} #{bin} 2>&1`
@@ -52,7 +53,7 @@ class TestZold < Minitest::Test
 
   def test_show_version
     stdout = exec('--version')
-    assert(stdout.include?('0.0.0'))
+    assert(stdout.include?(Zold::VERSION))
   end
 
   def test_create_new_wallet

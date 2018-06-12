@@ -38,6 +38,17 @@ class TestScore < Minitest::Test
     assert_equal(64, score.hash.length)
   end
 
+  def test_drops_to_zero_when_expired
+    score = Zold::Score.new(
+      Time.now - 24 * 60 * 60,
+      'some-host', 9999, 'NOPREFIX@ffffffffffffffff',
+      strength: 50
+    ).next
+    assert(score.valid?)
+    assert(!score.expired?)
+    assert_equal(0, score.value)
+  end
+
   def test_validates_wrong_score
     score = Zold::Score.new(
       Time.parse('2017-07-19T21:24:51Z'),
@@ -106,14 +117,6 @@ class TestScore < Minitest::Test
     assert_equal(3, score.value)
     assert(score.valid?)
     assert(!score.expired?)
-  end
-
-  def test_expires_correctly
-    score = Zold::Score.new(
-      Time.now - 100 * 60 * 60, 'localhost', 443,
-      'NOPREFIX@ffffffffffffffff', strength: 2
-    ).next.next.next
-    assert(score.expired?)
   end
 
   def test_dont_expire_correctly

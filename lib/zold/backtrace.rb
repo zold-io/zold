@@ -18,96 +18,19 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'rainbow'
-
-STDOUT.sync = true
-
-# The log.
+# Backtrace.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # Logging
-  module Log
-    # Extra verbose log
-    class Verbose
-      def debug(msg)
-        print(msg)
-      end
-
-      def debug?
-        true
-      end
-
-      def info(msg)
-        print(msg)
-      end
-
-      def info?
-        true
-      end
-
-      def error(msg)
-        print("#{Rainbow('ERROR').red}: #{msg}")
-      end
-
-      private
-
-      def print(text)
-        puts(text)
-      end
+  # Backtrace of an exception
+  class Backtrace
+    def initialize(error)
+      @error = error
     end
 
-    # Regular log
-    class Regular
-      def debug(msg)
-        # nothing
-      end
-
-      def debug?
-        false
-      end
-
-      def info(msg)
-        print(msg)
-      end
-
-      def info?
-        true
-      end
-
-      def error(msg)
-        print("#{Rainbow('ERROR').red}: #{msg}")
-      end
-
-      private
-
-      def print(text)
-        puts(text)
-      end
-    end
-
-    # Log that doesn't log anything
-    class Quiet
-      def debug(msg)
-        # nothing to do here
-      end
-
-      def debug?
-        false
-      end
-
-      def info(msg)
-        # nothing to do here
-      end
-
-      def info?
-        false
-      end
-
-      def error(msg)
-        # nothing to do here
-      end
+    def to_s
+      "#{@error.class.name}: #{@error.message}\n#{@error.backtrace.join("\n\t")}"
     end
   end
 end
