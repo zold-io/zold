@@ -218,11 +218,6 @@ it's recommended to reboot, but I don't do it because of --never-reboot")
 
     def terminate
       @log.info("All threads before exit: #{Thread.list.map { |t| "#{t.name}/#{t.status}" }.join(', ')}")
-      Kernel.at_exit do
-        @log.info("About to terminate #{Thread.list.count} threads...")
-        Thread.list.each(&:exit)
-        @log.info("#{Thread.list.count} threads terminated")
-      end
       Kernel.exit(0)
     end
   end
