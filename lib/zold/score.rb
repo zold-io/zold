@@ -138,6 +138,8 @@ module Zold
         suffixes: @suffixes,
         strength: @strength,
         hash: value.zero? ? nil : hash,
+        expired: expired?,
+        valid: valid?,
         minutes: ((Time.now - @time) / 60).to_i
       }
     end
@@ -159,6 +161,7 @@ module Zold
           strength: @strength
         )
         return score if score.valid?
+        return Score.new(Time.now, @host, @port, @invoice, [], strength: @strength) if score.expired?
         idx += 1
       end
     end
