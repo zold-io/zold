@@ -24,7 +24,7 @@
 STDOUT.sync = true
 
 # For debug in production, see https://github.com/frsyuki/sigdump
-ENV['SIGDUMP_SIGNAL'] = 'TSTP'
+ENV['SIGDUMP_PATH'] = File.join(Dir.pwd, "sigdump-#{Process.pid}.log")
 require 'sigdump/setup'
 
 require 'slop'
@@ -38,6 +38,7 @@ require_relative '../lib/zold/key'
 require_relative '../lib/zold/amount'
 require_relative '../lib/zold/copies'
 require_relative '../lib/zold/remotes'
+
 
 Encoding.default_external = Encoding::UTF_8
 Encoding.default_internal = Encoding::UTF_8

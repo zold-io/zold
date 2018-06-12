@@ -11,10 +11,7 @@ pid=$!
 trap "kill -9 $pid" EXIT
 cd ..
 
-while ! nc -z localhost ${port}; do
-  sleep 0.5
-  ((c++)) && ((c==20)) && break
-done
+wait_for_port ${port}
 
 zold remote clean
 zold remote add localhost ${port}

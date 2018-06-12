@@ -20,6 +20,7 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
+require 'open3'
 require 'English'
 require_relative 'test__helper'
 require_relative '../lib/zold/version'
@@ -38,9 +39,15 @@ class TestZold < Minitest::Test
         File.write(script, File.read('fixtures/scripts/_head.sh') + File.read(File.join('fixtures/scripts', f)))
         bin = File.join(Dir.pwd, 'bin/zold')
         Dir.chdir(dir) do
-          stdout = `/bin/bash #{f} #{bin} 2>&1`
-          test_log.info(stdout)
-          assert_equal(0, $CHILD_STATUS.exitstatus)
+          Open3.popen2e("/bin/bash #{f} #{bin} 2>&1") do |stdin, stdout, thr|
+            stdin.close
+            until stdout.eof?
+              line = stdout.gets
+              test_log.debug(line)
+            end
+            code = thr.value.to_i
+            assert_equal(0, code, f)
+          end
         end
       end
     end
