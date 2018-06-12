@@ -103,9 +103,9 @@ module Zold
       @threads.each do |t|
         tstart = Time.now
         t.exit
-        @log.info("Thread #{t.name} terminated in #{((Time.now - tstart) / 60).round(2)}s")
+        @log.info("Thread #{t.name} terminated in #{(Time.now - tstart).round(2)}s")
       end
-      @log.info("Farm stopped in #{((Time.now - start) / 60).round(2)}s")
+      @log.info("Farm stopped in #{(Time.now - start).round(2)}s")
     end
 
     private

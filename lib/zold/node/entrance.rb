@@ -106,10 +106,10 @@ module Zold
         start = Time.now
         modified = push_unsafe(id, body)
         if modified.empty?
-          @log.info("Accepted #{id} in #{((Time.now - start) / 60).round(2)}s \
+          @log.info("Accepted #{id} in #{(Time.now - start).round(2)}s \
 and modified nothing (this is most likely a bug!)")
         else
-          @log.info("Accepted #{id} in #{((Time.now - start) / 60).round(2)}s and modified #{modified.join(', ')}")
+          @log.info("Accepted #{id} in #{(Time.now - start).round(2)}s and modified #{modified.join(', ')}")
         end
         modified
       end

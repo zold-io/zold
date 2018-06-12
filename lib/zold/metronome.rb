@@ -44,7 +44,7 @@ module Zold
           end
           sleep(1)
           step += 1
-          @log.debug("Routine #{routine.class.name} ##{step} done in #{((Time.now - start) / 60).round(2)}s")
+          @log.debug("Routine #{routine.class.name} ##{step} done in #{(Time.now - start).round(2)}s")
         end
       end
       @log.info("Added #{routine.class.name} to the metronome")
@@ -56,9 +56,9 @@ module Zold
       @threads.each do |t|
         tstart = Time.now
         t.exit
-        @log.info("Thread #{t.name} terminated in #{((Time.now - tstart) / 60).round(2)}s")
+        @log.info("Thread #{t.name} terminated in #{(Time.now - tstart).round(2)}s")
       end
-      @log.info("Metronome stopped in #{((Time.now - start) / 60).round(2)}s")
+      @log.info("Metronome stopped in #{(Time.now - start).round(2)}s")
     end
   end
 end

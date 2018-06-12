@@ -28,38 +28,11 @@ STDOUT.sync = true
 # License:: MIT
 module Zold
   # Logging
-  class Log
-    MUTEX = Mutex.new
-    def self.print(text)
-      MUTEX.synchronize do
-        puts(text)
-      end
-    end
-
-    def debug(msg)
-      # nothing
-    end
-
-    def debug?
-      false
-    end
-
-    def info(msg)
-      Log.print(msg)
-    end
-
-    def info?
-      true
-    end
-
-    def error(msg)
-      Log.print("#{Rainbow('ERROR').red}: #{msg}")
-    end
-
+  module Log
     # Extra verbose log
     class Verbose
       def debug(msg)
-        Log.print(msg)
+        print(msg)
       end
 
       def debug?
@@ -67,7 +40,7 @@ module Zold
       end
 
       def info(msg)
-        Log.print(msg)
+        print(msg)
       end
 
       def info?
@@ -75,7 +48,42 @@ module Zold
       end
 
       def error(msg)
-        Log.print("#{Rainbow('ERROR').red}: #{msg}")
+        print("#{Rainbow('ERROR').red}: #{msg}")
+      end
+
+      private
+
+      def print(text)
+        puts(text)
+      end
+    end
+
+    # Regular log
+    class Regular
+      def debug(msg)
+        # nothing
+      end
+
+      def debug?
+        false
+      end
+
+      def info(msg)
+        print(msg)
+      end
+
+      def info?
+        true
+      end
+
+      def error(msg)
+        print("#{Rainbow('ERROR').red}: #{msg}")
+      end
+
+      private
+
+      def print(text)
+        puts(text)
       end
     end
 

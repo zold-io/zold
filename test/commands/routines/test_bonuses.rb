@@ -40,7 +40,7 @@ class TestBonuses < Minitest::Test
       }
       routine = Zold::Routines::Bonuses.new(
         opts, home.wallets, home.remotes, home.copies(wallet).root,
-        Zold::Farm::Empty, log: test_log
+        Zold::Farm::Empty.new, log: test_log
       )
       routine.exec
     end

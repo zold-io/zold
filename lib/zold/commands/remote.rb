@@ -149,21 +149,22 @@ Available options:"
     # Returns an array of Zold::Score
     def elect(opts)
       scores = []
-      @remotes.all.sample(1).each do |winner|
-        @remotes.iterate(@log, farm: @farm) do |r|
-          next if r.host != winner[:host] || r.port != winner[:port]
-          res = r.http('/').get
-          r.assert_code(200, res)
-          score = Score.parse_json(JSON.parse(res.body)['score'])
-          r.assert_valid_score(score)
-          r.assert_score_ownership(score)
-          r.assert_score_strength(score) unless opts['ignore-score-weakness']
-          r.assert_score_value(score, Tax::EXACT_SCORE) unless opts['ignore-score-value']
-          @log.info("Elected: #{score}")
-          scores << score
-        end
+      @remotes.iterate(@log, farm: @farm) do |r|
+        res = r.http('/').get
+        r.assert_code(200, res)
+        score = Score.parse_json(JSON.parse(res.body)['score'])
+        r.assert_valid_score(score)
+        r.assert_score_ownership(score)
+        r.assert_score_strength(score) unless opts['ignore-score-weakness']
+        r.assert_score_value(score, Tax::EXACT_SCORE) unless opts['ignore-score-value']
+        scores << score
       end
-      @log.info("No winners elected out of #{@remotes.all.count} remotes") if scores.empty?
+      scores = scores.sample(1)
+      if scores.empty?
+        @log.info("No winners elected out of #{@remotes.all.count} remotes")
+      else
+        @log.info("Elected: #{scores[0]}")
+      end
       scores
     end
 

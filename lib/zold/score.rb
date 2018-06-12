@@ -164,11 +164,11 @@ module Zold
     end
 
     def age_hours
-      (Time.now - @time) / 60
+      (Time.now - @time) / (60 * 60)
     end
 
     def expired?(hours = 24)
-      @time < Time.now - hours * 60 * 60
+      age_hours > hours
     end
 
     def prefix
