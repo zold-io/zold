@@ -47,17 +47,18 @@ module Zold
         raise '--bonus-wallet is required to pay bonuses' unless @opts['bonus-wallet']
         raise '--bonus-amount is required to pay bonuses' unless @opts['bonus-amount']
         winners = Remote.new(remotes: @remotes, log: @log, farm: @farm).run(
-          ['remote', 'elect', @opts['bonus-wallet'], '--private-key', @opts['private-key']]
+          ['remote', 'elect', @opts['bonus-wallet'], '--private-key', @opts['private-key']] +
+          (@opts['ignore-score-weakness'] ? ['--ignore-score-weakness'] : [])
         )
         return if winners.empty?
         winners.each do |score|
           Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-            ['pull', opts['bonus-wallet']]
+            ['pull', @opts['bonus-wallet']]
           )
           Pay.new(wallets: @wallets, remotes: @remotes, log: @log).run(
             [
-              'pay', @opts['bonus-wallet'], score.invoice, @opts['bonus-amount'],
-              "Hosting bonus for #{score.host}:#{score.port} #{score.value}",
+              'pay', @opts['bonus-wallet'], score.invoice, @opts['bonus-amount'].to_s,
+              "Hosting bonus for #{score.host} #{score.port} #{score.value}",
               '--private-key', @opts['private-key']
             ]
           )

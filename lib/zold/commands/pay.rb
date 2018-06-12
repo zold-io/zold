@@ -57,7 +57,7 @@ Available options:"
         o.bool '--dont-pay-taxes',
           'Don\'t pay taxes even if the wallet is in debt',
           default: false
-        o.bool '--dont-propagate',
+        o.bool '--skip-propagate',
           'Don\'t propagate the paying wallet after successful pay',
           default: false
         o.bool '--help', 'Print instructions'
@@ -82,11 +82,10 @@ Available options:"
           ['taxes', "--private-key=#{opts['private-key']}", id.to_s]
         )
       end
-      unless opts['dont-propagate']
-        require_relative 'propagate'
-        Propagate.new(wallets: @wallets, log: @log).run(['propagate', id.to_s])
-      end
       pay(from, invoice, amount, details, opts)
+      return if opts['skip-propagate']
+      require_relative 'propagate'
+      Propagate.new(wallets: @wallets, log: @log).run(['propagate', from.id.to_s])
     end
 
     private

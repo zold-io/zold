@@ -19,9 +19,13 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
+require 'webmock/minitest'
 require_relative '../../test__helper'
 require_relative '../../fake_home'
+require_relative '../../node/fake_node'
 require_relative '../../../lib/zold/node/farm.rb'
+require_relative '../../../lib/zold/commands/push'
+require_relative '../../../lib/zold/commands/pay'
 require_relative '../../../lib/zold/commands/routines/bonuses.rb'
 
 # Bonuses test.
@@ -30,19 +34,38 @@ require_relative '../../../lib/zold/commands/routines/bonuses.rb'
 # License:: MIT
 class TestBonuses < Minitest::Test
   def test_pays_bonuses
-    FakeHome.new.run do |home|
-      wallet = home.create_wallet
-      opts = {
-        'routine-immediately' => true,
-        'private-key' => 'fixtures/id_rsa',
-        'bonus-wallet' => wallet.id.to_s,
-        'bonus-amount' => 1
-      }
-      routine = Zold::Routines::Bonuses.new(
-        opts, home.wallets, home.remotes, home.copies(wallet).root,
-        Zold::Farm::Empty.new, log: test_log
-      )
-      routine.exec
+    FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
+      FakeHome.new.run do |home|
+        bank = home.create_wallet
+        Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: test_log).run(
+          ['pay', home.create_wallet.id.to_s, bank.id.to_s, '100', '--force', '--private-key=id_rsa']
+        )
+        assert_equal(Zold::Amount.new(zld: 100.0), bank.balance)
+        opts = {
+          'ignore-score-weakness' => true,
+          'routine-immediately' => true,
+          'private-key' => 'id_rsa',
+          'bonus-wallet' => bank.id.to_s,
+          'bonus-amount' => 1
+        }
+        score = Zold::Score.new(Time.now, 'fake-node.local', 999, 'NOPREFIX@ffffffffffffffff', strength: 1)
+        16.times { score = score.next }
+        remotes = home.remotes
+        remotes.add('localhost', port)
+        remotes.add(score.host, score.port)
+        stub_request(:get, "http://#{score.host}:#{score.port}/").to_return(
+          status: 200,
+          body: {
+            version: Zold::VERSION,
+            score: score.to_h
+          }.to_json
+        )
+        Zold::Routines::Bonuses.new(
+          opts, home.wallets, remotes, home.copies(bank).root,
+          Zold::Farm::Empty.new, log: test_log
+        ).exec
+        assert_equal(Zold::Amount.new(zld: 99.0), bank.balance)
+      end
     end
   end
 end
