@@ -23,6 +23,10 @@
 
 STDOUT.sync = true
 
+# For debug in production, see https://github.com/frsyuki/sigdump
+ENV['SIGDUMP_SIGNAL'] = 'TSTP'
+require 'sigdump/setup'
+
 require 'slop'
 require 'rainbow'
 require_relative '../lib/zold'

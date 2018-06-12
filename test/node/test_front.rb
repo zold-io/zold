@@ -72,6 +72,7 @@ class FrontTest < Minitest::Test
     FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
       FakeHome.new.run do |home|
         wallet = home.create_wallet
+        test_log.debug("Wallet created: #{wallet.id}")
         response = Zold::Http.new("http://localhost:#{port}/wallet/#{wallet.id}?sync=true").put(File.read(wallet.path))
         assert_equal('200', response.code, response.body)
         assert_equal('0', Zold::Http.new("http://localhost:#{port}/wallet/#{wallet.id}/balance").get.body)
