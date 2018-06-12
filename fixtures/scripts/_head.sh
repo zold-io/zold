@@ -11,8 +11,7 @@ function reserve_port {
 
 function wait_for_port {
   while ! nc -z localhost $1; do
-    sleep 1
-    ((p++))
+    ((p++)) || sleep 1
     if ((p==10)); then
       echo Port $1 is not available after $p seconds of waiting
       exit -1
@@ -22,8 +21,7 @@ function wait_for_port {
 
 function wait_for_file {
   while [ ! -f $1 ]; do
-    sleep 1
-    ((c++))
+    ((c++)) || sleep 1
     if ((c==10)); then
       echo File $1 not found, giving up after $c seconds of waiting
       exit -1
