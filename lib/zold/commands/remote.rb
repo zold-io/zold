@@ -191,11 +191,10 @@ Available options:"
           if opts['reboot']
             @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, reboot! \
 (use --never-reboot to avoid this from happening)")
-            Kernel.exit(0)
-          else
-            @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, \
-it's recommended to reboot, but I don't do it because of --never-reboot")
+            terminate
           end
+          @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, \
+it's recommended to reboot, but I don't do it because of --never-reboot")
         end
         if deep
           json['all'].each do |s|
@@ -215,6 +214,11 @@ it's recommended to reboot, but I don't do it because of --never-reboot")
       else
         @log.debug("There are #{total} known remotes")
       end
+    end
+
+    def terminate
+      @log.info("Threads: #{Thread.list.map { |t| "#{t.name}/#{t.status}" }.join(', ')}")
+      Kernel.exit(0)
     end
   end
 end
