@@ -46,7 +46,8 @@ class TestBonuses < Minitest::Test
           'routine-immediately' => true,
           'private-key' => 'id_rsa',
           'bonus-wallet' => bank.id.to_s,
-          'bonus-amount' => 1
+          'bonus-amount' => 1,
+          'bonus-time' => 0
         }
         score = Zold::Score.new(Time.now, 'fake-node.local', 999, 'NOPREFIX@ffffffffffffffff', strength: 1)
         16.times { score = score.next }

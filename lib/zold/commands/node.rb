@@ -95,6 +95,9 @@ module Zold
           default: VERSION
         o.string '--bonus-wallet',
           'The ID of the wallet to regularly send bonuses from (for nodes online)'
+        o.integer '--bonus-time',
+          'The amount of minutes to wait between bonus awards (default: 60)',
+          default: 60
         o.string '--bonus-amount',
           'The amount of ZLD to pay to each remote as a bonus',
           default: '1'

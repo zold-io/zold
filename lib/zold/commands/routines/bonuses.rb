@@ -42,7 +42,7 @@ module Zold
       end
 
       def exec(_ = 0)
-        sleep(10 * 60) unless @opts['routine-immediately']
+        sleep(@opts['bonus-time'] * 60) unless @opts['routine-immediately']
         raise '--private-key is required to pay bonuses' unless @opts['private-key']
         raise '--bonus-wallet is required to pay bonuses' unless @opts['bonus-wallet']
         raise '--bonus-amount is required to pay bonuses' unless @opts['bonus-amount']
