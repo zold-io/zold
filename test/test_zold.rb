@@ -22,6 +22,7 @@ require 'minitest/autorun'
 require 'tmpdir'
 require 'English'
 require_relative 'test__helper'
+require_relative '../lib/zold/version'
 
 # Zold main module test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -52,7 +53,7 @@ class TestZold < Minitest::Test
 
   def test_show_version
     stdout = exec('--version')
-    assert(stdout.include?('0.0.0'))
+    assert(stdout.include?(Zold::VERSION))
   end
 
   def test_create_new_wallet
