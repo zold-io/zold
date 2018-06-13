@@ -23,9 +23,11 @@
 
 STDOUT.sync = true
 
-# For debug in production, see https://github.com/frsyuki/sigdump
-ENV['SIGDUMP_PATH'] = File.join(Dir.pwd, "sigdump-#{Process.pid}.log")
-require 'sigdump/setup'
+unless Gem.win_platform?
+  # For debug in production, see https://github.com/frsyuki/sigdump
+  ENV['SIGDUMP_PATH'] = File.join(Dir.pwd, "sigdump-#{Process.pid}.log")
+  require 'sigdump/setup'
+end
 
 require 'slop'
 require 'rainbow'
