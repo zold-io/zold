@@ -218,7 +218,8 @@ it's recommended to reboot, but I don't do it because of --never-reboot")
 
     def terminate
       @log.info("All threads before exit: #{Thread.list.map { |t| "#{t.name}/#{t.status}" }.join(', ')}")
-      Kernel.exit(0)
+      require_relative '../node/front'
+      Front.stop!
     end
   end
 end
