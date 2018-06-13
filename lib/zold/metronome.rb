@@ -42,9 +42,9 @@ module Zold
           VerboseThread.new(@log).run(true) do
             routine.exec(step)
           end
-          sleep(1)
           step += 1
-          @log.debug("Routine #{routine.class.name} ##{step} done in #{(Time.now - start).round(2)}s")
+          @log.info("Routine #{routine.class.name} ##{step} done in #{(Time.now - start).round(2)}s")
+          sleep(1)
         end
       end
       @log.info("Added #{routine.class.name} to the metronome")
