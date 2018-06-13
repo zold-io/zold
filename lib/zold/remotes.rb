@@ -36,7 +36,7 @@ module Zold
     PORT = 4096
 
     # At what amount of errors we delete the remote automatically
-    TOLERANCE = 50
+    TOLERANCE = 20
 
     # Empty, for standalone mode
     class Empty
