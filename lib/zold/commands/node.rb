@@ -170,6 +170,7 @@ module Zold
 
     private
 
+    # Returns exit code
     def exec(cmd, nohup_log)
       Open3.popen2e(cmd) do |stdin, stdout, thr|
         start = Time.now
@@ -187,7 +188,7 @@ module Zold
         code = thr.value.to_i
         nohup_log.print("Exit code of process ##{thr.pid} is #{code}, was alive for \
 #{((Time.now - start) / 60).round} min: #{cmd}\n")
-        raise unless code.zero?
+        code
       end
     end
 
@@ -205,7 +206,11 @@ module Zold
         args = ARGV.delete_if { |a| a.start_with?('--nohup', '--home') }
         loop do
           begin
-            exec("#{myself} #{args.join(' ')}", nohup_log)
+            code = exec("#{myself} #{args.join(' ')}", nohup_log)
+            if code != 0
+              nohup_log.print("Let's wait for a minutes, because of the failure...")
+              sleep(60)
+            end
             exec(opts['nohup-command'], nohup_log)
           rescue StandardError => e
             nohup_log.print(Backtrace.new(e).to_s)
