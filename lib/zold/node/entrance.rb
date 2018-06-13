@@ -97,6 +97,12 @@ module Zold
       end
     end
 
+    def spread(ids)
+      return if ids.empty?
+      @push_mutex.synchronize { @modified += ids }
+      @pushes.post { push_one } if @pushes.length < 2
+    end
+
     private
 
     # Returns a list of modifed wallets (as Zold::Id)
@@ -128,10 +134,7 @@ and modified nothing (this is most likely a bug!)")
       ).run(['merge', id.to_s])
       Clean.new(wallets: @wallets, copies: copies.root, log: @log).run(['clean', id.to_s])
       copies.remove(localhost, Remotes::PORT)
-      unless modified.empty?
-        @push_mutex.synchronize { @modified += modified }
-        @pushes.post { push_one } if @pushes.length < 2
-      end
+      spread(modified)
       modified
     end
 

@@ -158,7 +158,7 @@ module Zold
         threads: opts[:threads], strength: opts[:strength]
       )
       Front.set(:farm, farm)
-      metronome = metronome(farm, opts)
+      metronome = metronome(farm, entrance, opts)
       begin
         @log.info("Starting up the web front at http://#{opts[:host]}:#{opts[:port]}...")
         Front.run!
@@ -217,8 +217,10 @@ module Zold
       pid
     end
 
-    def metronome(farm, opts)
+    def metronome(farm, entrance, opts)
       metronome = Metronome.new(@log)
+      require_relative 'routines/spread'
+      metronome.add(Routines::Spread.new(opts, @wallets, entrance, log: @log))
       unless opts[:standalone]
         require_relative 'routines/reconnect'
         metronome.add(Routines::Reconnect.new(opts, @remotes, farm, log: @log))
