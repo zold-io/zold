@@ -71,7 +71,7 @@ class FarmTest < Minitest::Test
       )
       File.write(cache, score.to_s)
       farm = Zold::Farm.new('NOPREFIX@ffffffffffffffff', cache, log: test_log)
-      farm.start(score.host, score.port, threads: 1, strength: 1)
+      farm.start(score.host, score.port, threads: 1, strength: score.strength)
       10.times do
         break if farm.best[0].value.zero?
         sleep(1)

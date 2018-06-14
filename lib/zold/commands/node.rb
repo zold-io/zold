@@ -59,8 +59,8 @@ module Zold
         o.integer '--bind-port',
           "TCP port to listen on (default: #{Remotes::PORT})",
           default: Remotes::PORT
-        o.string '--host', "Host name (default: #{ip})",
-          default: ip
+        o.string '--host',
+          'Host name (will attempt to auto-detect it, if not specified)'
         o.integer '--strength',
           "The strength of the score (default: #{Score::STRENGTH})",
           default: Score::STRENGTH
@@ -125,6 +125,9 @@ module Zold
       @log.info("Home directory: #{Dir.pwd}")
       @log.info("Ruby version: #{RUBY_VERSION}")
       @log.info("Zold gem version: #{Zold::VERSION}")
+      host = opts[:host] || ip
+      address = "#{host}:#{opts[:port]}".downcase
+      @log.info("Node location: #{address}")
       Front.set(
         :server_settings,
         Logger: WebrickLog.new(@log),
@@ -138,7 +141,6 @@ module Zold
       Front.set(:wallets, @wallets)
       Front.set(:remotes, @remotes)
       Front.set(:copies, @copies)
-      address = "#{opts[:host]}:#{opts[:port]}".downcase
       Front.set(:address, address)
       entrance = Entrance.new(@wallets, @remotes, @copies, address, log: @log)
       Front.set(:entrance, entrance)
@@ -160,7 +162,7 @@ module Zold
       Front.set(:farm, farm)
       metronome = metronome(farm, entrance, opts)
       begin
-        @log.info("Starting up the web front at http://#{opts[:host]}:#{opts[:port]}...")
+        @log.info("Starting up the web front at http://#{host}:#{opts[:port]}...")
         Front.run!
       ensure
         farm.stop
@@ -242,7 +244,8 @@ module Zold
       addr = Socket.ip_address_list.detect do |i|
         i.ipv4? && !i.ipv4_loopback? && !i.ipv4_multicast? && !i.ipv4_private?
       end
-      addr.nil? ? '127.0.0.1' : addr.ip_address
+      raise 'Can\'t detect your IP address, you have to specify it in --host' if addr.nil?
+      addr.ip_address
     end
 
     # Log facility for nohup

@@ -69,7 +69,7 @@ module Zold
           VerboseThread.new(@log).run do
             Thread.current.name = "farm-#{t}"
             loop do
-              if @scores.length < 4
+              if @scores.length < threads
                 @scores << Score.new(
                   Time.now, host, port, @invoice,
                   strength: strength
@@ -79,22 +79,22 @@ module Zold
               next unless s.valid?
               next unless s.host == host
               next unless s.port == port
-              next if s.expired?
-              next if s.strength < strength
+              next unless s.strength >= strength
+              n = s.next
               @semaphore.synchronize do
-                save(s)
                 before = @best.map(&:value).max
-                @best << s
+                save(n)
+                @best << n
                 after = @best.map(&:value).max
-                @best.reject! { |b| b.value < after }
-                @log.debug("#{Thread.current.name}: best score is #{@best[0]}") if before != after
+                @best = @best.reject(&:expired?).sort_by(&:value).reverse.take(threads)
+                @log.debug("#{Thread.current.name}: best score is #{@best[0]}") if before != after && !after.zero?
               end
-              @scores << s.next
+              @scores << n
             end
           end
         end
       end
-      @log.info("Farm started with #{threads} threads at #{host}:#{port}")
+      @log.info("Farm started with #{threads} threads at #{host}:#{port}, strength is #{strength}")
     end
 
     def stop
@@ -119,7 +119,6 @@ module Zold
         AtomicFile.new(@cache).read
           .split(/\n/)
           .map { |t| Score.parse(t) }
-          .reject(&:expired?)
           .select(&:valid?)
           .sort_by(&:value)
           .reverse
