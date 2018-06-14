@@ -79,7 +79,7 @@ module Zold
               next unless s.valid?
               next unless s.host == host
               next unless s.port == port
-              next if s.expired?(20)
+              next if s.expired?
               next if s.strength < strength
               @semaphore.synchronize do
                 save(s)
