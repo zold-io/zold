@@ -60,4 +60,24 @@ class FarmTest < Minitest::Test
       farm.stop
     end
   end
+
+  def test_drops_expired_scores_from_history
+    Dir.mktmpdir 'test' do |dir|
+      cache = File.join(dir, 'cache')
+      score = Zold::Score.new(
+        Time.parse('2017-07-19T21:24:51Z'),
+        'some-host', 9999, 'NOPREFIX@ffffffffffffffff', ['13f7f01'],
+        strength: 6
+      )
+      File.write(cache, score.to_s)
+      farm = Zold::Farm.new('NOPREFIX@ffffffffffffffff', cache, log: test_log)
+      farm.start(score.host, score.port, threads: 1, strength: 1)
+      10.times do
+        break if farm.best[0].value.zero?
+        sleep(1)
+      end
+      assert_equal(0, farm.best[0].value)
+      farm.stop
+    end
+  end
 end
