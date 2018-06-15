@@ -54,6 +54,12 @@ module Zold
       end
     end
 
+    def to_text
+      @threads.map do |t|
+        "#{t.name}: status=#{t.status}; alive=#{t.alive};\n  #{t.backtrace.join("\n  ")}"
+      end.join("\n")
+    end
+
     def to_json
       {
         threads: @threads.map do |t|
@@ -74,7 +80,7 @@ module Zold
       @log.info("#{@scores.size} scores pre-loaded, the best is: #{@best[0]}")
       @threads = (1..threads).map do |t|
         Thread.new do
-          Thread.current.name = "farm-#{t}"
+          Thread.current.name = "f#{t}"
           loop do
             VerboseThread.new(@log).run do
               cycle(host, port, strength, threads)
@@ -83,7 +89,7 @@ module Zold
         end
       end
       @threads << Thread.new do
-        Thread.current.name = 'farm-cleaner'
+        Thread.current.name = 'cleaner'
         loop do
           sleep(60) unless strength == 1 # which will only happen in tests
           VerboseThread.new(@log).run do

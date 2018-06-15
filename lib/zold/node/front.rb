@@ -196,6 +196,11 @@ module Zold
       )
     end
 
+    get '/farm' do
+      content_type 'text/plain'
+      settings.farm.to_text
+    end
+
     not_found do
       status 404
       content_type 'text/plain'
