@@ -38,7 +38,6 @@ module Zold
       end
     end
 
-    attr_reader :best
     def initialize(invoice, cache, log: Log::Quiet.new)
       @log = log
       @cache = cache
@@ -46,14 +45,22 @@ module Zold
       @scores = []
       @threads = []
       @best = []
-      @semaphore = Mutex.new
+      @mutex = Mutex.new
+    end
+
+    def best
+      @mutex.synchronize do
+        @best.to_a
+      end
     end
 
     def to_json
       {
-        threads: @threads.map { |t| "#{t.name}/#{t.status}" }.join(', '),
+        threads: @threads.map do |t|
+          "#{t.name}/#{t.status}/{t.alive? ? 'A' : 'D'}"
+        end.join(', '),
         scores: @scores.size,
-        best: @best.count,
+        best: @best.map(&:value).join(', '),
         history: history.count
       }
     end
@@ -67,17 +74,19 @@ module Zold
       @log.info("#{@scores.size} scores pre-loaded, the best is: #{@best[0]}")
       @threads = (1..threads).map do |t|
         Thread.new do
-          VerboseThread.new(@log).run do
-            Thread.current.name = "farm-#{t}"
-            loop { cycle(host, port, strength, threads) }
+          Thread.current.name = "farm-#{t}"
+          loop do
+            VerboseThread.new(@log).run do
+              cycle(host, port, strength, threads)
+            end
           end
         end
       end
       @threads << Thread.new do
-        VerboseThread.new(@log).run do
-          Thread.current.name = 'farm-cleaner'
-          loop do
-            sleep(60) unless strength == 1 # which will only happen in tests
+        Thread.current.name = 'farm-cleaner'
+        loop do
+          sleep(60) unless strength == 1 # which will only happen in tests
+          VerboseThread.new(@log).run do
             clean(host, port, strength, threads)
           end
         end
@@ -105,13 +114,18 @@ module Zold
     private
 
     def clean(host, port, strength, threads)
-      if @scores.length < threads || @best.count < threads
-        zero = Score.new(Time.now, host, port, @invoice, strength: strength)
-        @scores << zero
-        @best << zero
+      @mutex.synchronize do
+        before = @best.map(&:value).max
+        @best = @best.reject(&:expired?).sort_by(&:value).reverse
+        @best = @best.take(threads) unless threads.zero?
+        if @scores.length < threads || @best.count < threads
+          zero = Score.new(Time.now, host, port, @invoice, strength: strength)
+          @scores << zero
+          @best << zero
+        end
+        after = @best.map(&:value).max
+        @log.debug("#{Thread.current.name}: best score is #{@best[0]}") if before != after && !after.zero?
       end
-      @best = @best.reject(&:expired?).sort_by(&:value).reverse
-      @best = @best.take(threads) unless threads.zero?
     end
 
     def cycle(host, port, strength, threads)
@@ -122,14 +136,11 @@ module Zold
       return unless s.port == port
       return unless s.strength >= strength
       n = s.next
-      @semaphore.synchronize do
-        before = @best.map(&:value).max
+      @mutex.synchronize do
         save(n)
         @best << n
-        clean(host, port, strength, threads)
-        after = @best.map(&:value).max
-        @log.debug("#{Thread.current.name}: best score is #{@best[0]}") if before != after && !after.zero?
       end
+      clean(host, port, strength, threads)
       @scores << n
     end
 

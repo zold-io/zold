@@ -90,7 +90,9 @@ class FarmTest < Minitest::Test
       farm.start(score.host, score.port, threads: 1, strength: score.strength) do
         100.times do
           sleep(0.1)
-          break if farm.best[0].value.zero?
+          b = farm.best[0]
+          assert(!b.nil?)
+          break if b.value.zero?
         end
         assert_equal(0, farm.best[0].value)
       end

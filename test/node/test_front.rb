@@ -146,8 +146,8 @@ class FrontTest < Minitest::Test
         "Expected HTTP 200 OK: Found #{response.code}"
       )
       assert_operator(
-        500, :>, response['content-length'].to_i,
-        'Expected the content to be smaller than 500bytes for gzip'
+        600, :>, response['content-length'].to_i,
+        'Expected the content to be smaller than 600 bytes for gzip'
       )
     end
   end
