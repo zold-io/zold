@@ -79,7 +79,7 @@ Available options:"
       start = Time.now
       if opts['ignore-node'].include?(r.to_s)
         @log.debug("#{r} ignored because of --ignore-node")
-        return false
+        return 0
       end
       res = r.http("/wallet/#{id}").get
       raise "Wallet #{id} not found" if res.code == '404'
