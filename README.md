@@ -6,7 +6,7 @@
 [![We recommend RubyMine](http://www.elegantobjects.org/rubymine.svg)](https://www.jetbrains.com/ruby/)
 
 [![Build Status](https://travis-ci.org/zold-io/zold.svg)](https://travis-ci.org/zold-io/zold)
-[![Build status](https://ci.appveyor.com/api/projects/status/ypctxm5ohrtp2kr4?svg=true)](https://ci.appveyor.com/project/zold-io/zold)
+[![Build status](https://ci.appveyor.com/api/projects/status/15ola3lb03opv14m?svg=true)](https://ci.appveyor.com/project/yegor256/zold-wcn4o)
 [![PDD status](http://www.0pdd.com/svg?name=zold-io/zold)](http://www.0pdd.com/p?name=zold-io/zold)
 [![Gem Version](https://badge.fury.io/rb/zold.svg)](http://badge.fury.io/rb/zold)
 [![Test Coverage](https://img.shields.io/codecov/c/github/zold-io/zold.svg)](https://codecov.io/github/zold-io/zold?branch=master)
