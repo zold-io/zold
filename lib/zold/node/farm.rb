@@ -73,7 +73,16 @@ module Zold
           end
         end
       end
-      @log.info("Farm started with #{threads} threads at #{host}:#{port}, strength is #{strength}")
+      @threads << Thread.new do
+        VerboseThread.new(@log).run do
+          Thread.current.name = 'farm-cleaner'
+          loop do
+            sleep(60)
+            clean(host, port, strength, threads)
+          end
+        end
+      end
+      @log.info("Farm started with #{@threads.count} threads at #{host}:#{port}, strength is #{strength}")
       return unless block_given?
       begin
         yield
@@ -95,12 +104,17 @@ module Zold
 
     private
 
-    def cycle(host, port, strength, threads)
-      if @scores.length < threads
+    def clean(host, port, strength, threads)
+      if @scores.length < threads || @best.count < threads
         zero = Score.new(Time.now, host, port, @invoice, strength: strength)
         @scores << zero
         @best << zero
       end
+      @best = @best.reject(&:expired?).sort_by(&:value).reverse.take(threads)
+    end
+
+    def cycle(host, port, strength, threads)
+      clean(host, port, strength, threads)
       s = @scores.pop
       return unless s.valid?
       return unless s.host == host
@@ -112,7 +126,7 @@ module Zold
         save(n)
         @best << n
         after = @best.map(&:value).max
-        @best = @best.reject(&:expired?).sort_by(&:value).reverse.take(threads)
+        clean(host, port, strength, threads)
         @log.debug("#{Thread.current.name}: best score is #{@best[0]}") if before != after && !after.zero?
       end
       @scores << n
