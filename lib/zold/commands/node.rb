@@ -155,7 +155,7 @@ module Zold
         invoice = Invoice.new(wallets: @wallets, log: @log).run(['invoice', invoice])
       end
       farm = Farm.new(invoice, File.join(Dir.pwd, 'farm'), log: @log)
-      farm.start(opts[:host], opts[:port], threads: opts[:threads], strength: opts[:strength]) do
+      farm.start(host, opts[:port], threads: opts[:threads], strength: opts[:strength]) do
         Front.set(:farm, farm)
         metronome = metronome(farm, entrance, opts)
         begin

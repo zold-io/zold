@@ -123,7 +123,7 @@ module Zold
         before = @best.map(&:value).max.to_i
         @best = @best.select(&:valid?).reject(&:expired?).sort_by(&:value).reverse
         @best = @best.take(threads) unless threads.zero?
-        if @best.empty? || !threads.zero? && @best.map(&:age_hours).sort[0] > 24 / threads
+        if @best.empty? || !threads.zero? && @best.map(&:age_hours).min > 24 / threads
           @best << Score.new(Time.now, host, port, @invoice, strength: strength)
         end
         @best.sort_by(&:age_hours).each { |b| @scores << b }
