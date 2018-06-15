@@ -50,4 +50,12 @@ class TestWallets < Minitest::Test
       assert_equal(1, wallets.all.count)
     end
   end
+  
+  def test_substracts_dir_path_from_full_path 
+    FakeHome.new.run do |home|
+      wallets = home.wallets
+      assert wallets.path != wallets.to_s
+    end
+  end  
+
 end
