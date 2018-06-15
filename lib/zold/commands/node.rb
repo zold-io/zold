@@ -161,6 +161,7 @@ module Zold
         begin
           @log.info("Starting up the web front at http://#{host}:#{opts[:port]}...")
           Front.run!
+          @log.info("The web front stopped at http://#{host}:#{opts[:port]}")
         ensure
           metronome.stop
         end
