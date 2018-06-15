@@ -17,7 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
+require 'pathname'
 require_relative 'id'
 require_relative 'wallet'
 
@@ -36,7 +36,9 @@ module Zold
     #  the full path let's substract the prefix from it if it's equal
     #  to the current directory in Dir.pwd.
     def to_s
-      path
+      curr_path = Pathname.new(path)
+      dir_path = Pathname.new(Dir.pwd)
+      curr_path.relative_path_from(dir_path).to_s
     end
 
     def path
