@@ -219,7 +219,7 @@ module Zold
 
     def score
       best = settings.farm.best
-      error 404 if best.empty?
+      raise 'Score is empty, there is something wrong with the Farm!' if best.empty?
       best[0]
     end
   end

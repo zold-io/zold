@@ -54,7 +54,7 @@ module Zold
         threads: @threads.map { |t| "#{t.name}/#{t.status}" }.join(', '),
         scores: @scores.size,
         best: @best.count,
-        history: history.count,
+        history: history.count
       }
     end
 
@@ -77,7 +77,7 @@ module Zold
         VerboseThread.new(@log).run do
           Thread.current.name = 'farm-cleaner'
           loop do
-            sleep(60)
+            sleep(60) unless strength == 1 # which will only happen in tests
             clean(host, port, strength, threads)
           end
         end
@@ -110,7 +110,8 @@ module Zold
         @scores << zero
         @best << zero
       end
-      @best = @best.reject(&:expired?).sort_by(&:value).reverse.take(threads)
+      @best = @best.reject(&:expired?).sort_by(&:value).reverse
+      @best = @best.take(threads) unless threads.zero?
     end
 
     def cycle(host, port, strength, threads)
@@ -125,8 +126,8 @@ module Zold
         before = @best.map(&:value).max
         save(n)
         @best << n
-        after = @best.map(&:value).max
         clean(host, port, strength, threads)
+        after = @best.map(&:value).max
         @log.debug("#{Thread.current.name}: best score is #{@best[0]}") if before != after && !after.zero?
       end
       @scores << n
