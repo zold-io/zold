@@ -83,7 +83,7 @@ Available options:"
       content = AtomicFile.new(wallet.path).read
       response = r.http("/wallet/#{wallet.id}#{opts['sync'] ? '?sync=true' : ''}").put(content)
       if response.code == '304'
-        @log.info("#{r}: same version of #{wallet.id} there")
+        @log.info("#{r}: same version of #{wallet.id} there, in #{(Time.now - start).round(2)}s")
         return 0
       end
       r.assert_code(200, response)
