@@ -74,6 +74,12 @@ module Zold
         end
       end
       @log.info("Farm started with #{threads} threads at #{host}:#{port}, strength is #{strength}")
+      return unless block_given?
+      begin
+        yield
+      ensure
+        stop
+      end
     end
 
     def stop
@@ -114,7 +120,7 @@ module Zold
     end
 
     def save(score)
-      AtomicFile.new(@cache).write((history + [score]).map(&:to_s).join("\n"))
+      AtomicFile.new(@cache).write((history + [score]).map(&:to_s).uniq.join("\n"))
     end
 
     def history(max = 16)
