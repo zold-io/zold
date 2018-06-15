@@ -31,7 +31,9 @@ class FarmTest < Minitest::Test
       farm = Zold::Farm.new('NOPREFIX@ffffffffffffffff', File.join(dir, 'f'), log: test_log)
       farm.start('localhost', 80, threads: 4, strength: 2)
       sleep 0.1 while farm.best.empty? || farm.best[0].value.zero?
-      assert(farm.best[0].value > 0)
+      score = farm.best[0]
+      assert(!score.expired?)
+      assert(score.value > 0)
       farm.stop
     end
   end
@@ -41,6 +43,7 @@ class FarmTest < Minitest::Test
       farm = Zold::Farm.new('NOPREFIX@cccccccccccccccc', File.join(dir, 'f'), log: test_log)
       farm.start('example.com', 8080, threads: 0, strength: 1)
       score = farm.best[0]
+      assert(!score.expired?)
       assert_equal(0, score.value)
       assert_equal('example.com', score.host)
       assert_equal(8080, score.port)
@@ -55,6 +58,7 @@ class FarmTest < Minitest::Test
       farm.start('example.com', 8080, threads: 0, strength: 1)
       score = farm.best[0]
       assert_equal(0, score.value)
+      assert(!score.expired?)
       assert_equal('example.com', score.host)
       assert_equal(8080, score.port)
       farm.stop
@@ -66,15 +70,15 @@ class FarmTest < Minitest::Test
       cache = File.join(dir, 'cache')
       score = Zold::Score.new(
         Time.parse('2017-07-19T21:24:51Z'),
-        'some-host', 9999, 'NOPREFIX@ffffffffffffffff', ['13f7f01'],
+        'some-host', 9999, 'NOPREFIX@ffffffffffffffff', %w[13f7f01 b2b32b 4ade7e],
         strength: 6
       )
       File.write(cache, score.to_s)
       farm = Zold::Farm.new('NOPREFIX@ffffffffffffffff', cache, log: test_log)
       farm.start(score.host, score.port, threads: 1, strength: score.strength)
-      10.times do
+      100.times do
+        sleep(0.1)
         break if farm.best[0].value.zero?
-        sleep(1)
       end
       assert_equal(0, farm.best[0].value)
       farm.stop

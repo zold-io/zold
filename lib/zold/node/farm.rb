@@ -53,7 +53,8 @@ module Zold
       {
         threads: @threads.count,
         scores: @scores.size,
-        best: @best.count
+        best: @best.count,
+        history: history.count
       }
     end
 

@@ -201,6 +201,10 @@ network. You can see the full list of nodes at `/remotes` URL of your node.
 
   * `best` is ... something not important to you.
 
+  * `history` is the amount of scores currently saved on the disc. The
+    farm keeps them there in case the node gets restarted. It will load
+    them back and reuse.
+
 `entrance` is the place where all new wallets arive and get merged and pushed
 further. The health of this point is critical to the entire node. Some
 numbers it includes must be watched carefully.
