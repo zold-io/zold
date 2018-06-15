@@ -56,7 +56,7 @@ module Zold
 
     def to_text
       @threads.map do |t|
-        "#{t.name}: status=#{t.status}; alive=#{t.alive};\n  #{t.backtrace.join("\n  ")}"
+        "#{t.name}: status=#{t.status}; alive=#{t.alive?};\n  #{t.backtrace.join("\n  ")}"
       end.join("\n")
     end
 
@@ -66,7 +66,7 @@ module Zold
           "#{t.name}/#{t.status}/#{t.alive? ? 'A' : 'D'}"
         end.join(', '),
         scores: @scores.size,
-        best: @best.map(&:value).join(', '),
+        best: @best.map { |s| "#{s.value}/#{s.age_hours.round}" }.join(', '),
         history: history.count
       }
     end

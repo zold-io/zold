@@ -38,6 +38,15 @@ class FarmTest < Minitest::Test
     end
   end
 
+  def test_renders_in_text
+    Dir.mktmpdir 'test' do |dir|
+      farm = Zold::Farm.new('NOPREFIX@ffffffffffffffff', File.join(dir, 'f'), log: test_log)
+      farm.start('localhost', 80, threads: 2, strength: 1) do
+        assert(!farm.to_text.nil?)
+      end
+    end
+  end
+
   def test_makes_best_score_in_background
     Dir.mktmpdir 'test' do |dir|
       farm = Zold::Farm.new('NOPREFIX@ffffffffffffffff', File.join(dir, 'f'), log: test_log)
