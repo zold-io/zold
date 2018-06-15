@@ -46,6 +46,7 @@ module Zold
       @invoice = invoice
       @suffixes = suffixes
       @strength = strength
+      @created = Time.now
     end
 
     # The default no-value score.
@@ -140,7 +141,8 @@ module Zold
         hash: value.zero? ? nil : hash,
         expired: expired?,
         valid: valid?,
-        minutes: ((Time.now - @time) / 60).to_i
+        minutes: ((Time.now - @time) / 60).to_i,
+        created: @created.utc.iso8601
       }
     end
 
