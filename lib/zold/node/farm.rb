@@ -68,29 +68,7 @@ module Zold
         Thread.new do
           VerboseThread.new(@log).run do
             Thread.current.name = "farm-#{t}"
-            loop do
-              if @scores.length < threads
-                @scores << Score.new(
-                  Time.now, host, port, @invoice,
-                  strength: strength
-                )
-              end
-              s = @scores.pop
-              next unless s.valid?
-              next unless s.host == host
-              next unless s.port == port
-              next unless s.strength >= strength
-              n = s.next
-              @semaphore.synchronize do
-                before = @best.map(&:value).max
-                save(n)
-                @best << n
-                after = @best.map(&:value).max
-                @best = @best.reject(&:expired?).sort_by(&:value).reverse.take(threads)
-                @log.debug("#{Thread.current.name}: best score is #{@best[0]}") if before != after && !after.zero?
-              end
-              @scores << n
-            end
+            loop { cycle(host, port, strength, threads) }
           end
         end
       end
@@ -109,6 +87,30 @@ module Zold
     end
 
     private
+
+    def cycle(host, port, strength, threads)
+      if @scores.length < threads
+        @scores << Score.new(
+          Time.now, host, port, @invoice,
+          strength: strength
+        )
+      end
+      s = @scores.pop
+      return unless s.valid?
+      return unless s.host == host
+      return unless s.port == port
+      return unless s.strength >= strength
+      n = s.next
+      @semaphore.synchronize do
+        before = @best.map(&:value).max
+        save(n)
+        @best << n
+        after = @best.map(&:value).max
+        @best = @best.reject(&:expired?).sort_by(&:value).reverse.take(threads)
+        @log.debug("#{Thread.current.name}: best score is #{@best[0]}") if before != after && !after.zero?
+      end
+      @scores << n
+    end
 
     def save(score)
       AtomicFile.new(@cache).write((history + [score]).map(&:to_s).join("\n"))
