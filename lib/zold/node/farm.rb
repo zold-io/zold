@@ -63,7 +63,7 @@ module Zold
     def to_json
       {
         threads: @threads.map do |t|
-          "#{t.name}/#{t.status}/{t.alive? ? 'A' : 'D'}"
+          "#{t.name}/#{t.status}/#{t.alive? ? 'A' : 'D'}"
         end.join(', '),
         scores: @scores.size,
         best: @best.map(&:value).join(', '),
@@ -74,9 +74,8 @@ module Zold
     def start(host, port, strength: 8, threads: 8)
       @log.debug('Zero-threads farm won\'t score anything!') if threads.zero?
       @scores = Queue.new
-      h = history(threads)
-      h.each { |s| @scores << s }
-      @best << (h[0] || Score.new(Time.now, host, port, @invoice, strength: strength))
+      @best = history
+      clean(host, port, strength, threads)
       @log.info("#{@scores.size} scores pre-loaded, the best is: #{@best[0]}")
       @threads = (1..threads).map do |t|
         Thread.new do
@@ -121,21 +120,19 @@ module Zold
 
     def clean(host, port, strength, threads)
       @mutex.synchronize do
-        before = @best.map(&:value).max
-        @best = @best.reject(&:expired?).sort_by(&:value).reverse
+        before = @best.map(&:value).max.to_i
+        @best = @best.select(&:valid?).reject(&:expired?).sort_by(&:value).reverse
         @best = @best.take(threads) unless threads.zero?
-        if @scores.length < threads || @best.count < threads
-          zero = Score.new(Time.now, host, port, @invoice, strength: strength)
-          @scores << zero
-          @best << zero
+        if @best.empty? || !threads.zero? && @best.map(&:age_hours).sort[0] > 24 / threads
+          @best << Score.new(Time.now, host, port, @invoice, strength: strength)
         end
+        @best.sort_by(&:age_hours).each { |b| @scores << b }
         after = @best.map(&:value).max
         @log.debug("#{Thread.current.name}: best score is #{@best[0]}") if before != after && !after.zero?
       end
     end
 
     def cycle(host, port, strength, threads)
-      clean(host, port, strength, threads)
       s = @scores.pop
       return unless s.valid?
       return unless s.host == host
@@ -154,7 +151,7 @@ module Zold
       AtomicFile.new(@cache).write((history + [score]).map(&:to_s).uniq.join("\n"))
     end
 
-    def history(max = 16)
+    def history
       if File.exist?(@cache)
         AtomicFile.new(@cache).read
           .split(/\n/)
@@ -162,7 +159,6 @@ module Zold
           .select(&:valid?)
           .sort_by(&:value)
           .reverse
-          .take(max)
       else
         []
       end
