@@ -35,9 +35,9 @@ module Zold
     # @todo #70:30min Let's make it smarter. Instead of returning
     #  the full path let's substract the prefix from it if it's equal
     #  to the current directory in Dir.pwd.
-    def to_s
+    def to_s(curr_dir = Dir.pwd)
       curr_path = Pathname.new(path)
-      dir_path = Pathname.new(Dir.pwd)
+      dir_path = Pathname.new(curr_dir)
       curr_path.relative_path_from(dir_path).to_s
     end
 

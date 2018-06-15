@@ -54,7 +54,8 @@ class TestWallets < Minitest::Test
   def test_substracts_dir_path_from_full_path 
     FakeHome.new.run do |home|
       wallets = home.wallets
-      assert wallets.path != wallets.to_s
+      path = wallets.path
+      assert  wallets.to_s(path) =='.'
     end
   end  
 
