@@ -199,7 +199,7 @@ module Zold
     not_found do
       status 404
       content_type 'text/plain'
-      'Page not found'
+      "Page not found: #{request.url}"
     end
 
     error 400 do

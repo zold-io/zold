@@ -51,10 +51,10 @@ module Zold
 
     def to_json
       {
-        threads: @threads.count,
+        threads: @threads.map { |t| "#{t.name}/#{t.status}" }.join(', '),
         scores: @scores.size,
         best: @best.count,
-        history: history.count
+        history: history.count,
       }
     end
 
