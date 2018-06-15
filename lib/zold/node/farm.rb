@@ -97,10 +97,9 @@ module Zold
 
     def cycle(host, port, strength, threads)
       if @scores.length < threads
-        @scores << Score.new(
-          Time.now, host, port, @invoice,
-          strength: strength
-        )
+        zero = Score.new(Time.now, host, port, @invoice, strength: strength)
+        @scores << zero
+        @best << zero
       end
       s = @scores.pop
       return unless s.valid?

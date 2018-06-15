@@ -31,7 +31,9 @@ class FarmTest < Minitest::Test
       farm = Zold::Farm.new('NOPREFIX@ffffffffffffffff', File.join(dir, 'f'), log: test_log)
       farm.start('localhost', 80, threads: 4, strength: 2) do
         sleep 0.1 while farm.best.empty? || farm.best[0].value.zero?
-        assert(farm.to_json[:history] > 0)
+        count = 0
+        100.times { count += farm.to_json[:history] }
+        assert(count > 0)
       end
     end
   end
