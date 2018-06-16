@@ -142,6 +142,9 @@ module Zold
         AtomicFile.new(@cache).write(
           scores.select(&:valid?)
             .reject(&:expired?)
+            .sort_by(&:value)
+            .reverse
+            .uniq(&:time)
             .map(&:to_s)
             .uniq
             .join("\n")
@@ -152,13 +155,7 @@ module Zold
     def load
       @mutex.synchronize do
         if File.exist?(@cache)
-          AtomicFile.new(@cache).read
-            .split(/\n/)
-            .map { |t| Score.parse(t) }
-            .select(&:valid?)
-            .reject(&:expired?)
-            .sort_by(&:value)
-            .reverse
+          AtomicFile.new(@cache).read.split(/\n/).map { |t| Score.parse(t) }
         else
           []
         end
