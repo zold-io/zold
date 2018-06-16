@@ -121,7 +121,7 @@ module Zold
         save
       end
       scores = load
-      @pipeline << scores.min_by(&:age) if @pipeline.size < threads
+      @pipeline << scores.min_by(&:age) if @pipeline.size.zero?
       after = scores.map(&:value).max.to_i
       @log.debug("#{Thread.current.name}: best score is #{scores[0]}") if before != after && !after.zero?
     end
