@@ -63,7 +63,7 @@ module Zold
           "#{t.name}/#{t.status}/#{t.alive? ? 'A' : 'D'}"
         end.join(', '),
         pipeline: @pipeline.size,
-        best: best.map { |s| "#{s.value}/#{(s.age / 60).round}m" }.join(', ')
+        best: best.map(&:to_mnemo).join(', ')
       }
     end
 
@@ -132,6 +132,7 @@ module Zold
       return unless s.host == host
       return unless s.port == port
       return unless s.strength >= strength
+      Thread.current.name = s.to_mnemo
       save([s.next])
       cleanup(host, port, strength, threads)
     end

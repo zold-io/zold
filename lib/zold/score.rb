@@ -105,6 +105,10 @@ module Zold
       end
     end
 
+    def to_mnemo
+      "#{value}:#{(age / 60).round}m"
+    end
+
     def to_text
       pfx, bnf = @invoice.split('@')
       [
