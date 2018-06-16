@@ -1,1 +1,1 @@
-web: LC_ALL=UTF-8 heroku-run.sh
+web: LC_ALL=UTF-8 ./heroku-run.sh
