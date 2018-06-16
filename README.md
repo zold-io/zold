@@ -197,13 +197,9 @@ network. You can see the full list of nodes at `/remotes` URL of your node.
     your CPUs. It is recommended to make this number equal to the
     number of CPUs available.
 
-  * `scores` is ... something not important to you.
+  * `pipeline` is ... something not important to you.
 
-  * `best` is ... something not important to you.
-
-  * `history` is the amount of scores currently saved on the disc. The
-    farm keeps them there in case the node gets restarted. It will load
-    them back and reuse.
+  * `best` is the list of scores known to the farm at the moment (with their ages in minutes).
 
 `entrance` is the place where all new wallets arive and get merged and pushed
 further. The health of this point is critical to the entire node. Some
