@@ -141,7 +141,7 @@ module Zold
         hash: value.zero? ? nil : hash,
         expired: expired?,
         valid: valid?,
-        minutes: ((Time.now - @time) / 60).to_i,
+        age: (age / 60).round,
         created: @created.utc.iso8601
       }
     end
@@ -168,12 +168,12 @@ module Zold
       end
     end
 
-    def age_hours
-      (Time.now - @time) / (60 * 60)
+    def age
+      Time.now - @time
     end
 
     def expired?(hours = 24)
-      age_hours > hours
+      age > hours * 60 * 60
     end
 
     def prefix

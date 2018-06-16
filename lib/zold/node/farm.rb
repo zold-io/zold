@@ -66,7 +66,7 @@ module Zold
           "#{t.name}/#{t.status}/#{t.alive? ? 'A' : 'D'}"
         end.join(', '),
         scores: @scores.size,
-        best: @best.map { |s| "#{s.value}/#{s.age_hours.round}" }.join(', '),
+        best: @best.map { |s| "#{s.value}/#{(s.age / 60).round}m" }.join(', '),
         history: history.count
       }
     end
@@ -123,10 +123,10 @@ module Zold
         before = @best.map(&:value).max.to_i
         @best = @best.select(&:valid?).reject(&:expired?).sort_by(&:value).reverse
         @best = @best.take(threads) unless threads.zero?
-        if @best.empty? || !threads.zero? && @best.map(&:age_hours).min > 24 / threads
+        if @best.empty? || !threads.zero? && @best.map(&:age).min > 24 * 60 * 60 / threads
           @best << Score.new(Time.now, host, port, @invoice, strength: strength)
         end
-        @best.sort_by(&:age_hours).each { |b| @scores << b }
+        @best.sort_by(&:age).each { |b| @scores << b } if @scores.size < threads
         after = @best.map(&:value).max
         @log.debug("#{Thread.current.name}: best score is #{@best[0]}") if before != after && !after.zero?
       end
