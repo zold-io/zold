@@ -117,9 +117,14 @@ module Zold
       before = scores.map(&:value).max.to_i
       save(threads, [Score.new(Time.now, host, port, @invoice, strength: strength)])
       scores = load
-      @pipeline << scores.max_by(&:age) if @pipeline.size.zero?
+      push(scores)
       after = scores.map(&:value).max.to_i
       @log.debug("#{Thread.current.name}: best score is #{scores[0]}") if before != after && !after.zero?
+    end
+
+    def push(scores)
+      free = scores.reject { |s| @threads.find { |t| t.name == s.to_mnemo } }
+      @pipeline << free[0] if @pipeline.size.zero? && !free.empty?
     end
 
     def cycle(host, port, strength, threads)

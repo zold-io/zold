@@ -106,7 +106,7 @@ module Zold
     end
 
     def to_mnemo
-      "#{value}:#{(age / 60).round}m"
+      "#{value}:#{@time.strftime('%H%M')}"
     end
 
     def to_text

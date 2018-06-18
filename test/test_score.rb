@@ -59,6 +59,14 @@ class TestScore < Minitest::Test
     assert(!score.valid?)
   end
 
+  def test_prints_mnemo
+    score = Zold::Score.new(
+      Time.parse('2017-07-19T22:32:51Z'),
+      'localhost', 443, 'NOPREFIX@ffffffffffffffff'
+    )
+    assert_equal('0:2232', score.to_mnemo)
+  end
+
   def test_prints_and_parses
     time = Time.now
     score = Zold::Score.parse(
