@@ -143,7 +143,7 @@ module Zold
             .sort_by(&:value)
             .reverse
             .uniq(&:time)
-            .uniq { |s| s.age % period }
+            .uniq { |s| (s.age / period).round }
             .map(&:to_s)
             .uniq
             .join("\n")
