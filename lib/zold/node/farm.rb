@@ -115,13 +115,9 @@ module Zold
     def cleanup(host, port, strength, threads)
       scores = load
       before = scores.map(&:value).max.to_i
-      if scores.empty? || !threads.zero? && scores.map(&:age).min > 24 * 60 * 60 / threads
-        save([Score.new(Time.now, host, port, @invoice, strength: strength)])
-      else
-        save
-      end
+      save(threads, [Score.new(Time.now, host, port, @invoice, strength: strength)])
       scores = load
-      @pipeline << scores.min_by(&:age) if @pipeline.size.zero?
+      @pipeline << scores.max_by(&:age) if @pipeline.size.zero?
       after = scores.map(&:value).max.to_i
       @log.debug("#{Thread.current.name}: best score is #{scores[0]}") if before != after && !after.zero?
     end
@@ -133,12 +129,13 @@ module Zold
       return unless s.port == port
       return unless s.strength >= strength
       Thread.current.name = s.to_mnemo
-      save([s.next])
+      save(threads, [s.next])
       cleanup(host, port, strength, threads)
     end
 
-    def save(list = [])
+    def save(threads, list = [])
       scores = load + list
+      period = 24 * 60 * 60 / [threads, 1].max
       @mutex.synchronize do
         AtomicFile.new(@cache).write(
           scores.select(&:valid?)
@@ -146,6 +143,7 @@ module Zold
             .sort_by(&:value)
             .reverse
             .uniq(&:time)
+            .uniq { |s| s.age % period }
             .map(&:to_s)
             .uniq
             .join("\n")

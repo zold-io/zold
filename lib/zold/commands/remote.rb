@@ -193,7 +193,7 @@ Available options:"
 (use --never-reboot to avoid this from happening)")
             terminate
           end
-          @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, \
+          @log.debug("#{r}: their version #{json['version']} is higher than mine #{VERSION}, \
 it's recommended to reboot, but I don't do it because of --never-reboot")
         end
         if deep
