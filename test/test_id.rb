@@ -48,6 +48,11 @@ class TestId < Minitest::Test
     assert(id.to_s == hex, "#{id} is not equal to #{hex}")
   end
 
+  def test_compares_two_ids_by_text
+    id = Zold::Id.new.to_s
+    assert_equal(Zold::Id.new(id), Zold::Id.new(id))
+  end
+
   def test_compares_two_ids
     assert Zold::Id.new(Zold::Id::ROOT.to_s) == Zold::Id.new('0000000000000000')
   end
