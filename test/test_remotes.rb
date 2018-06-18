@@ -39,6 +39,22 @@ class TestRemotes < Minitest::Test
     end
   end
 
+  def test_reads_broken_file
+    Dir.mktmpdir 'test' do |dir|
+      file = File.join(dir, 'remotes')
+      [
+        ',0,0,0',
+        'some garbage',
+        '',
+        "\n\n\n\n"
+      ].each do |t|
+        File.write(file, t)
+        remotes = Zold::Remotes.new(file)
+        assert(remotes.all.empty?, remotes.all)
+      end
+    end
+  end
+
   def test_iterates_and_fails
     Dir.mktmpdir 'test' do |dir|
       file = File.join(dir, 'remotes')

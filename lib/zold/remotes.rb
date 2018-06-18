@@ -125,11 +125,17 @@ module Zold
 
     def exists?(host, port = Remotes::PORT)
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
+      raise 'Host can\'t be nil' if host.nil?
+      raise 'Port can\'t be nil' if port.nil?
       !load.find { |r| r[:host] == host.downcase && r[:port] == port }.nil?
     end
 
     def add(host, port = Remotes::PORT)
+      raise 'Host can\'t be nil' if host.nil?
+      raise 'Host can\'t be empty' if host.empty?
+      raise 'Port can\'t be nil' if port.nil?
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
+      raise 'Port can\'t be zero' if port.zero?
       raise 'Port can\'t be negative' if port < 0
       raise 'Port can\'t be over 65536' if port > 0xffff
       raise "#{host}:#{port} already exists" if exists?(host, port)
@@ -141,6 +147,8 @@ module Zold
 
     def remove(host, port = Remotes::PORT)
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
+      raise 'Host can\'t be nil' if host.nil?
+      raise 'Port can\'t be nil' if port.nil?
       raise "#{host}:#{port} is absent" unless exists?(host, port)
       list = load
       list.reject! { |r| r[:host] == host.downcase && r[:port] == port }
@@ -148,6 +156,8 @@ module Zold
     end
 
     def iterate(log, farm: Farm::Empty.new)
+      raise 'Log can\'t be nil' if log.nil?
+      raise 'Farm can\'t be nil' if farm.nil?
       best = farm.best[0]
       require_relative 'score'
       score = best.nil? ? Score::ZERO : best
@@ -165,6 +175,8 @@ module Zold
     end
 
     def errors(host, port = Remotes::PORT)
+      raise 'Host can\'t be nil' if host.nil?
+      raise 'Port can\'t be nil' if port.nil?
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
       list = load
       raise "#{host}:#{port} is absent among #{list.count} remotes" unless exists?(host, port)
@@ -172,6 +184,8 @@ module Zold
     end
 
     def error(host, port = Remotes::PORT)
+      raise 'Host can\'t be nil' if host.nil?
+      raise 'Port can\'t be nil' if port.nil?
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
       list = load
       raise "#{host}:#{port} is absent among #{list.count} remotes" unless exists?(host, port)
@@ -180,6 +194,9 @@ module Zold
     end
 
     def rescore(host, port, score)
+      raise 'Host can\'t be nil' if host.nil?
+      raise 'Port can\'t be nil' if port.nil?
+      raise 'Score can\'t be nil' if score.nil?
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
       raise "#{host}:#{port} is absent" unless exists?(host, port)
       list = load
@@ -190,14 +207,17 @@ module Zold
     private
 
     def load
-      CSV.read(file).map do |r|
+      raw = CSV.read(file).map do |r|
         {
           host: r[0],
           port: r[1].to_i,
           score: r[2].to_i,
-          errors: r[3].to_i,
-          home: URI("http://#{r[0]}:#{r[1]}/")
+          errors: r[3].to_i
         }
+      end
+      raw.reject { |r| !r[:host] || r[:port].zero? }.map do |r|
+        r[:home] = URI("http://#{r[0]}:#{r[1]}/")
+        r
       end
     end
 
