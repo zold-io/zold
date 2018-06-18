@@ -52,6 +52,7 @@ module Zold
     def get
       http = Net::HTTP.new(@uri.host, @uri.port)
       http.read_timeout = 5
+      http.open_timeout = 5
       path = @uri.path
       path += '?' + @uri.query if @uri.query
       http.request_get(path, headers)
@@ -61,6 +62,7 @@ module Zold
 
     def put(body)
       http = Net::HTTP.new(@uri.host, @uri.port)
+      http.open_timeout = 5
       http.read_timeout = 10
       path = @uri.path
       path += '?' + @uri.query if @uri.query

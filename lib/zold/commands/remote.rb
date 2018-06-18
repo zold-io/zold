@@ -132,7 +132,7 @@ Available options:"
         @remotes.add(host, port)
         @log.info("#{host}:#{port} added to the list, #{@remotes.all.count} total")
       end
-      @log.info("There are #{@remotes.all.count} remote nodes in the list")
+      @log.debug("There are #{@remotes.all.count} remote nodes in the list")
     end
 
     def remove(host, port, opts)
@@ -143,7 +143,7 @@ Available options:"
         raise "#{host}:#{port} is not in the list" unless opts['force']
         @log.debug("#{host}:#{port} is not in the list")
       end
-      @log.info("There are #{@remotes.all.count} remote nodes in the list")
+      @log.debug("There are #{@remotes.all.count} remote nodes in the list")
     end
 
     # Returns an array of Zold::Score

@@ -67,15 +67,15 @@ module Zold
             next
           end
           if !@txns.empty? && @txns.map(&:amount).inject(&:+) < txn.amount
-            @log.debug("Transaction ##{txn.id} attempts to make the balance negative: #{txn.to_text}")
+            @log.error("Transaction ##{txn.id} attempts to make the balance negative: #{txn.to_text}")
             next
           end
           unless Signature.new.valid?(@key, wallet.id, txn)
-            @log.debug("Invalid RSA signature at transaction ##{txn.id} of #{wallet.id}: #{txn.to_text}")
+            @log.error("Invalid RSA signature at transaction ##{txn.id} of #{wallet.id}: #{txn.to_text}")
             next
           end
         elsif !txn.sign.nil? && !txn.sign.empty?
-          @log.debug("RSA signature is redundant at ##{txn.id} of #{wallet.id}: #{txn.to_text}")
+          @log.error("RSA signature is redundant at ##{txn.id} of #{wallet.id}: #{txn.to_text}")
           next
         end
         @log.debug("Merged on top: #{txn.to_text}")

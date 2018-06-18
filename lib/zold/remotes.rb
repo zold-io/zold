@@ -36,7 +36,7 @@ module Zold
     PORT = 4096
 
     # At what amount of errors we delete the remote automatically
-    TOLERANCE = 20
+    TOLERANCE = 8
 
     # Empty, for standalone mode
     class Empty
@@ -52,12 +52,14 @@ module Zold
     # One remote.
     class Remote
       attr_reader :host, :port
-      def initialize(host, port, score, log: Log::Quiet.new)
+      def initialize(host, port, score, idx, log: Log::Quiet.new)
         @host = host
         raise 'Post must be Integer' unless port.is_a?(Integer)
         @port = port
         raise 'Score must be of type Score' unless score.is_a?(Score)
         @score = score
+        raise 'Idx must be of type Integer' unless idx.is_a?(Integer)
+        @idx = idx
         @log = log
       end
 
@@ -66,7 +68,7 @@ module Zold
       end
 
       def to_s
-        "#{@host}:#{@port}"
+        "#{@host}:#{@port}/#{@idx}"
       end
 
       def assert_code(code, response)
@@ -161,9 +163,11 @@ module Zold
       best = farm.best[0]
       require_relative 'score'
       score = best.nil? ? Score::ZERO : best
+      idx = 0
       all.each do |r|
         begin
-          yield Remotes::Remote.new(r[:host], r[:port], score, log: log)
+          yield Remotes::Remote.new(r[:host], r[:port], score, idx, log: log)
+          idx += 1
         rescue StandardError => e
           error(r[:host], r[:port])
           errors = errors(r[:host], r[:port])
