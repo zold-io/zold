@@ -202,7 +202,8 @@ it's recommended to reboot, but I don't do it because of --never-reboot")
           end
         end
         capacity << { host: score.host, port: score.port, count: json['all'].count }
-        @log.info("#{r}: #{Rainbow(score.value).green} (#{json['version']}) in #{(Time.now - start).round(2)}s")
+        @log.info("#{r}: the score is #{Rainbow(score.value).green} (#{json['version']}) \
+in #{(Time.now - start).round(2)}s")
       end
       max_capacity = capacity.map { |c| c[:count] }.max || 0
       capacity.each do |c|
