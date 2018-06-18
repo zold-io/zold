@@ -55,7 +55,7 @@ class TestWallets < Minitest::Test
     FakeHome.new.run do |home|
       wallets = home.wallets
       path = wallets.path
-      assert  wallets.to_s(path) =='.'
+      assert_equal('.', wallets.to_s(path))
     end
   end  
 
