@@ -43,7 +43,8 @@ module Zold
             routine.exec(step)
           end
           step += 1
-          @log.info("Routine #{routine.class.name} ##{step} done in #{(Time.now - start).round(2)}s")
+          @log.info("Routine #{routine.class.name} ##{step} done in #{(Time.now - start).round(2)}s: \
+#{@threads.map { |t| "#{t.name}/#{t.status}" }.join(',')}")
           sleep(1)
         end
       end
