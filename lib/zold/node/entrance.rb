@@ -131,7 +131,7 @@ and modified nothing (this is most likely a bug!)")
       ).run(['fetch', id.to_s, "--ignore-node=#{@address}"])
       modified = Merge.new(
         wallets: @wallets, copies: copies.root, log: @log
-      ).run(['merge', id.to_s])
+      ).run(['merge', id.to_s, '--no-baseline'])
       Clean.new(wallets: @wallets, copies: copies.root, log: @log).run(['clean', id.to_s])
       copies.remove(localhost, Remotes::PORT)
       spread(modified)

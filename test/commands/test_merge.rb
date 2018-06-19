@@ -116,7 +116,7 @@ class TestMerge < Minitest::Test
       copies = home.copies(main)
       copies.add(File.read(remote.path), 'fake-host', 80, 0)
       Zold::Merge.new(wallets: home.wallets, copies: copies.root, log: test_log).run(
-        ['merge', main.id.to_s]
+        ['merge', main.id.to_s, '--no-baseline']
       )
       assert_equal(Zold::Amount::ZERO, main.balance)
     end

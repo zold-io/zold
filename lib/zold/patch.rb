@@ -35,20 +35,25 @@ module Zold
       raise 'Wallets can\'t be nil' if wallets.nil?
       raise 'Wallets must be of type Wallets' unless wallets.is_a?(Wallets)
       @wallets = wallets
+      @txns = []
       @log = log
     end
 
     def to_s
-      return 'empty' if @id.nil?
+      return 'empty' if @txns.empty?
       "#{@txns.count} txns"
     end
 
-    def join(wallet)
+    def join(wallet, baseline = true)
       if @id.nil?
         @id = wallet.id
         @key = wallet.key
-        @txns = wallet.txns
-        @log.debug("The baseline: #{@txns.count} transactions, the balance is #{wallet.balance}")
+        if baseline
+          @txns = wallet.txns
+          @log.debug("The baseline: #{@txns.count} transactions, the balance is #{wallet.balance}")
+        else
+          @log.debug("The baseline of #{@txns.count} transactions ignored")
+        end
         @network = wallet.network
       end
       if wallet.network != @network

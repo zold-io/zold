@@ -45,6 +45,9 @@ module Zold
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = "Usage: zold merge [ID...] [options]
 Available options:"
+        o.bool '--no-baseline',
+          'Don\'t trust any remote copies and re-validate all incoming payments against their wallets',
+          default: false
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
@@ -61,7 +64,7 @@ Available options:"
 
     private
 
-    def merge(id, cps, _)
+    def merge(id, cps, opts)
       if cps.all.empty?
         @log.error("There are no remote copies of #{id}, try 'zold fetch' first")
         return
@@ -69,12 +72,12 @@ Available options:"
       cps = cps.all.sort_by { |c| c[:score] }.reverse
       patch = Patch.new(@wallets, log: @log)
       cps.each do |c|
-        merge_one(patch, Wallet.new(c[:path]), "#{c[:host]}:#{c[:port]}")
+        merge_one(opts, patch, Wallet.new(c[:path]), "#{c[:host]}:#{c[:port]}")
         @log.debug("#{c[:host]}:#{c[:port]} merged: #{patch}")
       end
       wallet = @wallets.find(id)
       if wallet.exists?
-        merge_one(patch, wallet, 'localhost')
+        merge_one(opts, patch, wallet, 'localhost')
         @log.debug("Local copy merged: #{patch}")
       else
         @log.debug("Local copy is absent, won't merge")
@@ -88,8 +91,8 @@ Available options:"
       modified
     end
 
-    def merge_one(patch, wallet, name)
-      patch.join(wallet)
+    def merge_one(opts, patch, wallet, name)
+      patch.join(wallet, !opts['no-baseline'])
     rescue StandardError => e
       @log.error("Can't merge a copy coming from #{name}: #{e.message}")
       @log.debug(Backtrace.new(e).to_s)
