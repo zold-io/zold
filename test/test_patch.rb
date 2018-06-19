@@ -46,13 +46,13 @@ class TestPatch < Minitest::Test
       File.write(third.path, File.read(first.path))
       t = third.sub(Zold::Amount.new(zld: 10.0), "NOPREFIX@#{Zold::Id.new}", key)
       third.add(t.inverse(first.id))
-      patch = Zold::Patch.new(log: test_log)
+      patch = Zold::Patch.new(home.wallets, log: test_log)
       patch.join(first)
       patch.join(second)
       patch.join(third)
       FileUtils.rm(first.path)
       assert_equal(true, patch.save(first.path))
-      assert_equal(Zold::Amount.new(zld: -43.0), first.balance)
+      assert_equal(Zold::Amount.new(zld: -53.0), first.balance)
     end
   end
 
@@ -62,7 +62,7 @@ class TestPatch < Minitest::Test
       second = home.create_wallet
       File.write(second.path, File.read(first.path))
       second.add(Zold::Txn.new(1, Time.now, Zold::Amount.new(zld: 11.0), 'NOPREFIX', Zold::Id.new, 'fake'))
-      patch = Zold::Patch.new(log: test_log)
+      patch = Zold::Patch.new(home.wallets, log: test_log)
       patch.join(first)
       patch.join(second)
       FileUtils.rm(first.path)

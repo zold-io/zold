@@ -31,7 +31,10 @@ require_relative 'atomic_file'
 module Zold
   # A patch
   class Patch
-    def initialize(log: Log::Quiet.new)
+    def initialize(wallets, log: Log::Quiet.new)
+      raise 'Wallets can\'t be nil' if wallets.nil?
+      raise 'Wallets must be of type Wallets' unless wallets.is_a?(Wallets)
+      @wallets = wallets
       @log = log
     end
 
@@ -53,8 +56,7 @@ module Zold
       end
       raise 'Public key mismatch' if wallet.key != @key
       raise "Wallet ID mismatch: #{@id} != #{wallet.id}" if wallet.id != @id
-      negative = @txns.select { |t| t.amount.negative? }
-      max = negative.empty? ? 0 : negative.max_by(&:id).id
+      max = @txns.select { |t| t.amount.negative? }.map(&:id).max.to_i
       wallet.txns.each do |txn|
         next if @txns.find { |t| t == txn }
         if txn.amount.negative?
@@ -74,9 +76,20 @@ module Zold
             @log.error("Invalid RSA signature at transaction ##{txn.id} of #{wallet.id}: #{txn.to_text}")
             next
           end
-        elsif !txn.sign.nil? && !txn.sign.empty?
-          @log.error("RSA signature is redundant at ##{txn.id} of #{wallet.id}: #{txn.to_text}")
-          next
+        else
+          if !txn.sign.nil? && !txn.sign.empty?
+            @log.error("RSA signature is redundant at ##{txn.id} of #{wallet.id}: #{txn.to_text}")
+            next
+          end
+          payer = @wallets.find(txn.bnf)
+          unless payer.exists?
+            @log.error("Paying wallet #{wallet.id} is absent at ##{txn.id}: #{txn.to_text}")
+            next
+          end
+          unless payer.has?(txn.id, wallet.id)
+            @log.error("Paying wallet #{wallet.id} doesn't have transaction ##{txn.id}: #{txn.to_text}")
+            next
+          end
         end
         @log.debug("Merged on top: #{txn.to_text}")
         @txns << txn

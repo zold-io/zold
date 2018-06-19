@@ -65,7 +65,7 @@ Available options:"
     def diff(wallet, cps, _)
       raise "There are no remote copies, try 'zold fetch' first" if cps.all.empty?
       cps = cps.all.sort_by { |c| c[:score] }.reverse
-      patch = Patch.new(log: @log)
+      patch = Patch.new(@wallets, log: @log)
       cps.each do |c|
         patch.join(Wallet.new(c[:path]))
       end

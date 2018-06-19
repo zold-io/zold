@@ -67,7 +67,7 @@ Available options:"
         return
       end
       cps = cps.all.sort_by { |c| c[:score] }.reverse
-      patch = Patch.new(log: @log)
+      patch = Patch.new(@wallets, log: @log)
       cps.each do |c|
         merge_one(patch, Wallet.new(c[:path]), "#{c[:host]}:#{c[:port]}")
         @log.debug("#{c[:host]}:#{c[:port]} merged: #{patch}")

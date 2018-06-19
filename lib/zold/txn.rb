@@ -32,6 +32,12 @@ require_relative 'signature'
 module Zold
   # A single transaction
   class Txn
+    # Regular expression for details
+    RE_DETAILS = '[a-zA-Z0-9 @\!\?\*_\-\.:,\']+'.freeze
+
+    # Regular expression for prefix
+    RE_PREFIX = '[a-zA-Z0-9]+'.freeze
+
     attr_reader :id, :date, :amount, :prefix, :bnf, :details, :sign
     attr_writer :sign, :amount, :bnf
     def initialize(id, date, amount, prefix, bnf, details)
@@ -52,12 +58,12 @@ module Zold
       raise 'Prefix can\'t be NIL' if prefix.nil?
       raise "Prefix is too short: \"#{prefix}\"" if prefix.length < 8
       raise "Prefix is too long: \"#{prefix}\"" if prefix.length > 32
-      raise "Prefix is wrong: \"#{prefix}\"" unless prefix =~ /^[a-zA-Z0-9]+$/
+      raise "Prefix is wrong: \"#{prefix}\" (#{Txn::RE_PREFIX})" unless prefix =~ Regexp.new("^#{Txn::RE_PREFIX}$")
       @prefix = prefix
       raise 'Details can\'t be NIL' if details.nil?
       raise 'Details can\'t be empty' if details.empty?
       raise "Details are too long: \"#{details}\"" if details.length > 512
-      raise "Details are wrong: \"#{details}\"" unless details =~ /^[a-zA-Z0-9 -\.,]+$/
+      raise "Wrong details \"#{details}\" (#{Txn::RE_DETAILS})" unless details =~ Regexp.new("^#{Txn::RE_DETAILS}$")
       @details = details
     end
 
@@ -103,14 +109,14 @@ module Zold
           '([0-9a-f]{4})',
           '([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z)',
           '([0-9a-f]{16})',
-          '([A-Za-z0-9]{8,32})',
+          "(#{Txn::RE_PREFIX})",
           '([0-9a-f]{16})',
-          '([a-zA-Z0-9 -\.,]{1,512})',
+          "(#{Txn::RE_DETAILS})",
           '([A-Za-z0-9+/]+={0,3})?'
         ].join(';') + '$'
       )
       clean = line.strip
-      raise "Invalid line ##{idx}: #{line.inspect}" unless regex.match(clean)
+      raise "Invalid line ##{idx}: #{line.inspect} #{regex}" unless regex.match(clean)
       parts = clean.split(';')
       txn = Txn.new(
         Hexnum.parse(parts[0]).to_i,
