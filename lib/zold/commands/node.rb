@@ -158,6 +158,7 @@ module Zold
       farm.start(host, opts[:port], threads: opts[:threads], strength: opts[:strength]) do
         Front.set(:farm, farm)
         metronome = metronome(farm, entrance, opts)
+        Front.set(:metronome, metronome)
         begin
           @log.info("Starting up the web front at http://#{host}:#{opts[:port]}...")
           Front.run!

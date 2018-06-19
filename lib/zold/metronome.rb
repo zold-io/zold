@@ -33,6 +33,12 @@ module Zold
       @threads = []
     end
 
+    def to_text
+      @threads.map do |t|
+        "#{t.name}: status=#{t.status}; alive=#{t.alive?};\n  #{t.backtrace.join("\n  ")}"
+      end.join("\n")
+    end
+
     def add(routine)
       @threads << Thread.start do
         Thread.current.name = routine.class.name

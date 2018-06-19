@@ -37,6 +37,7 @@ class FrontTest < Minitest::Test
           '/remotes',
           '/version',
           '/farm',
+          '/metronome',
           '/score'
         ],
         '404' => [

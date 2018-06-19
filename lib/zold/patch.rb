@@ -59,11 +59,11 @@ module Zold
         next if @txns.find { |t| t == txn }
         if txn.amount.negative?
           if txn.id <= max
-            @log.debug("Transaction ID is less than max #{max}: #{txn.to_text}")
+            @log.error("Transaction ID is less than max #{max}: #{txn.to_text}")
             next
           end
           if @txns.find { |t| t.id == txn.id }
-            @log.debug("Transaction ##{txn.id} already exists: #{txn.to_text}")
+            @log.error("Transaction ##{txn.id} already exists: #{txn.to_text}")
             next
           end
           if !@txns.empty? && @txns.map(&:amount).inject(&:+) < txn.amount

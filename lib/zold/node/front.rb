@@ -56,6 +56,7 @@ module Zold
       set :log, nil? # to be injected at node.rb
       set :address, nil? # to be injected at node.rb
       set :farm, nil? # to be injected at node.rb
+      set :metronome, nil? # to be injected at node.rb
       set :entrance, nil? # to be injected at node.rb
       set :wallets, nil? # to be injected at node.rb
       set :remotes, nil? # to be injected at node.rb
@@ -199,6 +200,11 @@ module Zold
     get '/farm' do
       content_type 'text/plain'
       settings.farm.to_text
+    end
+
+    get '/metronome' do
+      content_type 'text/plain'
+      settings.metronome.to_text
     end
 
     not_found do
