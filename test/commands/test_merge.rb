@@ -106,4 +106,19 @@ class TestMerge < Minitest::Test
       assert(!wallet.balance.zero?)
     end
   end
+
+  def test_rejects_fake_positives_in_new_wallet
+    FakeHome.new.run do |home|
+      main = home.create_wallet
+      remote = home.create_wallet
+      File.write(remote.path, File.read(main.path))
+      remote.add(Zold::Txn.new(1, Time.now, Zold::Amount.new(zld: 11.0), 'NOPREFIX', Zold::Id.new, 'fake'))
+      copies = home.copies(main)
+      copies.add(File.read(remote.path), 'fake-host', 80, 0)
+      Zold::Merge.new(wallets: home.wallets, copies: copies.root, log: test_log).run(
+        ['merge', main.id.to_s]
+      )
+      assert_equal(Zold::Amount::ZERO, main.balance)
+    end
+  end
 end
