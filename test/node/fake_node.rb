@@ -30,6 +30,10 @@ require_relative '../../lib/zold/verbose_thread'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class FakeNode
+  # rubocop:disable Style/ClassVars
+  @@ports = Set.new
+  # rubocop:enable Style/ClassVars
+
   def initialize(log: Zold::Log::Quiet.new)
     @log = log
   end
@@ -68,6 +72,17 @@ class FakeNode
         node.exit
         Dir.chdir(start)
       end
+    end
+  end
+
+  def self.port
+    loop do
+      server = TCPServer.new('127.0.0.1', 0)
+      port = server.addr[1]
+      server.close
+      next if @@ports.include?(port)
+      @@ports << port
+      port
     end
   end
 end

@@ -31,18 +31,28 @@ class TestMetronome < Minitest::Test
     metronome = Zold::Metronome.new(test_log)
     list = []
     metronome.add(FakeRoutine.new(list))
-    sleep 0.1 while list.empty?
-    metronome.stop
-    assert_equal(1, list.count)
+    metronome.start do
+      sleep 0.1 while list.empty?
+      assert_equal(1, list.count)
+    end
+  end
+
+  def test_prints_to_text
+    metronome = Zold::Metronome.new(test_log)
+    metronome.add(FakeRoutine.new([]))
+    metronome.start do |m|
+      assert(!m.to_text.nil?)
+    end
   end
 
   def test_continues_even_after_error
     metronome = Zold::Metronome.new(test_log)
     routine = BrokenRoutine.new
     metronome.add(routine)
-    sleep 0.1 while routine.count < 2
-    metronome.stop
-    assert(routine.count > 1)
+    metronome.start do
+      sleep 0.1 while routine.count < 2
+      assert(routine.count > 1)
+    end
   end
 
   class FakeRoutine

@@ -20,6 +20,7 @@
 
 require_relative 'log'
 require_relative 'verbose_thread'
+require_relative 'backtrace'
 
 # Background routines.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -30,32 +31,49 @@ module Zold
   class Metronome
     def initialize(log = Log::Quiet.new)
       @log = log
+      @routines = []
       @threads = []
+      @failures = {}
     end
 
     def to_text
       @threads.map do |t|
         "#{t.name}: status=#{t.status}; alive=#{t.alive?};\n  #{t.backtrace.join("\n  ")}"
-      end.join("\n")
+      end.join("\n") + "\n\n" + @failures.map { |r, f| "#{r}\n#{f}\n" }.join("\n")
     end
 
     def add(routine)
-      @threads << Thread.start do
-        Thread.current.name = routine.class.name
-        step = 0
-        loop do
-          start = Time.now
-          VerboseThread.new(@log).run(true) do
-            routine.exec(step)
-          end
-          step += 1
-          @log.info("Routine #{routine.class.name} ##{step} done in #{(Time.now - start).round(2)}s: \
-#{@threads.map { |t| "#{t.name}/#{t.status}" }.join(',')}")
-          sleep(1)
-        end
-      end
+      @routines << routine
       @log.info("Added #{routine.class.name} to the metronome")
     end
+
+    def start
+      @routines.each do |r|
+        @threads << Thread.start do
+          Thread.current.name = r.class.name
+          step = 0
+          loop do
+            start = Time.now
+            begin
+              r.exec(step)
+            rescue StandardError => e
+              @failures[r.class.name] = Backtrace.new(e).to_s
+            end
+            step += 1
+            @log.info("Routine #{r.class.name} ##{step} done in #{(Time.now - start).round(2)}s: \
+#{@threads.map { |t| "#{t.name}/#{t.status}" }.join(',')}")
+            sleep(1)
+          end
+        end
+      end
+      begin
+        yield(self)
+      ensure
+        stop
+      end
+    end
+
+    private
 
     def stop
       @log.info("Terminating the metronome with #{@threads.count} threads...")
@@ -65,7 +83,7 @@ module Zold
         t.exit
         @log.info("Thread #{t.name} terminated in #{(Time.now - tstart).round(2)}s")
       end
-      @log.info("Metronome stopped in #{(Time.now - start).round(2)}s")
+      @log.info("Metronome stopped in #{(Time.now - start).round(2)}s, #{@failures.count} failures")
     end
   end
 end

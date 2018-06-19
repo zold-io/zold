@@ -157,14 +157,11 @@ module Zold
       farm = Farm.new(invoice, File.join(Dir.pwd, 'farm'), log: @log)
       farm.start(host, opts[:port], threads: opts[:threads], strength: opts[:strength]) do
         Front.set(:farm, farm)
-        metronome = metronome(farm, entrance, opts)
-        Front.set(:metronome, metronome)
-        begin
+        metronome(farm, entrance, opts).start do |metronome|
+          Front.set(:metronome, metronome)
           @log.info("Starting up the web front at http://#{host}:#{opts[:port]}...")
           Front.run!
           @log.info("The web front stopped at http://#{host}:#{opts[:port]}")
-        ensure
-          metronome.stop
         end
       end
     end
