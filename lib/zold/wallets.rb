@@ -56,6 +56,8 @@ module Zold
     end
 
     def find(id)
+      raise 'Id can\'t be nil' if id.nil?
+      raise 'Id must be of type Id' unless id.is_a?(Id)
       Zold::Wallet.new(File.join(path, id.to_s))
     end
   end

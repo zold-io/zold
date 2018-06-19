@@ -55,8 +55,8 @@ Available options:"
       end
       mine = Args.new(opts, @log).take || return
       mine = @wallets.all if mine.empty?
-      mine.each do |id|
-        wallet = @wallets.find(Id.new(id))
+      mine.map { |i| Id.new(i) }.each do |id|
+        wallet = @wallets.find(id)
         raise "The wallet #{id} is absent" unless wallet.exists?
         push(wallet, opts)
       end

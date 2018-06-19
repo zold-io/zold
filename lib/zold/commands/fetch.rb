@@ -58,7 +58,7 @@ Available options:"
       end
       mine = Args.new(opts, @log).take || return
       mine = @wallets.all if mine.empty?
-      mine.each do |id|
+      mine.map { |i| Id.new(i) }.each do |id|
         fetch(id, Copies.new(File.join(@copies, id)), opts)
       end
     end

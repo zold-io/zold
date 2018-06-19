@@ -51,6 +51,10 @@ module Zold
       to_s == other.to_s
     end
 
+    def to_str
+      to_s
+    end
+
     def to_s
       format('%016x', @id)
     end

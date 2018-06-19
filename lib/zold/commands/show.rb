@@ -50,8 +50,8 @@ Available options:"
         List.new(wallets: @wallets, log: @log).run(args)
       else
         total = Amount::ZERO
-        mine.each do |id|
-          total += show(@wallets.find(Id.new(id)), opts)
+        mine.map { |i| Id.new(i) }.each do |id|
+          total += show(@wallets.find(id), opts)
         end
         total
       end

@@ -50,9 +50,9 @@ Available options:"
       mine = Args.new(opts, @log).take || return
       raise 'At least one wallet ID is required' if mine.empty?
       stdout = ''
-      mine.each do |id|
+      mine.map { |i| Id.new(i) }.each do |id|
         stdout += diff(
-          @wallets.find(Id.new(id)),
+          @wallets.find(id),
           Copies.new(File.join(@copies, id)),
           opts
         )

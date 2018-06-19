@@ -53,9 +53,9 @@ Available options:"
       mine = Args.new(opts, @log).take || return
       mine = @wallets.all if mine.empty?
       modified = []
-      mine.each do |id|
-        next unless merge(Id.new(id), Copies.new(File.join(@copies, id)), opts)
-        modified << Id.new(id)
+      mine.map { |i| Id.new(i) }.each do |id|
+        next unless merge(id, Copies.new(File.join(@copies, id)), opts)
+        modified << id
         require_relative 'propagate'
         modified += Propagate.new(wallets: @wallets, log: @log).run(args)
       end

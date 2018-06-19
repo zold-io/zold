@@ -48,7 +48,7 @@ Available options:"
       mine = Args.new(opts, @log).take || return
       mine = @wallets.all if mine.empty?
       modified = []
-      mine.each do |id|
+      mine.map { |i| Id.new(i) }.each do |id|
         modified += propagate(@wallets.find(id), opts)
       end
       modified

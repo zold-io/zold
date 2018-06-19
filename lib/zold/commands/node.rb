@@ -170,8 +170,8 @@ module Zold
 
     # Returns exit code
     def exec(cmd, nohup_log)
+      start = Time.now
       Open3.popen2e(cmd) do |stdin, stdout, thr|
-        start = Time.now
         nohup_log.print("Started process ##{thr.pid} from process ##{Process.pid}: #{cmd}\n")
         stdin.close
         until stdout.eof?

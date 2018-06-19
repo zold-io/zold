@@ -69,8 +69,9 @@ module Zold
             @log.error("Transaction ID is less than max #{max}: #{txn.to_text}")
             next
           end
-          if @txns.find { |t| t.id == txn.id }
-            @log.error("Transaction ##{txn.id} already exists: #{txn.to_text}")
+          dup = @txns.find { |t| t.id == txn.id }
+          if dup
+            @log.error("An attempt to overwrite #{dup.to_text} with this: #{txn.to_text}")
             next
           end
           if !@txns.empty? && @txns.map(&:amount).inject(&:+) < txn.amount
@@ -92,7 +93,8 @@ module Zold
             next
           end
           unless payer.has?(txn.id, wallet.id)
-            @log.error("Paying wallet #{wallet.id} doesn't have transaction ##{txn.id}: #{txn.to_text}")
+            @log.error("Paying wallet #{txn.bnf} doesn't have transaction ##{txn.id} \
+among #{payer.txns.count} transactions: #{txn.to_text}")
             next
           end
         end
