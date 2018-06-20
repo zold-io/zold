@@ -20,6 +20,7 @@
 
 require 'csv'
 require 'uri'
+require 'time'
 require 'fileutils'
 require_relative 'backtrace'
 require_relative 'node/farm'
@@ -163,6 +164,7 @@ module Zold
       best = farm.best[0]
       require_relative 'score'
       score = best.nil? ? Score::ZERO : best
+      start = Time.now
       idx = 0
       all.each do |r|
         begin
@@ -171,7 +173,11 @@ module Zold
         rescue StandardError => e
           error(r[:host], r[:port])
           errors = errors(r[:host], r[:port])
-          log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message}; errors=#{errors}")
+          log.info(
+            "#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message}; "\
+            "errors=#{errors}; "\
+            "execution_time=#{Time.now - start} seconds"
+          )
           log.debug(Backtrace.new(e).to_s)
           remove(r[:host], r[:port]) if errors > Remotes::TOLERANCE
         end
