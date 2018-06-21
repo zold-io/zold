@@ -49,12 +49,12 @@ class TestTax < Minitest::Test
       )
       wallet.add(
         Zold::Txn.new(
-          2, 
-          time_now, 
+          2,
+          time_now,
           Zold::Amount.new(zld: 10.00),
           'NOPREFIX', Zold::Id.new, '-'
         )
-      )      
+      )
       tax = Zold::Tax.new(wallet)
       assert(tax.debt > Zold::Amount.new(coins: 33_550_799))
       assert(tax.debt < Zold::Amount.new(coins: 33_550_801))
