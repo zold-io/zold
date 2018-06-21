@@ -110,6 +110,7 @@ module Zold
       @file = file
       raise 'Network can\'t be nil' if network.nil?
       @network = network
+      @mutex = Mutex.new
     end
 
     def all
@@ -223,31 +224,35 @@ in #{(Time.now - start).round}s; errors=#{errors}")
     private
 
     def load
-      raw = CSV.read(file).map do |r|
-        {
-          host: r[0],
-          port: r[1].to_i,
-          score: r[2].to_i,
-          errors: r[3].to_i
-        }
-      end
-      raw.reject { |r| !r[:host] || r[:port].zero? }.map do |r|
-        r[:home] = URI("http://#{r[0]}:#{r[1]}/")
-        r
+      @mutex.synchronize do
+        raw = CSV.read(file).map do |r|
+          {
+            host: r[0],
+            port: r[1].to_i,
+            score: r[2].to_i,
+            errors: r[3].to_i
+          }
+        end
+        raw.reject { |r| !r[:host] || r[:port].zero? }.map do |r|
+          r[:home] = URI("http://#{r[0]}:#{r[1]}/")
+          r
+        end
       end
     end
 
     def save(list)
-      AtomicFile.new(file).write(
-        list.map do |r|
-          [
-            r[:host],
-            r[:port],
-            r[:score],
-            r[:errors]
-          ].join(',')
-        end.join("\n")
-      )
+      @mutex.synchronize do
+        AtomicFile.new(file).write(
+          list.map do |r|
+            [
+              r[:host],
+              r[:port],
+              r[:score],
+              r[:errors]
+            ].join(',')
+          end.join("\n")
+        )
+      end
     end
 
     def file

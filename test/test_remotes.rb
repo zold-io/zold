@@ -20,9 +20,12 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
+require 'concurrent'
+require 'concurrent/atomics'
 require_relative 'test__helper'
 require_relative '../lib/zold/log'
 require_relative '../lib/zold/remotes'
+require_relative '../lib/zold/verbose_thread'
 
 # Remotes test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -120,6 +123,37 @@ class TestRemotes < Minitest::Test
       remotes.all.each do |r|
         assert_equal(15, r[:score])
       end
+    end
+  end
+
+  def test_modifies_from_many_threads
+    Dir.mktmpdir 'test' do |dir|
+      remotes = Zold::Remotes.new(File.join(dir, 'a.csv'))
+      remotes.clean
+      threads = 5
+      pool = Concurrent::FixedThreadPool.new(threads)
+      alive = true
+      cycles = Concurrent::AtomicFixnum.new
+      success = Concurrent::AtomicFixnum.new
+      host = '192.168.0.1'
+      remotes.add(host)
+      threads.times do
+        pool.post do
+          while alive
+            Zold::VerboseThread.new(test_log).run(true) do
+              cycles.increment
+              remotes.error(host)
+              success.increment
+            end
+          end
+        end
+      end
+      sleep 0.1 while cycles.value < 50
+      alive = false
+      pool.shutdown
+      pool.wait_for_termination
+      assert_equal(cycles.value, success.value)
+      assert_equal(0, remotes.all.reject { |r| r[:host] == host }.size)
     end
   end
 end
