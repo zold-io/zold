@@ -69,7 +69,7 @@ module Zold
             @log.error("Transaction ID is not greater than max ID #{max}: #{txn.to_text}")
             next
           end
-          dup = @txns.find { |t| t.id == txn.id }
+          dup = @txns.find { |t| t.id == txn.id && t.amount.negative? }
           if dup
             @log.error("An attempt to overwrite #{dup.to_text} with this: #{txn.to_text}")
             next

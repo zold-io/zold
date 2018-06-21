@@ -173,9 +173,9 @@ module Zold
       best = farm.best[0]
       require_relative 'score'
       score = best.nil? ? Score::ZERO : best
-      start = Time.now
       idx = 0
       all.each do |r|
+        start = Time.now
         begin
           yield Remotes::Remote.new(r[:host], r[:port], score, idx, log: log, network: @network)
           idx += 1

@@ -87,4 +87,21 @@ class TestPatch < Minitest::Test
       assert_equal(amount * -1, first.balance)
     end
   end
+
+  def test_merges_similar_ids_but_different_signs
+    FakeHome.new.run do |home|
+      first = home.create_wallet(Zold::Id::ROOT)
+      second = home.create_wallet
+      File.write(second.path, File.read(first.path))
+      key = Zold::Key.new(file: 'fixtures/id_rsa')
+      second.sub(Zold::Amount.new(zld: 7.0), "NOPREFIX@#{Zold::Id.new}", key)
+      first.add(Zold::Txn.new(1, Time.now, Zold::Amount.new(zld: 9.0), 'NOPREFIX', Zold::Id.new, 'fake'))
+      patch = Zold::Patch.new(home.wallets, log: test_log)
+      patch.join(first)
+      patch.join(second)
+      FileUtils.rm(first.path)
+      assert_equal(true, patch.save(first.path))
+      assert_equal(Zold::Amount.new(zld: 2.0), first.balance)
+    end
+  end
 end
