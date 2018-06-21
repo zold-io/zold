@@ -18,31 +18,23 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Atomic file.
+require 'minitest/autorun'
+require_relative '../lib/zold/backtrace'
+
+# Backtrace test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # Atomic file
-  class AtomicFile
-    def initialize(file)
-      raise 'File can\'t be nil' if file.nil?
-      @file = file
+class TestBacktrace < Minitest::Test
+  def test_prints_backtrace
+    obj = Object.new
+    def obj.exec
+      raise 'Intended to be here'
     end
-
-    def read
-      File.open(@file, 'rb') do |f|
-        f.flock(File::LOCK_EX)
-        f.read
-      end
-    end
-
-    def write(content)
-      raise 'Content can\'t be nil' if content.nil?
-      File.open(@file, 'wb') do |f|
-        f.flock(File::LOCK_EX)
-        f.write(content)
-      end
-    end
+    obj.exec
+  rescue RuntimeError => e
+    text = Zold::Backtrace.new(e).to_s
+    assert(text.include?('Intended to be here'), text)
+    assert(!text.include?('lib/minitest'), text)
   end
 end

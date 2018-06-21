@@ -34,24 +34,6 @@ require_relative '../../lib/zold/commands/pay'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class TestEntrance < Minitest::Test
-  def test_renders_json
-    FakeHome.new.run do |home|
-      wallet = home.create_wallet(Zold::Id.new)
-      entrance = Zold::Entrance.new(home.wallets, home.remotes, home.copies(wallet).root, 'x', log: test_log)
-      assert_equal(0, entrance.to_json[:modified])
-    end
-  end
-
-  def test_ignores_duplicates
-    FakeHome.new.run do |home|
-      wallet = home.create_wallet(Zold::Id.new)
-      entrance = Zold::Entrance.new(home.wallets, home.remotes, home.copies(wallet).root, 'x', log: test_log)
-      id = Zold::Id.new.to_s
-      8.times { entrance.spread([Zold::Id.new(id)]) }
-      assert_equal(1, entrance.to_json[:modified])
-    end
-  end
-
   def test_pushes_wallet
     sid = Zold::Id.new
     tid = Zold::Id.new

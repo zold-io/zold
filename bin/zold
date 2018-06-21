@@ -97,6 +97,10 @@ Available options:"
     o.string '--home',
       "Home directory (default: #{Dir.pwd})",
       default: Dir.pwd
+    o.string '--network',
+      "The name of the network we work in (default: #{Zold::Wallet::MAIN_NETWORK}",
+      required: true,
+      default: Zold::Wallet::MAIN_NETWORK
     o.bool '-h', '--help', 'Show these instructions'
     o.bool '--trace', 'Show full stack trace in case of a problem'
     o.bool '--ignore-global-config', 'Don\'t read options from the ~/.zold file'
@@ -123,12 +127,13 @@ Available options:"
 
   args = opts.arguments
   args << '--help' if opts.help?
+  args << "--network=#{opts['network']}"
 
   FileUtils.mkdir_p(opts[:home])
   Dir.chdir(opts[:home])
 
   wallets = Zold::Wallets.new('.')
-  remotes = Zold::Remotes.new('./.zoldata/remotes')
+  remotes = Zold::Remotes.new('./.zoldata/remotes', network: opts['network'])
   copies = './.zoldata/copies'
 
   case command

@@ -44,12 +44,14 @@ class TestNode < Minitest::Test
         wallet = home.create_wallet
         remotes = home.remotes
         remotes.add('localhost', port)
-        Zold::Push.new(wallets: wallets, remotes: remotes, log: test_log).run(['push', '--sync'])
+        Zold::Push.new(wallets: wallets, remotes: remotes, log: test_log).run(
+          ['push', '--ignore-score-weakness']
+        )
         copies = home.copies(wallet)
         Zold::Fetch.new(
           wallets: wallets, copies: copies.root,
           remotes: remotes, log: test_log
-        ).run(['fetch'])
+        ).run(['fetch', '--ignore-score-weakness'])
         assert_equal(1, copies.all.count)
         assert_equal('1', copies.all[0][:name])
       end

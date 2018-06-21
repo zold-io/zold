@@ -28,6 +28,7 @@ require_relative 'args'
 require_relative '../log'
 require_relative '../http'
 require_relative '../score'
+require_relative '../json_page'
 require_relative '../copies'
 
 # FETCH command.
@@ -68,10 +69,14 @@ Available options:"
     def fetch(id, cps, opts)
       total = 0
       nodes = 0
+      done = 0
       @remotes.iterate(@log) do |r|
-        total += fetch_one(id, r, cps, opts)
         nodes += 1
+        total += fetch_one(id, r, cps, opts)
+        done += 1
       end
+      raise "There are no remote nodes, run 'zold remote reset'" if nodes.zero?
+      raise "No nodes out of #{nodes} have the wallet #{id}" if done.zero?
       @log.debug("#{nodes} copies of #{id} fetched for the total score of #{total}, #{cps.all.count} local copies")
     end
 
@@ -84,11 +89,10 @@ Available options:"
       res = r.http("/wallet/#{id}").get
       raise "Wallet #{id} not found" if res.code == '404'
       r.assert_code(200, res)
-      json = JSON.parse(res.body)
+      json = JsonPage.new(res.body).to_hash
       score = Score.parse_json(json['score'])
       r.assert_valid_score(score)
       r.assert_score_ownership(score)
-      r.assert_score_strength(score)
       r.assert_score_strength(score) unless opts['ignore-score-weakness']
       Tempfile.open do |f|
         body = json['body']

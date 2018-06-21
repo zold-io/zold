@@ -18,31 +18,24 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Atomic file.
+# Fake entrance.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # Atomic file
-  class AtomicFile
-    def initialize(file)
-      raise 'File can\'t be nil' if file.nil?
-      @file = file
-    end
+class FakeEntrance
+  def initialize
+    # Nothing here
+  end
 
-    def read
-      File.open(@file, 'rb') do |f|
-        f.flock(File::LOCK_EX)
-        f.read
-      end
-    end
+  def to_json
+    {}
+  end
 
-    def write(content)
-      raise 'Content can\'t be nil' if content.nil?
-      File.open(@file, 'wb') do |f|
-        f.flock(File::LOCK_EX)
-        f.write(content)
-      end
-    end
+  def start
+    yield self
+  end
+
+  def push(id, _)
+    [id]
   end
 end

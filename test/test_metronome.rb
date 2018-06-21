@@ -62,7 +62,6 @@ class TestMetronome < Minitest::Test
 
     def exec(i)
       @list << i
-      sleep(6000)
     end
   end
 

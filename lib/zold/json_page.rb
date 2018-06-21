@@ -18,31 +18,26 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Atomic file.
+require 'json'
+
+# JSON page.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # Atomic file
-  class AtomicFile
-    def initialize(file)
-      raise 'File can\'t be nil' if file.nil?
-      @file = file
+  # JSON page
+  class JsonPage
+    def initialize(text)
+      raise 'JSON text can\'t be nil' if text.nil?
+      raise 'JSON must be of type String' unless text.is_a?(String)
+      @text = text
     end
 
-    def read
-      File.open(@file, 'rb') do |f|
-        f.flock(File::LOCK_EX)
-        f.read
-      end
-    end
-
-    def write(content)
-      raise 'Content can\'t be nil' if content.nil?
-      File.open(@file, 'wb') do |f|
-        f.flock(File::LOCK_EX)
-        f.write(content)
-      end
+    def to_hash
+      raise 'JSON is empty, can\'t parse' if @text.empty?
+      JSON.parse(@text)
+    rescue JSON::ParserError => e
+      raise "Failed to parse JSON (#{e.message}): #{@text}"
     end
   end
 end

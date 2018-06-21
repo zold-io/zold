@@ -21,7 +21,6 @@
 gem 'openssl'
 require 'openssl'
 require 'minitest/autorun'
-require_relative '../lib/zold'
 
 STDOUT.sync = true
 

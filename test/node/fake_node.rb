@@ -24,6 +24,7 @@ require_relative '../fake_home'
 require_relative '../../lib/zold/log'
 require_relative '../../lib/zold/http'
 require_relative '../../lib/zold/verbose_thread'
+require_relative '../../lib/zold/node/front'
 
 # Fake node.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -41,37 +42,44 @@ class FakeNode
   def run(args = ['--standalone'])
     WebMock.allow_net_connect!
     start = Dir.pwd
-    FakeHome.new.run do |home|
-      server = TCPServer.new('127.0.0.1', 0)
-      port = server.addr[1]
-      server.close
-      node = Thread.new do
-        Zold::VerboseThread.new(@log).run do
-          Thread.current.abort_on_exception = true
-          Dir.chdir(home.dir)
-          require_relative '../../lib/zold/commands/node'
-          Zold::Node.new(wallets: home.wallets, remotes: home.remotes, copies: home.copies.root, log: @log).run(
-            [
-              '--port', port.to_s,
-              '--host=localhost',
-              '--bind-port', port.to_s,
-              '--threads=1',
-              '--invoice=NOPREFIX@ffffffffffffffff'
-            ] + args
-          )
+    begin
+      FakeHome.new.run do |home|
+        server = TCPServer.new('127.0.0.1', 0)
+        port = server.addr[1]
+        server.close
+        node = Thread.new do
+          Zold::VerboseThread.new(@log).run do
+            Thread.current.abort_on_exception = true
+            Dir.chdir(home.dir)
+            require_relative '../../lib/zold/commands/node'
+            Zold::Node.new(wallets: home.wallets, remotes: home.remotes, copies: home.copies.root, log: @log).run(
+              [
+                '--network=test',
+                '--port', port.to_s,
+                '--host=localhost',
+                '--bind-port', port.to_s,
+                '--threads=1',
+                '--strength=2',
+                '--routine-immediately',
+                '--invoice=NOPREFIX@ffffffffffffffff'
+              ] + args
+            )
+          end
+        end
+        uri = "http://localhost:#{port}/"
+        while Zold::Http.new(uri).get.code == '599' && node.alive?
+          @log.debug("Waiting for #{uri}...")
+          sleep 1
+        end
+        begin
+          yield port
+        ensure
+          Zold::Front.stop!
+          node.join
         end
       end
-      uri = "http://localhost:#{port}/"
-      while Zold::Http.new(uri).get.code == '599' && node.alive?
-        sleep 1
-        @log.debug("Waiting for #{uri}...")
-      end
-      begin
-        yield port
-      ensure
-        node.exit
-        Dir.chdir(start)
-      end
+    ensure
+      Dir.chdir(start)
     end
   end
 

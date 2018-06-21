@@ -43,7 +43,7 @@ module Zold
     configure do
       set :bind, '0.0.0.0'
       set :suppress_messages, true
-      set :dump_errors, false
+      set :dump_errors, true
       set :start, Time.now
       set :lock, false
       set :show_exceptions, false
@@ -58,6 +58,7 @@ module Zold
       set :farm, nil? # to be injected at node.rb
       set :metronome, nil? # to be injected at node.rb
       set :entrance, nil? # to be injected at node.rb
+      set :network, nil? # to be injected at node.rb
       set :wallets, nil? # to be injected at node.rb
       set :remotes, nil? # to be injected at node.rb
       set :copies, nil? # to be injected at node.rb
@@ -65,22 +66,26 @@ module Zold
     use Rack::Deflater
 
     before do
-      name = "HTTP-#{Http::SCORE_HEADER}".upcase.tr('-', '_')
-      header = request.env[name]
-      return unless header
-      if settings.remotes.all.empty?
-        settings.log.debug("#{request.url}: we are in standalone mode, won't update remotes")
+      check_header(Http::NETWORK_HEADER) do |header|
+        if header != settings.network
+          raise "Network name mismatch, you are in '#{header}', we are in '#{settings.network}'"
+        end
       end
-      s = Score.parse_text(header)
-      error(400, 'The score is invalid') unless s.valid?
-      error(400, 'The score is weak') if s.strength < Score::STRENGTH && !settings.ignore_score_weakness
-      if s.value > 3
-        require_relative '../commands/remote'
-        Remote.new(remotes: settings.remotes, log: settings.log).run(
-          ['remote', 'add', s.host, s.port.to_s, '--force']
-        )
-      else
-        settings.log.debug("#{request.url}: the score is too weak: #{s}")
+      check_header(Http::SCORE_HEADER) do |header|
+        if settings.remotes.all.empty?
+          settings.log.debug("#{request.url}: we are in standalone mode, won't update remotes")
+        end
+        s = Score.parse_text(header)
+        error(400, 'The score is invalid') unless s.valid?
+        error(400, 'The score is weak') if s.strength < Score::STRENGTH && !settings.ignore_score_weakness
+        if s.value > 3
+          require_relative '../commands/remote'
+          Remote.new(remotes: settings.remotes, log: settings.log).run(
+            ['remote', 'add', s.host, s.port.to_s, '--force']
+          )
+        else
+          settings.log.debug("#{request.url}: the score is too weak: #{s}")
+        end
       end
     end
 
@@ -121,6 +126,7 @@ module Zold
       content_type 'application/json'
       JSON.pretty_generate(
         version: settings.version,
+        network: settings.network,
         score: score.to_h,
         pid: Process.pid,
         cpus: Concurrent.processor_count,
@@ -181,7 +187,7 @@ module Zold
         )
       end
       settings.log.info("Wallet #{id} is new: #{before.length}b != #{after.length}b")
-      settings.entrance.push(id, after, sync: !params[:sync].nil?)
+      settings.entrance.push(id, after)
       JSON.pretty_generate(
         version: settings.version,
         score: score.to_h
@@ -227,6 +233,13 @@ module Zold
     end
 
     private
+
+    def check_header(name)
+      name = "HTTP-#{name}".upcase.tr('-', '_')
+      header = request.env[name]
+      return unless header
+      yield header
+    end
 
     def score
       best = settings.farm.best

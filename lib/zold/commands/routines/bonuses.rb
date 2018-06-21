@@ -51,10 +51,13 @@ module Zold
           (@opts['ignore-score-weakness'] ? ['--ignore-score-weakness'] : [])
         )
         return if winners.empty?
-        winners.each do |score|
+        unless @wallets.find(Id.new(@opts['bonus-wallet'])).exists?
           Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-            ['pull', @opts['bonus-wallet']]
+            ['pull', @opts['bonus-wallet']] +
+            (@opts['ignore-score-weakness'] ? ['--ignore-score-weakness'] : [])
           )
+        end
+        winners.each do |score|
           Pay.new(wallets: @wallets, remotes: @remotes, log: @log).run(
             [
               'pay', @opts['bonus-wallet'], score.invoice, @opts['bonus-amount'].to_s,
@@ -62,10 +65,11 @@ module Zold
               '--private-key', @opts['private-key']
             ]
           )
-          Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-            ['push', @opts['bonus-wallet']]
-          )
         end
+        Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
+          ['push', @opts['bonus-wallet']] +
+          (@opts['ignore-score-weakness'] ? ['--ignore-score-weakness'] : [])
+        )
       end
     end
   end

@@ -18,30 +18,44 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Atomic file.
+require 'minitest/autorun'
+require_relative '../fake_home'
+require_relative 'fake_node'
+require_relative '../test__helper'
+require_relative '../../lib/zold/id'
+require_relative '../../lib/zold/node/entrance'
+require_relative '../../lib/zold/node/spread_entrance'
+require_relative 'fake_entrance'
+
+# SpreadEntrance test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # Atomic file
-  class AtomicFile
-    def initialize(file)
-      raise 'File can\'t be nil' if file.nil?
-      @file = file
-    end
-
-    def read
-      File.open(@file, 'rb') do |f|
-        f.flock(File::LOCK_EX)
-        f.read
+class TestSpreadEntrance < Minitest::Test
+  def test_renders_json
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet(Zold::Id.new)
+      Zold::SpreadEntrance.new(
+        Zold::Entrance.new(home.wallets, home.remotes, home.copies(wallet).root, 'x', log: test_log),
+        home.wallets, home.remotes, 'x', log: test_log
+      ).start do |e|
+        assert_equal(0, e.to_json[:modified])
       end
     end
+  end
 
-    def write(content)
-      raise 'Content can\'t be nil' if content.nil?
-      File.open(@file, 'wb') do |f|
-        f.flock(File::LOCK_EX)
-        f.write(content)
+  def test_ignores_duplicates
+    FakeHome.new.run do |home|
+      FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
+        remotes = home.remotes
+        remotes.add('localhost', port)
+        Zold::SpreadEntrance.new(
+          FakeEntrance.new, home.wallets, remotes, 'x', log: test_log
+        ).start do |e|
+          id = Zold::Id.new.to_s
+          8.times { e.push(Zold::Id.new(id), '') }
+          assert(e.to_json[:modified] < 2)
+        end
       end
     end
   end

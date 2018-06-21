@@ -18,30 +18,38 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Atomic file.
+require 'minitest/autorun'
+require_relative '../fake_home'
+require_relative '../test__helper'
+require_relative '../../lib/zold/wallet'
+require_relative '../../lib/zold/id'
+require_relative '../../lib/zold/key'
+require_relative '../../lib/zold/node/safe_entrance'
+require_relative 'fake_entrance'
+
+# SafeEntrance test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # Atomic file
-  class AtomicFile
-    def initialize(file)
-      raise 'File can\'t be nil' if file.nil?
-      @file = file
-    end
-
-    def read
-      File.open(@file, 'rb') do |f|
-        f.flock(File::LOCK_EX)
-        f.read
+class TestSafeEntrance < Minitest::Test
+  def test_rejects_wallet_with_negative_balance
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      amount = Zold::Amount.new(zld: 39.99)
+      key = Zold::Key.new(file: 'fixtures/id_rsa')
+      wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
+      assert_raises StandardError do
+        Zold::SafeEntrance.new(FakeEntrance.new).push(wallet.id, File.read(wallet.path))
       end
     end
+  end
 
-    def write(content)
-      raise 'Content can\'t be nil' if content.nil?
-      File.open(@file, 'wb') do |f|
-        f.flock(File::LOCK_EX)
-        f.write(content)
+  def test_rejects_wallet_with_wrong_network
+    FakeHome.new.run do |home|
+      wallet = Zold::Wallet.new(File.join(home.dir, 'wallet'))
+      wallet.init(Zold::Id.new, Zold::Key.new(file: 'fixtures/id_rsa.pub'), network: 'someothernetwork')
+      assert_raises StandardError do
+        Zold::SafeEntrance.new(FakeEntrance.new).push(wallet.id, File.read(wallet.path))
       end
     end
   end

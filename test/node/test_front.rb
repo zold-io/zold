@@ -25,6 +25,7 @@ require_relative '../test__helper'
 require_relative 'fake_node'
 require_relative '../fake_home'
 require_relative '../../lib/zold/http'
+require_relative '../../lib/zold/json_page'
 require_relative '../../lib/zold/score'
 
 class FrontTest < Minitest::Test
@@ -66,7 +67,7 @@ class FrontTest < Minitest::Test
       ).next.next.next.next
       response = Zold::Http.new("http://localhost:#{port}/remotes", score).get
       body = response.body
-      assert_equal(1, JSON.parse(body)['all'].count, body)
+      assert_equal(1, Zold::JsonPage.new(body).to_hash['all'].count, body)
     end
   end
 
@@ -148,7 +149,7 @@ class FrontTest < Minitest::Test
         "Expected HTTP 200 OK: Found #{response.code}"
       )
       assert_operator(
-        600, :>, response['content-length'].to_i,
+        700, :>, response['content-length'].to_i,
         'Expected the content to be smaller than 600 bytes for gzip'
       )
     end

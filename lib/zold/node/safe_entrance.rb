@@ -18,44 +18,37 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'concurrent'
 require 'tempfile'
+require_relative 'emission'
 require_relative '../log'
 require_relative '../remotes'
 require_relative '../copies'
 require_relative '../tax'
-require_relative '../commands/clean'
 require_relative '../commands/merge'
 require_relative '../commands/fetch'
 require_relative '../commands/push'
 
-# The entrance of the web front.
+# The entrance thav validate the incoming wallet first.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # The entrance
-  class Entrance
-    def initialize(wallets, remotes, copies, address, log: Log::Quiet.new)
-      raise 'Wallets can\'t be nil' if wallets.nil?
-      raise 'Wallets must be of type Wallets' unless wallets.is_a?(Wallets)
-      @wallets = wallets
-      raise 'Remotes can\'t be nil' if remotes.nil?
-      raise "Remotes must be of type Remotes: #{remotes.class.name}" unless remotes.is_a?(Remotes)
-      @remotes = remotes
-      raise 'Copies can\'t be nil' if copies.nil?
-      @copies = copies
-      raise 'Address can\'t be nil' if address.nil?
-      @address = address
-      raise 'Log can\'t be nil' if log.nil?
-      @log = log
+  # The safe entrance
+  class SafeEntrance
+    def initialize(entrance, network: 'test')
+      raise 'Entrance can\'t be nil' if entrance.nil?
+      @entrance = entrance
+      raise 'Network can\'t be nil' if network.nil?
+      @network = network
     end
 
     def start
-      yield(self)
+      @entrance.start { yield(self) }
     end
 
     def to_json
-      {}
+      @entrance.to_json
     end
 
     # Returns a list of modifed wallets (as Zold::Id)
@@ -63,25 +56,23 @@ module Zold
       raise 'Id can\'t be nil' if id.nil?
       raise 'Id must be of type Id' unless id.is_a?(Id)
       raise 'Body can\'t be nil' if body.nil?
-      start = Time.now
-      copies = Copies.new(File.join(@copies, id.to_s))
-      localhost = '0.0.0.0'
-      copies.add(body, localhost, Remotes::PORT, 0)
-      unless @remotes.all.empty?
-        Fetch.new(
-          wallets: @wallets, remotes: @remotes, copies: copies.root, log: @log
-        ).run(['fetch', id.to_s, "--ignore-node=#{@address}"])
+      Tempfile.open do |f|
+        File.write(f.path, body)
+        wallet = Wallet.new(f)
+        unless wallet.network == @network
+          raise "The network name mismatch, the wallet is in '#{wallet.network}', we are in '#{@network}'"
+        end
+        balance = wallet.balance
+        if balance.negative? && !wallet.root?
+          raise "The balance #{balance} of #{wallet.id} is negative and it's not a root wallet"
+        end
+        Emission.new(wallet).check
+        tax = Tax.new(wallet)
+        if tax.in_debt?
+          raise "Taxes are not paid, can't accept the wallet; the debt is #{tax.debt} (#{tax.debt.to_i} zents)"
+        end
+        @entrance.push(id, body)
       end
-      modified = Merge.new(
-        wallets: @wallets, copies: copies.root, log: @log
-      ).run(['merge', id.to_s, '--no-baseline'])
-      Clean.new(wallets: @wallets, copies: copies.root, log: @log).run(['clean', id.to_s])
-      copies.remove(localhost, Remotes::PORT)
-      unless modified.empty?
-        @log.info("Accepted #{id} in #{(Time.now - start).round(2)}s \
-and modified #{modified.join(', ')}")
-      end
-      modified
     end
   end
 end

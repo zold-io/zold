@@ -27,6 +27,7 @@ require 'time'
 require_relative 'args'
 require_relative '../node/farm'
 require_relative '../log'
+require_relative '../json_page'
 require_relative '../http'
 require_relative '../remotes'
 require_relative '../score'
@@ -152,7 +153,8 @@ Available options:"
       @remotes.iterate(@log, farm: @farm) do |r|
         res = r.http('/').get
         r.assert_code(200, res)
-        score = Score.parse_json(JSON.parse(res.body)['score'])
+        json = JsonPage.new(res.body).to_hash
+        score = Score.parse_json(json['score'])
         r.assert_valid_score(score)
         r.assert_score_ownership(score)
         r.assert_score_strength(score) unless opts['ignore-score-weakness']
@@ -181,7 +183,7 @@ Available options:"
         start = Time.now
         res = r.http('/remotes').get
         r.assert_code(200, res)
-        json = JSON.parse(res.body)
+        json = JsonPage.new(res.body).to_hash
         score = Score.parse_json(json['score'])
         r.assert_valid_score(score)
         r.assert_score_ownership(score)

@@ -42,11 +42,18 @@ module Zold
     # reboot itself, if the version is higher.
     VERSION_HEADER = 'X-Zold-Version'.freeze
 
-    def initialize(uri, score = Score::ZERO)
+    # HTTP header we add, in order to inform the node about our
+    # network. This is done in order to isolate test networks from
+    # production one.
+    NETWORK_HEADER = 'X-Zold-Network'.freeze
+
+    def initialize(uri, score = Score::ZERO, network: 'test')
       raise 'URI can\'t be nil' if uri.nil?
       @uri = uri.is_a?(String) ? URI(uri) : uri
       raise 'Score can\'t be nil' if score.nil?
       @score = score
+      raise 'Network can\'t be nil' if network.nil?
+      @network = network
     end
 
     def get
@@ -105,6 +112,7 @@ module Zold
         'Accept-Encoding': 'gzip'
       }
       headers[Http::VERSION_HEADER] = VERSION
+      headers[Http::NETWORK_HEADER] = @network
       headers[Http::SCORE_HEADER] = @score.reduced(4).to_text if @score.valid? && !@score.expired? && @score.value > 3
       headers
     end

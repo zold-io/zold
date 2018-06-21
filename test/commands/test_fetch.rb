@@ -24,6 +24,7 @@ require 'json'
 require 'time'
 require 'webmock/minitest'
 require_relative '../test__helper'
+require_relative '../fake_home'
 require_relative '../../lib/zold/wallet'
 require_relative '../../lib/zold/wallets'
 require_relative '../../lib/zold/remotes'
@@ -39,52 +40,25 @@ require_relative '../../lib/zold/commands/fetch'
 # License:: MIT
 class TestFetch < Minitest::Test
   def test_fetches_wallet
-    Dir.mktmpdir 'test' do |dir|
-      id = Zold::Id.new
-      wallets = Zold::Wallets.new(dir)
-      wallet = wallets.find(id)
-      wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-      remotes = Zold::Remotes.new(File.join(dir, 'remotes.csv'))
-      remotes.clean
-      stub_request(:get, "http://localhost:80/wallet/#{id}").to_return(
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      stub_request(:get, "http://localhost:80/wallet/#{wallet.id}").to_return(
         status: 200,
         body: {
           'score': Zold::Score::ZERO.to_h,
           'body': File.read(wallet.path)
         }.to_json
       )
-      stub_request(:get, "http://localhost:81/wallet/#{id}").to_return(
+      stub_request(:get, "http://localhost:81/wallet/#{wallet.id}").to_return(
         status: 404
       )
+      remotes = home.remotes
       remotes.add('localhost', 80)
       remotes.add('localhost', 81)
-      copies = Zold::Copies.new(File.join(dir, "copies/#{id}"))
-      Zold::Fetch.new(wallets: wallets, copies: copies.root, remotes: remotes, log: test_log).run(
-        ['fetch', '--ignore-score-weakness', id.to_s]
+      copies = home.copies(wallet)
+      Zold::Fetch.new(wallets: home.wallets, copies: copies.root, remotes: remotes, log: test_log).run(
+        ['fetch', '--ignore-score-weakness', wallet.id.to_s]
       )
-      assert_equal(copies.all[0][:name], '1')
-      assert_equal(copies.all[0][:score], 0)
-    end
-  end
-
-  def test_fetches_empty_wallet
-    Dir.mktmpdir 'test' do |dir|
-      id = Zold::Id.new
-      wallets = Zold::Wallets.new(dir)
-      remotes = Zold::Remotes.new(File.join(dir, 'remotes.csv'))
-      remotes.clean
-      stub_request(:get, "http://localhost:80/wallet/#{id}").to_return(
-        status: 200,
-        body: {
-          'score': Zold::Score::ZERO.to_h,
-          'body': 'the body'
-        }.to_json
-      )
-      remotes.add('localhost', 80)
-      copies = Zold::Copies.new(File.join(dir, "copies/#{id}"))
-      Zold::Fetch.new(
-        wallets: wallets, copies: copies.root, remotes: remotes, log: test_log
-      ).run(['fetch', id.to_s])
       assert_equal(copies.all[0][:name], '1')
       assert_equal(copies.all[0][:score], 0)
     end
