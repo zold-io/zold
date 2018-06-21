@@ -91,6 +91,18 @@ class TestRemotes < Minitest::Test
     end
   end
 
+  def test_log_msg_of_iterates_when_take_too_long
+    Dir.mktmpdir 'test' do |dir|
+      file = File.join(dir, 'remotes')
+      FileUtils.touch(file)
+      remotes = Zold::Remotes.new(file)
+      remotes.add('127.0.0.1')
+      log = TestLogger.new
+      remotes.iterate(log) { sleep(17) }
+      assert(log.msg.include?('Took too long to execute'))
+    end
+  end
+
   def test_removes_remotes
     Dir.mktmpdir 'test' do |dir|
       file = File.join(dir, 'remotes')
