@@ -47,13 +47,11 @@ class TestSpreadEntrance < Minitest::Test
   def test_ignores_duplicates
     FakeHome.new.run do |home|
       FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
+        wallet = home.create_wallet
         remotes = home.remotes
         remotes.add('localhost', port)
-        Zold::SpreadEntrance.new(
-          FakeEntrance.new, home.wallets, remotes, 'x', log: test_log
-        ).start do |e|
-          id = Zold::Id.new.to_s
-          8.times { e.push(Zold::Id.new(id), '') }
+        Zold::SpreadEntrance.new(FakeEntrance.new, home.wallets, remotes, 'x', log: test_log).start do |e|
+          8.times { e.push(wallet.id, File.read(wallet.path)) }
           assert(e.to_json[:modified] < 2)
         end
       end

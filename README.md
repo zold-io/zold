@@ -147,6 +147,10 @@ with a lot of technical details. Here is the explanation of the majority of them
 The node is supposed to update update itself automatically (if you run it via `zold-nohup`)
 every time it discovers another node with a higher version.
 
+`network` is the name of the network the node belongs to.
+The production network's name is `zold`.
+For testing purposes you can start a node in a test network, using `--network=test`.
+
 `score` is the current score your node is exposing to the network now.
 All other nodes are using this information in order to decide how much
 they can trust your node with the information it provides, about wallets.
@@ -208,11 +212,6 @@ network. You can see the full list of nodes at `/remotes` URL of your node.
 `entrance` is the place where all new wallets arive and get merged and pushed
 further. The health of this point is critical to the entire node. Some
 numbers it includes must be watched carefully.
-
-  * `semaphores` is the amount of locks the server maintain, one per wallet.
-    The number may be large (>100), if the node has processed a lot of wallets
-    recently. If it's larger [than 1024](https://github.com/zold-io/zold/issues/199),
-    it's a good reason to worry.
 
 To be continued...
 
