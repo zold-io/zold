@@ -18,7 +18,7 @@
 **NOTICE**: It's an experiment and a very early draft! Please, feel free to
 submit your ideas and/or pull requests.
 
-Here is the [White Paper](https://github.com/zold-io/papers/raw/master/wp.pdf).
+Here is the [White Paper](https://papers.zold.io/wp.pdf).
 
 Join our [Telegram group](https://t.me/zold_io) to discuss it all live.
 
