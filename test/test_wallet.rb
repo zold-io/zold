@@ -105,7 +105,7 @@ class TestWallet < Minitest::Test
       wallet.add(
         Zold::Txn.new(2, time_now, Zold::Amount.new(zld: 10.00),'NOPREFIX', Zold::Id.new, '-')
       )
-      assert_equal(1, wallet.age)  
+      assert_equal(1, wallet.age)
     end
   end
 
