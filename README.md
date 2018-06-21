@@ -109,6 +109,12 @@ $ zold node --nohup --invoice=5f96e731e48ae21f
 Now you can close the console;
 the software will work in the background, saving the output logs to `zold.log`.
 The software will update itself automatically to new versions.
+The software will never stop, even if it crashes internally with any error.
+In order to terminate it forcefully, do:
+
+```bash
+$ killall -9 zold
+```
 
 Grateful users of the system will pay "taxes" to your wallet
 for the maintenance of their wallets, and the system will occasionally
