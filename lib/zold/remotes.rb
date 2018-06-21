@@ -182,11 +182,8 @@ module Zold
         rescue StandardError => e
           error(r[:host], r[:port])
           errors = errors(r[:host], r[:port])
-          log.info(
-            "#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message}; "\
-            "errors=#{errors}; "\
-            "execution_time=#{Time.now - start} seconds"
-          )
+          log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message} \
+in #{(Time.now - start).round}s; errors=#{errors}")
           log.debug(Backtrace.new(e).to_s)
           remove(r[:host], r[:port]) if errors > Remotes::TOLERANCE
         end
