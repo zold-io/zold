@@ -227,13 +227,14 @@ module Zold
           begin
             code = exec("#{myself} #{args.join(' ')}", nohup_log)
             if code != 0
-              nohup_log.print("Let's wait for a minutes, because of the failure...")
+              nohup_log.print("Let's wait for a minute, because of the failure...")
               sleep(60)
             end
             exec(opts['nohup-command'], nohup_log)
           rescue StandardError => e
             nohup_log.print(Backtrace.new(e).to_s)
-            raise e
+            nohup_log.print("Let's wait for a minutes, because of the exception...")
+            sleep(60)
           end
         end
       end
