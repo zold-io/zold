@@ -160,6 +160,7 @@ module Zold
         if @wallets.find(Id.new(invoice)).exists?
           @log.info("Wallet #{invoice} already exists locally, won't pull")
         else
+          @log.info("The wallet #{invoice} is not available locally, will pull now...")
           require_relative 'pull'
           Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(['pull', invoice])
         end
