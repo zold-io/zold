@@ -54,6 +54,7 @@ module Zold
       save(load.reject { |s| s[:host] == host && s[:port] == port })
     end
 
+    # Returns the name of the copy
     def add(content, host, port, score, time = Time.now)
       raise "Content can't be empty" if content.empty?
       raise 'TCP port must be of type Integer' unless port.is_a?(Integer)
@@ -88,6 +89,7 @@ module Zold
         time: time
       }
       save(list)
+      name
     end
 
     def all

@@ -64,7 +64,7 @@ module Zold
 
     def version
       v = lines[1].strip
-      raise "Invalid version name '#{v}'" unless v =~ /^[0-9]+(\.[0-9]+){1,2}$/
+      raise "Invalid version name '#{v}'" unless v =~ /^[0-9]+$/
       v
     end
 

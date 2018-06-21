@@ -98,8 +98,8 @@ Available options:"
         body = json['body']
         File.write(f, body)
         wallet = Wallet.new(f.path)
-        cps.add(body, score.host, score.port, score.value)
-        @log.info("#{r} returned #{body.length}b/#{wallet.txns.count}t \
+        copy = cps.add(body, score.host, score.port, score.value)
+        @log.info("#{r} returned #{body.length}b/#{wallet.txns.count}t as copy ##{copy} \
 of #{id} in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green} (#{json['version']})")
       end
       score.value
