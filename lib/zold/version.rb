@@ -23,5 +23,5 @@
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  VERSION = '0.0.0'.freeze
+  VERSION = '0.13.36'.freeze
 end
