@@ -75,8 +75,12 @@ module Zold
         start = Time.now
         @threads.each do |t|
           tstart = Time.now
-          t.join
-          @log.info("Thread #{t.name} finished in #{(Time.now - tstart).round(2)}s")
+          if t.join(60)
+            @log.info("Thread #{t.name} finished in #{(Time.now - tstart).round(2)}s")
+          else
+            t.exit
+            @log.info("Thread #{t.name} killed in #{(Time.now - tstart).round(2)}s")
+          end
         end
         @log.info("Metronome stopped in #{(Time.now - start).round(2)}s, #{@failures.count} failures")
       end
