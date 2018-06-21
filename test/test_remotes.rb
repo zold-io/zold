@@ -29,6 +29,15 @@ require_relative '../lib/zold/remotes'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class TestRemotes < Minitest::Test
+  class TestLogger
+    attr_reader :msg
+    def info(msg)
+      @msg = msg
+    end
+
+    def debug(msg); end
+  end
+
   def test_adds_remotes
     Dir.mktmpdir 'test' do |dir|
       file = File.join(dir, 'remotes')
@@ -64,6 +73,18 @@ class TestRemotes < Minitest::Test
       ips.each { |i| remotes.add("0.0.0.#{i}", 9999) }
       remotes.iterate(Zold::Log::Quiet.new) { raise 'Intended' }
       ips.each { |i| assert(1, remotes.all[i][:errors]) }
+    end
+  end
+
+  def test_log_msg_of_iterates_when_fail
+    Dir.mktmpdir 'test' do |dir|
+      file = File.join(dir, 'remotes')
+      FileUtils.touch(file)
+      remotes = Zold::Remotes.new(file)
+      remotes.add('0.0.0.1', 9999)
+      log = TestLogger.new
+      remotes.iterate(log) { raise 'Intended' }
+      assert(log.msg.include?('execution_time'))
     end
   end
 
