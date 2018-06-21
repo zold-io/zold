@@ -74,8 +74,10 @@ module Zold
             @log.error("An attempt to overwrite #{dup.to_text} with this: #{txn.to_text}")
             next
           end
-          if @txns.map(&:amount).map(&:to_i).inject(&:+).to_i < txn.amount.to_i * -1 && !wallet.root?
-            @log.error("Transaction ##{txn.id} attempts to make the balance of #{wallet.id} negative: #{txn.to_text}")
+          balance = @txns.map(&:amount).map(&:to_i).inject(&:+).to_i
+          if balance < txn.amount.to_i * -1 && !wallet.root?
+            @log.error("Transaction ##{txn.id} attempts to make the balance of \
+#{wallet.id}/#{Amount.new(coins: balance).to_zld}/#{@txns.size} negative: #{txn.to_text}")
             next
           end
           unless Signature.new.valid?(@key, wallet.id, txn)

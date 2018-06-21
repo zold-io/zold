@@ -167,7 +167,22 @@ module Zold
       wallet = settings.wallets.find(id)
       error 404 unless wallet.exists?
       content_type 'text/plain'
-      wallet.key.to_s.to_s
+      wallet.key.to_s
+    end
+
+    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.txt} do
+      id = Id.new(params[:id])
+      wallet = settings.wallets.find(id)
+      error 404 unless wallet.exists?
+      content_type 'text/plain'
+      [
+        wallet.network,
+        wallet.version,
+        wallet.id.to_s,
+        wallet.key.to_s,
+        '',
+        wallet.txns.map(&:to_text).join("\n")
+      ].join("\n")
     end
 
     put %r{/wallet/(?<id>[A-Fa-f0-9]{16})/?} do
