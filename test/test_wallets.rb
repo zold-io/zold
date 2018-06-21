@@ -51,7 +51,7 @@ class TestWallets < Minitest::Test
     end
   end
   
-  def test_substracts_dir_path_from_full_path 
+  def test_substracts_dir_path_from_full_path
     FakeHome.new.run do |home|
       wallets = home.wallets
       path = wallets.path
