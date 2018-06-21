@@ -66,7 +66,7 @@ module Zold
         next if @txns.find { |t| t == txn }
         if txn.amount.negative?
           if txn.id <= max
-            @log.error("Transaction ID is less than max #{max}: #{txn.to_text}")
+            @log.error("Transaction ID is not greater than max ID #{max}: #{txn.to_text}")
             next
           end
           dup = @txns.find { |t| t.id == txn.id }
