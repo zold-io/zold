@@ -157,8 +157,12 @@ module Zold
       Front.set(:reboot, !opts['never-reboot'])
       invoice = opts[:invoice]
       unless invoice.include?('@')
-        require_relative 'pull'
-        Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(['pull', invoice])
+        if @wallets.find(Id.new(invoice)).exists?
+          @log.info("Wallet #{invoice} already exists locally, won't pull")
+        else
+          require_relative 'pull'
+          Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(['pull', invoice])
+        end
         require_relative 'invoice'
         invoice = Invoice.new(wallets: @wallets, log: @log).run(['invoice', invoice])
       end
