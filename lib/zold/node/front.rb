@@ -43,7 +43,7 @@ module Zold
     configure do
       set :bind, '0.0.0.0'
       set :suppress_messages, true
-      set :dump_errors, true
+      set :dump_errors, false
       set :start, Time.now
       set :lock, false
       set :show_exceptions, false
@@ -81,7 +81,7 @@ module Zold
         if s.value > 3
           require_relative '../commands/remote'
           Remote.new(remotes: settings.remotes, log: settings.log).run(
-            ['remote', 'add', s.host, s.port.to_s, '--force']
+            ['remote', 'add', s.host, s.port.to_s, '--force', "--network=#{settings.network}"]
           )
         else
           settings.log.debug("#{request.url}: the score is too weak: #{s}")

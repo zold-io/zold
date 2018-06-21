@@ -31,6 +31,7 @@ require_relative '../json_page'
 require_relative '../http'
 require_relative '../remotes'
 require_relative '../score'
+require_relative '../wallet'
 
 # REMOTE command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -78,6 +79,10 @@ Available options:"
         o.bool '--skip-ping',
           'Don\'t ping back the node when adding it (not recommended)',
           default: false
+        o.string '--network',
+          "The name of the network we work in (default: #{Wallet::MAIN_NETWORK}",
+          required: true,
+          default: Wallet::MAIN_NETWORK
         o.bool '--reboot',
           'Exit if any node reports version higher than we have',
           default: false
@@ -130,8 +135,8 @@ Available options:"
 
     def add(host, port, opts)
       unless opts['skip-ping']
-        res = Http.new("http://#{host}:#{port}/version").get
-        raise "The node #{host}:#{port} is not responding" unless res.code == '200'
+        res = Http.new("http://#{host}:#{port}/version", network: opts['network']).get
+        raise "The node #{host}:#{port} is not responding (code is #{res.code})" unless res.code == '200'
       end
       if @remotes.exists?(host, port)
         raise "#{host}:#{port} already exists in the list" unless opts['force']
