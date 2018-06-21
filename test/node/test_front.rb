@@ -61,13 +61,11 @@ class FrontTest < Minitest::Test
   def test_updates_list_of_remotes
     FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
       score = Zold::Score.new(
-        Time.now, 'a.example.com',
-        999, 'NOPREFIX@ffffffffffffffff',
-        strength: 1
+        Time.now, 'localhost', port, 'NOPREFIX@ffffffffffffffff', strength: 1
       ).next.next.next.next
       response = Zold::Http.new("http://localhost:#{port}/remotes", score).get
-      body = response.body
-      assert_equal(1, Zold::JsonPage.new(body).to_hash['all'].count, body)
+      assert_equal('200', response.code, response.body)
+      assert_equal(1, Zold::JsonPage.new(response.body).to_hash['all'].count, response.body)
     end
   end
 

@@ -246,7 +246,7 @@ module Zold
       metronome = Metronome.new(@log)
       require_relative 'routines/spread'
       metronome.add(Routines::Spread.new(opts, @wallets, entrance, log: @log))
-      unless opts[:standalone]
+      unless opts['standalone']
         require_relative 'routines/reconnect'
         metronome.add(Routines::Reconnect.new(opts, @remotes, farm, log: @log))
       end

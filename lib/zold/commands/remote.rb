@@ -75,6 +75,9 @@ Available options:"
         o.bool '--force',
           'Add/remove if if this operation is not possible',
           default: false
+        o.bool '--skip-ping',
+          'Don\'t ping back the node when adding it (not recommended)',
+          default: false
         o.bool '--reboot',
           'Exit if any node reports version higher than we have',
           default: false
@@ -126,6 +129,10 @@ Available options:"
     end
 
     def add(host, port, opts)
+      unless opts['skip-ping']
+        res = Http.new("http://#{host}:#{port}/version").get
+        raise "The node #{host}:#{port} is not responding" unless res.code == '200'
+      end
       if @remotes.exists?(host, port)
         raise "#{host}:#{port} already exists in the list" unless opts['force']
         @log.debug("#{host}:#{port} already exists in the list")
@@ -213,7 +220,7 @@ in #{(Time.now - start).round(2)}s")
       end
       total = @remotes.all.size
       if total.zero?
-        @log.debug("The list of remotes is #{Rainbow('empty').red}, run 'zold reset'!")
+        @log.debug("The list of remotes is #{Rainbow('empty').red}, run 'zold remote reset'!")
       else
         @log.debug("There are #{total} known remotes")
       end

@@ -62,10 +62,10 @@ class TestRemote < Minitest::Test
       cmd = Zold::Remote.new(remotes: remotes, log: test_log)
       cmd.run(%w[remote clean])
       assert(remotes.all.empty?)
-      cmd.run(['remote', 'add', zero.host, zero.port.to_s])
-      cmd.run(%w[remote add localhost 2])
+      cmd.run(['remote', 'add', zero.host, zero.port.to_s, '--skip-ping'])
+      cmd.run(%w[remote add localhost 2 --skip-ping])
       assert_equal(2, remotes.all.count)
-      cmd.run(['remote', 'update', '--ignore-score-weakness'])
+      cmd.run(['remote', 'update', '--ignore-score-weakness', '--skip-ping'])
       assert_equal(4, remotes.all.count)
     end
   end
