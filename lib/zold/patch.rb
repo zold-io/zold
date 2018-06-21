@@ -74,7 +74,7 @@ module Zold
             @log.error("An attempt to overwrite #{dup.to_text} with this: #{txn.to_text}")
             next
           end
-          if !@txns.empty? && @txns.map(&:amount).inject(&:+) < txn.amount
+          if @txns.map(&:amount).map(&:to_i).inject(&:+).to_i < txn.amount.to_i * -1 && !wallet.root?
             @log.error("Transaction ##{txn.id} attempts to make the balance negative: #{txn.to_text}")
             next
           end

@@ -86,6 +86,11 @@ module Zold
       @coins <= other.to_i
     end
 
+    def <=>(other)
+      raise '<= may only work with Amount' unless other.is_a?(Amount)
+      @coins <=> other.to_i
+    end
+
     def +(other)
       raise '+ may only work with Amount' unless other.is_a?(Amount)
       Amount.new(coins: @coins + other.to_i)

@@ -84,7 +84,7 @@ class TestRemotes < Minitest::Test
       remotes.add('0.0.0.1', 9999)
       log = TestLogger.new
       remotes.iterate(log) { raise 'Intended' }
-      assert(log.msg.include?('execution_time'))
+      assert(log.msg.include?(' in '))
     end
   end
 

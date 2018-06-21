@@ -47,6 +47,19 @@ class TestWallet < Minitest::Test
     end
   end
 
+  def test_positive_transactions_go_first
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      time = Time.now
+      key = Zold::Key.new(file: 'fixtures/id_rsa')
+      wallet.add(Zold::Txn.new(1, time, Zold::Amount.new(coins: 1), 'NOPREFIX', Zold::Id.new, '-'))
+      wallet.sub(Zold::Amount.new(coins: 2), "NOPREFIX@#{Zold::Id.new}", key, time: time)
+      wallet.add(Zold::Txn.new(2, time, Zold::Amount.new(coins: 3), 'NOPREFIX', Zold::Id.new, '-'))
+      wallet.sub(Zold::Amount.new(coins: 4), "NOPREFIX@#{Zold::Id.new}", key, time: time)
+      assert_equal('3, 1, -2, -4', wallet.txns.map(&:amount).map(&:to_i).join(', '))
+    end
+  end
+
   def test_validate_key_on_payment
     FakeHome.new.run do |home|
       wallet = home.create_wallet
@@ -65,7 +78,7 @@ class TestWallet < Minitest::Test
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       txn = wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
       wallet.add(txn.inverse(wallet.id))
-      assert(!Zold::Wallet.new(wallet.path).txns[0].sign.end_with?("\n"))
+      assert(!Zold::Wallet.new(wallet.path).txns[1].sign.end_with?("\n"))
     end
   end
 

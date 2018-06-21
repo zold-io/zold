@@ -95,7 +95,7 @@ class TestMerge < Minitest::Test
 
   def test_merges_a_copy_on_top
     FakeHome.new.run do |home|
-      wallet = home.create_wallet
+      wallet = home.create_wallet(Zold::Id::ROOT)
       copies = home.copies(wallet)
       copies.add(File.read(wallet.path), 'good-host', 80, 5)
       key = Zold::Key.new(file: 'fixtures/id_rsa')

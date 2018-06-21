@@ -35,7 +35,7 @@ require_relative '../../lib/zold/commands/pay'
 # License:: MIT
 class TestEntrance < Minitest::Test
   def test_pushes_wallet
-    sid = Zold::Id.new
+    sid = Zold::Id::ROOT
     tid = Zold::Id.new
     body = FakeHome.new.run do |home|
       source = home.create_wallet(sid)
