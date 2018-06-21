@@ -290,6 +290,10 @@ module Zold
         # nothing
       end
 
+      def error(msg)
+        @log.error(msg)
+      end
+
       def fatal(msg)
         @log.error(msg)
       end
