@@ -36,6 +36,14 @@ class EmissionTest < Minitest::Test
             'NOPREFIX', Zold::Id::ROOT, '-'
           )
         )
+        wallet.add(
+          Zold::Txn.new(
+            2, Time.now,
+            Zold::Amount.new(zld: 39.99),
+            'NOPREFIX', Zold::Id::ROOT, '-'
+          )
+        )
+
         test_log.info("Year: #{year}, Quota: #{(Zold::Emission.new(wallet).quota * 100).round(2)}%, \
 Limit: #{Zold::Emission.new(wallet).limit}")
       end
