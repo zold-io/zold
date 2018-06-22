@@ -74,13 +74,21 @@ class FrontTest < Minitest::Test
   #  cause and fix it properly: http://www.rultor.com/t/14887-396655530
   def test_renders_wallet_pages
     skip
-    FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
-      FakeHome.new.run do |home|
+    FakeHome.new.run do |home|
+      FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
         wallet = home.create_wallet
         test_log.debug("Wallet created: #{wallet.id}")
         response = Zold::Http.new("http://localhost:#{port}/wallet/#{wallet.id}?sync=true").put(File.read(wallet.path))
         assert_equal('200', response.code, response.body)
-        assert_equal('0', Zold::Http.new("http://localhost:#{port}/wallet/#{wallet.id}/balance").get.body)
+        [
+          "/wallet/#{wallet.id}",
+          "/wallet/#{wallet.id}.txt",
+          "/wallet/#{wallet.id}/balance",
+          "/wallet/#{wallet.id}/key"
+        ].each do |u|
+          res = Zold::Http.new(u).get
+          assert_equal('200', res.code, res.body)
+        end
       end
     end
   end
