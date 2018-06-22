@@ -234,7 +234,7 @@ in #{(Time.now - start).round}s; errors=#{errors}")
           }
         end
         raw.reject { |r| !r[:host] || r[:port].zero? }.map do |r|
-          r[:home] = URI("http://#{r[0]}:#{r[1]}/")
+          r[:home] = URI("http://#{r[:host]}:#{r[:port]}/")
           r
         end
       end

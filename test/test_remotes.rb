@@ -118,10 +118,11 @@ class TestRemotes < Minitest::Test
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
       remotes = Zold::Remotes.new(file)
-      remotes.add('127.0.0.1', 80)
-      remotes.rescore('127.0.0.1', 80, 15)
+      remotes.add('127.0.0.1', 1024)
+      remotes.rescore('127.0.0.1', 1024, 15)
       remotes.all.each do |r|
         assert_equal(15, r[:score])
+        assert_equal('http://127.0.0.1:1024/', r[:home].to_s)
       end
     end
   end
