@@ -24,6 +24,7 @@ require_relative '../../test__helper'
 require_relative '../../fake_home'
 require_relative '../../node/fake_node'
 require_relative '../../../lib/zold/commands/routines/spread.rb'
+require_relative '../../../lib/zold/node/entrance.rb'
 
 # Spread test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

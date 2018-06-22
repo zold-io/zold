@@ -22,6 +22,7 @@ require 'time'
 require 'csv'
 require_relative 'atomic_file'
 require_relative 'log'
+require_relative 'wallet'
 
 # The list of copies.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -52,8 +53,8 @@ module Zold
         list.reject! { |s| s[:time] < Time.now - 24 * 60 * 60 }
         save(list)
         deleted = 0
-        Dir.new(@dir).select { |f| f =~ /^[0-9]+$/ }.each do |f|
-          next unless list.find { |s| s[:name] == f }.nil?
+        Dir.new(@dir).select { |f| File.basename(f, Wallet::EXTENSION) =~ /^[0-9]+$/ }.each do |f|
+          next unless list.find { |s| s[:name] == File.basename(f, Wallet::EXTENSION) }.nil?
           file = File.join(@dir, f)
           size = File.size(file)
           File.delete(file)
@@ -83,17 +84,17 @@ module Zold
         FileUtils.mkdir_p(@dir)
         list = load
         target = list.find do |s|
-          f = File.join(@dir, s[:name])
+          f = File.join(@dir, "#{s[:name]}#{Wallet::EXTENSION}")
           File.exist?(f) && AtomicFile.new(f).read == content
         end
         if target.nil?
           max = Dir.new(@dir)
-            .select { |f| f =~ /^[0-9]+$/ }
+            .select { |f| File.basename(f, Wallet::EXTENSION) =~ /^[0-9]+$/ }
             .map(&:to_i)
             .max
           max = 0 if max.nil?
           name = (max + 1).to_s
-          AtomicFile.new(File.join(@dir, name)).write(content)
+          AtomicFile.new(File.join(@dir, "#{name}#{Wallet::EXTENSION}")).write(content)
         else
           name = target[:name]
         end
@@ -115,7 +116,7 @@ module Zold
         load.group_by { |s| s[:name] }.map do |name, scores|
           {
             name: name,
-            path: File.join(@dir, name),
+            path: File.join(@dir, "#{name}#{Wallet::EXTENSION}"),
             score: scores.select { |s| s[:time] > Time.now - 24 * 60 * 60 }
               .map { |s| s[:score] }
               .inject(&:+) || 0
@@ -153,7 +154,7 @@ module Zold
     end
 
     def file
-      File.join(@dir, 'scores')
+      File.join(@dir, "scores#{Wallet::EXTENSION}")
     end
   end
 end

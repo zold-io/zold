@@ -44,8 +44,12 @@ module Zold
     # must have different names.
     MAIN_NETWORK = 'zold'.freeze
 
+    # The extension of the wallet files
+    EXTENSION = '.z'.freeze
+
     def initialize(file)
       @file = file
+      @file = "#{file}#{EXTENSION}" if File.extname(file).empty?
     end
 
     def ==(other)

@@ -48,11 +48,12 @@ module Zold
     def all
       Dir.new(path).select do |f|
         file = File.join(@dir, f)
+        basename = File.basename(f, Wallet::EXTENSION)
         File.file?(file) &&
           !File.directory?(file) &&
-          f =~ /^[0-9a-fA-F]{16}$/ &&
-          Id.new(f).to_s == f
-      end
+          basename =~ /^[0-9a-fA-F]{16}$/ &&
+          Id.new(basename).to_s == basename
+      end.map { |w| File.basename(w, Wallet::EXTENSION) }
     end
 
     def find(id)
