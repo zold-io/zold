@@ -181,7 +181,11 @@ module Zold
         wallet.id.to_s,
         wallet.key.to_s,
         '',
-        wallet.txns.map(&:to_text).join("\n")
+        wallet.txns.map(&:to_text).join("\n"),
+        '',
+        '--',
+        'Balance: ' + wallet.balance,
+        'Transactions: ' + wallet.txns.count
       ].join("\n")
     end
 
