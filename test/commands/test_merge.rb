@@ -123,6 +123,18 @@ class TestMerge < Minitest::Test
     end
   end
 
+  def test_removes_negative_fakes
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      key = Zold::Key.new(file: 'fixtures/id_rsa')
+      wallet.sub(Zold::Amount.new(zld: 9.99), "NOPREFIX@#{Zold::Id.new}", key)
+      Zold::Merge.new(wallets: home.wallets, copies: home.copies.root, log: test_log).run(
+        ['merge', wallet.id.to_s, '--no-baseline']
+      )
+      assert_equal(Zold::Amount::ZERO, wallet.balance)
+    end
+  end
+
   def test_merges_scenarios
     base = 'fixtures/merge'
     Dir.new(base).select { |f| File.directory?(File.join(base, f)) && !f.start_with?('.') }.each do |f|
