@@ -57,4 +57,14 @@ class TestEntrance < Minitest::Test
       assert_equal(2, modified.count)
     end
   end
+
+  def test_renders_json
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      e = Zold::Entrance.new(home.wallets, home.remotes, home.copies.root, 'x', log: test_log).push(
+        wallet.id, File.read(wallet.path)
+      )
+      assert(e.to_json['history'].include?(wallet.id))
+    end
+  end
 end

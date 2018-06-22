@@ -48,6 +48,8 @@ module Zold
       @address = address
       raise 'Log can\'t be nil' if log.nil?
       @log = log
+      @history = []
+      @mutex = Mutex.new
     end
 
     def start
@@ -55,7 +57,9 @@ module Zold
     end
 
     def to_json
-      {}
+      {
+        history: @history.join(', ')
+      }
     end
 
     # Returns a list of modifed wallets (as Zold::Id)
@@ -77,9 +81,15 @@ module Zold
       ).run(['merge', id.to_s, '--no-baseline'])
       Clean.new(wallets: @wallets, copies: copies.root, log: @log).run(['clean', id.to_s])
       copies.remove(localhost, Remotes::PORT)
-      unless modified.empty?
-        @log.info("Accepted #{id} in #{(Time.now - start).round(2)}s \
-and modified #{modified.join(', ')}")
+      sec = (Time.now - start).round(2)
+      if modified.empty?
+        @log.info("Accepted #{id} in #{sec}s and not modified anything")
+      else
+        @log.info("Accepted #{id} in #{sec}s and modified #{modified.join(', ')}")
+      end
+      @mutex.synchronize do
+        @history.shift if @history.length > 16
+        @history << "#{id}/#{sec}/#{modified.count}"
       end
       modified
     end
