@@ -39,8 +39,8 @@ module Zold
     def start
       @entrance.start do
         @pool = Concurrent::FixedThreadPool.new(
-          Concurrent.processor_count,
-          max_queue: Concurrent.processor_count * 10,
+          Concurrent.processor_count * 8,
+          max_queue: Concurrent.processor_count * 32,
           fallback_policy: :abort
         )
         begin
