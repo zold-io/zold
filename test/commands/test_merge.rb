@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
+require 'tmpdir'
 require 'time'
 require 'webmock/minitest'
 require_relative '../test__helper'
@@ -119,6 +120,24 @@ class TestMerge < Minitest::Test
         ['merge', main.id.to_s, '--no-baseline']
       )
       assert_equal(Zold::Amount::ZERO, main.balance)
+    end
+  end
+
+  def test_merges_scenarios
+    base = 'fixtures/merge'
+    Dir.new(base).select { |f| File.directory?(File.join(base, f)) && !f.start_with?('.') }.each do |f|
+      Dir.mktmpdir 'test' do |dir|
+        FileUtils.cp_r(File.join('fixtures/merge', "#{f}/."), dir)
+        FileUtils.cp('fixtures/merge/asserts.rb', dir)
+        wallets = Zold::Wallets.new(dir)
+        copies = File.join(dir, 'copies')
+        Zold::Merge.new(wallets: wallets, copies: copies, log: test_log).run(
+          %w[merge 0123456789abcdef]
+        )
+        Dir.chdir(dir) do
+          require File.join(dir, 'assert.rb')
+        end
+      end
     end
   end
 end

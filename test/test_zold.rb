@@ -31,8 +31,7 @@ require_relative '../lib/zold/version'
 # License:: MIT
 class TestZold < Minitest::Test
   def test_all_scripts
-    Dir.new('fixtures/scripts').each.select { |f| f =~ /\.sh$/ && !f.start_with?('_') }.each do |f|
-      next unless f == 'redeploy-on-upgrade.sh'
+    Dir.new('fixtures/scripts').select { |f| f =~ /\.sh$/ && !f.start_with?('_') }.each do |f|
       Dir.mktmpdir 'test' do |dir|
         FileUtils.cp('fixtures/id_rsa.pub', dir)
         FileUtils.cp('fixtures/id_rsa', dir)

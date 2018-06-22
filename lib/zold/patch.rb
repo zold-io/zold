@@ -61,14 +61,9 @@ module Zold
       end
       raise 'Public key mismatch' if wallet.key != @key
       raise "Wallet ID mismatch: #{@id} != #{wallet.id}" if wallet.id != @id
-      max = @txns.select { |t| t.amount.negative? }.map(&:id).max.to_i
       wallet.txns.each do |txn|
         next if @txns.find { |t| t == txn }
         if txn.amount.negative?
-          if txn.id <= max
-            @log.error("Transaction ID is not greater than max ID #{max}: #{txn.to_text}")
-            next
-          end
           dup = @txns.find { |t| t.id == txn.id && t.amount.negative? }
           if dup
             @log.error("An attempt to overwrite #{dup.to_text} with this: #{txn.to_text}")
@@ -100,8 +95,8 @@ among #{payer.txns.count} transactions: #{txn.to_text}")
             next
           end
         end
-        @log.debug("Merged on top: #{txn.to_text}")
         @txns << txn
+        @log.debug("Merged on top, balance is #{@txns.map(&:amount).inject(&:+)}: #{txn.to_text}")
       end
     end
 

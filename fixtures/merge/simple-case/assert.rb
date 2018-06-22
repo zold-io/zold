@@ -18,29 +18,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative '../log'
-require_relative 'fetch'
-require_relative 'merge'
-require_relative 'clean'
-
-# PULL command.
-# Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
-# License:: MIT
-module Zold
-  # PULL command
-  class Pull
-    def initialize(wallets:, remotes:, copies:, log: Log::Quiet.new)
-      @wallets = wallets
-      @remotes = remotes
-      @copies = copies
-      @log = log
-    end
-
-    def run(args = [])
-      Zold::Clean.new(wallets: @wallets, copies: @copies, log: @log).run(args)
-      Zold::Fetch.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(args)
-      Zold::Merge.new(wallets: @wallets, copies: @copies, log: @log).run(args)
-    end
-  end
-end
+require_relative 'asserts'
+wallet = Zold::Wallet.new(Zold::Id.new('0123456789abcdef'))
+assert_equal(Zold::Amount.new(zld: 512.0), wallet.balance)

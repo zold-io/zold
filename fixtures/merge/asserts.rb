@@ -18,29 +18,17 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative '../log'
-require_relative 'fetch'
-require_relative 'merge'
-require_relative 'clean'
+require 'minitest'
 
-# PULL command.
-# Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
-# License:: MIT
-module Zold
-  # PULL command
-  class Pull
-    def initialize(wallets:, remotes:, copies:, log: Log::Quiet.new)
-      @wallets = wallets
-      @remotes = remotes
-      @copies = copies
-      @log = log
-    end
-
-    def run(args = [])
-      Zold::Clean.new(wallets: @wallets, copies: @copies, log: @log).run(args)
-      Zold::Fetch.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(args)
-      Zold::Merge.new(wallets: @wallets, copies: @copies, log: @log).run(args)
-    end
+# Test only module
+module Assertions
+  extend Minitest::Assertions
+  class << self
+    attr_accessor :assertions
   end
+  self.assertions = 0
+end
+
+def assert_equal(a, b)
+  Assertions.assert_equal(a, b)
 end

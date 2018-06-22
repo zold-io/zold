@@ -84,7 +84,7 @@ Available options:"
       end
       modified = patch.save(wallet.path, overwrite: true)
       if modified
-        @log.debug("#{cps.count} copies merged successfully into #{wallet.path}")
+        @log.debug("#{cps.count} copies merged successfully into #{wallet.id}, balance is #{wallet.balance}")
       else
         @log.debug("Nothing changed in #{wallet.id} after merge of #{cps.count} copies")
       end
