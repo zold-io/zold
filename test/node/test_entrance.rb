@@ -51,9 +51,8 @@ class TestEntrance < Minitest::Test
     FakeHome.new.run do |home|
       source = home.create_wallet(sid)
       home.create_wallet(tid)
-      modified = Zold::Entrance.new(home.wallets, home.remotes, home.copies(source).root, 'x', log: test_log).push(
-        source.id, body
-      )
+      e = Zold::Entrance.new(home.wallets, home.remotes, home.copies(source).root, 'x', log: test_log)
+      modified = e.push(source.id, body)
       assert_equal(2, modified.count)
     end
   end
