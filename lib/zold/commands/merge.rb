@@ -72,8 +72,8 @@ Available options:"
       cps = cps.all.sort_by { |c| c[:score] }.reverse
       patch = Patch.new(@wallets, log: @log)
       cps.each do |c|
-        merge_one(opts, patch, Wallet.new(c[:path]), "#{c[:host]}:#{c[:port]}")
-        @log.debug("#{c[:host]}:#{c[:port]} merged: #{patch}")
+        merge_one(opts, patch, Wallet.new(c[:path]), c[:name])
+        @log.debug("Copy ##{c[:name]} merged: #{patch}")
       end
       wallet = @wallets.find(id)
       if wallet.exists?
@@ -94,7 +94,7 @@ Available options:"
     def merge_one(opts, patch, wallet, name)
       patch.join(wallet, !opts['no-baseline'])
     rescue StandardError => e
-      @log.error("Can't merge a copy coming from #{name}: #{e.message}")
+      @log.error("Can't merge copy ##{name}: #{e.message}")
       @log.debug(Backtrace.new(e).to_s)
     end
   end

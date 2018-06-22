@@ -40,7 +40,7 @@ module Zold
     end
 
     def to_s
-      return 'empty' if @txns.empty?
+      return 'empty patch' if @txns.empty?
       "#{@txns.count} txns"
     end
 

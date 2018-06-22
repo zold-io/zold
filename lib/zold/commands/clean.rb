@@ -51,13 +51,13 @@ Available options:"
       mine = Args.new(opts, @log).take || return
       mine = @wallets.all if mine.empty?
       mine.map { |i| Id.new(i) }.each do |id|
-        clean(Copies.new(File.join(@copies, id)), opts)
+        clean(Copies.new(File.join(@copies, id), log: @log), opts)
       end
     end
 
     def clean(cps, _)
-      cps.clean
-      @log.debug("Expired local copies removed for #{cps}, \
+      deleted = cps.clean
+      @log.debug("#{deleted} expired local copies removed for #{cps}, \
 #{cps.all.count} left")
     end
   end
