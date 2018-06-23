@@ -87,6 +87,8 @@ $ zold push 5f96e731e48ae21f
 
 That's it.
 
+## How to Start a Node
+
 You also can contribute to Zold by running a node on your server.
 In order to do that just run (with your own wallet ID, of course):
 
