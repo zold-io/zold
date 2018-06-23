@@ -18,7 +18,7 @@
 **NOTICE**: It's an experiment and a very early draft! Please, feel free to
 submit your ideas and/or pull requests.
 
-Here is the [White Paper](https://github.com/zold-io/papers/raw/master/wp.pdf).
+Here is the [White Paper](https://papers.zold.io/wp.pdf).
 
 Join our [Telegram group](https://t.me/zold_io) to discuss it all live.
 
@@ -109,6 +109,12 @@ $ zold node --nohup --invoice=5f96e731e48ae21f
 Now you can close the console;
 the software will work in the background, saving the output logs to `zold.log`.
 The software will update itself automatically to new versions.
+The software will never stop, even if it crashes internally with any error.
+In order to terminate it forcefully, do:
+
+```bash
+$ killall -9 zold
+```
 
 Grateful users of the system will pay "taxes" to your wallet
 for the maintenance of their wallets, and the system will occasionally
@@ -146,6 +152,10 @@ with a lot of technical details. Here is the explanation of the majority of them
 `version` is the current version of the running software.
 The node is supposed to update update itself automatically (if you run it via `zold-nohup`)
 every time it discovers another node with a higher version.
+
+`network` is the name of the network the node belongs to.
+The production network's name is `zold`.
+For testing purposes you can start a node in a test network, using `--network=test`.
 
 `score` is the current score your node is exposing to the network now.
 All other nodes are using this information in order to decide how much
@@ -208,11 +218,6 @@ network. You can see the full list of nodes at `/remotes` URL of your node.
 `entrance` is the place where all new wallets arive and get merged and pushed
 further. The health of this point is critical to the entire node. Some
 numbers it includes must be watched carefully.
-
-  * `semaphores` is the amount of locks the server maintain, one per wallet.
-    The number may be large (>100), if the node has processed a lot of wallets
-    recently. If it's larger [than 1024](https://github.com/zold-io/zold/issues/199),
-    it's a good reason to worry.
 
 To be continued...
 

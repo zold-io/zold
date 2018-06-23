@@ -48,11 +48,12 @@ module Zold
     end
 
     def start
+      alive = true
       @routines.each do |r|
         @threads << Thread.start do
           Thread.current.name = r.class.name
           step = 0
-          loop do
+          while alive
             start = Time.now
             begin
               r.exec(step)
@@ -69,21 +70,20 @@ module Zold
       begin
         yield(self)
       ensure
-        stop
+        alive = false
+        @log.info("Stopping the metronome with #{@threads.count} threads: #{@threads.map(&:name).join(', ')}")
+        start = Time.now
+        @threads.each do |t|
+          tstart = Time.now
+          if t.join(60)
+            @log.info("Thread #{t.name} finished in #{(Time.now - tstart).round(2)}s")
+          else
+            t.exit
+            @log.info("Thread #{t.name} killed in #{(Time.now - tstart).round(2)}s")
+          end
+        end
+        @log.info("Metronome stopped in #{(Time.now - start).round(2)}s, #{@failures.count} failures")
       end
-    end
-
-    private
-
-    def stop
-      @log.info("Terminating the metronome with #{@threads.count} threads...")
-      start = Time.now
-      @threads.each do |t|
-        tstart = Time.now
-        t.exit
-        @log.info("Thread #{t.name} terminated in #{(Time.now - tstart).round(2)}s")
-      end
-      @log.info("Metronome stopped in #{(Time.now - start).round(2)}s, #{@failures.count} failures")
     end
   end
 end

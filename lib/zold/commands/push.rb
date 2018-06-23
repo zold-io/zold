@@ -26,6 +26,7 @@ require_relative 'args'
 require_relative '../log'
 require_relative '../id'
 require_relative '../http'
+require_relative '../json_page'
 require_relative '../atomic_file'
 
 # PUSH command.
@@ -45,12 +46,12 @@ module Zold
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = "Usage: zold push [ID...] [options]
 Available options:"
+        o.bool '--ignore-score-weakness',
+          'Don\'t complain when their score is too weak',
+          default: false
         o.array '--ignore-node',
           'Ignore this node and don\'t push to it',
           default: []
-        o.bool '--sync',
-          'Wait until the server confirms merge and pushes all wallets further (default: false)',
-          default: false
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
@@ -67,11 +68,15 @@ Available options:"
     def push(wallet, opts)
       total = 0
       nodes = 0
+      done = 0
       @remotes.iterate(@log) do |r|
-        total += push_one(wallet, r, opts)
         nodes += 1
+        total += push_one(wallet, r, opts)
+        done += 1
       end
-      @log.info("Push finished to #{nodes} nodes, total score for #{wallet.id} is #{total}")
+      raise "There are no remote nodes, run 'zold remote reset'" if nodes.zero?
+      raise "No nodes out of #{nodes} accepted the wallet #{wallet.id}" if done.zero?
+      @log.info("Push finished to #{done} nodes out of #{nodes}, total score for #{wallet.id} is #{total}")
     end
 
     def push_one(wallet, r, opts)
@@ -83,15 +88,16 @@ Available options:"
       content = AtomicFile.new(wallet.path).read
       response = r.http("/wallet/#{wallet.id}#{opts['sync'] ? '?sync=true' : ''}").put(content)
       if response.code == '304'
-        @log.info("#{r}: same version of #{wallet.id} there, in #{(Time.now - start).round(2)}s")
+        @log.info("#{r}: same version #{content.length}b/#{wallet.txns.count}t \
+of #{wallet.id} there, in #{(Time.now - start).round(2)}s")
         return 0
       end
       r.assert_code(200, response)
-      json = JSON.parse(response.body)
+      json = JsonPage.new(response.body).to_hash
       score = Score.parse_json(json['score'])
       r.assert_valid_score(score)
       r.assert_score_ownership(score)
-      r.assert_score_strength(score)
+      r.assert_score_strength(score) unless opts['ignore-score-weakness']
       @log.info("#{r} accepted #{content.length}b/#{wallet.txns.count}t of #{wallet.id} \
 in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green} (#{json['version']})")
       score.value

@@ -16,7 +16,7 @@ Metrics/AbcSize:
 Metrics/BlockLength:
   Max: 100
 Metrics/ClassLength:
-  Max: 200
+  Max: 250
 Layout/EndOfLine:
   EnforcedStyle: lf
 Metrics/ParameterLists:

@@ -46,9 +46,9 @@ Available options:"
           require: true,
           default: '~/.ssh/id_rsa.pub'
         o.string '--network',
-          'The name of the network',
+          "The name of the network (default: #{Wallet::MAIN_NETWORK}",
           require: true,
-          default: 'zold'
+          default: Wallet::MAIN_NETWORK
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return

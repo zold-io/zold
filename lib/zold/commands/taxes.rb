@@ -24,6 +24,7 @@ require 'rainbow'
 require_relative 'args'
 require_relative 'pay'
 require_relative '../log'
+require_relative '../json_page'
 require_relative '../score'
 require_relative '../id'
 require_relative '../tax'
@@ -120,7 +121,7 @@ Available options:"
       @remotes.iterate(@log) do |r|
         res = r.http.get
         r.assert_code(200, res)
-        json = JSON.parse(res.body)
+        json = JsonPage.new(res.body).to_hash
         score = Score.parse_json(json['score'])
         r.assert_valid_score(score)
         r.assert_score_strength(score)

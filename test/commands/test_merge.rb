@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
+require 'tmpdir'
 require 'time'
 require 'webmock/minitest'
 require_relative '../test__helper'
@@ -95,7 +96,7 @@ class TestMerge < Minitest::Test
 
   def test_merges_a_copy_on_top
     FakeHome.new.run do |home|
-      wallet = home.create_wallet
+      wallet = home.create_wallet(Zold::Id::ROOT)
       copies = home.copies(wallet)
       copies.add(File.read(wallet.path), 'good-host', 80, 5)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
@@ -119,6 +120,36 @@ class TestMerge < Minitest::Test
         ['merge', main.id.to_s, '--no-baseline']
       )
       assert_equal(Zold::Amount::ZERO, main.balance)
+    end
+  end
+
+  def test_removes_negative_fakes
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      key = Zold::Key.new(file: 'fixtures/id_rsa')
+      wallet.sub(Zold::Amount.new(zld: 9.99), "NOPREFIX@#{Zold::Id.new}", key)
+      Zold::Merge.new(wallets: home.wallets, copies: home.copies.root, log: test_log).run(
+        ['merge', wallet.id.to_s, '--no-baseline']
+      )
+      assert_equal(Zold::Amount::ZERO, wallet.balance)
+    end
+  end
+
+  def test_merges_scenarios
+    base = 'fixtures/merge'
+    Dir.new(base).select { |f| File.directory?(File.join(base, f)) && !f.start_with?('.') }.each do |f|
+      Dir.mktmpdir 'test' do |dir|
+        FileUtils.cp_r(File.join('fixtures/merge', "#{f}/."), dir)
+        FileUtils.cp('fixtures/merge/asserts.rb', dir)
+        wallets = Zold::Wallets.new(dir)
+        copies = File.join(dir, 'copies')
+        Zold::Merge.new(wallets: wallets, copies: copies, log: test_log).run(
+          %w[merge 0123456789abcdef]
+        )
+        Dir.chdir(dir) do
+          require File.join(dir, 'assert.rb')
+        end
+      end
     end
   end
 end

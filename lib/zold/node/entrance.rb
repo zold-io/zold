@@ -18,17 +18,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'concurrent'
 require 'tempfile'
-require_relative 'emission'
 require_relative '../log'
 require_relative '../remotes'
 require_relative '../copies'
 require_relative '../tax'
+require_relative '../commands/clean'
 require_relative '../commands/merge'
 require_relative '../commands/fetch'
 require_relative '../commands/push'
-require_relative '../commands/clean'
 
 # The entrance of the web front.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -38,115 +36,63 @@ module Zold
   # The entrance
   class Entrance
     def initialize(wallets, remotes, copies, address, log: Log::Quiet.new)
+      raise 'Wallets can\'t be nil' if wallets.nil?
+      raise 'Wallets must be of type Wallets' unless wallets.is_a?(Wallets)
       @wallets = wallets
+      raise 'Remotes can\'t be nil' if remotes.nil?
+      raise "Remotes must be of type Remotes: #{remotes.class.name}" unless remotes.is_a?(Remotes)
       @remotes = remotes
+      raise 'Copies can\'t be nil' if copies.nil?
       @copies = copies
+      raise 'Address can\'t be nil' if address.nil?
       @address = address
+      raise 'Log can\'t be nil' if log.nil?
       @log = log
-      @semaphores = Concurrent::Map.new
-      @push_mutex = Mutex.new
-      @modified = Set.new
-      @pool = Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
-      @pushes = Concurrent::FixedThreadPool.new(1, max_queue: 64, fallback_policy: :abort)
+      @history = []
+      @mutex = Mutex.new
+    end
+
+    def start
+      yield(self)
     end
 
     def to_json
       {
-        'semaphores': @semaphores.size,
-        'modified': @modified.length,
-        'pool': {
-          'completed_task_count': @pool.completed_task_count,
-          'largest_length': @pool.largest_length,
-          'length': @pool.length,
-          'queue_length': @pool.queue_length
-        },
-        'pushes': {
-          'completed_task_count': @pushes.completed_task_count,
-          'largest_length': @pushes.largest_length,
-          'length': @pushes.length,
-          'queue_length': @pushes.queue_length
-        }
+        history: @history.join(', ')
       }
     end
 
-    def push(id, body, sync: true)
-      check(body)
-      if sync
-        push_sync(id, body)
-      else
-        @pool.post do
-          push_sync(id, body)
-        end
-      end
-    end
-
-    def check(body)
-      Tempfile.open do |f|
-        File.write(f.path, body)
-        wallet = Wallet.new(f)
-        break unless wallet.network == Wallet::MAIN_NETWORK
-        balance = wallet.balance
-        if balance.negative? && !wallet.root?
-          raise "The balance #{balance} of #{wallet.id} is negative and it's not a root wallet"
-        end
-        Emission.new(wallet).check
-        tax = Tax.new(wallet)
-        if tax.in_debt?
-          raise "Taxes are not paid, can't accept the wallet; the debt is #{tax.debt} (#{tax.debt.to_i} zents)"
-        end
-      end
-    end
-
-    def spread(ids)
-      return if ids.empty?
-      @push_mutex.synchronize { @modified += ids }
-      @pushes.post { push_one } if @pushes.length < 2
-    end
-
-    private
-
     # Returns a list of modifed wallets (as Zold::Id)
-    def push_sync(id, body)
-      @semaphores.put_if_absent(id.to_s, Mutex.new)
-      @semaphores.get(id.to_s).synchronize do
-        start = Time.now
-        modified = push_unsafe(id, body)
-        if modified.empty?
-          @log.info("Accepted #{id} in #{(Time.now - start).round(2)}s \
-and modified nothing (this is most likely a bug!)")
-        else
-          @log.info("Accepted #{id} in #{(Time.now - start).round(2)}s and modified #{modified.join(', ')}")
-        end
-        modified
-      end
-    end
-
-    # Returns a list of modifed wallets (as Zold::Id)
-    def push_unsafe(id, body)
+    def push(id, body)
+      raise 'Id can\'t be nil' if id.nil?
+      raise 'Id must be of type Id' unless id.is_a?(Id)
+      raise 'Body can\'t be nil' if body.nil?
+      start = Time.now
       copies = Copies.new(File.join(@copies, id.to_s))
       localhost = '0.0.0.0'
       copies.add(body, localhost, Remotes::PORT, 0)
-      Fetch.new(
-        wallets: @wallets, remotes: @remotes, copies: copies.root, log: @log
-      ).run(['fetch', id.to_s, "--ignore-node=#{@address}"])
+      unless @remotes.all.empty?
+        Fetch.new(
+          wallets: @wallets, remotes: @remotes, copies: copies.root, log: @log
+        ).run(['fetch', id.to_s, "--ignore-node=#{@address}"])
+      end
       modified = Merge.new(
         wallets: @wallets, copies: copies.root, log: @log
       ).run(['merge', id.to_s, '--no-baseline'])
       Clean.new(wallets: @wallets, copies: copies.root, log: @log).run(['clean', id.to_s])
       copies.remove(localhost, Remotes::PORT)
-      spread(modified)
-      modified
-    end
-
-    def push_one
-      @push_mutex.synchronize do
-        id = @modified.to_a[0]
-        @modified.delete(id)
-        return if id.nil?
-        Push.new(
-          wallets: @wallets, remotes: @remotes, log: @log
-        ).run(['push', "--ignore-node=#{@address}"] + [id.to_s])
+      sec = (Time.now - start).round(2)
+      if modified.empty?
+        @log.info("Accepted #{id} in #{sec}s and not modified anything")
+      else
+        @log.info("Accepted #{id} in #{sec}s and modified #{modified.join(', ')}")
       end
+      @mutex.synchronize do
+        @history.shift if @history.length > 16
+        wallet = @wallets.find(id)
+        @history << "#{id}/#{sec}/#{modified.count}/#{wallet.balance.to_zld}/#{wallet.txns.count}t"
+      end
+      modified
     end
   end
 end

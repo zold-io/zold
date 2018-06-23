@@ -40,7 +40,7 @@ module Zold
     end
 
     def to_s
-      return 'empty' if @txns.empty?
+      return 'empty patch' if @txns.empty?
       "#{@txns.count} txns"
     end
 
@@ -61,21 +61,18 @@ module Zold
       end
       raise 'Public key mismatch' if wallet.key != @key
       raise "Wallet ID mismatch: #{@id} != #{wallet.id}" if wallet.id != @id
-      max = @txns.select { |t| t.amount.negative? }.map(&:id).max.to_i
       wallet.txns.each do |txn|
         next if @txns.find { |t| t == txn }
         if txn.amount.negative?
-          if txn.id <= max
-            @log.error("Transaction ID is less than max #{max}: #{txn.to_text}")
-            next
-          end
-          dup = @txns.find { |t| t.id == txn.id }
+          dup = @txns.find { |t| t.id == txn.id && t.amount.negative? }
           if dup
             @log.error("An attempt to overwrite #{dup.to_text} with this: #{txn.to_text}")
             next
           end
-          if !@txns.empty? && @txns.map(&:amount).inject(&:+) < txn.amount
-            @log.error("Transaction ##{txn.id} attempts to make the balance negative: #{txn.to_text}")
+          balance = @txns.map(&:amount).map(&:to_i).inject(&:+).to_i
+          if balance < txn.amount.to_i * -1 && !wallet.root?
+            @log.error("Transaction ##{txn.id} attempts to make the balance of \
+#{wallet.id}/#{Amount.new(coins: balance).to_zld}/#{@txns.size} negative: #{txn.to_text}")
             next
           end
           unless Signature.new.valid?(@key, wallet.id, txn)
@@ -98,8 +95,8 @@ among #{payer.txns.count} transactions: #{txn.to_text}")
             next
           end
         end
-        @log.debug("Merged on top: #{txn.to_text}")
         @txns << txn
+        @log.debug("Merged on top, balance is #{@txns.map(&:amount).inject(&:+)}: #{txn.to_text}")
       end
     end
 

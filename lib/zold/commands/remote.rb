@@ -27,9 +27,11 @@ require 'time'
 require_relative 'args'
 require_relative '../node/farm'
 require_relative '../log'
+require_relative '../json_page'
 require_relative '../http'
 require_relative '../remotes'
 require_relative '../score'
+require_relative '../wallet'
 
 # REMOTE command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -77,6 +79,13 @@ Available options:"
         o.bool '--force',
           'Add/remove if if this operation is not possible',
           default: false
+        o.bool '--skip-ping',
+          'Don\'t ping back the node when adding it (not recommended)',
+          default: false
+        o.string '--network',
+          "The name of the network we work in (default: #{Wallet::MAIN_NETWORK}",
+          required: true,
+          default: Wallet::MAIN_NETWORK
         o.bool '--reboot',
           'Exit if any node reports version higher than we have',
           default: false
@@ -128,6 +137,10 @@ Available options:"
     end
 
     def add(host, port, opts)
+      unless opts['skip-ping']
+        res = Http.new("http://#{host}:#{port}/version", network: opts['network']).get
+        raise "The node #{host}:#{port} is not responding (code is #{res.code})" unless res.code == '200'
+      end
       if @remotes.exists?(host, port)
         raise "#{host}:#{port} already exists in the list" unless opts['force']
         @log.debug("#{host}:#{port} already exists in the list")
@@ -155,7 +168,8 @@ Available options:"
       @remotes.iterate(@log, farm: @farm) do |r|
         res = r.http('/').get
         r.assert_code(200, res)
-        score = Score.parse_json(JSON.parse(res.body)['score'])
+        json = JsonPage.new(res.body).to_hash
+        score = Score.parse_json(json['score'])
         r.assert_valid_score(score)
         r.assert_score_ownership(score)
         r.assert_score_strength(score) unless opts['ignore-score-weakness']
@@ -184,7 +198,7 @@ Available options:"
         start = Time.now
         res = r.http('/remotes').get
         r.assert_code(200, res)
-        json = JSON.parse(res.body)
+        json = JsonPage.new(res.body).to_hash
         score = Score.parse_json(json['score'])
         r.assert_valid_score(score)
         r.assert_score_ownership(score)
@@ -214,7 +228,7 @@ in #{(Time.now - start).round(2)}s")
       end
       total = @remotes.all.size
       if total.zero?
-        @log.debug("The list of remotes is #{Rainbow('empty').red}, run 'zold reset'!")
+        @log.debug("The list of remotes is #{Rainbow('empty').red}, run 'zold remote reset'!")
       else
         @log.debug("There are #{total} known remotes")
       end

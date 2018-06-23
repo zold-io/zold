@@ -41,7 +41,10 @@ module Zold
 
       def exec(_ = 0)
         sleep(60) unless @opts['routine-immediately']
-        @entrance.spread(@wallets.all.sample(10).map { |w| Id.new(w) })
+        @wallets.all.sample(10).map do |w|
+          id = Id.new(w)
+          @entrance.push(id, File.read(@wallets.find(id).path))
+        end
       end
     end
   end

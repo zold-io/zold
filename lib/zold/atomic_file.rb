@@ -31,15 +31,15 @@ module Zold
     end
 
     def read
-      File.open(@file, 'r') do |f|
-        f.flock(File::LOCK_SH)
+      File.open(@file, 'rb') do |f|
+        f.flock(File::LOCK_EX)
         f.read
       end
     end
 
     def write(content)
       raise 'Content can\'t be nil' if content.nil?
-      File.open(@file, 'w+') do |f|
+      File.open(@file, 'wb') do |f|
         f.flock(File::LOCK_EX)
         f.write(content)
       end
