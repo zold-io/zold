@@ -65,6 +65,9 @@ Available commands:
     #{Rainbow('remote update').green}
       Check each registered remote node for availability
 Available options:"
+        o.integer '--tolerate',
+          'Maximum level of errors we are able to tolerate',
+          default: Remotes::TOLERANCE
         o.bool '--ignore-score-weakness',
           'Don\'t complain when their score is too weak',
           default: false
@@ -170,7 +173,7 @@ Available options:"
 
     def trim(opts)
       @remotes.all.each do |r|
-        remove(r[:host], r[:port], opts) if r[:errors] > Remotes::TOLERANCE
+        remove(r[:host], r[:port], opts) if r[:errors] > opts['tolerate']
       end
       @log.info("The list of remotes trimmed, #{@remotes.all.count} nodes left there")
     end
