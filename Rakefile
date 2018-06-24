@@ -31,7 +31,12 @@ def version
   Gem::Specification.load(Dir['*.gemspec'].first).version
 end
 
-task default: %i[clean test features rubocop xcop copyright]
+task default: %i[clean compile test features rubocop xcop copyright]
+
+require "rake/extensiontask"
+Rake::ExtensionTask.new "score_index" do |ext|
+  ext.lib_dir = "lib/score_index"
+end
 
 require 'rake/testtask'
 desc 'Run all unit tests'
