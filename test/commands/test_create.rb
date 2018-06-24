@@ -37,8 +37,8 @@ class TestCreate < Minitest::Test
       )
       assert wallet.balance.zero?
       assert(
-        File.exist?(File.join(dir, wallet.id.to_s)),
-        "Wallet file not found: #{wallet.id}"
+        File.exist?(File.join(dir, "#{wallet.id}#{Zold::Wallet::EXTENSION}")),
+        "Wallet file not found: #{wallet.id}#{Zold::Wallet::EXTENSION}"
       )
     end
   end

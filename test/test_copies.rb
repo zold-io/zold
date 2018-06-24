@@ -22,6 +22,7 @@ require 'minitest/autorun'
 require 'tmpdir'
 require 'time'
 require_relative '../lib/zold/copies'
+require_relative '../lib/zold/wallet'
 
 # Copies test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -66,10 +67,10 @@ class TestCopies < Minitest::Test
       copies = Zold::Copies.new(dir)
       copies.add('h1', 'zold.io', 50, 80, Time.now - 25 * 60 * 60)
       copies.add('h1', 'zold.io', 33, 80, Time.now - 26 * 60 * 60)
-      assert(File.exist?(File.join(dir, '1')))
+      assert(File.exist?(File.join(dir, "1#{Zold::Wallet::EXTENSION}")))
       copies.clean
       assert(copies.all.empty?, "#{copies.all.count} is not empty")
-      assert(!File.exist?(File.join(dir, '1')))
+      assert(!File.exist?(File.join(dir, "1#{Zold::Wallet::EXTENSION}")))
     end
   end
 
