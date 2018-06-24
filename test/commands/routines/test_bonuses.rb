@@ -49,7 +49,9 @@ class TestBonuses < Minitest::Test
           'bonus-amount' => 1,
           'bonus-time' => 0
         }
-        score = Zold::Score.new(Time.now, 'fake-node.local', 999, 'NOPREFIX@ffffffffffffffff', strength: 1)
+        score = Zold::Score.new(
+          time: Time.now, host: 'fake-node.local', port: 999, invoice: 'NOPREFIX@ffffffffffffffff', strength: 1
+        )
         16.times { score = score.next }
         remotes = home.remotes
         remotes.add('localhost', port)

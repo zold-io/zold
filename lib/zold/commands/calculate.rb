@@ -71,8 +71,8 @@ Available options:"
       strength = opts[:strength]
       raise "Invalid strength: #{strength}" if strength <= 0 || strength > 8
       score = Zold::Score.new(
-        Time.now, opts[:host], opts[:port].to_i,
-        opts[:invoice], strength: strength
+        time: Time.parse(opts[:time]), host: opts[:host], port: opts[:port].to_i,
+        invoice: opts[:invoice], strength: strength
       )
       loop do
         msg = score.to_s

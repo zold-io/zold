@@ -55,6 +55,8 @@ and suggests a different architecture for digital wallet maintenance.'
   s.add_runtime_dependency 'concurrent-ruby', '~>1.0'
   s.add_runtime_dependency 'cucumber', '~>3.1' # has to stay here for Heroku
   s.add_runtime_dependency 'diffy', '~>3.2'
+  s.add_runtime_dependency 'dry-struct', '~>0.5.0'
+  s.add_runtime_dependency 'dry-types', '~>0.13.2'
   s.add_runtime_dependency 'json', '~>1.8'
   s.add_runtime_dependency 'openssl', '~>2.1'
   s.add_runtime_dependency 'rainbow', '~>3.0'

@@ -24,6 +24,7 @@ require 'net/http'
 require_relative 'backtrace'
 require_relative 'version'
 require_relative 'score'
+require_relative 'type'
 
 # HTTP page.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -31,7 +32,7 @@ require_relative 'score'
 # License:: MIT
 module Zold
   # Http page
-  class Http
+  class Http < Dry::Struct
     # HTTP header we add to each HTTP request, in order to inform
     # the other node about the score. If the score is big enough,
     # the remote node will add us to its list of remote nodes.
@@ -47,32 +48,37 @@ module Zold
     # production one.
     NETWORK_HEADER = 'X-Zold-Network'.freeze
 
-    def initialize(uri, score = Score::ZERO, network: 'test')
-      raise 'URI can\'t be nil' if uri.nil?
-      @uri = uri.is_a?(String) ? URI(uri) : uri
-      raise 'Score can\'t be nil' if score.nil?
-      @score = score
-      raise 'Network can\'t be nil' if network.nil?
-      @network = network
-    end
+    # @todo The following two statements are seen as issues by rubocop
+    # raising a Lint/AmbiguousBlockAssociation offense. It is somthing
+    # that could be solved by changing the TargetRubyVersion in .rubocop.yml
+    # that is already taken care of in another issue. I am leaving a todo
+    # to check that rubocop doesn't complain anymore, otherwise find another
+    # solution
+    attribute :uri, Types::Class.constructor { |value|
+      value.is_a?(URI) ? value : URI(value)
+    }
+    attribute :score, Types::Class.constructor { |value|
+      value.nil? ? Score::ZERO : value
+    }
+    attribute :network, Types::Strict::String.optional.default('test')
 
     def get
-      http = Net::HTTP.new(@uri.host, @uri.port)
+      http = Net::HTTP.new(uri.host, uri.port)
       http.read_timeout = 8
       http.open_timeout = 4
-      path = @uri.path
-      path += '?' + @uri.query if @uri.query
+      path = uri.path
+      path += '?' + uri.query if uri.query
       http.request_get(path, headers)
     rescue StandardError => e
       Error.new(e)
     end
 
     def put(body)
-      http = Net::HTTP.new(@uri.host, @uri.port)
+      http = Net::HTTP.new(uri.host, uri.port)
       http.read_timeout = 16
       http.open_timeout = 4
-      path = @uri.path
-      path += '?' + @uri.query if @uri.query
+      path = uri.path
+      path += '?' + uri.query if uri.query
       http.request_put(
         path, body,
         headers.merge(
@@ -112,8 +118,8 @@ module Zold
         'Accept-Encoding': 'gzip'
       }
       headers[Http::VERSION_HEADER] = VERSION
-      headers[Http::NETWORK_HEADER] = @network
-      headers[Http::SCORE_HEADER] = @score.reduced(4).to_text if @score.valid? && !@score.expired? && @score.value > 3
+      headers[Http::NETWORK_HEADER] = network
+      headers[Http::SCORE_HEADER] = score.reduced(4).to_text if score.valid? && !score.expired? && score.value > 3
       headers
     end
   end

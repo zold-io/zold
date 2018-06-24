@@ -39,6 +39,9 @@ module Zold
     # At what amount of errors we delete the remote automatically
     TOLERANCE = 8
 
+    # After this limit, the remote runtime must be recorded
+    RUNTIME_LIMIT = 16
+
     # Empty, for standalone mode
     class Empty < Remotes
       def initialize
@@ -71,7 +74,7 @@ module Zold
       end
 
       def http(path = '/')
-        Http.new("http://#{@host}:#{@port}#{path}", @score, network: @network)
+        Http.new(uri: "http://#{@host}:#{@port}#{path}", score: @score, network: @network)
       end
 
       def to_s
@@ -180,6 +183,7 @@ module Zold
         begin
           yield Remotes::Remote.new(r[:host], r[:port], score, idx, log: log, network: @network)
           idx += 1
+          raise 'Took too long to execute' if (Time.now - start).round > Remotes::RUNTIME_LIMIT
         rescue StandardError => e
           error(r[:host], r[:port])
           errors = errors(r[:host], r[:port])

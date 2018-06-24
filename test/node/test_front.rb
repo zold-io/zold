@@ -48,7 +48,7 @@ class FrontTest < Minitest::Test
       }.each do |code, paths|
         paths.each do |p|
           uri = URI("http://localhost:#{port}#{p}")
-          response = Zold::Http.new(uri).get
+          response = Zold::Http.new(uri: uri, score: nil).get
           assert_equal(
             code, response.code,
             "Invalid response code for #{uri}: #{response.message}"
@@ -61,9 +61,9 @@ class FrontTest < Minitest::Test
   def test_updates_list_of_remotes
     FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
       score = Zold::Score.new(
-        Time.now, 'localhost', port, 'NOPREFIX@ffffffffffffffff', strength: 1
+        time: Time.now, host: 'localhost', port: port, invoice: 'NOPREFIX@ffffffffffffffff', strength: 1
       ).next.next.next.next
-      response = Zold::Http.new("http://localhost:#{port}/remotes", score).get
+      response = Zold::Http.new(uri: "http://localhost:#{port}/remotes", score: score).get
       assert_equal('200', response.code, response.body)
       assert_equal(1, Zold::JsonPage.new(response.body).to_hash['all'].count, response.body)
     end
@@ -78,7 +78,8 @@ class FrontTest < Minitest::Test
       FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
         wallet = home.create_wallet
         test_log.debug("Wallet created: #{wallet.id}")
-        response = Zold::Http.new("http://localhost:#{port}/wallet/#{wallet.id}?sync=true").put(File.read(wallet.path))
+        response = Zold::Http.new(uri: "http://localhost:#{port}/wallet/#{wallet.id}?sync=true", score: nil)
+          .put(File.read(wallet.path))
         assert_equal('200', response.code, response.body)
         [
           "/wallet/#{wallet.id}",
@@ -86,7 +87,7 @@ class FrontTest < Minitest::Test
           "/wallet/#{wallet.id}/balance",
           "/wallet/#{wallet.id}/key"
         ].each do |u|
-          res = Zold::Http.new(u).get
+          res = Zold::Http.new(uri: u, score: nil).get
           assert_equal('200', res.code, res.body)
         end
       end
@@ -102,10 +103,12 @@ class FrontTest < Minitest::Test
     FakeNode.new(log: test_log).run do |port|
       FakeHome.new.run do |home|
         wallet = home.create_wallet
-        response = Zold::Http.new("http://localhost:#{port}/wallet/#{wallet.id}?sync=true").put(File.read(wallet.path))
+        response = Zold::Http.new(uri: "http://localhost:#{port}/wallet/#{wallet.id}?sync=true", score: nil)
+          .put(File.read(wallet.path))
         assert_equal('200', response.code, response.body)
         3.times do
-          r = Zold::Http.new("http://localhost:#{port}/wallet/#{wallet.id}?sync=true").put(File.read(wallet.path))
+          r = Zold::Http.new(uri: "http://localhost:#{port}/wallet/#{wallet.id}?sync=true", score: nil)
+            .put(File.read(wallet.path))
           assert_equal('304', r.code, r.body)
         end
       end
@@ -120,8 +123,8 @@ class FrontTest < Minitest::Test
     }.each do |num, path|
       test_log.info("Calculating score #{num}...")
       score = Zold::Score.new(
-        Time.now, 'localhost', 999,
-        'NOPREFIX@ffffffffffffffff',
+        time: Time.now, host: 'localhost', port: 999,
+        invoice: 'NOPREFIX@ffffffffffffffff',
         strength: 1
       )
       num.to_i.times do
@@ -149,7 +152,7 @@ class FrontTest < Minitest::Test
 
   def test_gzip
     FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
-      response = Zold::Http.new(URI("http://localhost:#{port}/")).get
+      response = Zold::Http.new(uri: URI("http://localhost:#{port}/"), score: nil).get
       assert_equal(
         '200', response.code,
         "Expected HTTP 200 OK: Found #{response.code}"

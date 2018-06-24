@@ -121,7 +121,7 @@ module Zold
     def cleanup(host, port, strength, threads)
       scores = load
       before = scores.map(&:value).max.to_i
-      save(threads, [Score.new(Time.now, host, port, @invoice, strength: strength)])
+      save(threads, [Score.new(time: Time.now, host: host, port: port, invoice: @invoice, strength: strength)])
       scores = load
       push(scores)
       after = scores.map(&:value).max.to_i

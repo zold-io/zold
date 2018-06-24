@@ -18,34 +18,17 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'minitest/autorun'
-require 'tmpdir'
-require 'uri'
-require 'webmock/minitest'
-require_relative '../lib/zold/http'
+# @todo Right now only Score and Http classes have been refactored for using
+# dry-types, even tough the issue has been boosted refactoring the whole project
+# is very cumbersome. Please refer to Score and Http class on how to perform all
+# the changes for the project to adopt dry-types
+require 'dry-types'
+require 'dry-struct'
 
-# Http test.
+# HTTP page.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestHttp < Minitest::Test
-  def test_pings_broken_uri
-    stub_request(:get, 'http://bad-host/').to_return(status: 500)
-    res = Zold::Http.new(uri: 'http://bad-host/', score: nil).get
-    assert_equal('500', res.code)
-    assert_equal('', res.body)
-  end
-
-  def test_pings_with_exception
-    stub_request(:get, 'http://exception/').to_return { raise 'Intentionally' }
-    res = Zold::Http.new(uri: 'http://exception/', score: nil).get
-    assert_equal('599', res.code)
-    assert(res.body.include?('Intentionally'))
-  end
-
-  def test_pings_live_uri
-    stub_request(:get, 'http://good-host/').to_return(status: 200)
-    res = Zold::Http.new(uri: 'http://good-host/', score: nil).get
-    assert_equal('200', res.code)
-  end
+module Types
+  include Dry::Types.module
 end

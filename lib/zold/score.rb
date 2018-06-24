@@ -21,6 +21,7 @@
 require 'digest'
 require 'time'
 require_relative 'remotes'
+require_relative 'type'
 
 # The score.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -28,29 +29,24 @@ require_relative 'remotes'
 # License:: MIT
 module Zold
   # Score
-  class Score
+  class Score < Dry::Struct
     # Default strength for the entire system, in production mode.
     STRENGTH = 6
 
-    attr_reader :time, :host, :port, :invoice, :strength
-    # time: UTC ISO 8601 string
-    def initialize(time, host, port, invoice, suffixes = [], strength: STRENGTH)
-      raise "Invalid host name: #{host}" unless host =~ /^[a-z0-9\.-]+$/
-      raise 'Time must be of type Time' unless time.is_a?(Time)
-      raise 'Port must be of type Integer' unless port.is_a?(Integer)
-      raise "Invalid TCP port: #{port}" if port <= 0 || port > 65_535
-      raise "Invoice '#{invoice}' has wrong format" unless invoice =~ /^[a-zA-Z0-9]{8,32}@[a-f0-9]{16}$/
-      @time = time
-      @host = host
-      @port = port
-      @invoice = invoice
-      @suffixes = suffixes
-      @strength = strength
-      @created = Time.now
-    end
+    attribute :time, Types::Strict::Time
+    attribute :host, Types::Strict::String.constrained(
+      format: /^[a-z0-9\.-]+$/
+    )
+    attribute :port, Types::Strict::Integer.constrained(gteq: 0, lt: 65_535)
+    attribute :invoice, Types::Strict::String.constrained(
+      format: /^[a-zA-Z0-9]{8,32}@[a-f0-9]{16}$/
+    )
+    attribute :suffixes, Types::Strict::Array.optional.default([])
+    attribute :strength, Types::Strict::Integer.optional.default(STRENGTH)
+    attribute :created, Types::Strict::Time.optional.default(Time.now)
 
     # The default no-value score.
-    ZERO = Score.new(Time.now, 'localhost', 80, 'NOPREFIX@ffffffffffffffff')
+    ZERO = Score.new(time: Time.now, host: 'localhost', port: 80, invoice: 'NOPREFIX@ffffffffffffffff')
 
     def self.parse_json(json)
       raise "Time in JSON is broken: #{json}" unless json['time'] =~ /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/
@@ -59,8 +55,8 @@ module Zold
       raise "Invoice is wrong: #{json}" unless json['invoice'] =~ /^[a-zA-Z0-9]{8,32}@[a-f0-9]{16}$/
       raise "Suffixes not array: #{json}" unless json['suffixes'].is_a?(Array)
       Score.new(
-        Time.parse(json['time']), json['host'],
-        json['port'], json['invoice'], json['suffixes'],
+        time: Time.parse(json['time']), host: json['host'],
+        port: json['port'], invoice: json['invoice'], suffixes: json['suffixes'],
         strength: json['strength']
       )
     end
@@ -79,9 +75,9 @@ module Zold
       m = re.match(text.strip)
       raise "Invalid score '#{text}', doesn't match: #{re}" if m.nil?
       Score.new(
-        Time.parse(m[:time]), m[:host],
-        m[:port].to_i, m[:invoice],
-        m[:suffixes].split(' '),
+        time: Time.parse(m[:time]), host: m[:host],
+        port: m[:port].to_i, invoice: m[:invoice],
+        suffixes: m[:suffixes].split(' '),
         strength: m[:strength].to_i
       )
     end
@@ -89,71 +85,71 @@ module Zold
     def self.parse_text(text)
       parts = text.split(' ', 7)
       Score.new(
-        Time.at(parts[1].hex),
-        parts[2],
-        parts[3].hex,
-        "#{parts[4]}@#{parts[5]}",
-        parts[6] ? parts[6].split(' ') : [],
+        time: Time.at(parts[1].hex),
+        host: parts[2],
+        port: parts[3].hex,
+        invoice: "#{parts[4]}@#{parts[5]}",
+        suffixes: parts[6] ? parts[6].split(' ') : [],
         strength: parts[0].to_i
       )
     end
 
     def hash
-      raise 'Score has zero value, there is no hash' if @suffixes.empty?
-      @suffixes.reduce(prefix) do |pfx, suffix|
-        Digest::SHA256.hexdigest(pfx + ' ' + suffix)[0, 64]
+      raise 'Score has zero value, there is no hash' if suffixes.empty?
+      suffixes.reduce(prefix) do |pfx, suffix|
+        OpenSSL::Digest::SHA256.new("#{pfx} #{suffix}").hexdigest
       end
     end
 
     def to_mnemo
-      "#{value}:#{@time.strftime('%H%M')}"
+      "#{value}:#{time.strftime('%H%M')}"
     end
 
     def to_text
-      pfx, bnf = @invoice.split('@')
+      pfx, bnf = invoice.split('@')
       [
-        @strength,
-        @time.to_i.to_s(16),
-        @host,
-        @port.to_s(16),
+        strength,
+        time.to_i.to_s(16),
+        host,
+        port.to_s(16),
         pfx,
         bnf,
-        @suffixes.join(' ')
+        suffixes.join(' ')
       ].join(' ')
     end
 
     def to_s
       [
-        "#{value}/#{@strength}:",
-        @time.utc.iso8601,
-        @host,
-        @port,
-        @invoice,
-        @suffixes.join(' ')
+        "#{value}/#{strength}:",
+        time.utc.iso8601,
+        host,
+        port,
+        invoice,
+        suffixes.join(' ')
       ].join(' ')
     end
 
     def to_h
       {
         value: value,
-        host: @host,
-        port: @port,
-        invoice: @invoice,
-        time: @time.utc.iso8601,
-        suffixes: @suffixes,
-        strength: @strength,
+        host: host,
+        port: port,
+        invoice: invoice,
+        time: time.utc.iso8601,
+        suffixes: suffixes,
+        strength: strength,
         hash: value.zero? ? nil : hash,
         expired: expired?,
         valid: valid?,
         age: (age / 60).round,
-        created: @created.utc.iso8601
+        created: created.utc.iso8601
       }
     end
 
     def reduced(max = 4)
       Score.new(
-        @time, @host, @port, @invoice,
-        @suffixes[0..[max, @suffixes.count].min - 1], strength: @strength
+        time: time, host: host, port: port, invoice: invoice,
+        suffixes: suffixes[0..[max, suffixes.count].min - 1], strength: strength, created: nil
       )
     end
 
@@ -163,17 +159,22 @@ module Zold
       loop do
         suffix = idx.to_s(16)
         score = Score.new(
-          @time, @host, @port, @invoice, @suffixes + [suffix],
-          strength: @strength
+          time: time, host: host, port: port, invoice: invoice, suffixes: suffixes + [suffix],
+          strength: strength
         )
         return score if score.valid?
-        return Score.new(Time.now, @host, @port, @invoice, [], strength: @strength) if score.expired?
+        if score.expired?
+          return Score.new(
+            time: Time.now, host: host, port: port, invoice: invoice,
+            suffixes: [], strength: strength
+          )
+        end
         idx += 1
       end
     end
 
     def age
-      Time.now - @time
+      Time.now - time
     end
 
     def expired?(hours = 24)
@@ -181,15 +182,15 @@ module Zold
     end
 
     def prefix
-      "#{@time.utc.iso8601} #{@host} #{@port} #{@invoice}"
+      "#{time.utc.iso8601} #{host} #{port} #{invoice}"
     end
 
     def valid?
-      @suffixes.empty? || hash.end_with?('0' * @strength)
+      suffixes.empty? || hash.end_with?('0' * strength)
     end
 
     def value
-      @suffixes.length
+      suffixes.length
     end
   end
 end

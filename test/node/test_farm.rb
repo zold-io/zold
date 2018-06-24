@@ -90,8 +90,8 @@ class FarmTest < Minitest::Test
     Dir.mktmpdir 'test' do |dir|
       cache = File.join(dir, 'cache')
       score = Zold::Score.new(
-        Time.parse('2017-07-19T21:24:51Z'),
-        'some-host', 9999, 'NOPREFIX@ffffffffffffffff', %w[13f7f01 b2b32b 4ade7e],
+        time: Time.parse('2017-07-19T21:24:51Z'),
+        host: 'some-host', port: 9999, invoice: 'NOPREFIX@ffffffffffffffff', suffixes: %w[13f7f01 b2b32b 4ade7e],
         strength: 6
       )
       File.write(cache, score.to_s)

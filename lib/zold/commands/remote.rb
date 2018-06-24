@@ -138,7 +138,7 @@ Available options:"
 
     def add(host, port, opts)
       unless opts['skip-ping']
-        res = Http.new("http://#{host}:#{port}/version", network: opts['network']).get
+        res = Http.new(uri: "http://#{host}:#{port}/version", score: nil, network: opts['network']).get
         raise "The node #{host}:#{port} is not responding (code is #{res.code})" unless res.code == '200'
       end
       if @remotes.exists?(host, port)

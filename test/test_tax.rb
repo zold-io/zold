@@ -67,8 +67,8 @@ class TestTax < Minitest::Test
       invoice = "#{Zold::Prefixes.new(target).create}@#{target.id}"
       tax = Zold::Tax.new(wallet)
       score = Zold::Score.new(
-        Time.now, 'localhost', 80, invoice,
-        %w[A B C D E F G H I J K L M N O P Q R S T U V]
+        time: Time.now, host: 'localhost', port: 80, invoice: invoice,
+        suffixes: %w[A B C D E F G H I J K L M N O P Q R S T U V]
       )
       tax.pay(Zold::Key.new(file: 'fixtures/id_rsa'), score)
       assert(
