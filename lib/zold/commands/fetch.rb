@@ -77,7 +77,8 @@ Available options:"
       end
       raise "There are no remote nodes, run 'zold remote reset'" if nodes.zero?
       raise "No nodes out of #{nodes} have the wallet #{id}" if done.zero?
-      @log.debug("#{nodes} copies of #{id} fetched for the total score of #{total}, #{cps.all.count} local copies")
+      @log.debug("#{nodes} copies of #{id} fetched for the total score of #{total}, \
+#{cps.all.count} local copies:\n  #{cps.all.map { |c| "#{c[:name]}: #{c[:score]}" }.join("\n  ")}")
     end
 
     def fetch_one(id, r, cps, opts)

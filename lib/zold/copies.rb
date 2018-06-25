@@ -121,7 +121,7 @@ module Zold
               .map { |s| s[:score] }
               .inject(&:+) || 0
           }
-        end.select { |c| File.exist?(c[:path]) }
+        end.select { |c| File.exist?(c[:path]) }.sort_by { |c| c[:score] }.reverse
       end
     end
 

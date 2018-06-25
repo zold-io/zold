@@ -91,6 +91,7 @@ into #{wallet.id}/#{wallet.balance}/#{wallet.txns.count}t")
     end
 
     def merge_one(opts, patch, wallet, name)
+      @log.debug("Building a patch for #{wallet.id} from remote copy #{name}...")
       patch.join(wallet, !opts['no-baseline'])
       @log.debug("Copy #{name} of #{wallet.id} merged: #{patch}")
     rescue StandardError => e

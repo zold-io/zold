@@ -83,6 +83,17 @@ class TestCopies < Minitest::Test
     end
   end
 
+  def test_sorts_them_by_score
+    Dir.mktmpdir 'test' do |dir|
+      copies = Zold::Copies.new(dir)
+      copies.add('content-1', '1.zold.io', 80, 1)
+      copies.add('content-2', '2.zold.io', 80, 2)
+      copies.add('content-3', '3.zold.io', 80, 50)
+      copies.add('content-4', '4.zold.io', 80, 3)
+      assert_equal('50 3 2 1', copies.all.map { |c| c[:score] }.join(' '))
+    end
+  end
+
   def test_ignores_too_old_scores
     Dir.mktmpdir 'test' do |dir|
       copies = Zold::Copies.new(dir)
