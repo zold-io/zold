@@ -86,7 +86,7 @@ module Zold
           end
           payer = @wallets.find(txn.bnf)
           unless payer.exists?
-            @log.error("Paying wallet #{wallet.id} is absent at ##{txn.id}: #{txn.to_text}")
+            @log.error("Paying wallet file is absent: #{txn.to_text}")
             next
           end
           unless payer.has?(txn.id, wallet.id)
