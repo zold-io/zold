@@ -50,7 +50,7 @@ module Zold
         @key = wallet.key
         if baseline
           @txns = wallet.txns
-          @log.debug("The baseline: #{@txns.count} transactions, the balance is #{wallet.balance}")
+          @log.debug("The baseline of #{wallet.id} is #{wallet.balance}/#{@txns.count}t")
         else
           @log.debug("The baseline of #{@txns.count} transactions ignored")
         end

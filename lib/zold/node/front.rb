@@ -150,6 +150,7 @@ module Zold
       {
         version: settings.version,
         score: score.to_h,
+        mtime: wallet.mtime.utc.iso8601,
         body: AtomicFile.new(wallet.path).read
       }.to_json
     end

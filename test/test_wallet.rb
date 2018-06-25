@@ -83,6 +83,13 @@ class TestWallet < Minitest::Test
     end
   end
 
+  def test_returns_modified_time
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      assert(wallet.mtime > Time.now - 60 * 60)
+    end
+  end
+
   def test_iterates_income_transactions
     FakeHome.new.run do |home|
       wallet = home.create_wallet

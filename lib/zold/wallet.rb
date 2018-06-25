@@ -143,6 +143,10 @@ module Zold
       end
     end
 
+    def mtime
+      File.mtime(@file)
+    end
+
     # Age of wallet in hours
     def age
       list = txns
