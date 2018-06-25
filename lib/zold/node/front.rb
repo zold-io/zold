@@ -179,6 +179,14 @@ module Zold
       wallet.mtime.utc.iso8601.to_s
     end
 
+    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/digest} do
+      id = Id.new(params[:id])
+      wallet = settings.wallets.find(id)
+      error 404 unless wallet.exists?
+      content_type 'text/plain'
+      wallet.digest
+    end
+
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.txt} do
       id = Id.new(params[:id])
       wallet = settings.wallets.find(id)
@@ -195,7 +203,8 @@ module Zold
         '--',
         "Balance: #{wallet.balance.to_zld}",
         "Transactions: #{wallet.txns.count}",
-        "Modified: #{wallet.mtime.utc.iso8601}"
+        "Modified: #{wallet.mtime.utc.iso8601}",
+        "Digest: #{wallet.digest}"
       ].join("\n")
     end
 

@@ -99,13 +99,20 @@ Available options:"
         File.write(f, body)
         wallet = Wallet.new(f.path)
         copy = cps.add(body, score.host, score.port, score.value)
-        @log.info("#{r} returned #{body.length}b/#{wallet.txns.count}t/#{age(json['mtime'])} as copy #{copy} \
+        @log.info("#{r} returned #{body.length}b/#{wallet.txns.count}t/#{digest(json)}/#{age(json)} as copy #{copy} \
 of #{id} in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green} (#{json['version']})")
       end
       score.value
     end
 
-    def age(mtime)
+    def digest(json)
+      hash = json['digest']
+      return '?' if hash.nil?
+      hash[0, 6]
+    end
+
+    def age(json)
+      mtime = json['mtime']
       return '?' if mtime.nil?
       sec = Time.now - Time.parse(mtime)
       if sec < 60
