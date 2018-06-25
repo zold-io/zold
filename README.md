@@ -37,7 +37,7 @@ To make sure it's installed, try:
 $ zold --help
 ```
 
-You will need PGP private and public keys in `~/.ssh`.
+You will need RSA private and public keys in `~/.ssh`.
 If you don't have them yet, run this in order to generate a new pair
 (just hit <kbd>Enter</kbd> when it asks you for a password):
 
@@ -122,7 +122,7 @@ send you bonuses for keeping the node online (approximately 1 ZLD per day).
 
 ## Frequently Asked Questions
 
-> Where are my PGP private/public keys?
+> Where are my RSA private/public keys?
 
 They are in `~/.ssh/id_rsa` (private key) and `~/.ssh/id_rsa.pub` (public key).
 Make sure you have a copy of your private key in some safe place.
