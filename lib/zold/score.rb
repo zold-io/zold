@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'digest'
+require 'openssl'
 require 'time'
 require_relative 'remotes'
 
@@ -101,7 +101,7 @@ module Zold
     def hash
       raise 'Score has zero value, there is no hash' if @suffixes.empty?
       @suffixes.reduce(prefix) do |pfx, suffix|
-        Digest::SHA256.hexdigest(pfx + ' ' + suffix)[0, 64]
+        OpenSSL::Digest::SHA256.new("#{pfx} #{suffix}").hexdigest[0, 64]
       end
     end
 
