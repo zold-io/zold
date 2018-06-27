@@ -42,12 +42,7 @@ class TestAtomicFile < Minitest::Test
     end
   end
 
-  # @todo #262:30min This test is skipped because it doesn't work. I can't
-  #  understand why. It seems that File.open() creates an empty file first
-  #  which is then being read by File.read() in another thread. Let's find
-  #  out and make AtomicFile truly thread-safe.
   def test_writes_from_many_threads
-    skip
     Dir.mktmpdir 'test' do |dir|
       file = Zold::AtomicFile.new(File.join(dir, 'a.txt'))
       threads = 10
