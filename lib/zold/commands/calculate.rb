@@ -37,6 +37,9 @@ module Zold
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = "Usage: zold score [options]
 Available options:"
+        o.string '--time',
+          'The time to start a score prefix with (default: current time)',
+          default: Time.now.utc.iso8601
         o.string '--invoice',
           'The invoice you want to collect money to'
         o.integer '--port',
@@ -71,7 +74,7 @@ Available options:"
       strength = opts[:strength]
       raise "Invalid strength: #{strength}" if strength <= 0 || strength > 8
       score = Zold::Score.new(
-        Time.now, opts[:host], opts[:port].to_i,
+        Time.parse(opts[:time]), opts[:host], opts[:port].to_i,
         opts[:invoice], strength: strength
       )
       loop do

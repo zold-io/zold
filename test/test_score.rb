@@ -142,4 +142,17 @@ class TestScore < Minitest::Test
     ).next
     assert(score.hash.end_with?('000'))
   end
+
+  def test_generates_hash_correctly
+    score = Zold::Score.new(
+      Time.parse('2018-06-27T06:22:41Z'), 'b2.zold.io', 4096,
+      'THdonv1E@abcdabcdabcdabcd', ['3a934b']
+    )
+    assert_equal('c9c72efbf6beeea13408c5e720ec42aec017c11c3db335e05595c03755000000', score.hash)
+    score = Zold::Score.new(
+      Time.parse('2018-06-27T06:22:41Z'), 'b2.zold.io', 4096,
+      'THdonv1E@abcdabcdabcdabcd', %w[3a934b 1421217]
+    )
+    assert_equal('e04ab4e69f86aa17be1316a52148e7bc3187c6d3df581d885a862d8850000000', score.hash)
+  end
 end
