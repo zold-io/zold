@@ -103,7 +103,16 @@ Available options:"
       @log.debug("#{amount} sent from #{from} to #{txn.bnf}: #{details}")
       @log.debug("Don't forget to do 'zold push #{from}'")
       @log.info(txn.id)
+      notify_of_tax_debt(from)
       txn
+    end
+
+    # TODO: add tests, extract to a module(?).
+    def notify_of_tax_debt(wallet)
+      tax = Tax.new(wallet)
+      message = "The tax debt of #{wallet} is #{tax.debt}"
+      message += ' (still acceptable)' unless tax.in_debt?
+      @log.info(message)
     end
   end
 end
