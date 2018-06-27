@@ -67,9 +67,9 @@ module Zold
       n
     end
 
-    def version
+    def protocol
       v = lines[1].strip
-      raise "Invalid version name '#{v}'" unless v =~ /^[0-9]+$/
+      raise "Invalid protocol version name '#{v}'" unless v =~ /^[0-9]+$/
       v
     end
 

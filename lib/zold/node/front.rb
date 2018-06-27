@@ -195,7 +195,7 @@ module Zold
       content_type 'text/plain'
       [
         wallet.network,
-        wallet.version,
+        wallet.protocol,
         wallet.id.to_s,
         wallet.key.to_s,
         '',
