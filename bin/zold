@@ -91,7 +91,7 @@ Available commands:
       Pay taxes, check their status
     #{Rainbow('node').green} [options]
       Run node at the given TCP port
-    #{Rainbow('score').green} host port strength [options]
+    #{Rainbow('score').green} [options]
       Generate score for the given host and port
 Available options:"
     o.string '--home',
