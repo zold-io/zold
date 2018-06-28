@@ -63,7 +63,9 @@ Available commands:
     #{Rainbow('remote elect').green}
       Pick a random remote node as a target for a bonus awarding
     #{Rainbow('remote trim').green}
-      Remote the least reliable nodes
+      Remove the least reliable nodes
+    #{Rainbow('remote select [number]').green}
+      Select the strongest n nodes. Defaults to 16.
     #{Rainbow('remote update').green}
       Check each registered remote node for availability
 Available options:"
@@ -112,6 +114,10 @@ Available options:"
       when 'update'
         update(opts)
         update(opts, false)
+      when 'select'
+        update(opts)
+        update(opts, false)
+        mine[1] ? select(mine[1].to_i) : select
       else
         raise "Unknown command '#{command}'"
       end
@@ -233,6 +239,9 @@ in #{(Time.now - start).round(2)}s")
         @log.debug("There are #{total} known remotes")
       end
     end
+
+    # @todo #292 Select the strongest nodes
+    def select; end
 
     def terminate
       @log.info("All threads before exit: #{Thread.list.map { |t| "#{t.name}/#{t.status}" }.join(', ')}")
