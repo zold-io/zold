@@ -21,6 +21,7 @@
 require 'minitest/autorun'
 require 'tmpdir'
 require 'time'
+require_relative 'test__helper'
 require_relative '../lib/zold/score'
 
 # Score test.
