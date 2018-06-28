@@ -117,7 +117,7 @@ Available options:"
       when 'select'
         update(opts)
         update(opts, false)
-        mine[1] ? select(mine[1].to_i) : select
+        select(mine[1] ? mine[1].to_i : Remotes::MAX_NODES)
       else
         raise "Unknown command '#{command}'"
       end
