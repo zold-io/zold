@@ -40,6 +40,7 @@ require_relative '../lib/zold/key'
 require_relative '../lib/zold/amount'
 require_relative '../lib/zold/copies'
 require_relative '../lib/zold/remotes'
+require_relative '../lib/zold/version_upgrade_manager'
 
 
 Encoding.default_external = Encoding::UTF_8
@@ -124,6 +125,8 @@ Available options:"
     log.info(opts.to_s)
     exit
   end
+
+  Zold::VersionUpgradeManager.run
 
   args = opts.arguments
   args << '--help' if opts.help?
