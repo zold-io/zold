@@ -64,7 +64,7 @@ Available commands:
       Pick a random remote node as a target for a bonus awarding
     #{Rainbow('remote trim').green}
       Remove the least reliable nodes
-    #{Rainbow('remote select [number]').green}
+    #{Rainbow('remote select --max-nodes n').green}
       Select the strongest n nodes. Defaults to 16.
     #{Rainbow('remote update').green}
       Check each registered remote node for availability
@@ -91,6 +91,21 @@ Available options:"
         o.bool '--reboot',
           'Exit if any node reports version higher than we have',
           default: false
+        # @todo #292 Group options by subcommands
+        #  Having all the options in one place _rather than grouping them by subcommands_
+        #  makes the help totally misleading and hard to read.
+        #
+        #  Not all the options are valid for every command - that's the key here.
+        #
+        #  The option below (`--max-nodes`) is an example.
+        #
+        #  **Next actions:**
+        #  - Implement the suggestion above.
+        #  - Remove note from the --max-nodes option saying that it applies to the select
+        #    subcommand only.
+        o.integer '--max-nodes',
+          'This applies only to the select subcommand. Number of nodes to limit to.',
+          default: Remotes::MAX_NODES
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
@@ -115,9 +130,7 @@ Available options:"
         update(opts)
         update(opts, false)
       when 'select'
-        update(opts)
-        update(opts, false)
-        select(mine[1] ? mine[1].to_i : Remotes::MAX_NODES)
+        select(opts['max-nodes'])
       else
         raise "Unknown command '#{command}'"
       end
@@ -241,7 +254,9 @@ in #{(Time.now - start).round(2)}s")
     end
 
     # @todo #292 Select the strongest nodes
-    def select; end
+    def select(_number_of_nodes)
+      raise NotImplementedError, 'This feature is not yet implemented.'
+    end
 
     def terminate
       @log.info("All threads before exit: #{Thread.list.map { |t| "#{t.name}/#{t.status}" }.join(', ')}")
