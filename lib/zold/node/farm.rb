@@ -166,16 +166,18 @@ module Zold
       @mutex.synchronize do
         if File.exist?(@cache)
           AtomicFile.new(@cache).read.split(/\n/).map do |t|
-            begin
-              Score.parse(t)
-            rescue StandardError => e
-              @log.error(e.message)
-            end
+            parse_score_line(t)
           end
         else
           []
         end
       end
+    end
+
+    def parse_score_line(line)
+      Score.parse(line)
+    rescue StandardError => e
+      @log.error(e.message)
     end
   end
 end
