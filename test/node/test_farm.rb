@@ -122,7 +122,8 @@ class FarmTest < Minitest::Test
     Dir.mktmpdir 'test' do |dir|
       file = File.join(dir, 'corrupted_farm')
       [
-        '0/6: 2018-06-26T00:32:43Z 178.128.165.12 4096 MIRhypo1@c13620484b46caa4  15e0cb 6be8b0 4849a8 305ae7d 9c30f4 e6d1e3 3b62ed 1281eb4 6b9173 449ef5',
+        '0/6: 2018-06-26T00:32:43Z 178.128.165.12 4096 MIRhypo1@c13620484b46caa4 \
+         15e0cb 6be8b0 4849a8 305ae7d 9c30f4 e6d1e3 3b62ed 1281eb4 6b9173 449ef5',
         'some garbage',
         '',
         "\n\n\n\n"

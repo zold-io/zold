@@ -165,13 +165,13 @@ module Zold
     def load
       @mutex.synchronize do
         if File.exist?(@cache)
-          AtomicFile.new(@cache).read.split(/\n/).map { |t|
+          AtomicFile.new(@cache).read.split(/\n/).map do |t|
             begin
               Score.parse(t)
             rescue StandardError => e
               @log.error(e.message)
             end
-          }
+          end
         else
           []
         end
