@@ -187,10 +187,9 @@ module Zold
         rescue StandardError => e
           error(r[:host], r[:port])
           errors = errors(r[:host], r[:port])
-          non_fatal_errors = check_for_non_fatal_errors(r[:host], r[:port])
-          non_fatal_errors.each do |error|
+          check_for_non_fatal_errors(r[:host], r[:port]).each do |error|
             log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{error} \
-in #{(Time.now - start).round}s;")
+              in #{(Time.now - start).round}s;")
           end
           log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message} \
 in #{(Time.now - start).round}s; errors=#{errors}")
@@ -215,7 +214,9 @@ in #{(Time.now - start).round}s; errors=#{errors}")
     def errors(host, port = Remotes::PORT)
       check_for_fatal_errors(host, port)
       list = load
-      list.find { |r| r[:host] == host.downcase && r[:port] == port }[:errors] unless exists?(host, port) else 0
+      errors = 0
+      errors = list.find { |r| r[:host] == host.downcase && r[:port] == port }[:errors] unless exists?(host, port)
+      errors
     end
 
     def error(host, port = Remotes::PORT)

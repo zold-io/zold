@@ -178,9 +178,7 @@ class TestRemotes < Minitest::Test
       remotes.add('127.0.0.1')
       log = TestLogger.new
       remotes.stub :exists?, false do
-        remotes.iterate(log) {
-          assert(log.msg.include?('127.0.0.1:4096 is absent among 1 remotes in 0s;'))
-        }
+        remotes.iterate(log) { assert(log.msg.include?('127.0.0.1:4096 is absent among 1 remotes in 0s;')) }
       end
     end
   end
