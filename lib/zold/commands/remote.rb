@@ -91,7 +91,7 @@ Available options:"
         o.bool '--reboot',
           'Exit if any node reports version higher than we have',
           default: false
-        # @todo #292 Group options by subcommands
+        # @todo #292:30min Group options by subcommands
         #  Having all the options in one place _rather than grouping them by subcommands_
         #  makes the help totally misleading and hard to read.
         #
@@ -253,8 +253,9 @@ in #{(Time.now - start).round(2)}s")
       end
     end
 
-    # @todo #292 Select the strongest nodes
-    def select(_number_of_nodes)
+    # @todo #292:30min Implement the logic of selecting the nodes as per #292.
+    #  The strongest n nodes should be selected, where n = opts['max-nodes'].
+    def select(_opts)
       raise NotImplementedError, 'This feature is not yet implemented.'
     end
 
