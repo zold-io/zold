@@ -64,8 +64,8 @@ Available commands:
       Pick a random remote node as a target for a bonus awarding
     #{Rainbow('remote trim').green}
       Remove the least reliable nodes
-    #{Rainbow('remote select --max-nodes n').green}
-      Select the strongest n nodes. Defaults to 16.
+    #{Rainbow('remote select [options]).green}
+      Select the strongest n nodes.
     #{Rainbow('remote update').green}
       Check each registered remote node for availability
 Available options:"
@@ -104,7 +104,7 @@ Available options:"
         #  - Remove note from the --max-nodes option saying that it applies to the select
         #    subcommand only.
         o.integer '--max-nodes',
-          'This applies only to the select subcommand. Number of nodes to limit to.',
+          'This applies only to the select subcommand. Number of nodes to limit to. Defaults to 16.',
           default: Remotes::MAX_NODES
         o.bool '--help', 'Print instructions'
       end
@@ -130,7 +130,7 @@ Available options:"
         update(opts)
         update(opts, false)
       when 'select'
-        select(opts['max-nodes'])
+        select(opts)
       else
         raise "Unknown command '#{command}'"
       end
