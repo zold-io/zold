@@ -64,7 +64,7 @@ Available commands:
       Pick a random remote node as a target for a bonus awarding
     #{Rainbow('remote trim').green}
       Remove the least reliable nodes
-    #{Rainbow('remote select [options]).green}
+    #{Rainbow('remote select [options]').green}
       Select the strongest n nodes.
     #{Rainbow('remote update').green}
       Check each registered remote node for availability
