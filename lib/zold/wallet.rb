@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 require 'time'
-require 'digest'
+require 'openssl'
 require_relative 'version'
 require_relative 'key'
 require_relative 'id'
@@ -67,9 +67,9 @@ module Zold
       n
     end
 
-    def version
+    def protocol
       v = lines[1].strip
-      raise "Invalid version name '#{v}'" unless v =~ /^[0-9]+$/
+      raise "Invalid protocol version name '#{v}'" unless v =~ /^[0-9]+$/
       v
     end
 
@@ -149,7 +149,7 @@ module Zold
     end
 
     def digest
-      Digest::SHA256.hexdigest(File.read(@file))
+      OpenSSL::Digest::SHA256.new(File.read(@file)).hexdigest
     end
 
     # Age of wallet in hours

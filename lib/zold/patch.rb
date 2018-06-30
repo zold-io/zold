@@ -84,6 +84,10 @@ module Zold
             @log.error("RSA signature is redundant at ##{txn.id} of #{wallet.id}: #{txn.to_text}")
             next
           end
+          unless wallet.key.to_s.include?(txn.prefix)
+            @log.error("Payment prefix doesn't match with the key of #{wallet.id}: #{txn.to_text}")
+            next
+          end
           payer = @wallets.find(txn.bnf)
           unless payer.exists?
             @log.error("Paying wallet file is absent: #{txn.to_text}")

@@ -150,6 +150,7 @@ module Zold
       {
         version: settings.version,
         score: score.to_h,
+        wallets: settings.wallets.all.count,
         mtime: wallet.mtime.utc.iso8601,
         body: AtomicFile.new(wallet.path).read
       }.to_json
@@ -194,7 +195,7 @@ module Zold
       content_type 'text/plain'
       [
         wallet.network,
-        wallet.version,
+        wallet.protocol,
         wallet.id.to_s,
         wallet.key.to_s,
         '',
@@ -228,7 +229,8 @@ module Zold
       settings.entrance.push(id, after)
       JSON.pretty_generate(
         version: settings.version,
-        score: score.to_h
+        score: score.to_h,
+        wallets: settings.wallets.all.count
       )
     end
 

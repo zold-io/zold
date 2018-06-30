@@ -44,7 +44,7 @@ class TestWallet < Minitest::Test
         wallet.balance == amount * -3,
         "#{wallet.balance} is not equal to #{amount * -3}"
       )
-      assert_equal('1', wallet.version)
+      assert_equal('1', wallet.protocol)
     end
   end
 
