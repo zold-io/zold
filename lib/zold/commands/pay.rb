@@ -107,7 +107,7 @@ Available options:"
       txn
     end
 
-    # TODO: add tests, extract to a module(?).
+    # @todo #79:40min Add tests, extract to a module(?).
     def notify_of_tax_debt(wallet)
       tax = Tax.new(wallet)
       message = "The tax debt of #{wallet} is #{tax.debt}"
