@@ -3,7 +3,9 @@ require 'semantic'
 module Zold
   # Class to manage data upgrades (when zold itself upgrades).
   class VersionUpgradeManager
-    # @todo #285:30min Refactor so we don't just assume there's .zoldata in the current directory. Possibly something like a config object should be introduced.
+    # @todo #285:30min Refactor so we don't just assume there's .zoldata
+    # in the current directory. Possibly something like a config object
+    # should be introduced.
     #
     # @todo #285:30min Communicate the ongoing upgrade and its steps to the user.
     #  The user should know:
