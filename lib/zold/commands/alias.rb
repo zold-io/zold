@@ -14,12 +14,12 @@ module Zold
 
     def run(args = [])
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
-        o.banner = "Usage: zold alias args
-    #{Rainbow('alias set wallet alias').green}
+        o.banner = "Usage: zold alias [args]
+    #{Rainbow('alias set <wallet> <alias>').green}
       Make wallet known under an alias.
-    #{Rainbow('alias remove alias').green}
+    #{Rainbow('alias remove <alias>').green}
       Remove an alias.
-    #{Rainbow('alias show alias').green}
+    #{Rainbow('alias show <alias>').green}
       Show where the alias is pointing to.
 Available options:"
         o.bool '--help', 'Print instructions'
