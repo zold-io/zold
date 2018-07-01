@@ -242,8 +242,8 @@ Then, you need to create three objects:
 require 'zold/wallets'
 require 'zold/remotes'
 wallets = Zold::Wallets.new(home)
-remotes = Zold::Remotes.new(File.new(home, 'remotes'))
-copies = File.new(home, 'copies')
+remotes = Zold::Remotes.new(File.join(home, 'remotes'))
+copies = File.join(home, 'copies')
 ```
 
 The first step is to update the list of remote nodes, in order
