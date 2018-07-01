@@ -7,18 +7,12 @@ module Zold
       @version_file = version_file
     end
 
-    # @todo #285:30min Communicate the ongoing upgrade and its steps to the user.
-    #  The user should know:
-    #  - If the upgrade is happening.
-    #  - What upgrade scripts are run.
-    #  - On failure there should be a report of what failed.
-    #
     # @todo #285:30min Write the upgrade manager tests that ensure:
     #  - Nothing breaks without the version file.
     #  - The upgrade scripts run when there is a version file and there are pending upgrade scripts.
     #  - Make sure *only* the correct upgrade scripts run.
     def run
-      from_version = data_version
+      from_version = @version_file.version
       return unless from_version
       upgrade(from_version)
       @version_file.save(Zold::VERSION)

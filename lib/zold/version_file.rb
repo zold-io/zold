@@ -12,22 +12,21 @@ module Zold
     end
 
     def save(version)
-      File.open(version_file_path, 'w') do |file|
+      File.open(path, 'w') do |file|
         file.puts(version)
       end
     end
 
-    def data_version
+    def version
+      return unless File.exist?(path)
       version_string = File.read(path)
       Semantic::Version.new(version_string)
-    rescue Errno::ENOENT
       # @todo #285:30min Save the version if there is no .zoldata/version
       #  present yet. This is breaking the specs, it needs some additional time.
 
       # File.open('.zoldata/version', 'w') do |file|
       #   file.puts(Zold::VERSION)
       # end
-      false
     end
   end
 end

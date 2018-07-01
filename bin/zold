@@ -127,9 +127,6 @@ Available options:"
     exit
   end
 
-  # @todo #285:30min Refactor so we don't just assume there's .zoldata
-  #  in the current directory. Possibly something like a config object
-  #  should be introduced.
   version_file = Zold::VersionFile.new('.zoldata')
   updates = Zold::Upgrades.new(version_file)
   updates.run
