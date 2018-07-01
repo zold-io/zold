@@ -40,7 +40,8 @@ require_relative '../lib/zold/key'
 require_relative '../lib/zold/amount'
 require_relative '../lib/zold/copies'
 require_relative '../lib/zold/remotes'
-require_relative '../lib/zold/version_upgrade_manager'
+require_relative '../lib/zold/upgrades'
+require_relative '../lib/zold/version_file'
 
 
 Encoding.default_external = Encoding::UTF_8
@@ -126,7 +127,12 @@ Available options:"
     exit
   end
 
-  Zold::VersionUpgradeManager.run
+  # @todo #285:30min Refactor so we don't just assume there's .zoldata
+  #  in the current directory. Possibly something like a config object
+  #  should be introduced.
+  version_file = Zold::VersionFile.new('.zoldata')
+  updates = Zold::Upgrades.new(version_file)
+  updates.run
 
   args = opts.arguments
   args << '--help' if opts.help?
