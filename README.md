@@ -227,8 +227,15 @@ To be continued...
 
 ## SDK
 
-Here is how you use Zold SDK from your Ruby app. First, you need
-a directory where wallets and other supplementary data will be kept.
+Here is how you use Zold SDK from your Ruby app. First, you should
+add `zold` [gem](https://rubygems.org/gems/zold)
+to your [`Gemfile`](https://bundler.io/gemfile.html) or just:
+
+```bash
+$ gem install zold
+```
+
+Then, you will need a directory where wallets and other supplementary data will be kept.
 This can be any directory, including a temporary one. If it doesn't exist,
 it will automatically be created:
 
