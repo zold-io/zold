@@ -294,7 +294,7 @@ Finally, you can push a wallet to the network:
 
 ```ruby
 require 'zold/commands/push'
-Zold::Push.new(wallets: wallets, remotes: remotes).run(['push', '17737fee5b825835'])
+Zold::Push.new(wallets: wallets, remotes: remotes).run(%w[push 17737fee5b825835])
 ```
 
 By default, all commands will work quietly, reporting absolutely nothing
@@ -303,7 +303,7 @@ For example, `Zold::Log::Verbose` will print a lot of information to the console
 
 ```ruby
 require 'zold/commands/push'
-Zold::Push.new(wallets: wallets, remotes: remotes, log: Zold::Log::Verbose.new).run(['push', '17737fee5b825835'])
+Zold::Push.new(wallets: wallets, remotes: remotes, log: Zold::Log::Verbose.new).run(['push'])
 ```
 
 Also, all commands by default assume that you are working in a `test` network.
@@ -313,7 +313,7 @@ give them `--network=zold` argument, for example:
 
 ```ruby
 require 'zold/commands/push'
-Zold::Push.new(wallets: wallets, remotes: remotes).run(['push', '17737fee5b825835', '--network=zold'])
+Zold::Push.new(wallets: wallets, remotes: remotes).run(%w[push 17737fee5b825835 --network=zold])
 ```
 
 If anything doesn't work as explained above, please
