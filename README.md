@@ -275,8 +275,13 @@ Then, you can make a payment:
 
 ```ruby
 require 'zold/commands/pay'
-Zold::Pay.new(wallets: wallets).run(['pay', '17737fee5b825835', '00000000000ff1ce', '19.99', 'For a pizza'])
+Zold::Pay.new(wallets: wallets).run(
+  ['pay', '17737fee5b825835', '00000000000ff1ce', '19.99', 'For a pizza', '--private-key=/tmp/id_rsa']
+)
 ```
+
+Here `--private-key=/tmp/id_rsa` points to the absolute location of the private RSA key of
+the paying wallet.
 
 Finally, you can push a wallet to the network:
 
