@@ -94,17 +94,14 @@ Available options:"
         # @todo #292:30min Group options by subcommands
         #  Having all the options in one place _rather than grouping them by subcommands_
         #  makes the help totally misleading and hard to read.
-        #
         #  Not all the options are valid for every command - that's the key here.
-        #
         #  The option below (`--max-nodes`) is an example.
-        #
         #  **Next actions:**
         #  - Implement the suggestion above.
         #  - Remove note from the --max-nodes option saying that it applies to the select
         #    subcommand only.
         o.integer '--max-nodes',
-          'This applies only to the select subcommand. Number of nodes to limit to. Defaults to 16.',
+          "This applies only to the select subcommand. Number of nodes to limit to. Defaults to #{Remotes::MAX_NODES}.",
           default: Remotes::MAX_NODES
         o.bool '--help', 'Print instructions'
       end
