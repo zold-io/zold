@@ -297,6 +297,25 @@ require 'zold/commands/push'
 Zold::Push.new(wallets: wallets, remotes: remotes).run(['push', '17737fee5b825835'])
 ```
 
+By default, all commands will work quietly, reporting absolutely nothing
+to the console. To change that, you can use `log` argument of their constructors.
+For example, `Zold::Log::Verbose` will print a lot of information to the console:
+
+```ruby
+require 'zold/commands/push'
+Zold::Push.new(wallets: wallets, remotes: remotes, log: Zold::Log::Verbose.new).run(['push', '17737fee5b825835'])
+```
+
+Also, all commands by default assume that you are working in a `test` network.
+This is done in order to protect our production network from your test cases.
+In order to instruct them to deal with real data and real nodes, you should
+give them `--network=zold` argument, for example:
+
+```ruby
+require 'zold/commands/push'
+Zold::Push.new(wallets: wallets, remotes: remotes).run(['push', '17737fee5b825835', '--network=zold'])
+```
+
 If anything doesn't work as explained above, please
 [submit at ticket](https://github.com/zold-io/zold/issues) or join our
 [Telegram group](https://t.me/zold_io) and complain there.
