@@ -225,6 +225,70 @@ To be continued...
 
 `hours_alive` is the time in hours your server is alive without a reboot.
 
+## SDK
+
+Here is how you use Zold SDK from your Ruby app. First, you need
+a directory where wallets and other supplementary data will be kept.
+This can be any directory, including a temporary one. If it doesn't exist,
+it will automatically be created:
+
+```ruby
+home = '/tmp/my-zold-dir'
+```
+
+Then, you need to create three objects:
+
+```ruby
+requre 'zold/wallets'
+requre 'zold/remotes'
+wallets = Zold::Wallets.new(home)
+remotes = Zold::Remotes.new(File.new(home, 'remotes'))
+copies = File.new(home, 'copies')
+```
+
+The first step is to update the list of remote nodes, in order
+to be properly connected to the network:
+
+```ruby
+requre 'zold/commands/remote'
+Zold::Remote.new(remotes: remotes).run(['remote', 'update'])
+```
+
+Now you are ready to create a wallet:
+
+```ruby
+requre 'zold/commands/create'
+Zold::Create.new(wallets: wallets).run(['create', '--public-key=/tmp/id_rsa.pub'])
+```
+
+Here `--public-key=/tmp/id_rsa.pub` points to the absolute location of
+a public RSA key for the wallet you want to create.
+
+You can also pull a wallet from the network:
+
+```ruby
+requre 'zold/commands/pull'
+Zold::Pull.new(wallets: wallets, remotes: remotes, copies: copies).run(['pull', '00000000000ff1ce'])
+```
+
+Then, you can make a payment:
+
+```ruby
+requre 'zold/commands/pay'
+Zold::Pay.new(wallets: wallets).run(['pay', '17737fee5b825835', '00000000000ff1ce', '19.99', 'For a pizza'])
+```
+
+Finally, you can push a wallet to the network:
+
+```ruby
+requre 'zold/commands/push'
+Zold::Push.new(wallets: wallets, remotes: remotes).run(['push', '17737fee5b825835'])
+```
+
+If anything doesn't work as explained above, please
+[submit at ticket](https://github.com/zold-io/zold/issues) or join our
+[Telegram group](https://t.me/zold_io) and complain there.
+
 ## How to Contribute
 
 It is a Ruby command line gem. First, install
