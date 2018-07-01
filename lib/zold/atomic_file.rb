@@ -28,20 +28,21 @@ module Zold
     def initialize(file)
       raise 'File can\'t be nil' if file.nil?
       @file = file
+      @mutex = Mutex.new
     end
 
     def read
-      File.open(@file, 'rb') do |f|
-        f.flock(File::LOCK_EX)
-        f.read
+      @mutex.synchronize do
+        File.open(@file, 'rb', &:read)
       end
     end
 
     def write(content)
       raise 'Content can\'t be nil' if content.nil?
-      File.open(@file, 'wb') do |f|
-        f.flock(File::LOCK_EX)
-        f.write(content)
+      @mutex.synchronize do
+        File.open(@file, 'wb') do |f|
+          f.write(content)
+        end
       end
     end
   end
