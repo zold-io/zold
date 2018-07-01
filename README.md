@@ -239,8 +239,8 @@ home = '/tmp/my-zold-dir'
 Then, you need to create three objects:
 
 ```ruby
-requre 'zold/wallets'
-requre 'zold/remotes'
+require 'zold/wallets'
+require 'zold/remotes'
 wallets = Zold::Wallets.new(home)
 remotes = Zold::Remotes.new(File.new(home, 'remotes'))
 copies = File.new(home, 'copies')
@@ -250,14 +250,14 @@ The first step is to update the list of remote nodes, in order
 to be properly connected to the network:
 
 ```ruby
-requre 'zold/commands/remote'
+require 'zold/commands/remote'
 Zold::Remote.new(remotes: remotes).run(['remote', 'update'])
 ```
 
 Now you are ready to create a wallet:
 
 ```ruby
-requre 'zold/commands/create'
+require 'zold/commands/create'
 Zold::Create.new(wallets: wallets).run(['create', '--public-key=/tmp/id_rsa.pub'])
 ```
 
@@ -267,21 +267,21 @@ a public RSA key for the wallet you want to create.
 You can also pull a wallet from the network:
 
 ```ruby
-requre 'zold/commands/pull'
+require 'zold/commands/pull'
 Zold::Pull.new(wallets: wallets, remotes: remotes, copies: copies).run(['pull', '00000000000ff1ce'])
 ```
 
 Then, you can make a payment:
 
 ```ruby
-requre 'zold/commands/pay'
+require 'zold/commands/pay'
 Zold::Pay.new(wallets: wallets).run(['pay', '17737fee5b825835', '00000000000ff1ce', '19.99', 'For a pizza'])
 ```
 
 Finally, you can push a wallet to the network:
 
 ```ruby
-requre 'zold/commands/push'
+require 'zold/commands/push'
 Zold::Push.new(wallets: wallets, remotes: remotes).run(['push', '17737fee5b825835'])
 ```
 
