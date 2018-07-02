@@ -91,6 +91,8 @@ Available commands:
       Pay taxes, check their status
     #{Rainbow('node').green} [options]
       Run node at the given TCP port
+    #{Rainbow('alias').green} [alias] [wallet ID]
+      Set an alias for a wallet
     #{Rainbow('score').green} [options]
       Generate score for the given host and port
 Available options:"
@@ -179,6 +181,9 @@ Available options:"
   when 'push'
     require_relative '../lib/zold/commands/push'
     Zold::Push.new(wallets: wallets, remotes: remotes, log: log).run(args)
+  when 'alias'
+    require_relative '../lib/zold/commands/alias'
+    Zold::Alias.new(wallets: wallets, remotes: remotes, log: log).run(args)
   when 'score'
     require_relative '../lib/zold/commands/calculate'
     Zold::Calculate.new(log: log).run(args)
