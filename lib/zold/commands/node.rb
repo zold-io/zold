@@ -31,7 +31,6 @@ require_relative '../node/entrance'
 require_relative '../node/safe_entrance'
 require_relative '../node/spread_entrance'
 require_relative '../node/async_entrance'
-require_relative '../node/hungry_wallets'
 require_relative '../node/front'
 require_relative '../node/farm'
 require_relative 'pull'
@@ -46,7 +45,7 @@ module Zold
   # NODE command
   class Node
     def initialize(wallets:, remotes:, copies:, log: Log::Quiet.new)
-      @wallets = HungryWallets.new(wallets)
+      @wallets = wallets
       @remotes = remotes
       @copies = copies
       @log = log
