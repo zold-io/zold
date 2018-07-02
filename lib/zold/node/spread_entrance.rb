@@ -41,7 +41,7 @@ module Zold
       raise 'Entrance can\'t be nil' if entrance.nil?
       @entrance = entrance
       raise 'Wallets can\'t be nil' if wallets.nil?
-      raise 'Wallets must quack like Wallets' unless wallets.respond_to?(:find)
+      raise 'Wallets must be of type Wallets' unless wallets.is_a?(Wallets)
       @wallets = wallets
       raise 'Remotes can\'t be nil' if remotes.nil?
       raise 'Remotes must be of type Remotes' unless remotes.is_a?(Remotes)

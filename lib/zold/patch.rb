@@ -33,7 +33,7 @@ module Zold
   class Patch
     def initialize(wallets, log: Log::Quiet.new)
       raise 'Wallets can\'t be nil' if wallets.nil?
-      raise 'Wallets must quack like Wallets' unless wallets.respond_to?(:find)
+      raise 'Wallets must be of type Wallets' unless wallets.is_a?(Wallets)
       @wallets = wallets
       @txns = []
       @log = log
