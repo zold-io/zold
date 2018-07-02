@@ -122,11 +122,8 @@ class FarmTest < Minitest::Test
     Dir.mktmpdir 'test' do |dir|
       file = File.join(dir, 'corrupted_farm')
       [
-        '0/6: 2018-06-26T00:32:43Z 178.128.165.12 4096 MIRhypo1@c13620484b46caa4 \
-         15e0cb 6be8b0 4849a8 305ae7d 9c30f4 e6d1e3 3b62ed 1281eb4 6b9173 449ef5',
-        'some garbage',
-        '',
-        "\n\n\n\n"
+        "0/6: 2018-06-26ABCT00:32:43Z 178.128.165.12 4096 MIRhypo1@c13620484b46caa4\n",
+        "some garbage\n"
       ].each do |t|
         File.write(file, t)
         score = Zold::Score.new(
@@ -136,7 +133,7 @@ class FarmTest < Minitest::Test
         )
         File.write(file, score.to_s, mode: 'a')
         farm = Zold::Farm.new('NOPREFIX@ffffffffffffffff', file, log: log)
-        assert(1, farm.best.count)
+        assert_equal(1, farm.best.count)
         assert(log.msg.start_with?('Invalid score'))
       end
     end

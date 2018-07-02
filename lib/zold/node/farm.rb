@@ -48,7 +48,7 @@ module Zold
     end
 
     def best
-      load
+      load.compact
     end
 
     def to_text
@@ -165,9 +165,7 @@ module Zold
     def load
       @mutex.synchronize do
         if File.exist?(@cache)
-          AtomicFile.new(@cache).read.split(/\n/).map do |t|
-            parse_score_line(t)
-          end
+          AtomicFile.new(@cache).read.split(/\n/).map { |t| parse_score_line(t) }
         else
           []
         end
@@ -178,6 +176,7 @@ module Zold
       Score.parse(line)
     rescue StandardError => e
       @log.error(e.message)
+      nil
     end
   end
 end
