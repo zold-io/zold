@@ -1,32 +1,19 @@
 require 'semantic'
+require_relative 'log'
 
 module Zold
   # Read and write .zoldata/version.
   class VersionFile
-    def initialize(path)
+    def initialize(path, log: Log::Verbose.new)
       @path = path
+      @log = log
     end
 
-    def save(version)
-      File.open(@path, 'w') do |file|
-        file.puts(version)
-      end
-    end
-
+    # @todo #285:30min Replace this stub with functionality.
+    #  We need to run the script (`yield`) if the version of
+    #  the script is between the saved version and the current one.
     def apply(version)
-      save(version) if yield
-    end
-
-    def version
-      return unless File.exist?(path)
-      version_string = File.read(path)
-      Semantic::Version.new(version_string)
-      # @todo #285:30min Save the version if there is no .zoldata/version
-      #  present yet. This is breaking the specs, it needs some additional time.
-
-      # File.open('.zoldata/version', 'w') do |file|
-      #   file.puts(Zold::VERSION)
-      # end
+      @log.info("Version #{version} doesn't need to be applied.")
     end
   end
 end

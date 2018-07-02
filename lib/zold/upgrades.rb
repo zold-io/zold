@@ -1,11 +1,12 @@
-require 'semantic'
+require_relative 'log'
 
 module Zold
   # Class to manage data upgrades (when zold itself upgrades).
   class Upgrades
-    def initialize(version, directory)
+    def initialize(version, directory, log: Log::Verbose.new)
       @version = version
       @directory = directory
+      @log = log
     end
 
     # @todo #285:30min Write the upgrade manager tests that ensure:
@@ -14,28 +15,19 @@ module Zold
     #  - Make sure *only* the correct upgrade scripts run.
     def run
       scripts.each do |script|
-        @version.apply(parse_version_from_script(script)) do
-          run_script(script)
-        end
+        version.apply(parse_version_from_script(script))
       end
     end
 
     private
 
     def scripts
-      Dir.glob("#{@directory}/*.rb").sort
-    end
-
-    # @todo #285:30min Write path of the script to the logger, execute
-    #  it and write its STDERR/STDOUT to the logger. Throw an exception
-    #  if the exit value was not 0.
-    def run_script(script); end
-
-    def parse_version_from_script(script)
-      basename = File.basename(script)
-      match = basename.match(/^(\d+\.\d+\.\d+)\.rb$/)
-      raise 'An upgrade script has to be named <version>.rb.' unless match
-      match[1]
+      Dir.glob("#{@directory}/*.rb").sort.map do |path|
+        basename = File.basename(path)
+        match = basename.match(/^(\d+\.\d+\.\d+)\.rb$/)
+        raise 'An upgrade script has to be named <version>.rb.' unless match
+        match[1]
+      end
     end
   end
 end
