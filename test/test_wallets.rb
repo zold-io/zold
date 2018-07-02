@@ -50,4 +50,11 @@ class TestWallets < Minitest::Test
       assert_equal(1, wallets.all.count)
     end
   end
+
+  def test_return_full_directory_path_if_different_from_current_directory
+    FakeHome.new.run do |home|
+      assert Dir.pwd != home.wallets.to_s
+      assert_equal(home.dir, home.wallets.to_s)
+    end
+  end
 end

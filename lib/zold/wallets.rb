@@ -32,11 +32,19 @@ module Zold
       @dir = dir
     end
 
-    # @todo #70:30min Let's make it smarter. Instead of returning
-    #  the full path let's substract the prefix from it if it's equal
-    #  to the current directory in Dir.pwd.
+    # Returns wallets directory path
     def to_s
-      path
+      dir = Dir.pwd.sub(path_start, '').split('/')
+      diff = false
+      dir_path = path.sub(path_start, '').split('/')
+      pwd = dir_path.each_with_index.with_object([]) do |(fld, idx), obj|
+        break if idx.zero? && fld != dir[idx]
+        next if fld == dir[idx]
+        obj << fld
+        diff ||= true
+      end
+      return path if pwd.nil? || pwd.empty?
+      pwd[0] == path_start ? pwd.join('/') : ('./' << pwd.join('/'))
     end
 
     def path
@@ -60,6 +68,16 @@ module Zold
       raise 'Id can\'t be nil' if id.nil?
       raise 'Id must be of type Id' unless id.is_a?(Id)
       Zold::Wallet.new(File.join(path, id.to_s))
+    end
+
+    private
+
+    def path_start
+      windows? ? Dir.pwd[0..1] : '/'
+    end
+
+    def windows?
+      (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
     end
   end
 end
