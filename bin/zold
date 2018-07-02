@@ -127,9 +127,7 @@ Available options:"
     exit
   end
 
-  version_file = Zold::VersionFile.new('.zoldata')
-  updates = Zold::Upgrades.new(version_file)
-  updates.run
+  Zold::Upgrades.new(Zold::VersionFile.new('.zoldata/version'), 'upgrades').run
 
   args = opts.arguments
   args << '--help' if opts.help?
