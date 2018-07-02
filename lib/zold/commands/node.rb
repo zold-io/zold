@@ -25,6 +25,7 @@ require_relative '../backtrace'
 require_relative '../metronome'
 require_relative '../wallet'
 require_relative '../wallets'
+require_relative '../hungry_wallets'
 require_relative '../remotes'
 require_relative '../verbose_thread'
 require_relative '../node/entrance'
@@ -157,7 +158,7 @@ module Zold
       Front.set(:reboot, !opts['never-reboot'])
       invoice = opts[:invoice]
       unless invoice.include?('@')
-        if @wallets.find(Id.new(invoice)).exists?
+        if HungryWallets.new(@wallets).find(Id.new(invoice)).exists?
           @log.info("Wallet #{invoice} already exists locally, won't pull")
         else
           @log.info("The wallet #{invoice} is not available locally, will pull now...")

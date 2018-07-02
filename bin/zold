@@ -35,7 +35,6 @@ require_relative '../lib/zold'
 require_relative '../lib/zold/version'
 require_relative '../lib/zold/wallet'
 require_relative '../lib/zold/wallets'
-require_relative '../lib/zold/node/hungry_wallets'
 require_relative '../lib/zold/log'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/amount'
@@ -140,7 +139,7 @@ Available options:"
   case command
   when 'node'
     require_relative '../lib/zold/commands/node'
-    Zold::Node.new(wallets: Zold::HungryWallets.new(wallets), remotes: remotes, copies: copies, log: log).run(args)
+    Zold::Node.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)
   when 'create'
     require_relative '../lib/zold/commands/create'
     Zold::Create.new(wallets: wallets, log: log).run(args)
