@@ -3,18 +3,18 @@ require 'semantic'
 module Zold
   # Read and write .zoldata/version.
   class VersionFile
-    def initialize(directory)
-      @directory = directory
-    end
-
-    def path
-      File.join(@directory, 'version')
+    def initialize(path)
+      @path = path
     end
 
     def save(version)
-      File.open(path, 'w') do |file|
+      File.open(@path, 'w') do |file|
         file.puts(version)
       end
+    end
+
+    def apply(version)
+      save(version) if yield
     end
 
     def version
