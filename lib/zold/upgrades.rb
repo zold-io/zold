@@ -15,7 +15,7 @@ module Zold
     #  - Make sure *only* the correct upgrade scripts run.
     def run
       scripts.each do |script|
-        version.apply(parse_version_from_script(script))
+        @version.apply(script)
       end
     end
 
