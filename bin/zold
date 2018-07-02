@@ -40,6 +40,8 @@ require_relative '../lib/zold/key'
 require_relative '../lib/zold/amount'
 require_relative '../lib/zold/copies'
 require_relative '../lib/zold/remotes'
+require_relative '../lib/zold/upgrades'
+require_relative '../lib/zold/version_file'
 
 
 Encoding.default_external = Encoding::UTF_8
@@ -126,6 +128,8 @@ Available options:"
     log.info(opts.to_s)
     exit
   end
+
+  Zold::Upgrades.new(Zold::VersionFile.new('.zoldata/version'), 'upgrades').run
 
   args = opts.arguments
   args << '--help' if opts.help?
