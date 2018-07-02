@@ -91,6 +91,7 @@ Available options:"
         o.bool '--reboot',
           'Exit if any node reports version higher than we have',
           default: false
+
         # @todo #292:30min Group options by subcommands
         #  Having all the options in one place _rather than grouping them by subcommands_
         #  makes the help totally misleading and hard to read.
@@ -99,7 +100,7 @@ Available options:"
         #  **Next actions:**
         #  - Implement the suggestion above.
         #  - Remove note from the --max-nodes option saying that it applies to the select
-        #    subcommand only.
+        #  subcommand only.
         o.integer '--max-nodes',
           "This applies only to the select subcommand. Number of nodes to limit to. Defaults to #{Remotes::MAX_NODES}.",
           default: Remotes::MAX_NODES
