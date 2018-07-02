@@ -20,6 +20,7 @@
 
 require_relative 'log'
 require_relative 'wallet'
+require_relative 'hungry_wallets'
 require_relative 'signature'
 require_relative 'atomic_file'
 
@@ -33,7 +34,7 @@ module Zold
   class Patch
     def initialize(wallets, log: Log::Quiet.new)
       raise 'Wallets can\'t be nil' if wallets.nil?
-      raise 'Wallets must be of type Wallets' unless wallets.is_a?(Wallets)
+      raise 'Wallets must be of type HungryWallets' unless wallets.is_a?(HungryWallets) || wallets.is_a?(Wallets)
       @wallets = wallets
       @txns = []
       @log = log

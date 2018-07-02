@@ -46,7 +46,7 @@ module Zold
   # NODE command
   class Node
     def initialize(wallets:, remotes:, copies:, log: Log::Quiet.new)
-      @wallets = wallets
+      @wallets = HungryWallets.new(wallets)
       @remotes = remotes
       @copies = copies
       @log = log
@@ -158,7 +158,7 @@ module Zold
       Front.set(:reboot, !opts['never-reboot'])
       invoice = opts[:invoice]
       unless invoice.include?('@')
-        if HungryWallets.new(@wallets).find(Id.new(invoice)).exists?
+        if @wallets.find(Id.new(invoice)).exists?
           @log.info("Wallet #{invoice} already exists locally, won't pull")
         else
           @log.info("The wallet #{invoice} is not available locally, will pull now...")
