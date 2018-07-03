@@ -3,7 +3,7 @@ AllCops:
     - 'bin/**/*'
     - 'assets/**/*'
   DisplayCopNames: true
-  TargetRubyVersion: 2.2
+  TargetRubyVersion: 2.3.3
 
 Metrics/CyclomaticComplexity:
   Max: 25
