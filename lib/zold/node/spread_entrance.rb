@@ -25,7 +25,6 @@ require_relative '../log'
 require_relative '../remotes'
 require_relative '../copies'
 require_relative '../tax'
-require_relative '../hungry_wallets'
 require_relative '../commands/merge'
 require_relative '../commands/fetch'
 require_relative '../commands/push'
@@ -42,7 +41,7 @@ module Zold
       raise 'Entrance can\'t be nil' if entrance.nil?
       @entrance = entrance
       raise 'Wallets can\'t be nil' if wallets.nil?
-      raise 'Wallets must be of type HungryWallets' unless wallets.is_a?(HungryWallets) || wallets.is_a?(Wallets)
+      raise 'Wallets must implement the contract of Wallets: method #find is required' unless wallets.respond_to?(:find)
       @wallets = wallets
       raise 'Remotes can\'t be nil' if remotes.nil?
       raise 'Remotes must be of type Remotes' unless remotes.is_a?(Remotes)
