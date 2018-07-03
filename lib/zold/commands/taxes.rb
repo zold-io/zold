@@ -57,15 +57,17 @@ module Zold
 
     def run(args = [])
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
-        o.banner = "Usage: zold taxes command [options]
-Available commands:
-    #{Rainbow('taxes pay').green} wallet
-      Pay taxes for the given wallet
-    #{Rainbow('taxes show').green}
-      Show taxes status for the given wallet
-    #{Rainbow('taxes debt').green}
-      Show current debt
-Available options:"
+        o.banner = <<~HELP.chomp
+          Usage: zold taxes command [options]
+          Available commands:
+              #{Rainbow('taxes pay').green} wallet
+                Pay taxes for the given wallet
+              #{Rainbow('taxes show').green}
+                Show taxes status for the given wallet
+              #{Rainbow('taxes debt').green}
+                Show current debt
+          Available options:
+        HELP
         o.string '--private-key',
           'The location of RSA private key (default: ~/.ssh/id_rsa)',
           require: true,

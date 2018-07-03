@@ -43,8 +43,10 @@ module Zold
     # Returns the array of modified wallets (IDs)
     def run(args = [])
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
-        o.banner = "Usage: zold merge [ID...] [options]
-Available options:"
+        o.banner = <<~HELP.chomp
+          Usage: zold merge [ID...] [options]
+          Available options:
+        HELP
         o.bool '--no-baseline',
           'Don\'t trust any remote copies and re-validate all incoming payments against their wallets',
           default: false

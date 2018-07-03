@@ -44,8 +44,10 @@ module Zold
 
     def run(args = [])
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
-        o.banner = "Usage: zold push [ID...] [options]
-Available options:"
+        o.banner = <<~HELP.chomp
+          Usage: zold push [ID...] [options]
+          Available options:
+        HELP
         o.bool '--ignore-score-weakness',
           'Don\'t complain when their score is too weak',
           default: false

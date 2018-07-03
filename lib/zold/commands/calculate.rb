@@ -35,8 +35,10 @@ module Zold
 
     def run(args = [])
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
-        o.banner = "Usage: zold score [options]
-Available options:"
+        o.banner = <<~HELP.chomp
+          Usage: zold score [options]
+          Available options:
+        HELP
         o.string '--time',
           'The time to start a score prefix with (default: current time)',
           default: Time.now.utc.iso8601

@@ -40,13 +40,15 @@ module Zold
 
     def run(args = [])
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
-        o.banner = "Usage: zold pay wallet target amount [details] [options]
-Where:
-    'wallet' is the sender's wallet ID
-    'target' is the beneficiary (either wallet ID or invoice number)'
-    'amount' is the amount to pay, in ZLD, for example '14.95'
-    'details' is the optional text to attach to the payment
-Available options:"
+        o.banner = <<~HELP.chomp
+          Usage: zold pay wallet target amount [details] [options]
+          Where:
+              'wallet' is the sender's wallet ID
+              'target' is the beneficiary (either wallet ID or invoice number)'
+              'amount' is the amount to pay, in ZLD, for example '14.95'
+              'details' is the optional text to attach to the payment
+          Available options:
+        HELP
         o.string '--private-key',
           'The location of RSA private key (default: ~/.ssh/id_rsa)',
           require: true,
