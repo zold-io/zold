@@ -37,7 +37,7 @@ module Zold
   class Entrance
     def initialize(wallets, remotes, copies, address, log: Log::Quiet.new)
       raise 'Wallets can\'t be nil' if wallets.nil?
-      raise 'Wallets must be of type Wallets' unless wallets.is_a?(Wallets)
+      raise 'Wallets must implement the contract of Wallets: method #find is required' unless wallets.respond_to?(:find)
       @wallets = wallets
       raise 'Remotes can\'t be nil' if remotes.nil?
       raise "Remotes must be of type Remotes: #{remotes.class.name}" unless remotes.is_a?(Remotes)

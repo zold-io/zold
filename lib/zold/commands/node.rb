@@ -25,6 +25,7 @@ require_relative '../backtrace'
 require_relative '../metronome'
 require_relative '../wallet'
 require_relative '../wallets'
+require_relative '../hungry_wallets'
 require_relative '../remotes'
 require_relative '../verbose_thread'
 require_relative '../node/entrance'
@@ -45,7 +46,7 @@ module Zold
   # NODE command
   class Node
     def initialize(wallets:, remotes:, copies:, log: Log::Quiet.new)
-      @wallets = wallets
+      @wallets = HungryWallets.new(wallets)
       @remotes = remotes
       @copies = copies
       @log = log
