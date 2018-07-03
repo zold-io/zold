@@ -5,10 +5,12 @@ cache: bundler
 branches:
   only:
     - master
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install -y clang
 install:
   - travis_retry bundle update
   - gem install pdd
-  - apt-get install clang -y
 script:
   - pdd -f /dev/null
   - rake
