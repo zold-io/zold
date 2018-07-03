@@ -8,6 +8,7 @@ branches:
 install:
   - travis_retry bundle update
   - gem install pdd
+  - apt-get install clang -y
 script:
   - pdd -f /dev/null
   - rake
