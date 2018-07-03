@@ -34,25 +34,29 @@ module Zold
 
     def self.calculate_nonce_multi_core(cores, data, strength)
       reader, writer = IO.pipe
-      workers = cores.times.map do |c|
-        # @todo 20min Windows process spawn.
-        # The Process.fork command is to avaibale on every
-        # platform. See https://ruby-doc.org/core-2.3.3/Process.html#fork-method
-        fork do
-          reader.close
-          per_core = (2**64 / cores)
-          writer.puts self.calculate_nonce_extended(
-            per_core  * c,
-            per_core * (c + 1) - 1, data, strength
-          )
+      begin
+        workers = cores.times.map do |c|
+          # @todo 20min Windows process spawn.
+          # The Process.fork command is to avaibale on every
+          # platform. See https://ruby-doc.org/core-2.3.3/Process.html#fork-method
+          fork do
+            reader.close
+            per_core = (2**64 / cores)
+            writer.puts self.calculate_nonce_extended(
+              per_core  * c,
+              per_core * (c + 1) - 1, data, strength
+            )
+          end
         end
-      end
-      writer.close
-      nonce = reader.gets
-      workers.each do |w|
-        begin
-          Process.kill "KILL", w
-        rescue
+        writer.close
+        nonce = reader.gets
+      ensure
+        workers.each do |w|
+          begin
+            Process.kill :KILL, w
+            Process.waitpid w
+          rescue
+          end
         end
       end
       return nonce.to_i
