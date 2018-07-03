@@ -34,7 +34,7 @@ module Zold
     STRENGTH = 6
 
     # Default number of cores to use for score calculation
-    CORES = 3
+    CORES = 1
 
     attr_reader :time, :host, :port, :invoice, :strength
     # time: UTC ISO 8601 string
