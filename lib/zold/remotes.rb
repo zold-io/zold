@@ -222,7 +222,7 @@ in #{(Time.now - start).round}s; errors=#{errors}")
     def error(host, port = Remotes::PORT)
       check_for_fatal_errors(host, port)
       list = load
-      list.find { |r| r[:host] == host.downcase && r[:port] == port }[:errors] += 1 unless exists?(host, port)
+      list.find { |r| r[:host] == host.downcase && r[:port] == port }[:errors] += exists?(host, port) ? 1 : 0
       save(list)
     end
 
