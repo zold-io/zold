@@ -31,7 +31,26 @@ def version
   Gem::Specification.load(Dir['*.gemspec'].first).version
 end
 
-task default: %i[clean test features rubocop xcop copyright]
+task default: %i[clean compile test features rubocop xcop copyright]
+
+task :compile do
+  # @todo 5min Add windows support.
+  # Set the correct compiling commands below, to compile
+  # the score.c file correctly into a dll
+  if (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
+    raise 'Platform error: Compiling on windows is not supported yet.'
+  end
+
+  system 'clang -c -fPIC -o ext/build/score.o ext/score.c && '\
+         'clang -shared -o ext/build/score.so ext/build/score.o -lssl -lcrypto'
+end
+
+task :compile_test do
+  # @todo 30min Add C extension tests.
+  # There are currently no direct C extension tests written
+  # in C in order to validate the score.c functionality.
+  raise 'C Compiling: C tests not implemented yet.'
+end
 
 require 'rake/testtask'
 desc 'Run all unit tests'

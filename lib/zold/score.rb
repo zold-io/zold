@@ -21,6 +21,7 @@
 require 'openssl'
 require 'time'
 require_relative 'remotes'
+require_relative 'ext/score'
 
 # The score.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -31,6 +32,9 @@ module Zold
   class Score
     # Default strength for the entire system, in production mode.
     STRENGTH = 6
+
+    # Default number of cores to use for score calculation
+    CORES = 1
 
     attr_reader :time, :host, :port, :invoice, :strength
     # time: UTC ISO 8601 string
@@ -159,17 +163,18 @@ module Zold
 
     def next
       raise 'This score is not valid' unless valid?
-      idx = 0
-      loop do
-        suffix = idx.to_s(16)
-        score = Score.new(
-          @time, @host, @port, @invoice, @suffixes + [suffix],
-          strength: @strength
-        )
-        return score if score.valid?
-        return Score.new(Time.now, @host, @port, @invoice, [], strength: @strength) if score.expired?
-        idx += 1
-      end
+      return Score.new(Time.now, @host, @port, @invoice, [], strength: @strength) if self.expired?
+      idx = ScoreExt.calculate_nonce_multi_core(
+        CORES,
+        "#{@suffixes.empty? ? prefix : hash} ", @strength
+      )
+      suffix = idx.to_s(16)
+      score = Score.new(
+        @time, @host, @port, @invoice, @suffixes + [suffix],
+        strength: @strength
+      )
+      return score if score.valid?
+      raise 'Invalid score calculated'
     end
 
     def age
