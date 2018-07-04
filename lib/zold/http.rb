@@ -48,7 +48,7 @@ module Zold
     # production one.
     NETWORK_HEADER = 'X-Zold-Network'.freeze
 
-    # @todo The following two statements are seen as issues by rubocop
+    # @todo #98:30m/DEV The following two statements are seen as issues by rubocop
     # raising a Lint/AmbiguousBlockAssociation offense. It is somthing
     # that could be solved by changing the TargetRubyVersion in .rubocop.yml
     # that is already taken care of in another issue. I am leaving a todo
