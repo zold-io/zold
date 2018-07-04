@@ -107,7 +107,9 @@ Available options:"
       txn
     end
 
-    # @todo #79:40min Add tests, extract to a module(?).
+    # @todo #79:40min Extract message cretion into a separate method for easier
+    #  testing. Add tests for when in debt and not. Extract to a
+    #  module, possibly Notify.
     def notify_of_tax_debt(wallet)
       tax = Tax.new(wallet)
       message = "The tax debt of #{wallet} is #{tax.debt}"
