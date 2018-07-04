@@ -57,11 +57,11 @@ module Zold
     def add(content, host, port, score, time = Time.now)
       raise "Content can't be empty" if content.empty?
       raise 'TCP port must be of type Integer' unless port.is_a?(Integer)
-      raise "TCP port can't be negative: #{port}" if port < 0
+      raise "TCP port can't be negative: #{port}" if port.negative?
       raise 'Time must be of type Time' unless time.is_a?(Time)
       raise "Time must be in the past: #{time}" if time > Time.now
       raise 'Score must be Integer' unless score.is_a?(Integer)
-      raise "Score can't be negative: #{score}" if score < 0
+      raise "Score can't be negative: #{score}" if score.negative?
       FileUtils.mkdir_p(@dir)
       list = load
       target = list.find do |s|

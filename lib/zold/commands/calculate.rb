@@ -76,7 +76,7 @@ Available options:"
       )
       loop do
         msg = score.to_s
-        msg += (score.value > 0 ? ' ' + score.hash : '') unless opts['hide-hash']
+        msg += (score.value.positive? ? ' ' + score.hash : '') unless opts['hide-hash']
         msg += " #{(Time.now - mstart).round(2)}s" unless opts['hide-time']
         @log.info(msg)
         break if score.value >= opts[:max].to_i

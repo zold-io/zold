@@ -101,7 +101,7 @@ module Zold
     end
 
     def negative?
-      @coins < 0
+      @coins.negative?
     end
 
     def *(other)

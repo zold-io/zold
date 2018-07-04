@@ -33,3 +33,5 @@ Layout/MultilineOperationIndentation:
   Enabled: false
 Naming/UncommunicativeMethodParamName:
   MinNameLength: 1
+Style/FrozenStringLiteralComment:
+  Enabled: false
