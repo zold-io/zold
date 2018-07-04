@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2018 Yegor Bugayenko
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -33,10 +35,10 @@ module Zold
   # A single transaction
   class Txn
     # Regular expression for details
-    RE_DETAILS = '[a-zA-Z0-9 @\!\?\*_\-\.:,\']+'.freeze
+    RE_DETAILS = '[a-zA-Z0-9 @\!\?\*_\-\.:,\']+'
 
     # Regular expression for prefix
-    RE_PREFIX = '[a-zA-Z0-9]+'.freeze
+    RE_PREFIX = '[a-zA-Z0-9]+'
 
     attr_reader :id, :date, :amount, :prefix, :bnf, :details, :sign
     attr_writer :sign, :amount, :bnf

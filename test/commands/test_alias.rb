@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'minitest/autorun'
 
 # @todo #279:30min Write unit tests for the alias command.
