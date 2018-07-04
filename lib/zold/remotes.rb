@@ -20,6 +20,7 @@
 
 require 'csv'
 require 'uri'
+require 'time'
 require 'fileutils'
 require_relative 'backtrace'
 require_relative 'node/farm'
@@ -38,8 +39,18 @@ module Zold
     # At what amount of errors we delete the remote automatically
     TOLERANCE = 8
 
+    # After this limit, the remote runtime must be recorded
+    RUNTIME_LIMIT = 16
+
+    # Default number of nodes to fetch.
+    MAX_NODES = 16
+
     # Empty, for standalone mode
-    class Empty
+    class Empty < Remotes
+      def initialize
+        # Nothing here
+      end
+
       def all
         []
       end
@@ -52,7 +63,7 @@ module Zold
     # One remote.
     class Remote
       attr_reader :host, :port
-      def initialize(host, port, score, idx, log: Log::Quiet.new)
+      def initialize(host, port, score, idx, log: Log::Quiet.new, network: 'test')
         @host = host
         raise 'Post must be Integer' unless port.is_a?(Integer)
         @port = port
@@ -60,11 +71,13 @@ module Zold
         @score = score
         raise 'Idx must be of type Integer' unless idx.is_a?(Integer)
         @idx = idx
+        raise 'Network can\'t be nil' if network.nil?
+        @network = network
         @log = log
       end
 
       def http(path = '/')
-        Http.new("http://#{@host}:#{@port}#{path}", @score)
+        Http.new("http://#{@host}:#{@port}#{path}", @score, network: @network)
       end
 
       def to_s
@@ -90,7 +103,7 @@ module Zold
       end
 
       def assert_score_strength(score)
-        raise "Score is too weak #{score.strength}: #{score}" if score.strength < Score::STRENGTH
+        raise "Score #{score.strength} is too weak (<#{Score::STRENGTH}): #{score}" if score.strength < Score::STRENGTH
       end
 
       def assert_score_value(score, min)
@@ -98,8 +111,12 @@ module Zold
       end
     end
 
-    def initialize(file)
+    def initialize(file, network: 'test')
+      raise 'File can\'t be nil' if file.nil?
       @file = file
+      raise 'Network can\'t be nil' if network.nil?
+      @network = network
+      @mutex = Mutex.new
     end
 
     def all
@@ -165,13 +182,16 @@ module Zold
       score = best.nil? ? Score::ZERO : best
       idx = 0
       all.each do |r|
+        start = Time.now
         begin
-          yield Remotes::Remote.new(r[:host], r[:port], score, idx, log: log)
+          yield Remotes::Remote.new(r[:host], r[:port], score, idx, log: log, network: @network)
           idx += 1
+          raise 'Took too long to execute' if (Time.now - start).round > Remotes::RUNTIME_LIMIT
         rescue StandardError => e
           error(r[:host], r[:port])
           errors = errors(r[:host], r[:port])
-          log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message}; errors=#{errors}")
+          log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message} \
+in #{(Time.now - start).round}s; errors=#{errors}")
           log.debug(Backtrace.new(e).to_s)
           remove(r[:host], r[:port]) if errors > Remotes::TOLERANCE
         end
@@ -211,31 +231,35 @@ module Zold
     private
 
     def load
-      raw = CSV.read(file).map do |r|
-        {
-          host: r[0],
-          port: r[1].to_i,
-          score: r[2].to_i,
-          errors: r[3].to_i
-        }
-      end
-      raw.reject { |r| !r[:host] || r[:port].zero? }.map do |r|
-        r[:home] = URI("http://#{r[0]}:#{r[1]}/")
-        r
+      @mutex.synchronize do
+        raw = CSV.read(file).map do |r|
+          {
+            host: r[0],
+            port: r[1].to_i,
+            score: r[2].to_i,
+            errors: r[3].to_i
+          }
+        end
+        raw.reject { |r| !r[:host] || r[:port].zero? }.map do |r|
+          r[:home] = URI("http://#{r[:host]}:#{r[:port]}/")
+          r
+        end
       end
     end
 
     def save(list)
-      AtomicFile.new(file).write(
-        list.map do |r|
-          [
-            r[:host],
-            r[:port],
-            r[:score],
-            r[:errors]
-          ].join(',')
-        end.join("\n")
-      )
+      @mutex.synchronize do
+        AtomicFile.new(file).write(
+          list.map do |r|
+            [
+              r[:host],
+              r[:port],
+              r[:score],
+              r[:errors]
+            ].join(',')
+          end.join("\n")
+        )
+      end
     end
 
     def file

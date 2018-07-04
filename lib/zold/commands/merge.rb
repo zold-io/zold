@@ -65,26 +65,25 @@ Available options:"
     private
 
     def merge(id, cps, opts)
-      if cps.all.empty?
-        @log.error("There are no remote copies of #{id}, try 'zold fetch' first")
-        return
-      end
       cps = cps.all.sort_by { |c| c[:score] }.reverse
       patch = Patch.new(@wallets, log: @log)
-      cps.each do |c|
-        merge_one(opts, patch, Wallet.new(c[:path]), "#{c[:host]}:#{c[:port]}")
-        @log.debug("#{c[:host]}:#{c[:port]} merged: #{patch}")
+      score = 0
+      cps.each_with_index do |c, idx|
+        wallet = Wallet.new(c[:path])
+        merge_one(opts, patch, wallet, "#{c[:name]}/#{idx}/#{c[:score]}")
+        score += c[:score]
       end
       wallet = @wallets.find(id)
       if wallet.exists?
         merge_one(opts, patch, wallet, 'localhost')
-        @log.debug("Local copy merged: #{patch}")
+        @log.debug("Local copy of #{id} merged: #{patch}")
       else
-        @log.debug("Local copy is absent, won't merge")
+        @log.debug("Local copy of #{id} is absent, nothing to merge")
       end
       modified = patch.save(wallet.path, overwrite: true)
       if modified
-        @log.debug("#{cps.count} copies merged successfully into #{wallet.path}")
+        @log.debug("#{cps.count} copies with the total score of #{score} successfully merged \
+into #{wallet.id}/#{wallet.balance}/#{wallet.txns.count}t")
       else
         @log.debug("Nothing changed in #{wallet.id} after merge of #{cps.count} copies")
       end
@@ -92,9 +91,11 @@ Available options:"
     end
 
     def merge_one(opts, patch, wallet, name)
+      @log.debug("Building a patch for #{wallet.id} from remote copy #{name}...")
       patch.join(wallet, !opts['no-baseline'])
+      @log.debug("Copy #{name} of #{wallet.id} merged: #{patch}")
     rescue StandardError => e
-      @log.error("Can't merge a copy coming from #{name}: #{e.message}")
+      @log.error("Can't merge copy #{name}: #{e.message}")
       @log.debug(Backtrace.new(e).to_s)
     end
   end

@@ -28,6 +28,7 @@ require_relative 'args'
 require_relative '../log'
 require_relative '../http'
 require_relative '../score'
+require_relative '../json_page'
 require_relative '../copies'
 
 # FETCH command.
@@ -68,11 +69,16 @@ Available options:"
     def fetch(id, cps, opts)
       total = 0
       nodes = 0
+      done = 0
       @remotes.iterate(@log) do |r|
-        total += fetch_one(id, r, cps, opts)
         nodes += 1
+        total += fetch_one(id, r, cps, opts)
+        done += 1
       end
-      @log.debug("#{nodes} copies of #{id} fetched for the total score of #{total}, #{cps.all.count} local copies")
+      raise "There are no remote nodes, run 'zold remote reset'" if nodes.zero?
+      raise "No nodes out of #{nodes} have the wallet #{id}" if done.zero?
+      @log.debug("#{nodes} copies of #{id} fetched for the total score of #{total}, \
+#{cps.all.count} local copies:\n  #{cps.all.map { |c| "#{c[:name]}: #{c[:score]}" }.join("\n  ")}")
     end
 
     def fetch_one(id, r, cps, opts)
@@ -84,21 +90,39 @@ Available options:"
       res = r.http("/wallet/#{id}").get
       raise "Wallet #{id} not found" if res.code == '404'
       r.assert_code(200, res)
-      json = JSON.parse(res.body)
+      json = JsonPage.new(res.body).to_hash
       score = Score.parse_json(json['score'])
       r.assert_valid_score(score)
       r.assert_score_ownership(score)
-      r.assert_score_strength(score)
       r.assert_score_strength(score) unless opts['ignore-score-weakness']
-      Tempfile.open do |f|
+      Tempfile.open(['', Wallet::EXTENSION]) do |f|
         body = json['body']
         File.write(f, body)
         wallet = Wallet.new(f.path)
-        cps.add(body, score.host, score.port, score.value)
-        @log.info("#{r} returned #{body.length}b/#{wallet.txns.count}t \
+        copy = cps.add(body, score.host, score.port, score.value)
+        @log.info("#{r} returned #{body.length}b/#{wallet.txns.count}t/#{digest(json)}/#{age(json)} as copy #{copy} \
 of #{id} in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green} (#{json['version']})")
       end
       score.value
+    end
+
+    def digest(json)
+      hash = json['digest']
+      return '?' if hash.nil?
+      hash[0, 6]
+    end
+
+    def age(json)
+      mtime = json['mtime']
+      return '?' if mtime.nil?
+      sec = Time.now - Time.parse(mtime)
+      if sec < 60
+        "#{sec}s"
+      elsif sec < 60 * 60
+        "#{(sec / 60).round}m"
+      else
+        "#{(sec / 3600).round}h"
+      end
     end
   end
 end

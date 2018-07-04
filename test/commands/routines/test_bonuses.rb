@@ -34,8 +34,8 @@ require_relative '../../../lib/zold/commands/routines/bonuses.rb'
 # License:: MIT
 class TestBonuses < Minitest::Test
   def test_pays_bonuses
-    FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
-      FakeHome.new.run do |home|
+    FakeHome.new.run do |home|
+      FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
         bank = home.create_wallet
         Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: test_log).run(
           ['pay', home.create_wallet.id.to_s, bank.id.to_s, '100', '--force', '--private-key=id_rsa']

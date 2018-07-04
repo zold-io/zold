@@ -68,7 +68,9 @@ module Zold
     end
 
     def ==(other)
-      id == other.id && bnf == other.bnf
+      id == other.id && date == other.date && amount == other.amount &&
+        prefix == other.prefix && bnf == other.bnf &&
+        details == other.details && sign == other.sign
     end
 
     def to_s

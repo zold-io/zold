@@ -22,12 +22,27 @@ require 'rainbow'
 
 STDOUT.sync = true
 
-# The log.
+# Zold module.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # Logging
+  # Logging facilities.
+  #
+  # There are a few logging classes, which can be used depending on what
+  # you want a user to see. There are three logging levels: INFO, ERROR,
+  # and DEBUG. In "quiet" mode the user won't see anything. This logging
+  # mode is used only for testing, when we don't want to see absolutely
+  # anything in the console. In order to turn off logging entirely, see
+  # how we configure it in test__helper.rb
+  #
+  # The default "regular" logging mode is what a user gets when he/she runs
+  # the gem in commmand line without any specific flags. In that case,
+  # the user will see only INFO and ERROR messages.
+  #
+  # In a "verbose" mode the user will see everything, including DEBUG
+  # messages. The user turns this mode by using --verbose command line argument.
+  #
   module Log
     # Extra verbose log
     class Verbose

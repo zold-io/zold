@@ -10,7 +10,9 @@ branches:
     - master
 install:
   - travis_retry bundle update
+  - gem install pdd
 script:
+  - pdd -f /dev/null
   - rake
 after_success:
   - "bash <(curl -s https://codecov.io/bash)"

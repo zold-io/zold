@@ -62,6 +62,7 @@ module Zold
         threads: @threads.map do |t|
           "#{t.name}/#{t.status}/#{t.alive? ? 'A' : 'D'}"
         end.join(', '),
+        cleanup: @cleanup.status,
         pipeline: @pipeline.size,
         best: best.map(&:to_mnemo).join(', ')
       }
@@ -81,9 +82,10 @@ module Zold
           end
         end
       end
-      @threads << Thread.new do
+      alive = true
+      @cleanup = Thread.new do
         Thread.current.name = 'cleanup'
-        loop do
+        while alive
           sleep(60) unless strength == 1 # which will only happen in tests
           VerboseThread.new(@log).run do
             cleanup(host, port, strength, threads)
@@ -93,21 +95,25 @@ module Zold
       @log.info("Farm started with #{@threads.count} threads at #{host}:#{port}, strength is #{strength}")
       return unless block_given?
       begin
-        yield
+        yield(self)
       ensure
-        stop
+        @log.info("Terminating the farm with #{@threads.count} threads...")
+        start = Time.now
+        alive = false
+        if strength == 1
+          @cleanup.join
+          @log.info("Cleanup thread finished in #{(Time.now - start).round(2)}s")
+        else
+          @cleanup.exit
+          @log.info("Cleanup thread killed in #{(Time.now - start).round(2)}s")
+        end
+        @threads.each do |t|
+          tstart = Time.now
+          t.exit
+          @log.info("Thread #{t.name} terminated in #{(Time.now - tstart).round(2)}s")
+        end
+        @log.info("Farm stopped in #{(Time.now - start).round(2)}s")
       end
-    end
-
-    def stop
-      @log.info("Terminating the farm with #{@threads.count} threads...")
-      start = Time.now
-      @threads.each do |t|
-        tstart = Time.now
-        t.exit
-        @log.info("Thread #{t.name} terminated in #{(Time.now - tstart).round(2)}s")
-      end
-      @log.info("Farm stopped in #{(Time.now - start).round(2)}s")
     end
 
     private

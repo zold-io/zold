@@ -23,10 +23,15 @@ require_relative '../version'
 require_relative '../score'
 require_relative '../backtrace'
 require_relative '../metronome'
+require_relative '../wallet'
 require_relative '../wallets'
+require_relative '../hungry_wallets'
 require_relative '../remotes'
 require_relative '../verbose_thread'
 require_relative '../node/entrance'
+require_relative '../node/safe_entrance'
+require_relative '../node/spread_entrance'
+require_relative '../node/async_entrance'
 require_relative '../node/front'
 require_relative '../node/farm'
 require_relative 'pull'
@@ -41,7 +46,7 @@ module Zold
   # NODE command
   class Node
     def initialize(wallets:, remotes:, copies:, log: Log::Quiet.new)
-      @wallets = wallets
+      @wallets = HungryWallets.new(wallets)
       @remotes = remotes
       @copies = copies
       @log = log
@@ -104,6 +109,10 @@ module Zold
         o.string '--private-key',
           'The location of RSA private key (default: ~/.ssh/id_rsa)',
           default: '~/.ssh/id_rsa'
+        o.string '--network',
+          "The name of the network (default: #{Wallet::MAIN_NETWORK})",
+          require: true,
+          default: Wallet::MAIN_NETWORK
         o.bool '--help', 'Print instructions'
       end
       if opts.help?
@@ -125,6 +134,7 @@ module Zold
       @log.info("Home directory: #{Dir.pwd}")
       @log.info("Ruby version: #{RUBY_VERSION}")
       @log.info("Zold gem version: #{Zold::VERSION}")
+      @log.info("Network ID: #{opts['network']}")
       host = opts[:host] || ip
       address = "#{host}:#{opts[:port]}".downcase
       @log.info("Node location: #{address}")
@@ -138,32 +148,49 @@ module Zold
         @log.debug('Running in standalone mode! (will never talk to other remotes)')
       end
       Front.set(:ignore_score_weakness, opts['ignore-score-weakness'])
+      Front.set(:network, opts['network'])
       Front.set(:wallets, @wallets)
       Front.set(:remotes, @remotes)
       Front.set(:copies, @copies)
       Front.set(:address, address)
-      entrance = Entrance.new(@wallets, @remotes, @copies, address, log: @log)
-      Front.set(:entrance, entrance)
       Front.set(:root, Dir.pwd)
       Front.set(:port, opts['bind-port'])
       Front.set(:reboot, !opts['never-reboot'])
       invoice = opts[:invoice]
       unless invoice.include?('@')
-        require_relative 'pull'
-        Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(['pull', invoice])
+        if @wallets.find(Id.new(invoice)).exists?
+          @log.info("Wallet #{invoice} already exists locally, won't pull")
+        else
+          @log.info("The wallet #{invoice} is not available locally, will pull now...")
+          require_relative 'pull'
+          Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(['pull', invoice])
+        end
         require_relative 'invoice'
         invoice = Invoice.new(wallets: @wallets, log: @log).run(['invoice', invoice])
       end
-      farm = Farm.new(invoice, File.join(Dir.pwd, 'farm'), log: @log)
-      farm.start(host, opts[:port], threads: opts[:threads], strength: opts[:strength]) do
-        Front.set(:farm, farm)
-        metronome(farm, entrance, opts).start do |metronome|
-          Front.set(:metronome, metronome)
-          @log.info("Starting up the web front at http://#{host}:#{opts[:port]}...")
-          Front.run!
-          @log.info("The web front stopped at http://#{host}:#{opts[:port]}")
+      SafeEntrance.new(
+        AsyncEntrance.new(
+          SpreadEntrance.new(
+            Entrance.new(@wallets, @remotes, @copies, address, log: @log),
+            @wallets, @remotes, address,
+            log: @log,
+            ignore_score_weakeness: opts['ignore-score-weakness']
+          ), log: @log
+        ), network: opts['network']
+      ).start do |entrance|
+        Front.set(:entrance, entrance)
+        Farm.new(invoice, File.join(Dir.pwd, 'farm'), log: @log)
+          .start(host, opts[:port], threads: opts[:threads], strength: opts[:strength]) do |farm|
+          Front.set(:farm, farm)
+          metronome(farm, entrance, opts).start do |metronome|
+            Front.set(:metronome, metronome)
+            @log.info("Starting up the web front at http://#{host}:#{opts[:port]}...")
+            Front.run!
+            @log.info("The web front stopped at http://#{host}:#{opts[:port]}")
+          end
         end
       end
+      @log.info("The node #{host}:#{opts[:port]} is shut down, thanks for helping Zold network!")
     end
 
     private
@@ -206,13 +233,14 @@ module Zold
           begin
             code = exec("#{myself} #{args.join(' ')}", nohup_log)
             if code != 0
-              nohup_log.print("Let's wait for a minutes, because of the failure...")
+              nohup_log.print("Let's wait for a minute, because of the failure...")
               sleep(60)
             end
             exec(opts['nohup-command'], nohup_log)
           rescue StandardError => e
             nohup_log.print(Backtrace.new(e).to_s)
-            raise e
+            nohup_log.print("Let's wait for a minutes, because of the exception...")
+            sleep(60)
           end
         end
       end
@@ -224,7 +252,7 @@ module Zold
       metronome = Metronome.new(@log)
       require_relative 'routines/spread'
       metronome.add(Routines::Spread.new(opts, @wallets, entrance, log: @log))
-      unless opts[:standalone]
+      unless opts['standalone']
         require_relative 'routines/reconnect'
         metronome.add(Routines::Reconnect.new(opts, @remotes, farm, log: @log))
       end
@@ -267,6 +295,10 @@ module Zold
 
       def debug(msg)
         # nothing
+      end
+
+      def error(msg)
+        @log.error(msg)
       end
 
       def fatal(msg)

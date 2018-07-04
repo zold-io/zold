@@ -24,17 +24,30 @@ require 'rainbow'
 require_relative 'args'
 require_relative 'pay'
 require_relative '../log'
+require_relative '../json_page'
 require_relative '../score'
 require_relative '../id'
 require_relative '../tax'
 require_relative '../http'
 
-# TAXES command.
+# Zold module.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # Taxes command
+  # Taxes command.
+  #
+  # The user pays taxes for his/her wallet by running 'zold taxes pay'. As
+  # the White Paper explains (find it at http://papers.zold.io), each wallet
+  # has to pay certain amount of taxes in order to be accepted by any node
+  # in the network. Of course, a node may make a decision to accept and
+  # store any wallet, even if taxes are not paid, but the majority of
+  # nodes will obey the rules and will reject wallets that haven't paid
+  # enough taxes.
+  #
+  # Taxes are paid from wallet to wallet, not from clients to nodes. A wallet
+  # just selects the most suitable wallet to transfer taxes to and sends
+  # the payment. More details you can find in the White Paper.
   class Taxes
     def initialize(wallets:, remotes:, log: Log::Quiet.new)
       @wallets = wallets
@@ -120,7 +133,7 @@ Available options:"
       @remotes.iterate(@log) do |r|
         res = r.http.get
         r.assert_code(200, res)
-        json = JSON.parse(res.body)
+        json = JsonPage.new(res.body).to_hash
         score = Score.parse_json(json['score'])
         r.assert_valid_score(score)
         r.assert_score_strength(score)

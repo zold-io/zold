@@ -21,6 +21,8 @@
 require 'time'
 require 'csv'
 require_relative 'atomic_file'
+require_relative 'log'
+require_relative 'wallet'
 
 # The list of copies.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -29,8 +31,12 @@ require_relative 'atomic_file'
 module Zold
   # All copies
   class Copies
-    def initialize(dir)
+    def initialize(dir, log: Log::Quiet.new)
+      raise 'Dir can\'t be nil' if dir.nil?
       @dir = dir
+      raise 'Log can\'t be nil' if log.nil?
+      @log = log
+      @mutex = Mutex.new
     end
 
     def root
@@ -42,18 +48,30 @@ module Zold
     end
 
     def clean
-      list = load
-      list.reject! { |s| s[:time] < Time.now - 24 * 60 * 60 }
-      save(list)
-      Dir.new(@dir).select { |f| f =~ /^[0-9]+$/ }.each do |f|
-        File.delete(File.join(@dir, f)) if list.find { |s| s[:name] == f }.nil?
+      @mutex.synchronize do
+        list = load
+        list.reject! { |s| s[:time] < Time.now - 24 * 60 * 60 }
+        save(list)
+        deleted = 0
+        Dir.new(@dir).select { |f| File.basename(f, Wallet::EXTENSION) =~ /^[0-9]+$/ }.each do |f|
+          next unless list.find { |s| s[:name] == File.basename(f, Wallet::EXTENSION) }.nil?
+          file = File.join(@dir, f)
+          size = File.size(file)
+          File.delete(file)
+          @log.debug("Copy ##{f} deleted: #{size}b")
+          deleted += 1
+        end
+        deleted
       end
     end
 
     def remove(host, port)
-      save(load.reject { |s| s[:host] == host && s[:port] == port })
+      @mutex.synchronize do
+        save(load.reject { |s| s[:host] == host && s[:port] == port })
+      end
     end
 
+    # Returns the name of the copy
     def add(content, host, port, score, time = Time.now)
       raise "Content can't be empty" if content.empty?
       raise 'TCP port must be of type Integer' unless port.is_a?(Integer)
@@ -62,46 +80,49 @@ module Zold
       raise "Time must be in the past: #{time}" if time > Time.now
       raise 'Score must be Integer' unless score.is_a?(Integer)
       raise "Score can't be negative: #{score}" if score.negative?
-      FileUtils.mkdir_p(@dir)
-      list = load
-      target = list.find do |s|
-        f = File.join(@dir, s[:name])
-        File.exist?(f) && AtomicFile.new(f).read == content
+      @mutex.synchronize do
+        FileUtils.mkdir_p(@dir)
+        list = load
+        target = list.find do |s|
+          f = File.join(@dir, "#{s[:name]}#{Wallet::EXTENSION}")
+          File.exist?(f) && AtomicFile.new(f).read == content
+        end
+        if target.nil?
+          max = Dir.new(@dir)
+            .select { |f| File.basename(f, Wallet::EXTENSION) =~ /^[0-9]+$/ }
+            .map(&:to_i)
+            .max
+          max = 0 if max.nil?
+          name = (max + 1).to_s
+          AtomicFile.new(File.join(@dir, "#{name}#{Wallet::EXTENSION}")).write(content)
+        else
+          name = target[:name]
+        end
+        list.reject! { |s| s[:host] == host && s[:port] == port }
+        list << {
+          name: name,
+          host: host,
+          port: port,
+          score: score,
+          time: time
+        }
+        save(list)
+        name
       end
-      if target.nil?
-        max = Dir.new(@dir)
-          .select { |f| f =~ /^[0-9]+$/ }
-          .map(&:to_i)
-          .max
-        max = 0 if max.nil?
-        name = (max + 1).to_s
-        AtomicFile.new(File.join(@dir, name)).write(content)
-      else
-        name = target[:name]
-      end
-      list.reject! { |s| s[:host] == host && s[:port] == port }
-      list << {
-        name: name,
-        host: host,
-        port: port,
-        score: score,
-        time: time
-      }
-      save(list)
     end
 
     def all
-      load.group_by { |s| s[:name] }.map do |name, scores|
-        {
-          name: name,
-          host: scores[0][:host],
-          port: scores[0][:port],
-          path: File.join(@dir, name),
-          score: scores.select { |s| s[:time] > Time.now - 24 * 60 * 60 }
-            .map { |s| s[:score] }
-            .inject(&:+) || 0
-        }
-      end.select { |c| File.exist?(c[:path]) }
+      @mutex.synchronize do
+        load.group_by { |s| s[:name] }.map do |name, scores|
+          {
+            name: name,
+            path: File.join(@dir, "#{name}#{Wallet::EXTENSION}"),
+            score: scores.select { |s| s[:time] > Time.now - 24 * 60 * 60 }
+              .map { |s| s[:score] }
+              .inject(&:+) || 0
+          }
+        end.select { |c| File.exist?(c[:path]) }.sort_by { |c| c[:score] }.reverse
+      end
     end
 
     private
@@ -133,7 +154,7 @@ module Zold
     end
 
     def file
-      File.join(@dir, 'scores')
+      File.join(@dir, "scores#{Wallet::EXTENSION}")
     end
   end
 end

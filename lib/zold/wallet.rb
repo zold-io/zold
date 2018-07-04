@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'time'
+require 'openssl'
 require_relative 'version'
 require_relative 'key'
 require_relative 'id'
@@ -44,8 +45,12 @@ module Zold
     # must have different names.
     MAIN_NETWORK = 'zold'.freeze
 
+    # The extension of the wallet files
+    EXTENSION = '.z'.freeze
+
     def initialize(file)
       @file = file
+      @file = "#{file}#{EXTENSION}" if File.extname(file).empty?
     end
 
     def ==(other)
@@ -62,9 +67,9 @@ module Zold
       n
     end
 
-    def version
+    def protocol
       v = lines[1].strip
-      raise "Invalid version name '#{v}'" unless v =~ /^[0-9]+(\.[0-9]+){1,2}$/
+      raise "Invalid protocol version name '#{v}'" unless v =~ /^[0-9]+$/
       v
     end
 
@@ -94,7 +99,7 @@ module Zold
       txns.inject(Amount::ZERO) { |sum, t| sum + t.amount }
     end
 
-    def sub(amount, invoice, pvt, details = '-')
+    def sub(amount, invoice, pvt, details = '-', time: Time.now)
       raise 'The amount has to be of type Amount' unless amount.is_a?(Amount)
       raise "The amount can't be negative: #{amount}" if amount.negative?
       raise 'The pvt has to be of type Key' unless pvt.is_a?(Key)
@@ -103,7 +108,7 @@ module Zold
       raise 'Too many transactions already, can\'t add more' if max > 0xffff
       txn = Txn.new(
         tid,
-        Time.now,
+        time,
         amount * -1,
         prefix,
         Id.new(target),
@@ -139,6 +144,14 @@ module Zold
       end
     end
 
+    def mtime
+      File.mtime(@file)
+    end
+
+    def digest
+      OpenSSL::Digest::SHA256.new(File.read(@file)).hexdigest
+    end
+
     # Age of wallet in hours
     def age
       list = txns
@@ -149,7 +162,7 @@ module Zold
       lines.drop(5)
         .each_with_index
         .map { |line, i| Txn.parse(line, i + 6) }
-        .sort_by(&:date)
+        .sort_by { |t| [t.date, t.amount * -1] }
     end
 
     private

@@ -30,7 +30,13 @@ module Zold
     end
 
     def to_s
-      "#{@error.class.name}: #{@error.message}\n#{@error.backtrace.join("\n\t")}"
+      [
+        @error.class.name,
+        ': ',
+        @error.message,
+        "\n\t",
+        @error.backtrace.select { |t| t.include?('zold/') }.join("\n\t")
+      ].join
     end
   end
 end

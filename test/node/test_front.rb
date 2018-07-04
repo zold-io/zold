@@ -25,6 +25,7 @@ require_relative '../test__helper'
 require_relative 'fake_node'
 require_relative '../fake_home'
 require_relative '../../lib/zold/http'
+require_relative '../../lib/zold/json_page'
 require_relative '../../lib/zold/score'
 
 class FrontTest < Minitest::Test
@@ -60,13 +61,11 @@ class FrontTest < Minitest::Test
   def test_updates_list_of_remotes
     FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
       score = Zold::Score.new(
-        Time.now, 'a.example.com',
-        999, 'NOPREFIX@ffffffffffffffff',
-        strength: 1
+        Time.now, 'localhost', port, 'NOPREFIX@ffffffffffffffff', strength: 1
       ).next.next.next.next
       response = Zold::Http.new("http://localhost:#{port}/remotes", score).get
-      body = response.body
-      assert_equal(1, JSON.parse(body)['all'].count, body)
+      assert_equal('200', response.code, response.body)
+      assert_equal(1, Zold::JsonPage.new(response.body).to_hash['all'].count, response.body)
     end
   end
 
@@ -75,13 +74,22 @@ class FrontTest < Minitest::Test
   #  cause and fix it properly: http://www.rultor.com/t/14887-396655530
   def test_renders_wallet_pages
     skip
-    FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
-      FakeHome.new.run do |home|
+    FakeHome.new.run do |home|
+      FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
         wallet = home.create_wallet
         test_log.debug("Wallet created: #{wallet.id}")
         response = Zold::Http.new("http://localhost:#{port}/wallet/#{wallet.id}?sync=true").put(File.read(wallet.path))
         assert_equal('200', response.code, response.body)
-        assert_equal('0', Zold::Http.new("http://localhost:#{port}/wallet/#{wallet.id}/balance").get.body)
+        [
+          "/wallet/#{wallet.id}",
+          "/wallet/#{wallet.id}.txt",
+          "/wallet/#{wallet.id}/balance",
+          "/wallet/#{wallet.id}/key",
+          "/wallet/#{wallet.id}/mtime"
+        ].each do |u|
+          res = Zold::Http.new(u).get
+          assert_equal('200', res.code, res.body)
+        end
       end
     end
   end
@@ -148,7 +156,7 @@ class FrontTest < Minitest::Test
         "Expected HTTP 200 OK: Found #{response.code}"
       )
       assert_operator(
-        600, :>, response['content-length'].to_i,
+        750, :>, response['content-length'].to_i,
         'Expected the content to be smaller than 600 bytes for gzip'
       )
     end

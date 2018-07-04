@@ -20,7 +20,12 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
+require 'securerandom'
+require 'concurrent'
+require 'concurrent/atomics'
+require_relative 'test__helper'
 require_relative '../lib/zold/atomic_file'
+require_relative '../lib/zold/verbose_thread'
 
 # AtomicFile test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -34,6 +39,35 @@ class TestAtomicFile < Minitest::Test
         file.write(t)
         assert_equal(t, file.read)
       end
+    end
+  end
+
+  def test_writes_from_many_threads
+    Dir.mktmpdir 'test' do |dir|
+      file = Zold::AtomicFile.new(File.join(dir, 'a.txt'))
+      threads = 10
+      pool = Concurrent::FixedThreadPool.new(threads)
+      alive = true
+      cycles = Concurrent::AtomicFixnum.new
+      success = Concurrent::AtomicFixnum.new
+      content = SecureRandom.hex(1000)
+      threads.times do
+        pool.post do
+          while alive
+            Zold::VerboseThread.new(test_log).run(true) do
+              cycles.increment
+              file.write(content)
+              assert_equal(content, file.read, 'Invalid content')
+              success.increment
+            end
+          end
+        end
+      end
+      sleep 0.1 while cycles.value < 50
+      alive = false
+      pool.shutdown
+      pool.wait_for_termination
+      assert_equal(cycles.value, success.value)
     end
   end
 end

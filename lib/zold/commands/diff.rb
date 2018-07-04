@@ -71,8 +71,8 @@ Available options:"
       end
       before = AtomicFile.new(wallet.path).read
       after = ''
-      Tempfile.open do |f|
-        patch.save(f, overwrite: true)
+      Tempfile.open(['', Wallet::EXTENSION]) do |f|
+        patch.save(f.path, overwrite: true)
         after = File.read(f)
       end
       diff = Diffy::Diff.new(before, after, context: 0).to_s(:color)

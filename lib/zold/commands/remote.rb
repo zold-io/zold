@@ -27,9 +27,11 @@ require 'time'
 require_relative 'args'
 require_relative '../node/farm'
 require_relative '../log'
+require_relative '../json_page'
 require_relative '../http'
 require_relative '../remotes'
 require_relative '../score'
+require_relative '../wallet'
 
 # REMOTE command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -61,7 +63,9 @@ Available commands:
     #{Rainbow('remote elect').green}
       Pick a random remote node as a target for a bonus awarding
     #{Rainbow('remote trim').green}
-      Remote the least reliable nodes
+      Remove the least reliable nodes
+    #{Rainbow('remote select [options]').green}
+      Select the strongest n nodes.
     #{Rainbow('remote update').green}
       Check each registered remote node for availability
 Available options:"
@@ -77,9 +81,29 @@ Available options:"
         o.bool '--force',
           'Add/remove if if this operation is not possible',
           default: false
+        o.bool '--skip-ping',
+          'Don\'t ping back the node when adding it (not recommended)',
+          default: false
+        o.string '--network',
+          "The name of the network we work in (default: #{Wallet::MAIN_NETWORK}",
+          required: true,
+          default: Wallet::MAIN_NETWORK
         o.bool '--reboot',
           'Exit if any node reports version higher than we have',
           default: false
+
+        # @todo #292:30min Group options by subcommands
+        #  Having all the options in one place _rather than grouping them by subcommands_
+        #  makes the help totally misleading and hard to read.
+        #  Not all the options are valid for every command - that's the key here.
+        #  The option below (`--max-nodes`) is an example.
+        #  **Next actions:**
+        #  - Implement the suggestion above.
+        #  - Remove note from the --max-nodes option saying that it applies to the select
+        #  subcommand only.
+        o.integer '--max-nodes',
+          "This applies only to the select subcommand. Number of nodes to limit to. Defaults to #{Remotes::MAX_NODES}.",
+          default: Remotes::MAX_NODES
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
@@ -103,6 +127,8 @@ Available options:"
       when 'update'
         update(opts)
         update(opts, false)
+      when 'select'
+        select(opts)
       else
         raise "Unknown command '#{command}'"
       end
@@ -128,6 +154,10 @@ Available options:"
     end
 
     def add(host, port, opts)
+      unless opts['skip-ping']
+        res = Http.new("http://#{host}:#{port}/version", network: opts['network']).get
+        raise "The node #{host}:#{port} is not responding (code is #{res.code})" unless res.code == '200'
+      end
       if @remotes.exists?(host, port)
         raise "#{host}:#{port} already exists in the list" unless opts['force']
         @log.debug("#{host}:#{port} already exists in the list")
@@ -155,7 +185,8 @@ Available options:"
       @remotes.iterate(@log, farm: @farm) do |r|
         res = r.http('/').get
         r.assert_code(200, res)
-        score = Score.parse_json(JSON.parse(res.body)['score'])
+        json = JsonPage.new(res.body).to_hash
+        score = Score.parse_json(json['score'])
         r.assert_valid_score(score)
         r.assert_score_ownership(score)
         r.assert_score_strength(score) unless opts['ignore-score-weakness']
@@ -184,7 +215,7 @@ Available options:"
         start = Time.now
         res = r.http('/remotes').get
         r.assert_code(200, res)
-        json = JSON.parse(res.body)
+        json = JsonPage.new(res.body).to_hash
         score = Score.parse_json(json['score'])
         r.assert_valid_score(score)
         r.assert_score_ownership(score)
@@ -214,10 +245,16 @@ in #{(Time.now - start).round(2)}s")
       end
       total = @remotes.all.size
       if total.zero?
-        @log.debug("The list of remotes is #{Rainbow('empty').red}, run 'zold reset'!")
+        @log.debug("The list of remotes is #{Rainbow('empty').red}, run 'zold remote reset'!")
       else
         @log.debug("There are #{total} known remotes")
       end
+    end
+
+    # @todo #292:30min Implement the logic of selecting the nodes as per #292.
+    #  The strongest n nodes should be selected, where n = opts['max-nodes'].
+    def select(_opts)
+      raise NotImplementedError, 'This feature is not yet implemented.'
     end
 
     def terminate
