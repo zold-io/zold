@@ -43,17 +43,26 @@ class TestTax < Minitest::Test
   def test_calculates_tax_for_one_year
     FakeHome.new.run do |home|
       wallet = home.create_wallet
+      time_now = Time.now
       wallet.add(
         Zold::Txn.new(
           1,
-          Time.now - 24 * 60 * 60 * 365,
+          time_now - 24 * 60 * 60 * 365,
           Zold::Amount.new(zld: 19.99),
           'NOPREFIX', Zold::Id.new, '-'
         )
       )
+      wallet.add(
+        Zold::Txn.new(
+          2,
+          time_now,
+          Zold::Amount.new(zld: 10.00),
+          'NOPREFIX', Zold::Id.new, '-'
+        )
+      )
       tax = Zold::Tax.new(wallet)
-      assert(tax.debt > Zold::Amount.new(coins: 1_006_523_000))
-      assert(tax.debt < Zold::Amount.new(coins: 1_006_524_999))
+      assert(tax.debt > Zold::Amount.new(coins: 33_550_799))
+      assert(tax.debt < Zold::Amount.new(coins: 33_550_801))
     end
   end
 
