@@ -20,6 +20,7 @@
 
 require 'minitest/autorun'
 require 'time'
+require_relative 'test__helper'
 require_relative 'fake_home'
 require_relative '../lib/zold/id'
 require_relative '../lib/zold/txn'
@@ -35,6 +36,10 @@ require_relative '../lib/zold/score'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class TestTax < Minitest::Test
+  def test_print_fee
+    test_log.info("Fee in zents: #{Zold::Tax::FEE_TXN_HOUR.to_i}")
+  end
+
   def test_calculates_tax_for_one_year
     FakeHome.new.run do |home|
       wallet = home.create_wallet

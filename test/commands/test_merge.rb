@@ -140,6 +140,8 @@ class TestMerge < Minitest::Test
     Dir.new(base).select { |f| File.directory?(File.join(base, f)) && !f.start_with?('.') }.each do |f|
       Dir.mktmpdir 'test' do |dir|
         FileUtils.cp_r(File.join('fixtures/merge', "#{f}/."), dir)
+        scores = File.join(dir, 'copies/0123456789abcdef/scores.z')
+        File.write(scores, File.read(scores).gsub(/NOW/, Time.now.utc.iso8601))
         FileUtils.cp('fixtures/merge/asserts.rb', dir)
         wallets = Zold::Wallets.new(dir)
         copies = File.join(dir, 'copies')

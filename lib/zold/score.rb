@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'digest'
+require 'openssl'
 require 'time'
 require_relative 'remotes'
 require_relative 'type'

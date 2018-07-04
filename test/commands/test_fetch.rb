@@ -46,7 +46,8 @@ class TestFetch < Minitest::Test
         status: 200,
         body: {
           'score': Zold::Score::ZERO.to_h,
-          'body': File.read(wallet.path)
+          'body': File.read(wallet.path),
+          'mtime': Time.now.utc.iso8601
         }.to_json
       )
       stub_request(:get, "http://localhost:81/wallet/#{wallet.id}").to_return(

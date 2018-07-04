@@ -63,7 +63,9 @@ Available commands:
     #{Rainbow('remote elect').green}
       Pick a random remote node as a target for a bonus awarding
     #{Rainbow('remote trim').green}
-      Remote the least reliable nodes
+      Remove the least reliable nodes
+    #{Rainbow('remote select [options]').green}
+      Select the strongest n nodes.
     #{Rainbow('remote update').green}
       Check each registered remote node for availability
 Available options:"
@@ -89,6 +91,19 @@ Available options:"
         o.bool '--reboot',
           'Exit if any node reports version higher than we have',
           default: false
+
+        # @todo #292:30min Group options by subcommands
+        #  Having all the options in one place _rather than grouping them by subcommands_
+        #  makes the help totally misleading and hard to read.
+        #  Not all the options are valid for every command - that's the key here.
+        #  The option below (`--max-nodes`) is an example.
+        #  **Next actions:**
+        #  - Implement the suggestion above.
+        #  - Remove note from the --max-nodes option saying that it applies to the select
+        #  subcommand only.
+        o.integer '--max-nodes',
+          "This applies only to the select subcommand. Number of nodes to limit to. Defaults to #{Remotes::MAX_NODES}.",
+          default: Remotes::MAX_NODES
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
@@ -112,6 +127,8 @@ Available options:"
       when 'update'
         update(opts)
         update(opts, false)
+      when 'select'
+        select(opts)
       else
         raise "Unknown command '#{command}'"
       end
@@ -232,6 +249,12 @@ in #{(Time.now - start).round(2)}s")
       else
         @log.debug("There are #{total} known remotes")
       end
+    end
+
+    # @todo #292:30min Implement the logic of selecting the nodes as per #292.
+    #  The strongest n nodes should be selected, where n = opts['max-nodes'].
+    def select(_opts)
+      raise NotImplementedError, 'This feature is not yet implemented.'
     end
 
     def terminate

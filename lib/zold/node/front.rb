@@ -150,6 +150,8 @@ module Zold
       {
         version: settings.version,
         score: score.to_h,
+        wallets: settings.wallets.all.count,
+        mtime: wallet.mtime.utc.iso8601,
         body: AtomicFile.new(wallet.path).read
       }.to_json
     end
@@ -170,6 +172,22 @@ module Zold
       wallet.key.to_s
     end
 
+    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/mtime} do
+      id = Id.new(params[:id])
+      wallet = settings.wallets.find(id)
+      error 404 unless wallet.exists?
+      content_type 'text/plain'
+      wallet.mtime.utc.iso8601.to_s
+    end
+
+    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/digest} do
+      id = Id.new(params[:id])
+      wallet = settings.wallets.find(id)
+      error 404 unless wallet.exists?
+      content_type 'text/plain'
+      wallet.digest
+    end
+
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.txt} do
       id = Id.new(params[:id])
       wallet = settings.wallets.find(id)
@@ -177,7 +195,7 @@ module Zold
       content_type 'text/plain'
       [
         wallet.network,
-        wallet.version,
+        wallet.protocol,
         wallet.id.to_s,
         wallet.key.to_s,
         '',
@@ -185,7 +203,9 @@ module Zold
         '',
         '--',
         "Balance: #{wallet.balance.to_zld}",
-        "Transactions: #{wallet.txns.count}"
+        "Transactions: #{wallet.txns.count}",
+        "Modified: #{wallet.mtime.utc.iso8601}",
+        "Digest: #{wallet.digest}"
       ].join("\n")
     end
 
@@ -209,7 +229,8 @@ module Zold
       settings.entrance.push(id, after)
       JSON.pretty_generate(
         version: settings.version,
-        score: score.to_h
+        score: score.to_h,
+        wallets: settings.wallets.all.count
       )
     end
 

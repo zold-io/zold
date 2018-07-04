@@ -48,7 +48,10 @@ Without homebrew:
 
 ## Windows
 
-... please contribute ...
+Download and install [RubyInstaller (with Devkit)](https://rubyinstaller.org/downloads/).  
+If Windows Defender (or antivirus software) throws an error, ignore it and allow the file. This file is known to trigger [false positives](https://groups.google.com/forum/#!topic/rubyinstaller/LCR-CbBoGOI).  
+Download and install [RubyGems](https://rubygems.org/pages/download). Manual install `ruby setup.rb` works.  
+Install [Zold gem](https://rubygems.org/gems/zold) `gem install --no-ri --no-rdoc zold`
 
 ## CentOS 7.5
 

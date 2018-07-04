@@ -85,7 +85,8 @@ class FrontTest < Minitest::Test
           "/wallet/#{wallet.id}",
           "/wallet/#{wallet.id}.txt",
           "/wallet/#{wallet.id}/balance",
-          "/wallet/#{wallet.id}/key"
+          "/wallet/#{wallet.id}/key",
+          "/wallet/#{wallet.id}/mtime"
         ].each do |u|
           res = Zold::Http.new(uri: u, score: nil).get
           assert_equal('200', res.code, res.body)

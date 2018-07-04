@@ -13,7 +13,7 @@
 [![Gem Version](https://badge.fury.io/rb/zold.svg)](http://badge.fury.io/rb/zold)
 [![Test Coverage](https://img.shields.io/codecov/c/github/zold-io/zold.svg)](https://codecov.io/github/zold-io/zold?branch=master)
 
-[![Maintainability](https://api.codeclimate.com/v1/badges/7489c1d2bacde40ffc09/maintainability)](https://codeclimate.com/github/zold-io/zold/maintainability)
+[![Maintainability](https://api.codeclimate.com/v1/badges/2861728929db934eb376/maintainability)](https://codeclimate.com/github/zold-io/zold/maintainability)
 
 **NOTICE**: It's an experiment and a very early draft! Please, feel free to
 submit your ideas and/or pull requests.
@@ -37,7 +37,7 @@ To make sure it's installed, try:
 $ zold --help
 ```
 
-You will need PGP private and public keys in `~/.ssh`.
+You will need RSA private and public keys in `~/.ssh`.
 If you don't have them yet, run this in order to generate a new pair
 (just hit <kbd>Enter</kbd> when it asks you for a password):
 
@@ -122,7 +122,7 @@ send you bonuses for keeping the node online (approximately 1 ZLD per day).
 
 ## Frequently Asked Questions
 
-> Where are my PGP private/public keys?
+> Where are my RSA private/public keys?
 
 They are in `~/.ssh/id_rsa` (private key) and `~/.ssh/id_rsa.pub` (public key).
 Make sure you have a copy of your private key in some safe place.
@@ -224,6 +224,101 @@ To be continued...
 `date` is the current date and time on the server.
 
 `hours_alive` is the time in hours your server is alive without a reboot.
+
+## SDK
+
+Here is how you use Zold SDK from your Ruby app. First, you should
+add `zold` [gem](https://rubygems.org/gems/zold)
+to your [`Gemfile`](https://bundler.io/gemfile.html) or just:
+
+```bash
+$ gem install zold
+```
+
+Then, you will need a directory where wallets and other supplementary data will be kept.
+This can be any directory, including a temporary one. If it doesn't exist,
+it will automatically be created:
+
+```ruby
+home = '/tmp/my-zold-dir'
+```
+
+Then, you need to create three objects:
+
+```ruby
+require 'zold/wallets'
+require 'zold/remotes'
+wallets = Zold::Wallets.new(home)
+remotes = Zold::Remotes.new(File.join(home, 'remotes'))
+copies = File.join(home, 'copies')
+```
+
+The first step is to update the list of remote nodes, in order
+to be properly connected to the network:
+
+```ruby
+require 'zold/commands/remote'
+Zold::Remote.new(remotes: remotes).run(['remote', 'update'])
+```
+
+Now you are ready to create a wallet:
+
+```ruby
+require 'zold/commands/create'
+Zold::Create.new(wallets: wallets).run(['create', '--public-key=/tmp/id_rsa.pub'])
+```
+
+Here `--public-key=/tmp/id_rsa.pub` points to the absolute location of
+a public RSA key for the wallet you want to create.
+
+You can also pull a wallet from the network:
+
+```ruby
+require 'zold/commands/pull'
+Zold::Pull.new(wallets: wallets, remotes: remotes, copies: copies).run(['pull', '00000000000ff1ce'])
+```
+
+Then, you can make a payment:
+
+```ruby
+require 'zold/commands/pay'
+Zold::Pay.new(wallets: wallets).run(
+  ['pay', '17737fee5b825835', '00000000000ff1ce', '19.99', 'For a pizza', '--private-key=/tmp/id_rsa']
+)
+```
+
+Here `--private-key=/tmp/id_rsa` points to the absolute location of the private RSA key of
+the paying wallet.
+
+Finally, you can push a wallet to the network:
+
+```ruby
+require 'zold/commands/push'
+Zold::Push.new(wallets: wallets, remotes: remotes).run(%w[push 17737fee5b825835])
+```
+
+By default, all commands will work quietly, reporting absolutely nothing
+to the console. To change that, you can use `log` argument of their constructors.
+For example, `Zold::Log::Verbose` will print a lot of information to the console:
+
+```ruby
+require 'zold/commands/push'
+Zold::Push.new(wallets: wallets, remotes: remotes, log: Zold::Log::Verbose.new).run(['push'])
+```
+
+Also, all commands by default assume that you are working in a `test` network.
+This is done in order to protect our production network from your test cases.
+In order to instruct them to deal with real data and real nodes, you should
+give them `--network=zold` argument, for example:
+
+```ruby
+require 'zold/commands/push'
+Zold::Push.new(wallets: wallets, remotes: remotes).run(%w[push 17737fee5b825835 --network=zold])
+```
+
+If anything doesn't work as explained above, please
+[submit at ticket](https://github.com/zold-io/zold/issues) or join our
+[Telegram group](https://t.me/zold_io) and complain there.
 
 ## How to Contribute
 

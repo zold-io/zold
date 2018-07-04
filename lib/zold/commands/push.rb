@@ -98,7 +98,7 @@ of #{wallet.id} there, in #{(Time.now - start).round(2)}s")
       r.assert_valid_score(score)
       r.assert_score_ownership(score)
       r.assert_score_strength(score) unless opts['ignore-score-weakness']
-      @log.info("#{r} accepted #{content.length}b/#{wallet.txns.count}t of #{wallet.id} \
+      @log.info("#{r} accepted #{content.length}b/#{wallet.digest[0, 6]}/#{wallet.txns.count}t of #{wallet.id} \
 in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green} (#{json['version']})")
       score.value
     end

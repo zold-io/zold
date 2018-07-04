@@ -56,9 +56,9 @@ module Zold
       raise 'Id can\'t be nil' if id.nil?
       raise 'Id must be of type Id' unless id.is_a?(Id)
       raise 'Body can\'t be nil' if body.nil?
-      Tempfile.open do |f|
-        File.write(f.path, body)
-        wallet = Wallet.new(f)
+      Tempfile.open(['', Wallet::EXTENSION]) do |f|
+        File.write(f, body)
+        wallet = Wallet.new(f.path)
         unless wallet.network == @network
           raise "The network name mismatch, the wallet is in '#{wallet.network}', we are in '#{@network}'"
         end

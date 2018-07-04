@@ -42,6 +42,9 @@ module Zold
     # After this limit, the remote runtime must be recorded
     RUNTIME_LIMIT = 16
 
+    # Default number of nodes to fetch.
+    MAX_NODES = 16
+
     # Empty, for standalone mode
     class Empty < Remotes
       def initialize

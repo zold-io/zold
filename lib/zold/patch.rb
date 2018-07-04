@@ -33,14 +33,14 @@ module Zold
   class Patch
     def initialize(wallets, log: Log::Quiet.new)
       raise 'Wallets can\'t be nil' if wallets.nil?
-      raise 'Wallets must be of type Wallets' unless wallets.is_a?(Wallets)
+      raise 'Wallets must implement the contract of Wallets: method #find is required' unless wallets.respond_to?(:find)
       @wallets = wallets
       @txns = []
       @log = log
     end
 
     def to_s
-      return 'empty patch' if @txns.empty?
+      return 'nothing' if @txns.empty?
       "#{@txns.count} txns"
     end
 
@@ -50,7 +50,7 @@ module Zold
         @key = wallet.key
         if baseline
           @txns = wallet.txns
-          @log.debug("The baseline: #{@txns.count} transactions, the balance is #{wallet.balance}")
+          @log.debug("The baseline of #{wallet.id} is #{wallet.balance}/#{@txns.count}t")
         else
           @log.debug("The baseline of #{@txns.count} transactions ignored")
         end
@@ -84,9 +84,13 @@ module Zold
             @log.error("RSA signature is redundant at ##{txn.id} of #{wallet.id}: #{txn.to_text}")
             next
           end
+          unless wallet.key.to_s.include?(txn.prefix)
+            @log.error("Payment prefix doesn't match with the key of #{wallet.id}: #{txn.to_text}")
+            next
+          end
           payer = @wallets.find(txn.bnf)
           unless payer.exists?
-            @log.error("Paying wallet #{wallet.id} is absent at ##{txn.id}: #{txn.to_text}")
+            @log.error("Paying wallet file is absent: #{txn.to_text}")
             next
           end
           unless payer.has?(txn.id, wallet.id)

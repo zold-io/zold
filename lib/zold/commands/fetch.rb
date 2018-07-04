@@ -77,7 +77,8 @@ Available options:"
       end
       raise "There are no remote nodes, run 'zold remote reset'" if nodes.zero?
       raise "No nodes out of #{nodes} have the wallet #{id}" if done.zero?
-      @log.debug("#{nodes} copies of #{id} fetched for the total score of #{total}, #{cps.all.count} local copies")
+      @log.debug("#{nodes} copies of #{id} fetched for the total score of #{total}, \
+#{cps.all.count} local copies:\n  #{cps.all.map { |c| "#{c[:name]}: #{c[:score]}" }.join("\n  ")}")
     end
 
     def fetch_one(id, r, cps, opts)
@@ -94,15 +95,34 @@ Available options:"
       r.assert_valid_score(score)
       r.assert_score_ownership(score)
       r.assert_score_strength(score) unless opts['ignore-score-weakness']
-      Tempfile.open do |f|
+      Tempfile.open(['', Wallet::EXTENSION]) do |f|
         body = json['body']
         File.write(f, body)
         wallet = Wallet.new(f.path)
         copy = cps.add(body, score.host, score.port, score.value)
-        @log.info("#{r} returned #{body.length}b/#{wallet.txns.count}t as copy ##{copy} \
+        @log.info("#{r} returned #{body.length}b/#{wallet.txns.count}t/#{digest(json)}/#{age(json)} as copy #{copy} \
 of #{id} in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green} (#{json['version']})")
       end
       score.value
+    end
+
+    def digest(json)
+      hash = json['digest']
+      return '?' if hash.nil?
+      hash[0, 6]
+    end
+
+    def age(json)
+      mtime = json['mtime']
+      return '?' if mtime.nil?
+      sec = Time.now - Time.parse(mtime)
+      if sec < 60
+        "#{sec}s"
+      elsif sec < 60 * 60
+        "#{(sec / 60).round}m"
+      else
+        "#{(sec / 3600).round}h"
+      end
     end
   end
 end

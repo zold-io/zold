@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'time'
+require 'openssl'
 require_relative 'version'
 require_relative 'key'
 require_relative 'id'
@@ -44,8 +45,12 @@ module Zold
     # must have different names.
     MAIN_NETWORK = 'zold'.freeze
 
+    # The extension of the wallet files
+    EXTENSION = '.z'.freeze
+
     def initialize(file)
       @file = file
+      @file = "#{file}#{EXTENSION}" if File.extname(file).empty?
     end
 
     def ==(other)
@@ -62,9 +67,9 @@ module Zold
       n
     end
 
-    def version
+    def protocol
       v = lines[1].strip
-      raise "Invalid version name '#{v}'" unless v =~ /^[0-9]+$/
+      raise "Invalid protocol version name '#{v}'" unless v =~ /^[0-9]+$/
       v
     end
 
@@ -137,6 +142,14 @@ module Zold
       txns.each do |t|
         yield t unless t.amount.negative?
       end
+    end
+
+    def mtime
+      File.mtime(@file)
+    end
+
+    def digest
+      OpenSSL::Digest::SHA256.new(File.read(@file)).hexdigest
     end
 
     # Age of wallet in hours

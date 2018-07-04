@@ -37,7 +37,7 @@ Gem::Specification.new do |s|
 their ability to become an alternative financial instrument in many
 different markets. Most of the technologies available at the moment are
 based on the principles of Blockchain architecture, including
-dominating currencies like Bitcoin and Etherium. Despite its
+dominating currencies like Bitcoin and Ethereum. Despite its
 popularity, Blockchain is not the best possible solution for all scenarios.
 One such example is for fast micro-payments.
 Zold is an experimental alternative that enables distributed transactions between

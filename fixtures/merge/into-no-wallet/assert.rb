@@ -18,32 +18,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Atomic file.
-# Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
-# License:: MIT
-module Zold
-  # Atomic file
-  class AtomicFile
-    def initialize(file)
-      raise 'File can\'t be nil' if file.nil?
-      @file = file
-      @mutex = Mutex.new
-    end
-
-    def read
-      @mutex.synchronize do
-        File.open(@file, 'rb', &:read)
-      end
-    end
-
-    def write(content)
-      raise 'Content can\'t be nil' if content.nil?
-      @mutex.synchronize do
-        File.open(@file, 'wb') do |f|
-          f.write(content)
-        end
-      end
-    end
-  end
-end
+require_relative 'asserts'
+wallet = Zold::Wallet.new(Zold::Id.new('0123456789abcdef'))
+assert_equal(Zold::Amount.new(zld: 512.0), wallet.balance)
