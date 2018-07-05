@@ -43,7 +43,7 @@ class TestUpgrade < Minitest::Test
   def test_pending_scripts_run
     skip
     Dir.mktmpdir do |dir|
-      %w(0.0.1 0.0.2).each do |script_version|
+      %w[0.0.1 0.0.2].each do |script_version|
         create_upgrade_file(dir, script_version)
       end
       create_version_file(dir, '0.0.1')
@@ -56,12 +56,12 @@ class TestUpgrade < Minitest::Test
 
   def test_already_ran_scripts_dont_run
     Dir.mktmpdir do |dir|
-      %w(0.0.1 0.0.2).each do |script_version|
+      %w[0.0.1 0.0.2].each do |script_version|
         create_upgrade_file(dir, script_version)
       end
       create_version_file(dir, '0.0.1')
       must_not_be_in_output = expected_upgrade_script_output('0.0.1')
-      out, err = capture_io do
+      out, _err = capture_io do
         run_upgrades(dir)
       end
       refute_match(/#{must_not_be_in_output}/, out)
