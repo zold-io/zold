@@ -27,7 +27,7 @@ require_relative '../lib/zold/version_file'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestUpgrade < Minitest::Test
+class TestUpgrades < Minitest::Test
   def test_no_version_file_is_ok
     skip
     Dir.mktmpdir do |dir|
