@@ -2,6 +2,22 @@ require_relative 'log'
 
 module Zold
   # Class to manage data upgrades (when zold itself upgrades).
+  #
+  # This class will write the version file to the zoldata directory.
+  # The version file is a text file containing nothing but the version
+  # of the data and a newline. It is named `version`, no extension.
+  #
+  # If the data is up-to-date, the version of the data is equal to
+  # Zold::VERSION.
+  #
+  # If the version is lower than Zold::VERSION, upgrade scripts from
+  # `upgrades/` have to run. They are named `<version>.rb`, so for
+  # instance `upgrades/0.0.1.rb` etc.
+  #
+  # Only the scripts from the data version up need to run.
+  #
+  # The upgrade scripts are loaded into the running Ruby interpreter
+  # rather than being executed.
   class Upgrades
     def initialize(version, directory, log: Log::Verbose.new)
       @version = version
