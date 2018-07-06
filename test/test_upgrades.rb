@@ -28,18 +28,22 @@ require_relative '../lib/zold/version_file'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class TestUpgrades < Minitest::Test
+  # @todo #327:30min Uncomment, when you're ready to work on upgrade manager's
+  #  test case of absent version file. Start with running the test first.
   def test_no_version_file_is_ok
     skip
     Dir.mktmpdir do |dir|
       script_version = '0.0.1'
       create_upgrade_file(dir, script_version)
-      expected_output = expected_upgrade_script_output(script_version)
-      assert_output(/#{expected_output}/) do
+      assert_output(/#{expected_upgrade_script_output(script_version)}/) do
         run_upgrades(dir)
       end
     end
   end
 
+  # @todo #327:30min Uncomment, when you're ready to work on upgrade manager's
+  #  test case of running only pending upgrade scripts (i.e. the scripts with
+  #  versions greater than those in the version file).
   def test_pending_scripts_run
     skip
     Dir.mktmpdir do |dir|
@@ -47,8 +51,7 @@ class TestUpgrades < Minitest::Test
         create_upgrade_file(dir, script_version)
       end
       create_version_file(dir, '0.0.1')
-      expected_output = expected_upgrade_script_output('0.0.2')
-      assert_output(/#{expected_output}/) do
+      assert_output(/#{expected_upgrade_script_output('0.0.2')}/) do
         run_upgrades(dir)
       end
     end
@@ -60,11 +63,10 @@ class TestUpgrades < Minitest::Test
         create_upgrade_file(dir, script_version)
       end
       create_version_file(dir, '0.0.1')
-      must_not_be_in_output = expected_upgrade_script_output('0.0.1')
       out, _err = capture_io do
         run_upgrades(dir)
       end
-      refute_match(/#{must_not_be_in_output}/, out)
+      refute_match(/#{expected_upgrade_script_output('0.0.1')}/, out)
     end
   end
 
@@ -83,8 +85,7 @@ class TestUpgrades < Minitest::Test
   end
 
   def create_upgrade_file(dir, version)
-    upgrade_file_name = File.join(dir, "#{version}.rb")
-    IO.write(upgrade_file_name,
+    IO.write(File.join(dir, "#{version}.rb"),
              "puts \"#{expected_upgrade_script_output(version)}\"")
   end
 
