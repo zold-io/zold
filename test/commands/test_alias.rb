@@ -35,7 +35,7 @@ class TestAlias < Minitest::Test
       cmd = Zold::Alias.new(wallets: home.wallets, log: test_log)
       cmd.run(%W[set #{wallet.id} my-alias])
       assert_equal read_alias_file(home), %W[my-alias #{wallet.id}]
-      stdout, _ = capture_io { cmd.run(%w[show my-alias]) }
+      stdout, = capture_io { cmd.run(%w[show my-alias]) }
       assert_match wallet.id.to_s, stdout
     end
   end
