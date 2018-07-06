@@ -6,29 +6,41 @@ require_relative '../../lib/zold/commands/alias'
 class TestAlias < Minitest::Test
   # alias set <wallet> <alias>
   def test_set_writes_alias_to_the_alias_file
+    skip
     FakeHome.new.run do |home|
       wallet = home.create_wallet
-      assert_raises NotImplementedError do
-        Zold::Alias.new(wallets: home.wallets, log: test_log).run(['set', wallet.id.to_s, 'my-alias'])
-      end
+      Zold::Alias.new(wallets: home.wallets, log: test_log).run(%W[set #{wallet.id} my-alias])
+      aliases = File.read(File.join(home.dir, 'aliases')).split(' ')
+      assert_equal File.read(path), %W[my-alias #{wallet.id}]
     end
   end
 
   # alias remove <alias>
   def test_remove_removes_the_alias_from_the_alias_file
+    skip
     FakeHome.new.run do |home|
-      assert_raises NotImplementedError do
-        Zold::Alias.new(wallets: home.wallets, log: test_log).run(['remove', 'my-alias'])
-      end
+      wallet = home.create_wallet
+      cmd = Zold::Alias.new(wallets: home.wallets, log: test_log)
+      cmd.run(%W[set #{wallet.id} my-alias])
+      aliases = File.read(File.join(home.dir, 'aliases')).split(' ')
+      assert_equal File.read(path), %W[my-alias #{wallet.id}]
+
+      cmd.run(%w[remove my-alias])
+      assert_empty File.read(path)
     end
   end
 
   # alias show <alias>
   def test_show_prints_out_the_aliased_wallet_id
+    skip
     FakeHome.new.run do |home|
-      assert_raises NotImplementedError do
-        Zold::Alias.new(wallets: home.wallets, log: test_log).run(['show', 'my-alias'])
-      end
+      wallet = home.create_wallet
+      cmd = Zold::Alias.new(wallets: home.wallets, log: test_log)
+      cmd.run(%W[set #{wallet.id} my-alias])
+      aliases = File.read(File.join(home.dir, 'aliases')).split(' ')
+      assert_equal File.read(path), %W[my-alias #{wallet.id}]
+      stdout, _ = capture_io { cmd.run(%w[show my-alias]) }
+      assert_match wallet.id.to_s, stdout
     end
   end
 end
