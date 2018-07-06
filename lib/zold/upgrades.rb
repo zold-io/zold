@@ -16,6 +16,10 @@ module Zold
   #
   # Only the scripts from the data version up need to run.
   #
+  # If there is no version file, as it would if the data were created
+  # by a version of Zold that doesn't have this class implemented yet,
+  # all the upgrade scripts have to run.
+  #
   # The upgrade scripts are loaded into the running Ruby interpreter
   # rather than being executed.
   class Upgrades
