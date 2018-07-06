@@ -116,4 +116,42 @@ class TestRemote < Minitest::Test
       assert_equal(1, remotes.all.count)
     end
   end
+
+  # @todo #329:30min Verify that the nodes that are being selected are
+  #  really the strongest ones. The strongest nodes are the ones with
+  #  the highest score.
+  def test_select_selects_the_strongest_nodes
+    skip
+  end
+
+  def test_select_respects_max_nodes_option
+    Dir.mktmpdir 'test' do |dir|
+      remotes = Zold::Remotes.new(File.join(dir, 'remotes.txt'))
+      zero = Zold::Score::ZERO
+      cmd = Zold::Remote.new(remotes: remotes, log: test_log)
+      (1..10).each do |int|
+        stub_request(:get, "http://#{zero.host}:#{zero.port}/remotes").to_return(
+          status: 200,
+          body: {
+            version: Zold::VERSION,
+            score: zero.to_h,
+            all: [
+              { host: 'localhost', port: 5000 + int }
+            ]
+          }.to_json
+        )
+        stub_request(:get, "http://localhost:#{5000 + int}/version").to_return(
+          status: 200,
+          body: {
+            version: Zold::VERSION
+          }.to_json
+        )
+        cmd.run(%W[remote add localhost #{5000 + int}])
+      end
+      assert_equal(11, remotes.all.count)
+
+      cmd.run(%w[remote select --max-nodes=5])
+      assert_equal(5, remotes.all.count)
+    end
+  end
 end
