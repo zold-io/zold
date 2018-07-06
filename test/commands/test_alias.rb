@@ -10,8 +10,7 @@ class TestAlias < Minitest::Test
     FakeHome.new.run do |home|
       wallet = home.create_wallet
       Zold::Alias.new(wallets: home.wallets, log: test_log).run(%W[set #{wallet.id} my-alias])
-      aliases = File.read(File.join(home.dir, 'aliases')).split(' ')
-      assert_equal aliases, %W[my-alias #{wallet.id}]
+      assert_equal read_alias_file(home), %W[my-alias #{wallet.id}]
     end
   end
 
@@ -22,10 +21,9 @@ class TestAlias < Minitest::Test
       wallet = home.create_wallet
       cmd = Zold::Alias.new(wallets: home.wallets, log: test_log)
       cmd.run(%W[set #{wallet.id} my-alias])
-      aliases = File.read(File.join(home.dir, 'aliases')).split(' ')
-      assert_equal aliases, %W[my-alias #{wallet.id}]
+      assert_equal read_alias_file(home), %W[my-alias #{wallet.id}]
       cmd.run(%w[remove my-alias])
-      assert_empty aliases
+      assert_empty read_alias_file(home)
     end
   end
 
@@ -36,10 +34,15 @@ class TestAlias < Minitest::Test
       wallet = home.create_wallet
       cmd = Zold::Alias.new(wallets: home.wallets, log: test_log)
       cmd.run(%W[set #{wallet.id} my-alias])
-      aliases = File.read(File.join(home.dir, 'aliases')).split(' ')
-      assert_equal aliases, %W[my-alias #{wallet.id}]
+      assert_equal read_alias_file(home), %W[my-alias #{wallet.id}]
       stdout, _ = capture_io { cmd.run(%w[show my-alias]) }
       assert_match wallet.id.to_s, stdout
     end
+  end
+
+  private
+
+  def read_alias_file(home)
+    File.read(File.join(home.dir, 'aliases')).split(' ')
   end
 end
