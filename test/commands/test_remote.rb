@@ -129,26 +129,26 @@ class TestRemote < Minitest::Test
       remotes = Zold::Remotes.new(File.join(dir, 'remotes.txt'))
       zero = Zold::Score::ZERO
       cmd = Zold::Remote.new(remotes: remotes, log: test_log)
-      (1..10).each do |int|
+      (5000..5010).each do |port|
         stub_request(:get, "http://#{zero.host}:#{zero.port}/remotes").to_return(
           status: 200,
           body: {
             version: Zold::VERSION,
             score: zero.to_h,
             all: [
-              { host: 'localhost', port: 5000 + int }
+              { host: 'localhost', port: port }
             ]
           }.to_json
         )
-        stub_request(:get, "http://localhost:#{5000 + int}/version").to_return(
+        stub_request(:get, "http://localhost:#{port}/version").to_return(
           status: 200,
           body: {
             version: Zold::VERSION
           }.to_json
         )
-        cmd.run(%W[remote add localhost #{5000 + int}])
+        cmd.run(%W[remote add localhost #{port}])
       end
-      assert_equal(11, remotes.all.count)
+      assert_equal(12, remotes.all.count)
 
       cmd.run(%w[remote select --max-nodes=5])
       assert_equal(5, remotes.all.count)
