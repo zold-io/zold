@@ -129,7 +129,7 @@ module Zold
       end
       Front.set(:log, @log)
       Front.set(:version, opts['expose-version'])
-      Front.set(:protocol, Zold::Protocol)
+      Front.set(:protocol, Zold::PROTOCOL)
       Front.set(:logging, @log.debug?)
       Front.set(:home, Dir.pwd)
       @log.info("Home directory: #{Dir.pwd}")
