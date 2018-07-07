@@ -90,6 +90,8 @@ module Zold
       end
     end
 
+    # @todo #357:30min Test that the headers are being set correctly.
+    #  Currently there are no tests at all that would verify the headers.
     after do
       headers['Cache-Control'] = 'no-cache'
       headers['Connection'] = 'close'
