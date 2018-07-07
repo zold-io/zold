@@ -49,6 +49,7 @@ module Zold
       set :show_exceptions, false
       set :server, 'webrick'
       set :version, VERSION # to be injected at node.rb
+      set :protocol, PROTOCOL # to be injected at node.rb
       set :ignore_score_weakness, false # to be injected at node.rb
       set :reboot, false # to be injected at node.rb
       set :home, nil? # to be injected at node.rb
@@ -93,6 +94,7 @@ module Zold
       headers['Cache-Control'] = 'no-cache'
       headers['Connection'] = 'close'
       headers['X-Zold-Version'] = settings.version
+      headers['X-Zold-Protocol'] = settings.protocol
       headers['Access-Control-Allow-Origin'] = '*'
       headers[Http::SCORE_HEADER] = score.reduced(16).to_s
     end
