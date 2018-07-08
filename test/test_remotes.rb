@@ -169,4 +169,17 @@ class TestRemotes < Minitest::Test
       assert_equal(0, remotes.all.reject { |r| r[:host] == host }.size)
     end
   end
+
+  def test_unreachable_remote
+    Dir.mktmpdir 'test' do |dir|
+      file = File.join(dir, 'remotes')
+      FileUtils.touch(file)
+      remotes = Zold::Remotes.new(file)
+      remotes.add('127.0.0.1')
+      log = TestLogger.new
+      remotes.stub :exists?, false do
+        remotes.iterate(log) { assert(log.msg.include?('127.0.0.1:4096 is absent among 1 remotes in 0s;')) }
+      end
+    end
+  end
 end

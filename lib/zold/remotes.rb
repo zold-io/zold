@@ -190,6 +190,10 @@ module Zold
         rescue StandardError => e
           error(r[:host], r[:port])
           errors = errors(r[:host], r[:port])
+          check_for_non_fatal_errors(r[:host], r[:port]).each do |error|
+            log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{error} \
+              in #{(Time.now - start).round}s;")
+          end
           log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message} \
 in #{(Time.now - start).round}s; errors=#{errors}")
           log.debug(Backtrace.new(e).to_s)
@@ -198,22 +202,30 @@ in #{(Time.now - start).round}s; errors=#{errors}")
       end
     end
 
-    def errors(host, port = Remotes::PORT)
+    def check_for_non_fatal_errors(host, port = Remotes::PORT)
+      non_fatal_errors = []
+      non_fatal_errors.push("#{host}:#{port} is absent among #{load.count} remotes") unless exists?(host, port)
+      non_fatal_errors
+    end
+
+    def check_for_fatal_errors(host, port = Remotes::PORT)
       raise 'Host can\'t be nil' if host.nil?
       raise 'Port can\'t be nil' if port.nil?
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
+    end
+
+    def errors(host, port = Remotes::PORT)
+      check_for_fatal_errors(host, port)
       list = load
-      raise "#{host}:#{port} is absent among #{list.count} remotes" unless exists?(host, port)
-      list.find { |r| r[:host] == host.downcase && r[:port] == port }[:errors]
+      errors = 0
+      errors = list.find { |r| r[:host] == host.downcase && r[:port] == port }[:errors] unless exists?(host, port)
+      errors
     end
 
     def error(host, port = Remotes::PORT)
-      raise 'Host can\'t be nil' if host.nil?
-      raise 'Port can\'t be nil' if port.nil?
-      raise 'Port has to be of type Integer' unless port.is_a?(Integer)
+      check_for_fatal_errors(host, port)
       list = load
-      raise "#{host}:#{port} is absent among #{list.count} remotes" unless exists?(host, port)
-      list.find { |r| r[:host] == host.downcase && r[:port] == port }[:errors] += 1
+      list.find { |r| r[:host] == host.downcase && r[:port] == port }[:errors] += exists?(host, port) ? 1 : 0
       save(list)
     end
 
