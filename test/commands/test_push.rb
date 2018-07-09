@@ -20,6 +20,8 @@
 
 require 'minitest/autorun'
 require 'webmock/minitest'
+require 'minitest/logger'
+require 'minitest-logger'
 require_relative '../fake_home'
 require_relative '../test__helper'
 require_relative '../../lib/zold/wallet'
@@ -43,6 +45,57 @@ class TestPush < Minitest::Test
       Zold::Push.new(wallets: home.wallets, remotes: remotes, log: test_log).run(
         ['--ignore-this-stupid-option', 'push', wallet.id.to_s]
       )
+    end
+  end
+
+  def setup_trust_test(home)
+    wallet = home.create_wallet
+    remotes = home.remotes
+    stub_request(:put, "http://localhost:80/wallet/#{wallet.id}").to_return(
+      status: 304,
+      body: {
+        'score': Zold::Score.new(Time.now, 'localhost', 80,
+          'NOPREFIX@ffffffffffffffff', strength: 10),
+        'body': File.read(wallet.path),
+        'mtime': Time.now.utc.iso8601
+      }.to_json
+    )
+    stub_request(:put, "http://localhost:81/wallet/#{wallet.id}").to_return(
+      status: 304,
+      body: {
+        'score': Zold::Score.new(Time.now, 'localhost', 80,
+          'NOPREFIX@ffffffffffffffff', strength: 30),
+        'body': File.read(wallet.path),
+        'mtime': Time.now.utc.iso8601
+      }.to_json
+    )
+    remotes.add('localhost', 80)
+    remotes.add('localhost', 81)
+
+    [wallet, remotes]
+  end
+
+  def test_pushes_a_single_wallet_if_trust_is_enough
+    FakeHome.new.run do |home|
+      wallet, remotes = setup_trust_test(home)
+
+      assert_log('INFO log: Push finished to 1 nodes out of 2, total score for'\
+        " #{wallet.id} is 10)") do
+        Zold::Push.new(wallets: home.wallets, remotes: remotes, log: test_log)
+          .run(['--trust 10', 'push', wallet.id.to_s])
+      end
+    end
+  end
+
+  def test_pushes_all_wallets_if_trust_is_not_enough
+    FakeHome.new.run do |home|
+      wallet, remotes = setup_trust_test(home)
+
+      assert_log('INFO log: Push finished to 2 nodes out of 2, total score for'\
+        " #{wallet.id} is 50)") do
+        Zold::Push.new(wallets: home.wallets, remotes: remotes, log: test_log)
+          .run(['--trust 50', 'push', wallet.id.to_s])
+      end
     end
   end
 end

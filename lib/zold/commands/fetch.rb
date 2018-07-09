@@ -56,6 +56,9 @@ Available options:"
           'Ignore this node and don\'t fetch from it',
           default: []
         o.bool '--help', 'Print instructions'
+        o.integer '--trust', 'Stop when the total score received from nodes '\
+          'is above this value',
+          default: Float::INFINITY
       end
       mine = Args.new(opts, @log).take || return
       mine = @wallets.all if mine.empty?
@@ -74,6 +77,7 @@ Available options:"
         nodes += 1
         total += fetch_one(id, r, cps, opts)
         done += 1
+        break if enough_trust?(total, opts['trust'])
       end
       raise "There are no remote nodes, run 'zold remote reset'" if nodes.zero?
       raise "No nodes out of #{nodes} have the wallet #{id}" if done.zero?
@@ -123,6 +127,12 @@ of #{id} in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green} (#{js
       else
         "#{(sec / 3600).round}h"
       end
+    end
+
+    def enough_trust?(total, trust_value)
+      total >= trust_value && @log.debug(
+        "Remotes iteration stopped because of --trust #{opts['trust']}"
+      )
     end
   end
 end

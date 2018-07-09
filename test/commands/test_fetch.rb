@@ -64,4 +64,53 @@ class TestFetch < Minitest::Test
       assert_equal(copies.all[0][:score], 0)
     end
   end
+
+  def setup_trust_test(home)
+    wallet = home.create_wallet
+    stub_request(:get, "http://localhost:80/wallet/#{wallet.id}").to_return(
+      status: 200,
+      body: {
+        'score': Zold::Score.new(Time.now, 'localhost', 80,
+          'NOPREFIX@ffffffffffffffff', strength: 10),
+        'body': File.read(wallet.path),
+        'mtime': Time.now.utc.iso8601
+      }.to_json
+    )
+    stub_request(:get, "http://localhost:81/wallet/#{wallet.id}").to_return(
+      status: 200,
+      body: {
+        'score': Zold::Score.new(Time.now, 'localhost', 80,
+          'NOPREFIX@ffffffffffffffff', strength: 20),
+        'body': File.read(wallet.path),
+        'mtime': Time.now.utc.iso8601
+      }.to_json
+    )
+    remotes = home.remotes
+    remotes.add('localhost', 80)
+    remotes.add('localhost', 81)
+    copies = home.copies(wallet)
+
+    [wallet, copies, remotes]
+  end
+
+  def test_fetches_only_one_remote_with_enough_trust
+    FakeHome.new.run do |home|
+      wallet, copies, remotes = setup_trust_test(home)
+      Zold::Fetch.new(wallets: home.wallets, copies: copies.root,
+                      remotes: remotes, log: test_log)
+          .run(['fetch', wallet.id.to_s, '--trust 10'])
+      assert_equal(copies.count, '1')
+      assert_equal(copies.all[0][:score], 10)
+    end
+  end
+
+  def test_fetches_all_remotes_if_trust_is_not_enough
+    FakeHome.new.run do |home|
+      wallet, copies, remotes = setup_trust_test(home)
+      Zold::Fetch.new(wallets: home.wallets, copies: copies.root,
+                      remotes: remotes, log: test_log)
+          .run(['fetch', wallet.id.to_s, '--trust 40'])
+      assert_equal(copies.count, '2')
+    end
+  end
 end
