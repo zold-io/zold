@@ -9,10 +9,6 @@ module Zold
       @log = log
     end
 
-    # @todo #285:30min Write the upgrade manager tests that ensure:
-    #  - Nothing breaks without the version file.
-    #  - The upgrade scripts run when there is a version file and there are pending upgrade scripts.
-    #  - Make sure *only* the correct upgrade scripts run.
     def run
       scripts.each do |script|
         @version.apply(script)
