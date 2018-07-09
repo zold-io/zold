@@ -8,6 +8,6 @@ class TestVersion < Minitest::Test
   end
 
   def test_has_protocol
-    assert Semantic::Version.new(Zold::PROTOCOL)
+    assert Zold::PROTOCOL
   end
 end

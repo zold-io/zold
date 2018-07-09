@@ -96,7 +96,7 @@ module Zold
       headers['Cache-Control'] = 'no-cache'
       headers['Connection'] = 'close'
       headers['X-Zold-Version'] = settings.version
-      headers['X-Zold-Protocol'] = settings.protocol
+      headers['X-Zold-Protocol'] = settings.protocol.to_s
       headers['Access-Control-Allow-Origin'] = '*'
       headers[Http::SCORE_HEADER] = score.reduced(16).to_s
     end
