@@ -26,7 +26,7 @@ require_relative '../../lib/zold/log'
 require_relative '../../lib/zold/node/farm'
 
 class FarmTest < Minitest::Test
-  class TestLogger
+  class SaveLastMessageLogger
     attr_reader :msg
     def error(msg)
       @msg = msg
@@ -118,20 +118,20 @@ class FarmTest < Minitest::Test
   end
 
   def test_garbage_farm_file
-    log = TestLogger.new
+    log = SaveLastMessageLogger.new
     Dir.mktmpdir 'test' do |dir|
       file = File.join(dir, 'corrupted_farm')
       [
         "0/6: 2018-06-26ABCT00:32:43Z 178.128.165.12 4096 MIRhypo1@c13620484b46caa4\n",
         "some garbage\n"
-      ].each do |t|
-        File.write(file, t)
+      ].each do |score_garbage_line|
+        File.write(file, score_garbage_line)
         score = Zold::Score.new(
           Time.parse('2017-07-19T21:24:51Z'),
           'some-host', 9999, 'NOPREFIX@ffffffffffffffff', %w[13f7f01 b2b32b 4ade7e],
           strength: 6
         )
-        File.write(file, score.to_s, mode: 'a')
+        File.write(file, score_garbage_line + score.to_s)
         farm = Zold::Farm.new('NOPREFIX@ffffffffffffffff', file, log: log)
         assert_equal(1, farm.best.count)
         assert(log.msg.start_with?('Invalid score'))
