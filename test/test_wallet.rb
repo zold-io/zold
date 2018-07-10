@@ -44,7 +44,6 @@ class TestWallet < Minitest::Test
         wallet.balance == amount * -3,
         "#{wallet.balance} is not equal to #{amount * -3}"
       )
-      assert_equal('1', wallet.protocol)
     end
   end
 
@@ -94,6 +93,13 @@ class TestWallet < Minitest::Test
     FakeHome.new.run do |home|
       wallet = home.create_wallet
       assert_equal(64, wallet.digest.length)
+    end
+  end
+
+  def test_returns_protocol
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      assert_equal(Zold::PROTOCOL, wallet.protocol)
     end
   end
 

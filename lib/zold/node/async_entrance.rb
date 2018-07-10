@@ -30,6 +30,8 @@ require_relative '../verbose_thread'
 module Zold
   # The entrance
   class AsyncEntrance
+    THREADS = Concurrent.processor_count * 4
+
     def initialize(entrance, dir, log: Log::Quiet.new)
       raise 'Entrance can\'t be nil' if entrance.nil?
       @entrance = entrance
@@ -44,9 +46,10 @@ module Zold
     def start
       @entrance.start do
         FileUtils.mkdir_p(@dir)
-        size = Concurrent.processor_count * 8
-        @pool = Concurrent::FixedThreadPool.new(size, max_queue: size, fallback_policy: :abort)
-        size.times do
+        @pool = Concurrent::FixedThreadPool.new(
+          AsyncEntrance::THREADS, max_queue: AsyncEntrance::THREADS, fallback_policy: :abort
+        )
+        AsyncEntrance::THREADS.times do
           @pool.post do
             VerboseThread.new(@log).run(true) do
               loop do
@@ -83,7 +86,9 @@ module Zold
     end
 
     def push(id, body)
-      AtomicFile.new(File.join(@dir, id.to_s)).write(body)
+      @mutex.synchronize do
+        AtomicFile.new(File.join(@dir, id.to_s)).write(body)
+      end
     end
 
     private
@@ -100,10 +105,10 @@ module Zold
           File.delete(file)
         end
       end
-      return if id.empty?
+      return if id.empty? || body.empty?
+      start = Time.now
       @entrance.push(Id.new(id), body)
-      @log.debug("Pushed #{id}/#{body.length}b to #{@entrance.class.name}, \
-pool: #{@pool.length}/#{@pool.queue_length}")
+      @log.debug("Pushed #{id}/#{body.length}b to #{@entrance.class.name} in #{(Time.now - start).round}s")
     end
 
     def queue

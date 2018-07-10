@@ -85,8 +85,10 @@ class TestUpgrades < Minitest::Test
   end
 
   def create_upgrade_file(dir, version)
-    IO.write(File.join(dir, "#{version}.rb"),
-             "puts \"#{expected_upgrade_script_output(version)}\"")
+    IO.write(
+      File.join(dir, "#{version}.rb"),
+      "puts \"#{expected_upgrade_script_output(version)}\""
+    )
   end
 
   def expected_upgrade_script_output(version)

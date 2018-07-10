@@ -24,5 +24,5 @@
 # License:: MIT
 module Zold
   VERSION  = '0.0.0'.freeze
-  PROTOCOL = 1
+  PROTOCOL = 2
 end
