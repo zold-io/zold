@@ -177,7 +177,7 @@ module Zold
             @wallets, @remotes, address,
             log: @log,
             ignore_score_weakeness: opts['ignore-score-weakness']
-          ), log: @log
+          ), File.join(Dir.pwd, '.zoldata/entrance'), log: @log
         ), network: opts['network']
       ).start do |entrance|
         Front.set(:entrance, entrance)

@@ -20,6 +20,7 @@
 
 require 'concurrent'
 require_relative '../log'
+require_relative '../id'
 require_relative '../verbose_thread'
 
 # The async entrance of the web front.
@@ -29,11 +30,15 @@ require_relative '../verbose_thread'
 module Zold
   # The entrance
   class AsyncEntrance
-    def initialize(entrance, log: Log::Quiet.new)
+    def initialize(entrance, dir, log: Log::Quiet.new)
       raise 'Entrance can\'t be nil' if entrance.nil?
       @entrance = entrance
+      raise 'Directory can\'t be nil' if dir.nil?
+      raise 'Directory must be of type String' unless dir.is_a?(String)
+      @dir = dir
       raise 'Log can\'t be nil' if log.nil?
       @log = log
+      @mutex = Mutex.new
     end
 
     def start
@@ -69,13 +74,34 @@ module Zold
     end
 
     def push(id, body)
+      FileUtils.mkdir_p(@dir)
+      AtomicFile.new(File.join(@dir, id.to_s)).write(body)
       @pool.post do
         VerboseThread.new(@log).run(true) do
-          @entrance.push(id, body)
+          take
         end
       end
       @log.debug("Pushed #{id}/#{body.length}b to #{@entrance.class.name}, \
 pool: #{@pool.length}/#{@pool.queue_length}")
+    end
+
+    private
+
+    def take
+      id = ''
+      body = ''
+      @mutex.synchronize do
+        opts = Dir.new(@dir)
+          .select { |f| f =~ /^[0-9a-f]{16}$/ }
+          .sort_by { |f| File.mtime(File.join(@dir, f)) }
+        unless opts.empty?
+          file = File.join(@dir, opts[0])
+          id = opts[0]
+          body = File.read(file)
+          File.delete(file)
+        end
+      end
+      @entrance.push(Id.new(id), body) unless id.empty?
     end
   end
 end
