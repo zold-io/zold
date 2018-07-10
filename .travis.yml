@@ -1,9 +1,6 @@
 language: ruby
 rvm:
   - 2.3.3
-  - 2.4.4
-  - 2.5.1
-  - ruby-2.6.0-preview1
 cache: bundler
 branches:
   only:
