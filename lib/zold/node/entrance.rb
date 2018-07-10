@@ -78,7 +78,7 @@ module Zold
       end
       modified = Merge.new(
         wallets: @wallets, copies: copies.root, log: @log
-      ).run(['merge', id.to_s, '--no-baseline'])
+      ).run(['merge', id.to_s])
       Clean.new(wallets: @wallets, copies: copies.root, log: @log).run(['clean', id.to_s])
       copies.remove(localhost, Remotes::PORT)
       sec = (Time.now - start).round(2)

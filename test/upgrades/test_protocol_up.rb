@@ -18,31 +18,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative 'log'
+require 'minitest/autorun'
+require_relative '../test__helper'
+require_relative '../../upgrades/protocol_up'
+require_relative '../fake_home'
 
-module Zold
-  # Class to manage data upgrades (when zold itself upgrades).
-  class Upgrades
-    def initialize(version, directory, log: Log::Verbose.new)
-      @version = version
-      @directory = directory
-      @log = log
-    end
-
-    # @todo #285:30min Write the upgrade manager tests that ensure:
-    #  - Nothing breaks without the version file.
-    #  - The upgrade scripts run when there is a version file and there are pending upgrade scripts.
-    #  - Make sure *only* the correct upgrade scripts run.
-    def run
-      # This is a workaround, remove it once this class works correctly
-      require_relative '../../upgrades/2.rb'
-      UpgradeTo2.new(Dir.pwd, @log).exec
-      require_relative '../../upgrades/protocol_up.rb'
-      ProtocolUp.new(Dir.pwd, @log).exec
-
-      Dir.glob("#{@directory}/*.rb").select { |f| f =~ /^(\d+)\.rb$/ }.sort.each do |script|
-        @version.apply(script)
-      end
+# Protocol up.
+# Author:: Yegor Bugayenko (yegor256@gmail.com)
+# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# License:: MIT
+class TestProtocolUp < Minitest::Test
+  def test_upgrades_protocol_in_wallet
+    FakeHome.new.run do |home|
+      id = home.create_wallet.id
+      Zold::ProtocolUp.new(home.dir, test_log).exec
+      wallet = home.wallets.find(id)
+      assert_equal(Zold::PROTOCOL, wallet.protocol)
     end
   end
 end

@@ -18,30 +18,26 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative 'log'
+require_relative '../lib/zold/version'
+require_relative '../lib/zold/wallet'
 
 module Zold
-  # Class to manage data upgrades (when zold itself upgrades).
-  class Upgrades
-    def initialize(version, directory, log: Log::Verbose.new)
-      @version = version
-      @directory = directory
+  # Upgrade protocol in each wallet
+  class ProtocolUp
+    def initialize(home, log)
+      @home = home
       @log = log
     end
 
-    # @todo #285:30min Write the upgrade manager tests that ensure:
-    #  - Nothing breaks without the version file.
-    #  - The upgrade scripts run when there is a version file and there are pending upgrade scripts.
-    #  - Make sure *only* the correct upgrade scripts run.
-    def run
-      # This is a workaround, remove it once this class works correctly
-      require_relative '../../upgrades/2.rb'
-      UpgradeTo2.new(Dir.pwd, @log).exec
-      require_relative '../../upgrades/protocol_up.rb'
-      ProtocolUp.new(Dir.pwd, @log).exec
-
-      Dir.glob("#{@directory}/*.rb").select { |f| f =~ /^(\d+)\.rb$/ }.sort.each do |script|
-        @version.apply(script)
+    def exec
+      Dir.new(@home).each do |path|
+        next unless path =~ /^[a-f0-9]{16}#{Wallet::EXTENSION}$/
+        f = File.join(@home, path)
+        lines = File.read(f).split("\n")
+        next if lines[1].to_i == Zold::PROTOCOL
+        lines[1] = Zold::PROTOCOL
+        File.write(f, lines.join("\n"))
+        @log.info("Protocol set to #{Zold::PROTOCOL} in #{f}")
       end
     end
   end
