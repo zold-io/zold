@@ -69,7 +69,7 @@ module Zold
         @push = Thread.start do
           Thread.current.abort_on_exception = true
           Thread.current.name = 'push'
-          VerboseThread.new(@log).run do
+          VerboseThread.new(@log).run(true) do
             loop do
               id = @modified.pop
               if @remotes.all.empty?

@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # Copyright (c) 2018 Yegor Bugayenko
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,23 +18,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# https://github.com/zold-io/zold/issues/358
-# rename all wallets from their current names into *.z
+require 'minitest/autorun'
+require_relative '../test__helper'
+require_relative '../../upgrades/protocol_up'
+require_relative '../fake_home'
 
-module Zold
-  # Upgrade to version 2
-  class UpgradeTo2
-    def initialize(home, log)
-      @home = home
-      @log = log
-    end
-
-    def exec
-      Dir.new(@home).each do |path|
-        next unless path =~ /^[a-f0-9]{16}$/
-        File.rename(path, "#{path}.z")
-        @log.info("Renamed #{path} to #{path}.z")
-      end
+# Protocol up.
+# Author:: Yegor Bugayenko (yegor256@gmail.com)
+# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# License:: MIT
+class TestProtocolUp < Minitest::Test
+  def test_upgrades_protocol_in_wallet
+    FakeHome.new.run do |home|
+      id = home.create_wallet.id
+      Zold::ProtocolUp.new(home.dir, test_log).exec
+      wallet = home.wallets.find(id)
+      assert_equal(Zold::PROTOCOL, wallet.protocol)
     end
   end
 end

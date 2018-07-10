@@ -140,6 +140,7 @@ module Zold
         threads: "#{Thread.list.select { |t| t.status == 'run' }.count}/#{Thread.list.count}",
         wallets: settings.wallets.all.count,
         remotes: settings.remotes.all.count,
+        nscore: settings.remotes.all.map { |r| r[:score] }.inject(&:+),
         farm: settings.farm.to_json,
         entrance: settings.entrance.to_json,
         date: Time.now.utc.iso8601,

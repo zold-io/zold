@@ -39,20 +39,11 @@ module Zold
       # This is a workaround, remove it once this class works correctly
       require_relative '../../upgrades/2.rb'
       UpgradeTo2.new(Dir.pwd, @log).exec
+      require_relative '../../upgrades/protocol_up.rb'
+      ProtocolUp.new(Dir.pwd, @log).exec
 
-      scripts.each do |script|
+      Dir.glob("#{@directory}/*.rb").select { |f| f =~ /^(\d+)\.rb$/ }.sort.each do |script|
         @version.apply(script)
-      end
-    end
-
-    private
-
-    def scripts
-      Dir.glob("#{@directory}/*.rb").sort.map do |path|
-        basename = File.basename(path)
-        match = basename.match(/^(\d+)\.rb$/)
-        raise 'An upgrade script has to be named <number>.rb.' unless match
-        match[1]
       end
     end
   end

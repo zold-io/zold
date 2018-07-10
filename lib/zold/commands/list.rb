@@ -38,7 +38,7 @@ module Zold
     def run(_ = [])
       @wallets.all.each do |id|
         wallet = Wallet.new(File.join(@wallets.path, id))
-        msg = "#{id}: #{wallet.balance}"
+        msg = "#{id}: #{wallet.balance}/#{wallet.txns.count}t"
         msg += " (net:#{wallet.network})" if wallet.network != Wallet::MAIN_NETWORK
         @log.info(msg)
       end

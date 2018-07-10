@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # Copyright (c) 2018 Yegor Bugayenko
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,12 +18,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# https://github.com/zold-io/zold/issues/358
-# rename all wallets from their current names into *.z
+require_relative '../lib/zold/version'
+require_relative '../lib/zold/wallet'
 
 module Zold
-  # Upgrade to version 2
-  class UpgradeTo2
+  # Upgrade protocol in each wallet
+  class ProtocolUp
     def initialize(home, log)
       @home = home
       @log = log
@@ -33,9 +31,13 @@ module Zold
 
     def exec
       Dir.new(@home).each do |path|
-        next unless path =~ /^[a-f0-9]{16}$/
-        File.rename(path, "#{path}.z")
-        @log.info("Renamed #{path} to #{path}.z")
+        next unless path =~ /^[a-f0-9]{16}#{Wallet::EXTENSION}$/
+        f = File.join(@home, path)
+        lines = File.read(f).split("\n")
+        next if lines[1].to_i == Zold::PROTOCOL
+        lines[1] = Zold::PROTOCOL
+        File.write(f, lines.join("\n"))
+        @log.info("Protocol set to #{Zold::PROTOCOL} in #{f}")
       end
     end
   end
