@@ -41,7 +41,7 @@ require_relative '../node/fake_node'
 class TestNode < Minitest::Test
   # @todo #306:30min This test is failing from time to time
   #  We should find a way to check that tests involved in thread concurrency
-  # are always working
+  #  are always working
   def test_push_and_fetch
     skip
     FakeHome.new.run do |home|
