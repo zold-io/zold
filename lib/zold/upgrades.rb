@@ -48,8 +48,8 @@ module Zold
     def scripts
       Dir.glob("#{@directory}/*.rb").sort.map do |path|
         basename = File.basename(path)
-        match = basename.match(/^(\d+\.\d+\.\d+)\.rb$/)
-        raise 'An upgrade script has to be named <version>.rb.' unless match
+        match = basename.match(/^(\d+)\.rb$/)
+        raise 'An upgrade script has to be named <number>.rb.' unless match
         match[1]
       end
     end
