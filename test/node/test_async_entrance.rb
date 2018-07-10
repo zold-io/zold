@@ -33,8 +33,8 @@ require_relative 'fake_entrance'
 # License:: MIT
 class TestAsyncEntrance < Minitest::Test
   def test_renders_json
-    FakeHome.new.run do
-      Zold::AsyncEntrance.new(FakeEntrance.new, log: test_log).start do |e|
+    FakeHome.new.run do |home|
+      Zold::AsyncEntrance.new(FakeEntrance.new, home.dir, log: test_log).start do |e|
         assert_equal(true, e.to_json[:'pool.running'])
       end
     end
@@ -47,13 +47,10 @@ class TestAsyncEntrance < Minitest::Test
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
       basic = CountingEntrance.new
-      Zold::AsyncEntrance.new(basic, log: test_log).start do |e|
+      Zold::AsyncEntrance.new(basic, File.join(home.dir, 'a/b/c'), log: test_log).start do |e|
         5.times { e.push(wallet.id, File.read(wallet.path)) }
-        sleep 0.1 until e.to_json[:'pool.completed_task_count'] == 5
-        assert_equal(5, basic.count)
-        assert_equal(0, e.to_json[:'pool.queue_length'])
-        assert_equal(5, e.to_json[:'pool.length'])
-        assert_equal(5, e.to_json[:'pool.largest_length'])
+        sleep 0.1 while basic.count.zero?
+        assert(!basic.count.zero?)
       end
     end
   end
@@ -61,12 +58,8 @@ class TestAsyncEntrance < Minitest::Test
   def test_handles_broken_entrance_gracefully
     FakeHome.new.run do |home|
       wallet = home.create_wallet
-      Zold::AsyncEntrance.new(BrokenEntrance.new, log: test_log).start do |e|
+      Zold::AsyncEntrance.new(BrokenEntrance.new, home.dir, log: test_log).start do |e|
         e.push(wallet.id, File.read(wallet.path))
-        sleep 0.1 while e.to_json[:'pool.length'].zero?
-        assert_equal(0, e.to_json[:'pool.queue_length'])
-        assert_equal(1, e.to_json[:'pool.length'])
-        assert_equal(1, e.to_json[:'pool.largest_length'])
       end
     end
   end

@@ -36,6 +36,10 @@ module Zold
     #  - The upgrade scripts run when there is a version file and there are pending upgrade scripts.
     #  - Make sure *only* the correct upgrade scripts run.
     def run
+      # This is a workaround, remove it once this class works correctly
+      require_relative '../../upgrades/2.rb'
+      UpgradeTo2.new(Dir.pwd, @log).exec
+
       scripts.each do |script|
         @version.apply(script)
       end
@@ -46,8 +50,8 @@ module Zold
     def scripts
       Dir.glob("#{@directory}/*.rb").sort.map do |path|
         basename = File.basename(path)
-        match = basename.match(/^(\d+\.\d+\.\d+)\.rb$/)
-        raise 'An upgrade script has to be named <version>.rb.' unless match
+        match = basename.match(/^(\d+)\.rb$/)
+        raise 'An upgrade script has to be named <number>.rb.' unless match
         match[1]
       end
     end

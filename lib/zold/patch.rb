@@ -87,7 +87,7 @@ module Zold
             next
           end
           unless wallet.key.to_s.include?(txn.prefix)
-            @log.error("Payment prefix doesn't match with the key of #{wallet.id}: #{txn.to_text}")
+            @log.error("Payment prefix '#{txn.prefix}' doesn't match with the key of #{wallet.id}: #{txn.to_text}")
             next
           end
           payer = @wallets.find(txn.bnf)

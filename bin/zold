@@ -129,14 +129,14 @@ Available options:"
     exit
   end
 
-  Zold::Upgrades.new(Zold::VersionFile.new('.zoldata/version'), 'upgrades').run
-
   args = opts.arguments
   args << '--help' if opts.help?
   args << "--network=#{opts['network']}"
 
   FileUtils.mkdir_p(opts[:home])
   Dir.chdir(opts[:home])
+
+  Zold::Upgrades.new(Zold::VersionFile.new('.zoldata/version'), 'upgrades').run
 
   wallets = Zold::Wallets.new('.')
   remotes = Zold::Remotes.new('./.zoldata/remotes', network: opts['network'])

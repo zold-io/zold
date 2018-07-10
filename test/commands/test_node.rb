@@ -54,6 +54,7 @@ class TestNode < Minitest::Test
           ['push', '--ignore-score-weakness']
         )
         copies = home.copies(wallet)
+        sleep 2
         Zold::Fetch.new(
           wallets: wallets, copies: copies.root,
           remotes: remotes, log: test_log
