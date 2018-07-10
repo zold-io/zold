@@ -191,5 +191,9 @@ module Zold
     def value
       @suffixes.length
     end
+
+    def zero?
+      equal?(Score::ZERO)
+    end
   end
 end
