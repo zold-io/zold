@@ -84,4 +84,28 @@ class TestPay < Minitest::Test
       assert_equal(Zold::Amount::ZERO, source.balance)
     end
   end
+
+  def test_notifies_about_tax_status
+    FakeHome.new.run do |home|
+      source = home.create_wallet
+      target = home.create_wallet
+      amount = Zold::Amount.new(zld: 14.95)
+      accumulating_log = test_log.dup
+      class << accumulating_log
+        attr_accessor :info_messages
+
+        def info(message)
+          (@info_messages ||= []) << message
+        end
+      end
+      Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: accumulating_log).run(
+        [
+          'pay', '--force', '--private-key=fixtures/id_rsa',
+          source.id.to_s, target.id.to_s, amount.to_zld, 'For the car'
+        ]
+      )
+      assert_equal accumulating_log.info_messages.grep(/^The tax debt/).size, 1,
+        'No info_messages notified user of tax debt'
+    end
+  end
 end

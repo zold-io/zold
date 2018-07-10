@@ -38,6 +38,7 @@ task default: %i[clean test features rubocop xcop copyright]
 require 'rake/testtask'
 desc 'Run all unit tests'
 Rake::TestTask.new(:test) do |test|
+  ENV['TEST_QUIET_LOG'] = 'true' if ARGV.include?('--quiet')
   Rake::Cleaner.cleanup_files(['coverage'])
   test.libs << 'lib' << 'test'
   test.pattern = 'test/**/test_*.rb'
