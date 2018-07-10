@@ -47,11 +47,8 @@ class TestAsyncEntrance < Minitest::Test
       basic = CountingEntrance.new
       Zold::AsyncEntrance.new(basic, File.join(home.dir, 'a/b/c'), log: test_log).start do |e|
         5.times { e.push(wallet.id, File.read(wallet.path)) }
-        sleep 0.1 until e.to_json[:'pool.completed_task_count'] == 5
+        sleep 0.1 while basic.count.zero?
         assert(!basic.count.zero?)
-        assert_equal(0, e.to_json[:'pool.queue_length'])
-        assert_equal(5, e.to_json[:'pool.length'])
-        assert_equal(5, e.to_json[:'pool.largest_length'])
       end
     end
   end
@@ -61,10 +58,6 @@ class TestAsyncEntrance < Minitest::Test
       wallet = home.create_wallet
       Zold::AsyncEntrance.new(BrokenEntrance.new, home.dir, log: test_log).start do |e|
         e.push(wallet.id, File.read(wallet.path))
-        sleep 0.1 while e.to_json[:'pool.length'].zero?
-        assert_equal(0, e.to_json[:'pool.queue_length'])
-        assert_equal(1, e.to_json[:'pool.length'])
-        assert_equal(1, e.to_json[:'pool.largest_length'])
       end
     end
   end

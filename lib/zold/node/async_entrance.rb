@@ -43,11 +43,20 @@ module Zold
 
     def start
       @entrance.start do
-        @pool = Concurrent::FixedThreadPool.new(
-          Concurrent.processor_count * 8,
-          max_queue: Concurrent.processor_count * 32,
-          fallback_policy: :abort
-        )
+        FileUtils.mkdir_p(@dir)
+        size = Concurrent.processor_count * 8
+        @pool = Concurrent::FixedThreadPool.new(size, max_queue: size, fallback_policy: :abort)
+        size.times do
+          @pool.post do
+            VerboseThread.new(@log).run(true) do
+              loop do
+                take
+                break if @pool.shuttingdown?
+                sleep Random.rand(100) / 100
+              end
+            end
+          end
+        end
         begin
           yield(self)
         ensure
@@ -74,15 +83,7 @@ module Zold
     end
 
     def push(id, body)
-      FileUtils.mkdir_p(@dir)
       AtomicFile.new(File.join(@dir, id.to_s)).write(body)
-      @pool.post do
-        VerboseThread.new(@log).run(true) do
-          take
-        end
-      end
-      @log.debug("Pushed #{id}/#{body.length}b to #{@entrance.class.name}, \
-pool: #{@pool.length}/#{@pool.queue_length}")
     end
 
     private
@@ -91,9 +92,7 @@ pool: #{@pool.length}/#{@pool.queue_length}")
       id = ''
       body = ''
       @mutex.synchronize do
-        opts = Dir.new(@dir)
-          .select { |f| f =~ /^[0-9a-f]{16}$/ }
-          .sort_by { |f| File.mtime(File.join(@dir, f)) }
+        opts = queue
         unless opts.empty?
           file = File.join(@dir, opts[0])
           id = opts[0]
@@ -101,7 +100,16 @@ pool: #{@pool.length}/#{@pool.queue_length}")
           File.delete(file)
         end
       end
-      @entrance.push(Id.new(id), body) unless id.empty?
+      return if id.empty?
+      @entrance.push(Id.new(id), body)
+      @log.debug("Pushed #{id}/#{body.length}b to #{@entrance.class.name}, \
+pool: #{@pool.length}/#{@pool.queue_length}")
+    end
+
+    def queue
+      Dir.new(@dir)
+        .select { |f| f =~ /^[0-9a-f]{16}$/ }
+        .sort_by { |f| File.mtime(File.join(@dir, f)) }
     end
   end
 end
