@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'semantic'
 require 'zold/version'
 require 'minitest/autorun'
