@@ -37,11 +37,8 @@ module Minitest
   class Test
     def test_log
       require_relative '../lib/zold/log'
-      @test_log ||= if ENV['TEST_QUIET_LOG'] && ENV['TEST_QUIET_LOG'] != 'false'
-                      Zold::Log::Quiet.new
-                    else
-                      Zold::Log::Verbose.new
-                    end
+      @test_log = Zold::Log::Verbose.new
+      @test_log = Zold::Log::Quiet.new if ENV['TEST_QUIET_LOG']
     end
   end
 end
