@@ -125,7 +125,6 @@ class FarmTest < Minitest::Test
         "0/6: 2018-06-26ABCT00:32:43Z 178.128.165.12 4096 MIRhypo1@c13620484b46caa4\n",
         "some garbage\n"
       ].each do |score_garbage_line|
-        File.write(file, score_garbage_line)
         score = Zold::Score.new(
           Time.parse('2017-07-19T21:24:51Z'),
           'some-host', 9999, 'NOPREFIX@ffffffffffffffff', %w[13f7f01 b2b32b 4ade7e],
