@@ -136,7 +136,7 @@ class FarmTest < Minitest::Test
         end
         farm = Zold::Farm.new('NOPREFIX@ffffffffffffffff', file, log: log)
         assert_equal(1, farm.best.count)
-        assert(log.msg.start_with?('Invalid score'))
+        assert(log.msg.include?('Invalid score'))
       end
     end
   end

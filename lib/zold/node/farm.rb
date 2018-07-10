@@ -177,7 +177,7 @@ module Zold
     def parse_score_line(line)
       Score.parse(line)
     rescue StandardError => e
-      @log.error(e.message)
+      @log.error(Backtrace.new(e).to_s)
       Score::ZERO
     end
   end
