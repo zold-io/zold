@@ -61,7 +61,7 @@ and suggests a different architecture for digital wallet maintenance.'
   s.add_runtime_dependency 'openssl', '~>2.1'
   s.add_runtime_dependency 'rainbow', '~>3.0'
   s.add_runtime_dependency 'rake', '~>12.3' # has to stay here for Heroku
-  s.add_runtime_dependency 'rubocop', '0.58.0' # has to stay here for Heroku
+  s.add_runtime_dependency 'rubocop', '0.58.1' # has to stay here for Heroku
   s.add_runtime_dependency 'rubocop-rspec', '1.27.0' # has to stay here for Heroku
   s.add_runtime_dependency 'semantic', '~>1.6'
   s.add_runtime_dependency 'sigdump', '~>0.2'
