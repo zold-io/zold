@@ -156,6 +156,7 @@ module Zold
         score: score.to_h,
         wallets: settings.wallets.all.count,
         mtime: wallet.mtime.utc.iso8601,
+        digest: wallet.digest,
         body: AtomicFile.new(wallet.path).read
       }.to_json
     end
