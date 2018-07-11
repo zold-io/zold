@@ -23,6 +23,6 @@
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  VERSION  = '0.0.0'.freeze
+  VERSION  = '0.14.6'.freeze
   PROTOCOL = 2
 end
