@@ -25,6 +25,7 @@ require_relative '../log'
 require_relative '../remotes'
 require_relative '../copies'
 require_relative '../tax'
+require_relative '../error'
 require_relative '../commands/merge'
 require_relative '../commands/fetch'
 require_relative '../commands/push'
@@ -60,16 +61,19 @@ module Zold
         File.write(f, body)
         wallet = Wallet.new(f.path)
         unless wallet.network == @network
-          raise "The network name mismatch, the wallet is in '#{wallet.network}', we are in '#{@network}'"
+          raise Error::InvalidWallet,
+                "The network name mismatch, the wallet is in '#{wallet.network}', we are in '#{@network}'"
         end
         balance = wallet.balance
         if balance.negative? && !wallet.root?
-          raise "The balance #{balance} of #{wallet.id} is negative and it's not a root wallet"
+          raise Error::NegativeBalance,
+                "The balance #{balance} of #{wallet.id} is negative and it's not a root wallet"
         end
         Emission.new(wallet).check
         tax = Tax.new(wallet)
         if tax.in_debt?
-          raise "Taxes are not paid, can't accept the wallet; the debt is #{tax.debt} (#{tax.debt.to_i} zents)"
+          raise Error::TaxDebt,
+                "Taxes are not paid, can't accept the wallet; the debt is #{tax.debt} (#{tax.debt.to_i} zents)"
         end
         @entrance.push(id, body)
       end

@@ -32,6 +32,7 @@ require_relative '../log'
 require_relative '../id'
 require_relative '../http'
 require_relative '../atomic_file'
+require_relative '../error'
 
 # The web front of the node.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -263,6 +264,12 @@ module Zold
       status 404
       content_type 'text/plain'
       "Page not found: #{request.url}"
+    end
+
+    error Error::NegativeBalance do
+      status 402
+      content_type 'text/plain'
+      env['sinatra.error'].message
     end
 
     error 400 do

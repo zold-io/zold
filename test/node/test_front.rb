@@ -113,6 +113,19 @@ class FrontTest < Minitest::Test
     end
   end
 
+  def test_402_on_negative_balance
+    FakeHome.new.run do |home|
+      FakeNode.new(log: test_log).run do |port|
+        wallet = home.create_wallet
+        amount = Zold::Amount.new(zld: 39.99)
+        key = Zold::Key.new(file: File.join(home.dir, 'id_rsa'))
+        wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
+        response = Zold::Http.new("http://localhost:#{port}/wallet/#{wallet.id}?sync=true").put(File.read(wallet.path))
+        assert_equal('402', response.code, response.body)
+      end
+    end
+  end
+
   def test_different_logos
     {
       '0' => 'https://www.zold.io/images/logo-red.png',

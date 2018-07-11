@@ -36,9 +36,9 @@ class TestSafeEntrance < Minitest::Test
     FakeHome.new.run do |home|
       wallet = home.create_wallet
       amount = Zold::Amount.new(zld: 39.99)
-      key = Zold::Key.new(file: 'fixtures/id_rsa')
+      key = Zold::Key.new(file: File.join(home.dir, 'id_rsa'))
       wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
-      assert_raises StandardError do
+      assert_raises Zold::Error::NegativeBalance do
         Zold::SafeEntrance.new(FakeEntrance.new).push(wallet.id, File.read(wallet.path))
       end
     end
@@ -48,7 +48,7 @@ class TestSafeEntrance < Minitest::Test
     FakeHome.new.run do |home|
       wallet = Zold::Wallet.new(File.join(home.dir, 'wallet'))
       wallet.init(Zold::Id.new, Zold::Key.new(file: 'fixtures/id_rsa.pub'), network: 'someothernetwork')
-      assert_raises StandardError do
+      assert_raises Zold::Error::InvalidWallet do
         Zold::SafeEntrance.new(FakeEntrance.new).push(wallet.id, File.read(wallet.path))
       end
     end
