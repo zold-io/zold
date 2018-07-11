@@ -94,12 +94,14 @@ module Zold
     end
 
     def push(id, body)
-      @entrance.push(id, body).each do |m|
+      mods = @entrance.push(id, body)
+      (mods + [id]).each do |m|
         next if @seen.include?(m)
         @seen << m
         @modified.push(m)
         @log.debug("Push scheduled for #{m}, queue size is #{@modified.size}")
       end
+      mods
     end
   end
 end

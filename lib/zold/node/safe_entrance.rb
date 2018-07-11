@@ -61,10 +61,10 @@ module Zold
         wallet = Wallet.new(f.path)
         wallet.refurbish
         unless wallet.protocol == Zold::PROTOCOL
-          raise "The protocol mismatch, the wallet is in '#{wallet.protocol}', we are in '#{Zold::PROTOCOL}'"
+          raise "Protocol mismatch, #{wallet.id} is in '#{wallet.protocol}', we are in '#{Zold::PROTOCOL}'"
         end
         unless wallet.network == @network
-          raise "The network name mismatch, the wallet is in '#{wallet.network}', we are in '#{@network}'"
+          raise "Network name mismatch, #{wallet.id} is in '#{wallet.network}', we are in '#{@network}'"
         end
         balance = wallet.balance
         if balance.negative? && !wallet.root?
