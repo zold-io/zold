@@ -165,6 +165,10 @@ module Zold
         .sort_by { |t| [t.date, t.amount * -1] }
     end
 
+    def refurbish
+      AtomicFile.new(@file).write("#{network}\n#{protocol}\n#{id}\n#{key.to_pub}\n\n#{txns.join("\n")}\n")
+    end
+
     private
 
     def max
