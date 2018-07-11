@@ -35,7 +35,7 @@ require_relative '../commands/push'
 module Zold
   # The entrance
   class Entrance
-    def initialize(wallets, remotes, copies, address, log: Log::Quiet.new)
+    def initialize(wallets, remotes, copies, address, log: Log::Quiet.new, network: 'test')
       raise 'Wallets can\'t be nil' if wallets.nil?
       raise 'Wallets must implement the contract of Wallets: method #find is required' unless wallets.respond_to?(:find)
       @wallets = wallets
@@ -48,6 +48,8 @@ module Zold
       @address = address
       raise 'Log can\'t be nil' if log.nil?
       @log = log
+      raise 'Network can\'t be nil' if network.nil?
+      @network = network
       @history = []
       @mutex = Mutex.new
     end
@@ -74,7 +76,7 @@ module Zold
       unless @remotes.all.empty?
         Fetch.new(
           wallets: @wallets, remotes: @remotes, copies: copies.root, log: @log
-        ).run(['fetch', id.to_s, "--ignore-node=#{@address}"])
+        ).run(['fetch', id.to_s, "--ignore-node=#{@address}", "--network=#{@network}"])
       end
       modified = Merge.new(
         wallets: @wallets, copies: copies.root, log: @log

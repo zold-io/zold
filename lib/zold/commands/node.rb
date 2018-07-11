@@ -173,7 +173,7 @@ module Zold
       SafeEntrance.new(
         AsyncEntrance.new(
           SpreadEntrance.new(
-            Entrance.new(@wallets, @remotes, @copies, address, log: @log),
+            Entrance.new(@wallets, @remotes, @copies, address, log: @log, network: opts['network']),
             @wallets, @remotes, address,
             log: @log,
             ignore_score_weakeness: opts['ignore-score-weakness']

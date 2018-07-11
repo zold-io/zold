@@ -107,7 +107,7 @@ Available options:"
           raise "Protocol #{wallet.protocol} doesn't match #{Zold::PROTOCOL} in #{id}"
         end
         if wallet.network != opts['network']
-          raise "The wallet #{id} is in network #{wallet.network}, while we are in #{opts['network']}"
+          raise "The wallet #{id} is in network '#{wallet.network}', while we are in '#{opts['network']}'"
         end
         if wallet.balance.negative? && !wallet.root?
           raise "The balance of #{id} is #{wallet.balance} and it's not a root wallet"
