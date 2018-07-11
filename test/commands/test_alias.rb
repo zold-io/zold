@@ -5,6 +5,8 @@ require_relative '../../lib/zold/commands/alias'
 
 class TestAlias < Minitest::Test
   # alias set <wallet> <alias>
+  # @todo #322:30min Implement the set command and unskip this test.
+  #  The syntax is already documented in the alias command in the help.
   def test_set_writes_alias_to_the_alias_file
     skip
     FakeHome.new.run do |home|
@@ -15,6 +17,8 @@ class TestAlias < Minitest::Test
   end
 
   # alias remove <alias>
+  # @todo #322:30min Implement the remove command and unskip this test.
+  #  The syntax is already documented in the alias command in the help.
   def test_remove_removes_the_alias_from_the_alias_file
     skip
     FakeHome.new.run do |home|
@@ -28,6 +32,8 @@ class TestAlias < Minitest::Test
   end
 
   # alias show <alias>
+  # @todo #322:30min Implement the show command and unskip this test.
+  #  The syntax is already documented in the alias command in the help.
   def test_show_prints_out_the_aliased_wallet_id
     skip
     FakeHome.new.run do |home|
