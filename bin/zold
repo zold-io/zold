@@ -187,7 +187,7 @@ Available options:"
     Zold::Push.new(wallets: wallets, remotes: remotes, log: log).run(args)
   when 'alias'
     require_relative '../lib/zold/commands/alias'
-    Zold::Alias.new(wallets: wallets, remotes: remotes, log: log).run(args)
+    Zold::Alias.new(wallets: wallets, log: log).run(args)
   when 'score'
     require_relative '../lib/zold/commands/calculate'
     Zold::Calculate.new(log: log).run(args)
