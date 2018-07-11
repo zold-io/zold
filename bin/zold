@@ -138,6 +138,16 @@ Available options:"
 
   Zold::Upgrades.new(Zold::VersionFile.new('.zoldata/version'), 'upgrades').run
 
+  # @todo #384:30min This is a workaround, move this code into Upgrades, somehow.
+  #  We should find a way to run these arbitrary scripts and pass arguments
+  #  to them. Each of them may need its own set of arguments.
+  require_relative '../upgrades/2'
+  Zold::UpgradeTo2.new(Dir.pwd, log).exec
+  require_relative '../upgrades/protocol_up'
+  Zold::ProtocolUp.new(Dir.pwd, log).exec
+  require_relative '../upgrades/rename_foreign_wallets'
+  Zold::RenameForeignWallets.new(Dir.pwd, opts['network'], log).exec
+
   wallets = Zold::Wallets.new('.')
   remotes = Zold::Remotes.new('./.zoldata/remotes', network: opts['network'])
   copies = './.zoldata/copies'

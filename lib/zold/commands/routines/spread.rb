@@ -47,7 +47,7 @@ module Zold
           @entrance.push(id, File.read(@wallets.find(id).path))
           pushed << id
         end
-        @log.info("Spread #{pushed.count} random wallets out of #{@wallets.all.count}: #{pushed.join}")
+        @log.info("Spread #{pushed.count} random wallets out of #{@wallets.all.count}: #{pushed.join(', ')}")
       end
     end
   end
