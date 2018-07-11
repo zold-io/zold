@@ -36,9 +36,11 @@ class TestPrefixes < Minitest::Test
       wallet = home.create_wallet
       prefixes = Zold::Prefixes.new(wallet)
       (8..32).each do |len|
-        prefix = prefixes.create(len)
-        assert_equal(len, prefix.length)
-        assert(prefixes.valid?(prefix))
+        50.times do
+          prefix = prefixes.create(len)
+          assert_equal(len, prefix.length)
+          assert(wallet.prefix?(prefix), "Prefix '#{prefix}' not found")
+        end
       end
     end
   end

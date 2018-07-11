@@ -134,6 +134,10 @@ module Zold
       !txns.find { |t| t.id == id && t.bnf == bnf }.nil?
     end
 
+    def prefix?(prefix)
+      key.to_pub.include?(prefix)
+    end
+
     def key
       Key.new(text: lines[3].strip)
     end
