@@ -10,11 +10,18 @@ module Zold
   # If the data is up-to-date, the version of the data is equal to
   # Zold::VERSION.
   #
-  # If the version is lower than Zold::VERSION, upgrade scripts from
-  # `upgrades/` have to run. They are named `<version>.rb`, so for
-  # instance `upgrades/0.0.1.rb` etc.
+  # By comparing Zold::VERSION with the data version we determine
+  # which upgrade scripts will be executed.
   #
-  # Only the scripts from the data version up need to run.
+  # If the data version is the same as Zold::VERSION, the data is
+  # up to date.
+  #
+  # If the data version is lower than Zold::VERSION, we will look into
+  # the `upgrades/` directory and any scripts from the data version
+  # up will be executed.
+  #
+  # The version of an upgrade script is extracted from the name
+  # which is formatted as`<version>.rb`, so for instance `upgrades/0.0.1.rb` etc.
   #
   # If there is no version file, as it would if the data were created
   # by a version of Zold that doesn't have this class implemented yet,
