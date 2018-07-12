@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'slop'
 require 'rainbow'
 require_relative 'args'

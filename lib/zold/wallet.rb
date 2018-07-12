@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2018 Yegor Bugayenko
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -43,10 +45,10 @@ module Zold
   class Wallet
     # The name of the main production network. All other networks
     # must have different names.
-    MAIN_NETWORK = 'zold'.freeze
+    MAIN_NETWORK = 'zold'
 
     # The extension of the wallet files
-    EXTENSION = '.z'.freeze
+    EXTENSION = '.z'
 
     def initialize(file)
       @file = file

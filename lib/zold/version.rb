@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2018 Yegor Bugayenko
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,6 +25,6 @@
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  VERSION  = '0.0.0'.freeze
-  PROTOCOL = 2
+  VERSION  = '0.0.0'
+  PROTOCOL = 1
 end
