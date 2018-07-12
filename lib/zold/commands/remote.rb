@@ -251,10 +251,13 @@ in #{(Time.now - start).round(2)}s")
       end
     end
 
-    # @todo #292:30min Implement the logic of selecting the nodes as per #292.
-    #  The strongest n nodes should be selected, where n = opts['max-nodes'].
-    def select(_opts)
-      raise NotImplementedError, 'This feature is not yet implemented.'
+    def select(opts)
+      max_nodes = opts['max-nodes']
+      @log.info("Selecting #{max_nodes} strongest nodes.")
+      selected_remotes = @remotes.all.sort_by { |remote| remote[:score] }.first(max_nodes)
+      (@remotes.all - selected_remotes).each do |weak_remote|
+        @remotes.remove(weak_remote[:host], weak_remote[:port])
+      end
     end
 
     def terminate
