@@ -36,12 +36,6 @@ module Zold
     #  - The upgrade scripts run when there is a version file and there are pending upgrade scripts.
     #  - Make sure *only* the correct upgrade scripts run.
     def run
-      # This is a workaround, remove it once this class works correctly
-      require_relative '../../upgrades/2.rb'
-      UpgradeTo2.new(Dir.pwd, @log).exec
-      require_relative '../../upgrades/protocol_up.rb'
-      ProtocolUp.new(Dir.pwd, @log).exec
-
       Dir.glob("#{@directory}/*.rb").select { |f| f =~ /^(\d+)\.rb$/ }.sort.each do |script|
         @version.apply(script)
       end

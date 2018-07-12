@@ -54,7 +54,7 @@ class TestSpreadEntrance < Minitest::Test
         remotes.add('localhost', port)
         Zold::SpreadEntrance.new(FakeEntrance.new, home.wallets, remotes, 'x', log: test_log).start do |e|
           8.times { e.push(wallet.id, File.read(wallet.path)) }
-          assert(e.to_json[:modified] < 2)
+          assert(e.to_json[:modified] < 2, "It's too big: #{e.to_json[:modified]}")
         end
       end
     end

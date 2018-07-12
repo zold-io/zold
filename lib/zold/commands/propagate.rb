@@ -73,7 +73,7 @@ Available options:"
           next
         end
         next if target.has?(t.id, me)
-        unless Prefixes.new(target).valid?(t.prefix)
+        unless target.prefix?(t.prefix)
           @log.error("#{t.amount * -1} to #{t.bnf}: wrong prefix")
           next
         end

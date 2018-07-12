@@ -227,13 +227,6 @@ module Zold
         status 304
         return
       end
-      if before != after && before.length == after.length
-        settings.log.debug(
-          "Weird... the wallet #{id} is of the same length #{after.length}, but the content is different:\n" +
-          Diffy::Diff.new(before, after, context: 0).to_s
-        )
-      end
-      settings.log.info("Wallet #{id} is new: #{before.length}b != #{after.length}b")
       settings.entrance.push(id, after)
       JSON.pretty_generate(
         version: settings.version,

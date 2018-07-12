@@ -23,6 +23,9 @@
 require 'minitest/autorun'
 require 'tmpdir'
 require 'time'
+require_relative 'fake_home'
+require_relative 'test__helper'
+require_relative '../lib/zold/id'
 require_relative '../lib/zold/copies'
 require_relative '../lib/zold/wallet'
 
@@ -33,32 +36,32 @@ require_relative '../lib/zold/wallet'
 class TestCopies < Minitest::Test
   def test_adds_and_removes_copies
     Dir.mktmpdir 'test' do |dir|
-      copies = Zold::Copies.new(File.join(dir, 'my/a/copies'))
-      copies.add('hello 1', '192.168.0.1', 80, 1)
-      copies.add('hello 2', '192.168.0.2', 80, 3)
-      copies.add('hello 2', '192.168.0.3', 80, 7)
-      copies.add('hello 1', '192.168.0.4', 80, 10)
-      copies.add('hello-to-delete', '192.168.0.5', 80, 10)
+      copies = Zold::Copies.new(File.join(dir, 'my/a/copies'), log: test_log)
+      copies.add(content('alpha'), '192.168.0.1', 80, 1)
+      copies.add(content('beta'), '192.168.0.2', 80, 3)
+      copies.add(content('beta'), '192.168.0.3', 80, 7)
+      copies.add(content('alpha'), '192.168.0.4', 80, 10)
+      copies.add(content('hello-to-delete'), '192.168.0.5', 80, 10)
       copies.remove('192.168.0.5', 80)
-      assert(2, copies.all.count)
-      assert(copies.all.find { |c| c[:name] == '1' }[:score] == 11)
+      assert_equal(2, copies.all.count)
+      assert_equal(11, copies.all.find { |c| c[:name] == '1' }[:score])
     end
   end
 
   def test_lists_empty_dir
     Dir.mktmpdir 'test' do |dir|
-      copies = Zold::Copies.new(File.join(dir, 'xxx'))
+      copies = Zold::Copies.new(File.join(dir, 'xxx'), log: test_log)
       assert(copies.all.empty?, "#{copies.all.count} is not zero")
     end
   end
 
   def test_overwrites_host
     Dir.mktmpdir 'test' do |dir|
-      copies = Zold::Copies.new(File.join(dir, 'my/a/copies'))
+      copies = Zold::Copies.new(File.join(dir, 'my/a/copies-2'), log: test_log)
       host = 'b1.zold.io'
-      copies.add('z1', host, 80, 5)
-      copies.add('z1', host, 80, 6)
-      copies.add('z1', host, 80, 7)
+      copies.add(content('z1'), host, 80, 5)
+      copies.add(content('z1'), host, 80, 6)
+      copies.add(content('z1'), host, 80, 7)
       assert(copies.all.count == 1, "#{copies.all.count} is not equal to 1")
       assert(copies.all[0][:score] == 7, "#{copies.all[0][:score]} is not 7")
     end
@@ -66,9 +69,9 @@ class TestCopies < Minitest::Test
 
   def test_cleans_copies
     Dir.mktmpdir 'test' do |dir|
-      copies = Zold::Copies.new(dir)
-      copies.add('h1', 'zold.io', 50, 80, Time.now - 25 * 60 * 60)
-      copies.add('h1', 'zold.io', 33, 80, Time.now - 26 * 60 * 60)
+      copies = Zold::Copies.new(dir, log: test_log)
+      copies.add(content('h1'), 'zold.io', 4096, 10, Time.now - 25 * 60 * 60)
+      copies.add(content('h1'), 'zold.io', 4097, 20, Time.now - 26 * 60 * 60)
       assert(File.exist?(File.join(dir, "1#{Zold::Wallet::EXTENSION}")))
       copies.clean
       assert(copies.all.empty?, "#{copies.all.count} is not empty")
@@ -76,10 +79,19 @@ class TestCopies < Minitest::Test
     end
   end
 
+  def test_cleans_broken_copies
+    Dir.mktmpdir 'test' do |dir|
+      copies = Zold::Copies.new(dir, log: test_log)
+      copies.add('broken wallet content', 'zold.io', 4096, 10, Time.now)
+      copies.clean
+      assert(copies.all.empty?, "#{copies.all.count} is not empty")
+    end
+  end
+
   def test_ignores_garbage
     Dir.mktmpdir 'test' do |dir|
-      copies = Zold::Copies.new(dir)
-      copies.add('h1', 'zold.io', 50, 80, Time.now - 25 * 60 * 60)
+      copies = Zold::Copies.new(dir, log: test_log)
+      copies.add(content('h1'), 'zold.io', 50, 80, Time.now - 25 * 60 * 60)
       FileUtils.mkdir(File.join(dir, '55'))
       assert_equal(1, copies.all.count)
     end
@@ -87,20 +99,33 @@ class TestCopies < Minitest::Test
 
   def test_sorts_them_by_score
     Dir.mktmpdir 'test' do |dir|
-      copies = Zold::Copies.new(dir)
-      copies.add('content-1', '1.zold.io', 80, 1)
-      copies.add('content-2', '2.zold.io', 80, 2)
-      copies.add('content-3', '3.zold.io', 80, 50)
-      copies.add('content-4', '4.zold.io', 80, 3)
+      copies = Zold::Copies.new(dir, log: test_log)
+      copies.add(content('content-1'), '1.zold.io', 80, 1)
+      copies.add(content('content-2'), '2.zold.io', 80, 2)
+      copies.add(content('content-3'), '3.zold.io', 80, 50)
+      copies.add(content('content-4'), '4.zold.io', 80, 3)
       assert_equal('50 3 2 1', copies.all.map { |c| c[:score] }.join(' '))
     end
   end
 
   def test_ignores_too_old_scores
     Dir.mktmpdir 'test' do |dir|
-      copies = Zold::Copies.new(dir)
-      copies.add('h1', 'zold.io', 50, 80, Time.now - 1000 * 60 * 60)
+      copies = Zold::Copies.new(dir, log: test_log)
+      copies.add(content('h1'), 'zold.io', 50, 80, Time.now - 1000 * 60 * 60)
       assert_equal(0, copies.all[0][:score])
+    end
+  end
+
+  private
+
+  def content(text)
+    id = Zold::Id.new('aaaabbbbccccdddd')
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet(id)
+      amount = Zold::Amount.new(zld: 1.99)
+      key = Zold::Key.new(file: 'fixtures/id_rsa')
+      wallet.sub(amount, "NOPREFIX@#{id}", key, text)
+      File.read(wallet.path)
     end
   end
 end

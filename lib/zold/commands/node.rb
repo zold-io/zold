@@ -100,14 +100,6 @@ module Zold
         o.string '--expose-version',
           "The version of the software to expose in JSON (default: #{VERSION})",
           default: VERSION
-        o.string '--bonus-wallet',
-          'The ID of the wallet to regularly send bonuses from (for nodes online)'
-        o.integer '--bonus-time',
-          'The amount of minutes to wait between bonus awards (default: 60)',
-          default: 60
-        o.string '--bonus-amount',
-          'The amount of ZLD to pay to each remote as a bonus',
-          default: '1'
         o.string '--private-key',
           'The location of RSA private key (default: ~/.ssh/id_rsa)',
           default: '~/.ssh/id_rsa'
@@ -175,7 +167,7 @@ module Zold
       SafeEntrance.new(
         AsyncEntrance.new(
           SpreadEntrance.new(
-            Entrance.new(@wallets, @remotes, @copies, address, log: @log),
+            Entrance.new(@wallets, @remotes, @copies, address, log: @log, network: opts['network']),
             @wallets, @remotes, address,
             log: @log,
             ignore_score_weakeness: opts['ignore-score-weakness']
@@ -258,11 +250,7 @@ module Zold
       metronome.add(Routines::Spread.new(opts, @wallets, entrance, log: @log))
       unless opts['standalone']
         require_relative 'routines/reconnect'
-        metronome.add(Routines::Reconnect.new(opts, @remotes, farm, log: @log))
-      end
-      if opts['bonus-wallet']
-        require_relative 'routines/bonuses'
-        metronome.add(Routines::Bonuses.new(opts, @wallets, @remotes, @copies, farm, log: @log))
+        metronome.add(Routines::Reconnect.new(opts, @remotes, farm, log: Log::Quiet.new))
       end
       @log.info('Metronome created')
       metronome

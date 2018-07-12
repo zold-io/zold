@@ -54,11 +54,16 @@ class TestNode < Minitest::Test
           ['push', '--ignore-score-weakness']
         )
         copies = home.copies(wallet)
-        sleep 2
-        Zold::Fetch.new(
-          wallets: wallets, copies: copies.root,
-          remotes: remotes, log: test_log
-        ).run(['fetch', '--ignore-score-weakness'])
+        begin
+          retries ||= 0
+          Zold::Fetch.new(
+            wallets: wallets, copies: copies.root,
+            remotes: remotes, log: test_log
+          ).run(['fetch', '--ignore-score-weakness'])
+        rescue StandardError => _
+          sleep 1
+          retry if (retries += 1) < 3
+        end
         assert_equal(1, copies.all.count)
         assert_equal('1', copies.all[0][:name])
       end

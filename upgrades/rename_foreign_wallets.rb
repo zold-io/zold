@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # Copyright (c) 2018 Yegor Bugayenko
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,29 +18,26 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'minitest/autorun'
-require 'tmpdir'
-require_relative 'fake_home'
-require_relative '../lib/zold/key'
-require_relative '../lib/zold/id'
+require_relative '../lib/zold/version'
 require_relative '../lib/zold/wallet'
-require_relative '../lib/zold/prefixes'
 
-# Prefixes test.
-# Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
-# License:: MIT
-class TestPrefixes < Minitest::Test
-  def test_creates_and_validates
-    FakeHome.new.run do |home|
-      wallet = home.create_wallet
-      prefixes = Zold::Prefixes.new(wallet)
-      (8..32).each do |len|
-        50.times do
-          prefix = prefixes.create(len)
-          assert_equal(len, prefix.length)
-          assert(wallet.prefix?(prefix), "Prefix '#{prefix}' not found")
-        end
+module Zold
+  # Rename wallets that belong to another network
+  class RenameForeignWallets
+    def initialize(home, network, log)
+      @home = home
+      @network = network
+      @log = log
+    end
+
+    def exec
+      Dir.new(@home).each do |path|
+        next unless path =~ /^[a-f0-9]{16}#{Wallet::EXTENSION}$/
+        f = File.join(@home, path)
+        wallet = Wallet.new(f)
+        next if wallet.network == @network
+        @log.info("Wallet #{wallet.id} renamed, since it's in #{wallet.network}, while we are in #{@network} network")
+        File.rename(f, f + '-old')
       end
     end
   end

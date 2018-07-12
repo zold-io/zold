@@ -25,6 +25,7 @@ require 'csv'
 require_relative 'atomic_file'
 require_relative 'log'
 require_relative 'wallet'
+require_relative 'backtrace'
 
 # The list of copies.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -55,13 +56,25 @@ module Zold
         list.reject! { |s| s[:time] < Time.now - 24 * 60 * 60 }
         save(list)
         deleted = 0
-        Dir.new(@dir).select { |f| File.basename(f, Wallet::EXTENSION) =~ /^[0-9]+$/ }.each do |f|
+        files.each do |f|
           next unless list.find { |s| s[:name] == File.basename(f, Wallet::EXTENSION) }.nil?
           file = File.join(@dir, f)
           size = File.size(file)
           File.delete(file)
-          @log.debug("Copy ##{f} deleted: #{size}b")
+          @log.debug("Copy at #{f} deleted: #{size}b")
           deleted += 1
+        end
+        files.each do |f|
+          file = File.join(@dir, f)
+          wallet = Wallet.new(file)
+          begin
+            wallet.refurbish
+            raise "Invalid protocol #{wallet.protocol} in #{file}" unless wallet.protocol == Zold::PROTOCOL
+          rescue StandardError => e
+            File.delete(file)
+            @log.debug("Copy at #{f} deleted: #{Backtrace.new(e)}")
+            deleted += 1
+          end
         end
         deleted
       end
@@ -153,6 +166,10 @@ module Zold
           ].join(',')
         end.join("\n")
       )
+    end
+
+    def files
+      Dir.new(@dir).select { |f| File.basename(f, Wallet::EXTENSION) =~ /^[0-9]+$/ }
     end
 
     def file

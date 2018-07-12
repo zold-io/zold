@@ -59,12 +59,13 @@ module Zold
             start = Time.now
             begin
               r.exec(step)
+              @log.info("Routine #{r.class.name} ##{step} done in #{(Time.now - start).round(2)}s")
             rescue StandardError => e
               @failures[r.class.name] = Backtrace.new(e).to_s
+              @log.error("Routine #{r.class.name} ##{step} failed in #{(Time.now - start).round(2)}s")
+              @log.error(Backtrace.new(e).to_s)
             end
             step += 1
-            @log.info("Routine #{r.class.name} ##{step} done in #{(Time.now - start).round(2)}s: \
-#{@threads.map { |t| "#{t.name}/#{t.status}" }.join(',')}")
             sleep(1)
           end
         end

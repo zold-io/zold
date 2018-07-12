@@ -59,8 +59,12 @@ Available options:"
 
     def clean(cps, _)
       deleted = cps.clean
-      @log.debug("#{deleted} expired local copies removed for #{cps}, \
-#{cps.all.count} left")
+      @log.debug("#{deleted} expired local copies removed for #{cps}, #{cps.all.count} left:")
+      cps.all.each do |c|
+        wallet = Wallet.new(c[:path])
+        @log.debug("  #{c[:name]}: #{c[:score]} #{wallet.balance}/#{wallet.txns.count}t/\
+#{wallet.digest[0, 6]}/#{File.size(c[:path])}b")
+      end
     end
   end
 end

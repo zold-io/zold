@@ -28,6 +28,15 @@ require_relative '../../lib/zold/log'
 require_relative '../../lib/zold/node/farm'
 
 class FarmTest < Minitest::Test
+  class SaveLastMessageLogger
+    attr_reader :msg
+    def error(msg)
+      @msg = msg
+    end
+
+    def debug(msg); end
+  end
+
   def test_renders_in_json
     Dir.mktmpdir 'test' do |dir|
       farm = Zold::Farm.new('NOPREFIX@ffffffffffffffff', File.join(dir, 'f'), log: test_log)
@@ -106,6 +115,30 @@ class FarmTest < Minitest::Test
           break if b.value.zero?
         end
         assert_equal(0, farm.best[0].value)
+      end
+    end
+  end
+
+  def test_garbage_farm_file
+    log = SaveLastMessageLogger.new
+    Dir.mktmpdir 'test' do |dir|
+      file = File.join(dir, 'corrupted_farm')
+      [
+        '0/6: 2018-06-26ABCT00:32:43Z 178.128.165.12 4096 MIRhypo1@c13620484b46caa4',
+        'some garbage'
+      ].each do |score_garbage_line|
+        valid_score = Zold::Score.new(
+          Time.parse('2017-07-19T21:24:51Z'),
+          'some-host', 9999, 'NOPREFIX@ffffffffffffffff', %w[13f7f01 b2b32b 4ade7e],
+          strength: 6
+        )
+        File.open(file, 'w') do |f|
+          f.puts(score_garbage_line)
+          f.puts(valid_score)
+        end
+        farm = Zold::Farm.new('NOPREFIX@ffffffffffffffff', file, log: log)
+        assert_equal(1, farm.best.count)
+        assert(log.msg.include?('Invalid score'))
       end
     end
   end
