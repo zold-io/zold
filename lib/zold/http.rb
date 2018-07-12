@@ -56,12 +56,12 @@ module Zold
     #  that is already taken care of in another issue. I am leaving a todo
     #  to check that rubocop doesn't complain anymore, otherwise find another
     #  solution
-    attribute :uri, Types::Class.constructor { |value|
+    attribute :uri, (Types::Class.constructor do |value|
       value.is_a?(URI) ? value : URI(value)
-    }
-    attribute :score, Types::Class.constructor { |value|
+    end)
+    attribute :score, (Types::Class.constructor do |value|
       value.nil? ? Score::ZERO : value
-    }
+    end)
     attribute :network, Types::Strict::String.optional.default('test')
 
     def get

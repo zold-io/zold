@@ -128,9 +128,9 @@ class FarmTest < Minitest::Test
         'some garbage'
       ].each do |score_garbage_line|
         valid_score = Zold::Score.new(
-          Time.parse('2017-07-19T21:24:51Z'),
-          'some-host', 9999, 'NOPREFIX@ffffffffffffffff', %w[13f7f01 b2b32b 4ade7e],
-          strength: 6
+          time: Time.parse('2017-07-19T21:24:51Z'),
+          host: 'some-host', port: 9999, invoice: 'NOPREFIX@ffffffffffffffff',
+          suffixes: %w[13f7f01 b2b32b 4ade7e], strength: 6
         )
         File.open(file, 'w') do |f|
           f.puts(score_garbage_line)
