@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2018 Yegor Bugayenko
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -138,7 +140,7 @@ Available options:"
 
     def show
       @remotes.all.each do |r|
-        score = Rainbow("/#{r[:score]}").color(r[:score] > 0 ? :green : :red)
+        score = Rainbow("/#{r[:score]}").color(r[:score].positive? ? :green : :red)
         @log.info(r[:host] + Rainbow(":#{r[:port]}").gray + score)
       end
     end

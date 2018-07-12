@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2018 Yegor Bugayenko
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -42,7 +44,7 @@ class FarmTest < Minitest::Test
         sleep 0.1 while farm.best.empty? || farm.best[0].value.zero?
         count = 0
         100.times { count += farm.to_json[:best].length }
-        assert(count > 0)
+        assert(count.positive?)
       end
     end
   end
@@ -63,7 +65,7 @@ class FarmTest < Minitest::Test
         sleep 0.1 while farm.best.empty? || farm.best[0].value.zero?
         score = farm.best[0]
         assert(!score.expired?)
-        assert(score.value > 0)
+        assert(score.value.positive?)
       end
     end
   end

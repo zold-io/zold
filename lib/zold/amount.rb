@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2018 Yegor Bugayenko
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -106,7 +108,7 @@ module Zold
     end
 
     def negative?
-      @coins < 0
+      @coins.negative?
     end
 
     def *(other)

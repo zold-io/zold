@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2018 Yegor Bugayenko
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -49,7 +51,7 @@ module Zold
     DAYS_INCREMENT = 32
 
     # Text prefix for taxes details
-    PREFIX = 'TAXES'.freeze
+    PREFIX = 'TAXES'
 
     def initialize(wallet)
       @wallet = wallet

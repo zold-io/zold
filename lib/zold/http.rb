@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2018 Yegor Bugayenko
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -36,17 +38,17 @@ module Zold
     # HTTP header we add to each HTTP request, in order to inform
     # the other node about the score. If the score is big enough,
     # the remote node will add us to its list of remote nodes.
-    SCORE_HEADER = 'X-Zold-Score'.freeze
+    SCORE_HEADER = 'X-Zold-Score'
 
     # HTTP header we add, in order to inform the node about our
     # version. This is done mostly in order to let the other node
     # reboot itself, if the version is higher.
-    VERSION_HEADER = 'X-Zold-Version'.freeze
+    VERSION_HEADER = 'X-Zold-Version'
 
     # HTTP header we add, in order to inform the node about our
     # network. This is done in order to isolate test networks from
     # production one.
-    NETWORK_HEADER = 'X-Zold-Network'.freeze
+    NETWORK_HEADER = 'X-Zold-Network'
 
     # @todo #98:30m/DEV The following two statements are seen as issues by rubocop
     #  raising a Lint/AmbiguousBlockAssociation offense. It is somthing
