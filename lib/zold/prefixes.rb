@@ -35,19 +35,14 @@ module Zold
     def create(length = 8)
       raise "Length #{length} is too small" if length < 8
       raise "Length #{length} is too big" if length > 32
-      key = body
-      start = Random.new.rand(key.length - length)
-      key[start..(start + length - 1)]
-    end
-
-    def valid?(prefix)
-      body.include?(prefix)
-    end
-
-    private
-
-    def body
-      @wallet.key.to_pub.gsub(/[^A-Z0-9a-z]/, '')
+      key = @wallet.key.to_pub
+      prefix = ''
+      rnd = Random.new
+      until prefix =~ /^[a-zA-Z0-9]+$/
+        start = rnd.rand(key.length - length)
+        prefix = key[start..(start + length - 1)]
+      end
+      prefix
     end
   end
 end

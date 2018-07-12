@@ -44,7 +44,19 @@ class TestWallet < Minitest::Test
         wallet.balance == amount * -3,
         "#{wallet.balance} is not equal to #{amount * -3}"
       )
-      assert_equal('1', wallet.protocol)
+    end
+  end
+
+  def test_refurbishes_wallet
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      amount = Zold::Amount.new(zld: 5.99)
+      key = Zold::Key.new(file: 'fixtures/id_rsa')
+      wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
+      wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
+      File.write(wallet.path, File.read(wallet.path) + "\n\n\n")
+      wallet.refurbish
+      assert_equal(amount * -2, wallet.balance)
     end
   end
 
@@ -94,6 +106,13 @@ class TestWallet < Minitest::Test
     FakeHome.new.run do |home|
       wallet = home.create_wallet
       assert_equal(64, wallet.digest.length)
+    end
+  end
+
+  def test_returns_protocol
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      assert_equal(Zold::PROTOCOL, wallet.protocol)
     end
   end
 

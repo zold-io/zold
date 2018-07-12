@@ -10,6 +10,6 @@ install:
   - gem install pdd
 script:
   - pdd -f /dev/null
-  - rake
+  - rake --quiet
 after_success:
   - "bash <(curl -s https://codecov.io/bash)"

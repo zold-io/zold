@@ -18,27 +18,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative '../log'
-require_relative '../wallet'
+# https://github.com/zold-io/zold/issues/358
+# rename all wallets from their current names into *.z
 
-# LIST command.
-# Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
-# License:: MIT
 module Zold
-  # LIST command
-  class List
-    def initialize(wallets:, log: Log::Quiet.new)
-      @wallets = wallets
+  # Upgrade to version 2
+  class UpgradeTo2
+    def initialize(home, log)
+      @home = home
       @log = log
     end
 
-    def run(_ = [])
-      @wallets.all.each do |id|
-        wallet = Wallet.new(File.join(@wallets.path, id))
-        msg = "#{id}: #{wallet.balance}/#{wallet.txns.count}t"
-        msg += " (net:#{wallet.network})" if wallet.network != Wallet::MAIN_NETWORK
-        @log.info(msg)
+    def exec
+      Dir.new(@home).each do |path|
+        next unless path =~ /^[a-f0-9]{16}$/
+        File.rename(path, "#{path}.z")
+        @log.info("Renamed #{path} to #{path}.z")
       end
     end
   end

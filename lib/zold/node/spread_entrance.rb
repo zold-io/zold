@@ -67,7 +67,7 @@ module Zold
         @push = Thread.start do
           Thread.current.abort_on_exception = true
           Thread.current.name = 'push'
-          VerboseThread.new(@log).run do
+          VerboseThread.new(@log).run(true) do
             loop do
               id = @modified.pop
               if @remotes.all.empty?
@@ -94,12 +94,14 @@ module Zold
     end
 
     def push(id, body)
-      @entrance.push(id, body).each do |m|
+      mods = @entrance.push(id, body)
+      (mods + [id]).each do |m|
         next if @seen.include?(m)
         @seen << m
         @modified.push(m)
         @log.debug("Push scheduled for #{m}, queue size is #{@modified.size}")
       end
+      mods
     end
   end
 end

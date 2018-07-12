@@ -98,14 +98,6 @@ module Zold
         o.string '--expose-version',
           "The version of the software to expose in JSON (default: #{VERSION})",
           default: VERSION
-        o.string '--bonus-wallet',
-          'The ID of the wallet to regularly send bonuses from (for nodes online)'
-        o.integer '--bonus-time',
-          'The amount of minutes to wait between bonus awards (default: 60)',
-          default: 60
-        o.string '--bonus-amount',
-          'The amount of ZLD to pay to each remote as a bonus',
-          default: '1'
         o.string '--private-key',
           'The location of RSA private key (default: ~/.ssh/id_rsa)',
           default: '~/.ssh/id_rsa'
@@ -129,11 +121,13 @@ module Zold
       end
       Front.set(:log, @log)
       Front.set(:version, opts['expose-version'])
+      Front.set(:protocol, Zold::PROTOCOL)
       Front.set(:logging, @log.debug?)
       Front.set(:home, Dir.pwd)
       @log.info("Home directory: #{Dir.pwd}")
       @log.info("Ruby version: #{RUBY_VERSION}")
       @log.info("Zold gem version: #{Zold::VERSION}")
+      @log.info("Zold protocol version: #{Zold::PROTOCOL}")
       @log.info("Network ID: #{opts['network']}")
       host = opts[:host] || ip
       address = "#{host}:#{opts[:port]}".downcase
@@ -171,11 +165,11 @@ module Zold
       SafeEntrance.new(
         AsyncEntrance.new(
           SpreadEntrance.new(
-            Entrance.new(@wallets, @remotes, @copies, address, log: @log),
+            Entrance.new(@wallets, @remotes, @copies, address, log: @log, network: opts['network']),
             @wallets, @remotes, address,
             log: @log,
             ignore_score_weakeness: opts['ignore-score-weakness']
-          ), log: @log
+          ), File.join(Dir.pwd, '.zoldata/entrance'), log: @log
         ), network: opts['network']
       ).start do |entrance|
         Front.set(:entrance, entrance)
@@ -254,11 +248,7 @@ module Zold
       metronome.add(Routines::Spread.new(opts, @wallets, entrance, log: @log))
       unless opts['standalone']
         require_relative 'routines/reconnect'
-        metronome.add(Routines::Reconnect.new(opts, @remotes, farm, log: @log))
-      end
-      if opts['bonus-wallet']
-        require_relative 'routines/bonuses'
-        metronome.add(Routines::Bonuses.new(opts, @wallets, @remotes, @copies, farm, log: @log))
+        metronome.add(Routines::Reconnect.new(opts, @remotes, farm, log: Log::Quiet.new))
       end
       @log.info('Metronome created')
       metronome

@@ -18,27 +18,26 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative '../log'
-require_relative '../wallet'
+require_relative '../lib/zold/version'
+require_relative '../lib/zold/wallet'
 
-# LIST command.
-# Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
-# License:: MIT
 module Zold
-  # LIST command
-  class List
-    def initialize(wallets:, log: Log::Quiet.new)
-      @wallets = wallets
+  # Upgrade protocol in each wallet
+  class ProtocolUp
+    def initialize(home, log)
+      @home = home
       @log = log
     end
 
-    def run(_ = [])
-      @wallets.all.each do |id|
-        wallet = Wallet.new(File.join(@wallets.path, id))
-        msg = "#{id}: #{wallet.balance}/#{wallet.txns.count}t"
-        msg += " (net:#{wallet.network})" if wallet.network != Wallet::MAIN_NETWORK
-        @log.info(msg)
+    def exec
+      Dir.new(@home).each do |path|
+        next unless path =~ /^[a-f0-9]{16}#{Wallet::EXTENSION}$/
+        f = File.join(@home, path)
+        lines = File.read(f).split("\n")
+        next if lines[1].to_i == Zold::PROTOCOL
+        lines[1] = Zold::PROTOCOL
+        File.write(f, lines.join("\n"))
+        @log.info("Protocol set to #{Zold::PROTOCOL} in #{f}")
       end
     end
   end

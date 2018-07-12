@@ -49,6 +49,7 @@ module Zold
       set :show_exceptions, false
       set :server, 'webrick'
       set :version, VERSION # to be injected at node.rb
+      set :protocol, PROTOCOL # to be injected at node.rb
       set :ignore_score_weakness, false # to be injected at node.rb
       set :reboot, false # to be injected at node.rb
       set :home, nil? # to be injected at node.rb
@@ -89,10 +90,13 @@ module Zold
       end
     end
 
+    # @todo #357:30min Test that the headers are being set correctly.
+    #  Currently there are no tests at all that would verify the headers.
     after do
       headers['Cache-Control'] = 'no-cache'
       headers['Connection'] = 'close'
       headers['X-Zold-Version'] = settings.version
+      headers['X-Zold-Protocol'] = settings.protocol.to_s
       headers['Access-Control-Allow-Origin'] = '*'
       headers[Http::SCORE_HEADER] = score.reduced(16).to_s
     end
@@ -134,6 +138,7 @@ module Zold
         threads: "#{Thread.list.select { |t| t.status == 'run' }.count}/#{Thread.list.count}",
         wallets: settings.wallets.all.count,
         remotes: settings.remotes.all.count,
+        nscore: settings.remotes.all.map { |r| r[:score] }.inject(&:+),
         farm: settings.farm.to_json,
         entrance: settings.entrance.to_json,
         date: Time.now.utc.iso8601,
@@ -152,6 +157,7 @@ module Zold
         score: score.to_h,
         wallets: settings.wallets.all.count,
         mtime: wallet.mtime.utc.iso8601,
+        digest: wallet.digest,
         body: AtomicFile.new(wallet.path).read
       }.to_json
     end
@@ -219,13 +225,6 @@ module Zold
         status 304
         return
       end
-      if before != after && before.length == after.length
-        settings.log.debug(
-          "Weird... the wallet #{id} is of the same length #{after.length}, but the content is different:\n" +
-          Diffy::Diff.new(before, after, context: 0).to_s
-        )
-      end
-      settings.log.info("Wallet #{id} is new: #{before.length}b != #{after.length}b")
       settings.entrance.push(id, after)
       JSON.pretty_generate(
         version: settings.version,

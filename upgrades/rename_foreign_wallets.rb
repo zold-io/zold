@@ -18,27 +18,26 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative '../log'
-require_relative '../wallet'
+require_relative '../lib/zold/version'
+require_relative '../lib/zold/wallet'
 
-# LIST command.
-# Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
-# License:: MIT
 module Zold
-  # LIST command
-  class List
-    def initialize(wallets:, log: Log::Quiet.new)
-      @wallets = wallets
+  # Rename wallets that belong to another network
+  class RenameForeignWallets
+    def initialize(home, network, log)
+      @home = home
+      @network = network
       @log = log
     end
 
-    def run(_ = [])
-      @wallets.all.each do |id|
-        wallet = Wallet.new(File.join(@wallets.path, id))
-        msg = "#{id}: #{wallet.balance}/#{wallet.txns.count}t"
-        msg += " (net:#{wallet.network})" if wallet.network != Wallet::MAIN_NETWORK
-        @log.info(msg)
+    def exec
+      Dir.new(@home).each do |path|
+        next unless path =~ /^[a-f0-9]{16}#{Wallet::EXTENSION}$/
+        f = File.join(@home, path)
+        wallet = Wallet.new(f)
+        next if wallet.network == @network
+        @log.info("Wallet #{wallet.id} renamed, since it's in #{wallet.network}, while we are in #{@network} network")
+        File.rename(f, f + '-old')
       end
     end
   end

@@ -70,7 +70,7 @@ module Zold
     def protocol
       v = lines[1].strip
       raise "Invalid protocol version name '#{v}'" unless v =~ /^[0-9]+$/
-      v
+      v.to_i
     end
 
     def exists?
@@ -84,7 +84,7 @@ module Zold
     def init(id, pubkey, overwrite: false, network: 'test')
       raise "File '#{@file}' already exists" if File.exist?(@file) && !overwrite
       raise "Invalid network name '#{network}'" unless network =~ /^[a-z]{4,16}$/
-      AtomicFile.new(@file).write("#{network}\n1\n#{id}\n#{pubkey.to_pub}\n\n")
+      AtomicFile.new(@file).write("#{network}\n#{PROTOCOL}\n#{id}\n#{pubkey.to_pub}\n\n")
     end
 
     def root?
@@ -134,6 +134,10 @@ module Zold
       !txns.find { |t| t.id == id && t.bnf == bnf }.nil?
     end
 
+    def prefix?(prefix)
+      key.to_pub.include?(prefix)
+    end
+
     def key
       Key.new(text: lines[3].strip)
     end
@@ -163,6 +167,10 @@ module Zold
         .each_with_index
         .map { |line, i| Txn.parse(line, i + 6) }
         .sort_by { |t| [t.date, t.amount * -1] }
+    end
+
+    def refurbish
+      AtomicFile.new(@file).write("#{network}\n#{protocol}\n#{id}\n#{key.to_pub}\n\n#{txns.join("\n")}\n")
     end
 
     private

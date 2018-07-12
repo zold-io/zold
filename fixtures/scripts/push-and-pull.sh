@@ -29,7 +29,10 @@ zold taxes debt 0000000000000000
 
 zold remote show
 zold push 0000000000000000
-zold fetch 0000000000000000 --ignore-score-weakness
+until zold fetch 0000000000000000 --ignore-score-weakness; do
+  echo 'Failed to fetch, let us try again'
+  sleep 1
+done
 zold diff 0000000000000000
 zold merge 0000000000000000
 zold clean 0000000000000000

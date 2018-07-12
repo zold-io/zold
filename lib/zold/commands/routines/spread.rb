@@ -41,10 +41,13 @@ module Zold
 
       def exec(_ = 0)
         sleep(60) unless @opts['routine-immediately']
+        pushed = []
         @wallets.all.sample(10).map do |w|
           id = Id.new(w)
           @entrance.push(id, File.read(@wallets.find(id).path))
+          pushed << id
         end
+        @log.info("Spread #{pushed.count} random wallets out of #{@wallets.all.count}: #{pushed.join(', ')}")
       end
     end
   end

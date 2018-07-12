@@ -18,28 +18,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative '../log'
-require_relative '../wallet'
+require 'minitest/autorun'
+require_relative '../test__helper'
+require_relative '../../upgrades/protocol_up'
+require_relative '../fake_home'
 
-# LIST command.
+# Protocol up.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # LIST command
-  class List
-    def initialize(wallets:, log: Log::Quiet.new)
-      @wallets = wallets
-      @log = log
-    end
-
-    def run(_ = [])
-      @wallets.all.each do |id|
-        wallet = Wallet.new(File.join(@wallets.path, id))
-        msg = "#{id}: #{wallet.balance}/#{wallet.txns.count}t"
-        msg += " (net:#{wallet.network})" if wallet.network != Wallet::MAIN_NETWORK
-        @log.info(msg)
-      end
+class TestProtocolUp < Minitest::Test
+  def test_upgrades_protocol_in_wallet
+    FakeHome.new.run do |home|
+      id = home.create_wallet.id
+      Zold::ProtocolUp.new(home.dir, test_log).exec
+      wallet = home.wallets.find(id)
+      assert_equal(Zold::PROTOCOL, wallet.protocol)
     end
   end
 end

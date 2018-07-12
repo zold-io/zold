@@ -55,6 +55,9 @@ Available options:"
         o.array '--ignore-node',
           'Ignore this node and don\'t fetch from it',
           default: []
+        o.string '--network',
+          'The name of the network we work in',
+          default: 'test'
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
@@ -77,8 +80,8 @@ Available options:"
       end
       raise "There are no remote nodes, run 'zold remote reset'" if nodes.zero?
       raise "No nodes out of #{nodes} have the wallet #{id}" if done.zero?
-      @log.debug("#{nodes} copies of #{id} fetched for the total score of #{total}, \
-#{cps.all.count} local copies:\n  #{cps.all.map { |c| "#{c[:name]}: #{c[:score]}" }.join("\n  ")}")
+      @log.info("#{nodes} copies of #{id} fetched for the total score of #{total}")
+      @log.debug("#{cps.all.count} local copies:\n  #{cps.all.map { |c| "#{c[:name]}: #{c[:score]}" }.join("\n  ")}")
     end
 
     def fetch_one(id, r, cps, opts)
@@ -99,9 +102,19 @@ Available options:"
         body = json['body']
         File.write(f, body)
         wallet = Wallet.new(f.path)
-        copy = cps.add(body, score.host, score.port, score.value)
-        @log.info("#{r} returned #{body.length}b/#{wallet.txns.count}t/#{digest(json)}/#{age(json)} as copy #{copy} \
-of #{id} in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green} (#{json['version']})")
+        wallet.refurbish
+        if wallet.protocol != Zold::PROTOCOL
+          raise "Protocol #{wallet.protocol} doesn't match #{Zold::PROTOCOL} in #{id}"
+        end
+        if wallet.network != opts['network']
+          raise "The wallet #{id} is in network '#{wallet.network}', while we are in '#{opts['network']}'"
+        end
+        if wallet.balance.negative? && !wallet.root?
+          raise "The balance of #{id} is #{wallet.balance} and it's not a root wallet"
+        end
+        copy = cps.add(File.read(f), score.host, score.port, score.value)
+        @log.info("#{r} returned #{body.length}b/#{wallet.balance}/#{wallet.txns.count}t/#{digest(json)}/#{age(json)} \
+as copy #{copy} of #{id} in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green} (#{json['version']})")
       end
       score.value
     end
@@ -117,7 +130,7 @@ of #{id} in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green} (#{js
       return '?' if mtime.nil?
       sec = Time.now - Time.parse(mtime)
       if sec < 60
-        "#{sec}s"
+        "#{sec.round(2)}s"
       elsif sec < 60 * 60
         "#{(sec / 60).round}m"
       else
