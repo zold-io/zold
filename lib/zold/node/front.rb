@@ -133,6 +133,7 @@ module Zold
       JSON.pretty_generate(
         version: settings.version,
         network: settings.network,
+        protocol: settings.protocol,
         score: score.to_h,
         pid: Process.pid,
         cpus: Concurrent.processor_count,
@@ -205,7 +206,7 @@ module Zold
         wallet.network,
         wallet.protocol,
         wallet.id.to_s,
-        wallet.key.to_s,
+        wallet.key.to_pub,
         '',
         wallet.txns.map(&:to_text).join("\n"),
         '',

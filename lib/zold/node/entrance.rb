@@ -62,7 +62,7 @@ module Zold
 
     def to_json
       {
-        history: @history.join(', ')
+        'history': @history.join(', ')
       }
     end
 

@@ -79,10 +79,8 @@ module Zold
 
     def to_json
       @entrance.to_json.merge(
-        'pool.completed_task_count': @pool.completed_task_count,
-        'pool.largest_length': @pool.largest_length,
+        'queue': queue.count,
         'pool.length': @pool.length,
-        'pool.queue_length': @pool.queue_length,
         'pool.running': @pool.running?
       )
     end
