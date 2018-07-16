@@ -110,27 +110,27 @@ module Zold
     def self.parse(line, idx = 0)
       regex = Regexp.new(
         '^' + [
-          '([0-9a-f]{4})',
-          '([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z)',
-          '([0-9a-f]{16})',
-          "(#{Txn::RE_PREFIX})",
-          '([0-9a-f]{16})',
-          "(#{Txn::RE_DETAILS})",
-          '([A-Za-z0-9+/]+={0,3})?'
+          '(?<id>[0-9a-f]{4})',
+          '(?<date>[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z)',
+          '(?<amount>[0-9a-f]{16})',
+          "(?<prefix>#{Txn::RE_PREFIX})",
+          '(?<bnf>[0-9a-f]{16})',
+          "(?<details>#{Txn::RE_DETAILS})",
+          '(?<sign>[A-Za-z0-9+/]+={0,3})?'
         ].join(';') + '$'
       )
       clean = line.strip
-      raise "Invalid line ##{idx}: #{line.inspect} #{regex}" unless regex.match(clean)
-      parts = clean.split(';')
+      parts = regex.match(clean)
+      raise "Invalid line ##{idx}: #{line.inspect} #{regex}" unless parts
       txn = Txn.new(
-        Hexnum.parse(parts[0]).to_i,
-        Time.parse(parts[1]),
-        Amount.new(coins: Hexnum.parse(parts[2]).to_i),
-        parts[3],
-        Id.new(parts[4]),
-        parts[5]
+        Hexnum.parse(parts[:id]).to_i,
+        Time.parse(parts[:date]),
+        Amount.new(coins: Hexnum.parse(parts[:amount]).to_i),
+        parts[:prefix],
+        Id.new(parts[:bnf]),
+        parts[:details]
       )
-      txn.sign = parts[6]
+      txn.sign = parts[:sign]
       txn
     end
   end
