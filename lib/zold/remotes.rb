@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'concurrent'
 require 'csv'
 require 'uri'
 require 'time'
@@ -177,25 +178,31 @@ module Zold
     def iterate(log, farm: Farm::Empty.new)
       raise 'Log can\'t be nil' if log.nil?
       raise 'Farm can\'t be nil' if farm.nil?
+      return if all.empty?
       best = farm.best[0]
       require_relative 'score'
       score = best.nil? ? Score::ZERO : best
       idx = 0
+      pool = Concurrent::FixedThreadPool.new([all.count, Concurrent.processor_count * 16].min, max_queue: 0)
       all.each do |r|
-        start = Time.now
-        begin
-          yield Remotes::Remote.new(r[:host], r[:port], score, idx, log: log, network: @network)
-          idx += 1
-          raise 'Took too long to execute' if (Time.now - start).round > Remotes::RUNTIME_LIMIT
-        rescue StandardError => e
-          error(r[:host], r[:port])
-          errors = errors(r[:host], r[:port])
-          log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message} \
-in #{(Time.now - start).round}s; errors=#{errors}")
-          log.debug(Backtrace.new(e).to_s)
-          remove(r[:host], r[:port]) if errors > Remotes::TOLERANCE
+        pool.post do
+          start = Time.now
+          begin
+            yield Remotes::Remote.new(r[:host], r[:port], score, idx, log: log, network: @network)
+            idx += 1
+            raise 'Took too long to execute' if (Time.now - start).round > Remotes::RUNTIME_LIMIT
+          rescue StandardError => e
+            error(r[:host], r[:port])
+            errors = errors(r[:host], r[:port])
+            log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message} \
+  in #{(Time.now - start).round}s; errors=#{errors}")
+            log.debug(Backtrace.new(e).to_s)
+            remove(r[:host], r[:port]) if errors > Remotes::TOLERANCE
+          end
         end
       end
+      pool.shutdown
+      raise 'Failed to terminate the pool' unless pool.wait_for_termination(60)
     end
 
     def errors(host, port = Remotes::PORT)
