@@ -162,7 +162,6 @@ module Zold
       raise "#{host}:#{port} already exists" if exists?(host, port)
       list = load
       list << { host: host.downcase, port: port, score: 0 }
-      list.uniq! { |r| "#{r[:host]}:#{r[:port]}" }
       save(list)
     end
 
@@ -170,7 +169,6 @@ module Zold
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
       raise 'Host can\'t be nil' if host.nil?
       raise 'Port can\'t be nil' if port.nil?
-      raise "#{host}:#{port} is absent" unless exists?(host, port)
       list = load
       list.reject! { |r| r[:host] == host.downcase && r[:port] == port }
       save(list)
@@ -213,10 +211,7 @@ in #{(Time.now - start).round}s; errors=#{errors}")
       raise 'Host can\'t be nil' if host.nil?
       raise 'Port can\'t be nil' if port.nil?
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
-      list = load
-      raise "#{host}:#{port} is absent among #{list.count} remotes" unless exists?(host, port)
-      list.find { |r| r[:host] == host.downcase && r[:port] == port }[:errors] += 1
-      save(list)
+      if_present(host, port) { |r| r[:errors] += 1 }
     end
 
     def rescore(host, port, score)
@@ -224,13 +219,18 @@ in #{(Time.now - start).round}s; errors=#{errors}")
       raise 'Port can\'t be nil' if port.nil?
       raise 'Score can\'t be nil' if score.nil?
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
-      raise "#{host}:#{port} is absent" unless exists?(host, port)
-      list = load
-      list.find { |r| r[:host] == host.downcase && r[:port] == port }[:score] = score
-      save(list)
+      if_present(host, port) { |r| r[:score] = score }
     end
 
     private
+
+    def if_present(host, port)
+      list = load
+      remote = list.find { |r| r[:host] == host.downcase && r[:port] == port }
+      return unless remote
+      yield remote
+      save(list)
+    end
 
     def load
       @mutex.synchronize do
@@ -252,7 +252,7 @@ in #{(Time.now - start).round}s; errors=#{errors}")
     def save(list)
       @mutex.synchronize do
         AtomicFile.new(file).write(
-          list.map do |r|
+          list.uniq { |r| "#{r[:host]}:#{r[:port]}" }.map do |r|
             [
               r[:host],
               r[:port],

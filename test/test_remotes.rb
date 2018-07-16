@@ -141,6 +141,15 @@ class TestRemotes < Minitest::Test
     end
   end
 
+  def test_tolerates_invalid_requests
+    Dir.mktmpdir 'test' do |dir|
+      file = File.join(dir, 'remotes')
+      remotes = Zold::Remotes.new(file)
+      remotes.error('127.0.0.1', 1024)
+      remotes.rescore('127.0.0.1', 1024, 15)
+    end
+  end
+
   def test_modifies_from_many_threads
     Dir.mktmpdir 'test' do |dir|
       remotes = Zold::Remotes.new(File.join(dir, 'a.csv'))
