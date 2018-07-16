@@ -186,6 +186,8 @@ module Zold
       pool = Concurrent::FixedThreadPool.new([all.count, Concurrent.processor_count * 4].min, max_queue: 0)
       all.each do |r|
         pool.post do
+          Thread.current.name = 'remotes'
+          Thread.current.priority = -100
           start = Time.now
           begin
             yield Remotes::Remote.new(r[:host], r[:port], score, idx, log: log, network: @network)
