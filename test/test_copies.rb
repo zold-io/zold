@@ -43,7 +43,8 @@ class TestCopies < Minitest::Test
       copies.add(content('alpha'), '192.168.0.4', 80, 10)
       copies.add(content('hello-to-delete'), '192.168.0.5', 80, 10)
       copies.remove('192.168.0.5', 80)
-      assert_equal(2, copies.all.count)
+      copies.clean
+      assert_equal(2, copies.all.count, copies.all.map { |c| c[:name] }.join('; '))
       assert_equal(11, copies.all.find { |c| c[:name] == '1' }[:score])
     end
   end
