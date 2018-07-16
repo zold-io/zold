@@ -40,15 +40,17 @@ class TestZold < Minitest::Test
         script = File.join(dir, f)
         File.write(script, File.read('fixtures/scripts/_head.sh') + File.read(File.join('fixtures/scripts', f)))
         bin = File.join(Dir.pwd, 'bin/zold')
+        out = []
         Dir.chdir(dir) do
           Open3.popen2e("/bin/bash #{f} #{bin} 2>&1") do |stdin, stdout, thr|
             stdin.close
             until stdout.eof?
               line = stdout.gets
               test_log.debug(line)
+              out << line
             end
             code = thr.value.to_i
-            assert_equal(0, code, f)
+            assert_equal(0, code, f + out.join("\n"))
           end
         end
       end

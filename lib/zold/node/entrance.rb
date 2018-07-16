@@ -53,6 +53,7 @@ module Zold
       raise 'Network can\'t be nil' if network.nil?
       @network = network
       @history = []
+      @speed = []
       @mutex = Mutex.new
     end
 
@@ -63,7 +64,8 @@ module Zold
     def to_json
       {
         'history': @history.join(', '),
-        'history_size': @history.count
+        'history_size': @history.count,
+        'speed': @speed.empty? ? 0 : (@speed.inject(&:+) / @speed.count)
       }
     end
 
@@ -94,8 +96,10 @@ module Zold
       end
       @mutex.synchronize do
         @history.shift if @history.length > 16
+        @speed.shift if @speed.length > 64
         wallet = @wallets.find(id)
         @history << "#{id}/#{sec}/#{modified.count}/#{wallet.balance.to_zld}/#{wallet.txns.count}t"
+        @speed << sec
       end
       modified
     end
