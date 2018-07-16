@@ -59,11 +59,18 @@ class TestFetch < Minitest::Test
       remotes.add('localhost', 80)
       remotes.add('localhost', 81)
       copies = home.copies(wallet)
-      Zold::Fetch.new(wallets: home.wallets, copies: copies.root, remotes: remotes, log: test_log).run(
-        ['fetch', '--ignore-score-weakness', wallet.id.to_s]
-      )
-      assert_equal(copies.all[0][:name], '1')
-      assert_equal(copies.all[0][:score], 0)
+      begin
+        retries ||= 0
+        Zold::Fetch.new(wallets: home.wallets, copies: copies.root, remotes: remotes, log: test_log).run(
+          ['fetch', '--ignore-score-weakness', wallet.id.to_s]
+        )
+      rescue StandardError => _
+        sleep 1
+        retry if (retries += 1) < 3
+      end
+      assert_equal(1, copies.all.count)
+      assert_equal('1', copies.all[0][:name])
+      assert_equal(0, copies.all[0][:score])
     end
   end
 end

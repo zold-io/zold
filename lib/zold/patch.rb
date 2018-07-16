@@ -58,11 +58,18 @@ module Zold
         end
         @network = wallet.network
       end
-      if wallet.network != @network
-        raise "The wallet is from a different network '#{wallet.network}', ours is '#{@network}'"
+      unless wallet.network == @network
+        @log.error("The wallet is from a different network '#{wallet.network}', ours is '#{@network}'")
+        return
       end
-      raise 'Public key mismatch' if wallet.key != @key
-      raise "Wallet ID mismatch: #{@id} != #{wallet.id}" if wallet.id != @id
+      unless wallet.key == @key
+        @log.error('Public key mismatch')
+        return
+      end
+      unless wallet.id == @id
+        @log.error("Wallet ID mismatch, ours is #{@id}, theirs is #{wallet.id}")
+        return
+      end
       wallet.txns.each do |txn|
         next if @txns.find { |t| t == txn }
         if txn.amount.negative?

@@ -45,6 +45,17 @@ module Zold
       @mutex = Mutex.new
     end
 
+    def to_json
+      json = {
+        'queue': queue.count,
+        'pool.length': @pool.length,
+        'pool.running': @pool.running?
+      }
+      opts = queue
+      json['queue_age'] = opts.empty? ? 0 : Time.now - File.mtime(File.join(@dir, opts[0]))
+      @entrance.to_json.merge(json)
+    end
+
     def start
       @entrance.start do
         FileUtils.mkdir_p(@dir)
@@ -53,8 +64,8 @@ module Zold
         )
         AsyncEntrance::THREADS.times do
           @pool.post do
-            VerboseThread.new(@log).run(true) do
-              loop do
+            loop do
+              VerboseThread.new(@log).run(true) do
                 take
                 break if @pool.shuttingdown?
                 sleep Random.rand(100) / 100
@@ -75,14 +86,6 @@ module Zold
           end
         end
       end
-    end
-
-    def to_json
-      @entrance.to_json.merge(
-        'queue': queue.count,
-        'pool.length': @pool.length,
-        'pool.running': @pool.running?
-      )
     end
 
     def push(id, body)

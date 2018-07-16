@@ -50,6 +50,10 @@ module Zold
     # production one.
     NETWORK_HEADER = 'X-Zold-Network'
 
+    # HTTP header we add, in order to inform the node about our
+    # protocol.
+    PROTOCOL_HEADER = 'X-Zold-Protocol'
+
     # @todo #98:30m/DEV The following two statements are seen as issues by rubocop
     #  raising a Lint/AmbiguousBlockAssociation offense. It is somthing
     #  that could be solved by changing the TargetRubyVersion in .rubocop.yml
@@ -119,7 +123,8 @@ module Zold
         'Connection': 'close',
         'Accept-Encoding': 'gzip'
       }
-      headers[Http::VERSION_HEADER] = VERSION
+      headers[Http::VERSION_HEADER] = Zold::VERSION
+      headers[Http::PROTOCOL_HEADER] = Zold::PROTOCOL.to_s
       headers[Http::NETWORK_HEADER] = network
       headers[Http::SCORE_HEADER] = score.reduced(4).to_text if score.valid? && !score.expired? && score.value > 3
       headers

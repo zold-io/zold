@@ -74,6 +74,11 @@ module Zold
           raise "Network name mismatch, you are in '#{header}', we are in '#{settings.network}'"
         end
       end
+      check_header(Http::PROTOCOL_HEADER) do |header|
+        if header != settings.protocol.to_s
+          raise "Protocol mismatch, you are in '#{header}', we are in '#{settings.protocol}'"
+        end
+      end
       check_header(Http::SCORE_HEADER) do |header|
         if settings.remotes.all.empty?
           settings.log.debug("#{request.url}: we are in standalone mode, won't update remotes")
@@ -98,7 +103,7 @@ module Zold
       headers['Cache-Control'] = 'no-cache'
       headers['Connection'] = 'close'
       headers['X-Zold-Version'] = settings.version
-      headers['X-Zold-Protocol'] = settings.protocol.to_s
+      headers[Http::PROTOCOL_HEADER] = settings.protocol.to_s
       headers['Access-Control-Allow-Origin'] = '*'
       headers[Http::SCORE_HEADER] = score.reduced(16).to_s
     end
@@ -161,6 +166,7 @@ module Zold
         wallets: settings.wallets.all.count,
         mtime: wallet.mtime.utc.iso8601,
         digest: wallet.digest,
+        balance: wallet.balance.to_i,
         body: AtomicFile.new(wallet.path).read
       }.to_json
     end
