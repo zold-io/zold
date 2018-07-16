@@ -62,7 +62,8 @@ module Zold
 
     def to_json
       {
-        'history': @history.join(', ')
+        'history': @history.join(', '),
+        'history_size': @history.count
       }
     end
 
@@ -78,7 +79,7 @@ module Zold
       unless @remotes.all.empty?
         Fetch.new(
           wallets: @wallets, remotes: @remotes, copies: copies.root, log: @log
-        ).run(['fetch', id.to_s, "--ignore-node=#{@address}", "--network=#{@network}"])
+        ).run(['fetch', id.to_s, "--ignore-node=#{@address}", "--network=#{@network}", '--quiet-if-absent'])
       end
       modified = Merge.new(
         wallets: @wallets, copies: copies.root, log: @log

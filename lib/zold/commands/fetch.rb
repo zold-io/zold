@@ -57,6 +57,9 @@ Available options:"
         o.array '--ignore-node',
           'Ignore this node and don\'t fetch from it',
           default: []
+        o.array '--quiet-if-absent',
+          'Don\'t fail if the wallet is absent in all remote nodes',
+          default: false
         o.string '--network',
           'The name of the network we work in',
           default: 'test'
@@ -81,7 +84,7 @@ Available options:"
         done += 1
       end
       raise "There are no remote nodes, run 'zold remote reset'" if nodes.zero?
-      raise "No nodes out of #{nodes} have the wallet #{id}" if done.zero?
+      raise "No nodes out of #{nodes} have the wallet #{id}" if done.zero? && !opts['quiet-if-absent']
       @log.info("#{nodes} copies of #{id} fetched for the total score of #{total}")
       @log.debug("#{cps.all.count} local copies:\n  #{cps.all.map { |c| "#{c[:name]}: #{c[:score]}" }.join("\n  ")}")
     end

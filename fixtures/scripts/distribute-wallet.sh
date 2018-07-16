@@ -34,7 +34,23 @@ until zold fetch 0000000000000000 --ignore-score-weakness; do
   echo 'Failed to fetch, let us try again'
   ((i++)) || sleep 2
   if ((i==5)); then
+    cat ${first}/log.txt
     echo "The wallet has not been distributed, after ${i} attempts"
     exit -1
   fi
+  sleep 2
 done
+
+json=$(curl --silent --show-error http://localhost:${first})
+if [ ! $(echo ${json} | jq -r '.entrance.queue') == "0" ]; then
+  echo "The queue is not empty after PUSH, it's a bug"
+  exit -1
+fi
+if [ ! $(echo ${json} | jq -r '.entrance.history_size') == "1" ]; then
+  echo "The history doesn't have a wallet, it's a bug"
+  exit -1
+fi
+if [ ! $(echo ${json} | jq -r '.wallets') == "1" ]; then
+  echo "The wallet is not there for some reason, it's a bug"
+  exit -1
+fi
