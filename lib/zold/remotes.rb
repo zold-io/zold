@@ -183,7 +183,7 @@ module Zold
       require_relative 'score'
       score = best.nil? ? Score::ZERO : best
       idx = 0
-      pool = Concurrent::FixedThreadPool.new([all.count, Concurrent.processor_count * 16].min, max_queue: 0)
+      pool = Concurrent::FixedThreadPool.new([all.count, Concurrent.processor_count * 4].min, max_queue: 0)
       all.each do |r|
         pool.post do
           start = Time.now

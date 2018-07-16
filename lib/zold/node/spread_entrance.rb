@@ -68,6 +68,7 @@ module Zold
         @modified = Queue.new
         @push = Thread.start do
           Thread.current.abort_on_exception = true
+          Thread.current.priority = -100
           Thread.current.name = 'push'
           VerboseThread.new(@log).run(true) do
             loop do

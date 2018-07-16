@@ -54,6 +54,7 @@ module Zold
       @routines.each do |r|
         @threads << Thread.start do
           Thread.current.name = r.class.name
+          Thread.current.priority = -100
           step = 0
           while alive
             start = Time.now

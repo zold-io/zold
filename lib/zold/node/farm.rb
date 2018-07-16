@@ -77,6 +77,7 @@ module Zold
       @threads = (1..threads).map do |t|
         Thread.new do
           Thread.current.name = "f#{t}"
+          Thread.current.priority = -100
           loop do
             VerboseThread.new(@log).run do
               cycle(host, port, strength, threads)
