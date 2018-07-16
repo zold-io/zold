@@ -72,6 +72,10 @@ module Zold
       end
       wallet.txns.each do |txn|
         next if @txns.find { |t| t == txn }
+        if @txns.find { |t| t.id == txn.id && t.bnf == txn.bnf }
+          @log.error("A transaction with the same ID #{t.id} and BNF #{t.bnf} already exists")
+          next
+        end
         if txn.amount.negative?
           dup = @txns.find { |t| t.id == txn.id && t.amount.negative? }
           if dup
