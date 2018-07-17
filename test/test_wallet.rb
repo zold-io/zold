@@ -155,4 +155,19 @@ class TestWallet < Minitest::Test
       )
     end
   end
+
+  def test_not_allow_amount_exceed_max
+    coins = 2**63 - 1
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      time = Time.now
+      sign = [1, -1].sample
+      wallet.add(Zold::Txn.new(1, time, Zold::Amount.new(coins: 2 * sign), 'NOPREFIX', Zold::Id.new, '-'))
+      txn = Zold::Txn.new(1, time, Zold::Amount.new(coins: coins * sign), 'NOPREFIX', Zold::Id.new, '-')
+      error = assert_raises RuntimeError do
+        wallet.add(txn)
+      end
+      assert !error.message.index("Wallet amount will exceed MAX if applied #{txn}").nil?
+    end
+  end
 end

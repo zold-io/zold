@@ -123,6 +123,7 @@ module Zold
     end
 
     def add(txn)
+      raise "Wallet amount will exceed MAX if applied #{txn}" if (balance.to_i + txn.amount.to_i).abs > Amount::MAX
       raise 'The txn has to be of type Txn' unless txn.is_a?(Txn)
       dup = txns.find { |t| t.bnf == txn.bnf && t.id == txn.id }
       raise "The transaction with the same ID and BNF already exists: #{dup}" unless dup.nil?
