@@ -76,6 +76,7 @@ module Zold
       @log.info("#{@pipeline.size} scores pre-loaded, the best is: #{best[0]}")
       @threads = (1..threads).map do |t|
         Thread.new do
+          Thread.current.abort_on_exception = true
           Thread.current.name = "f#{t}"
           Thread.current.priority = -100
           loop do
@@ -87,7 +88,9 @@ module Zold
       end
       alive = true
       @cleanup = Thread.new do
+        Thread.current.abort_on_exception = true
         Thread.current.name = 'cleanup'
+        Thread.current.priority = -100
         while alive
           sleep(60) unless strength == 1 # which will only happen in tests
           VerboseThread.new(@log).run do

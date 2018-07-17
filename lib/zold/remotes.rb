@@ -186,6 +186,7 @@ module Zold
       pool = Concurrent::FixedThreadPool.new([all.count, Concurrent.processor_count * 4].min, max_queue: 0)
       all.each do |r|
         pool.post do
+          Thread.current.abort_on_exception = true
           Thread.current.name = 'remotes'
           Thread.current.priority = -100
           start = Time.now
@@ -197,14 +198,14 @@ module Zold
             error(r[:host], r[:port])
             errors = errors(r[:host], r[:port])
             log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message} \
-  in #{(Time.now - start).round}s; errors=#{errors}")
+in #{(Time.now - start).round}s; errors=#{errors}")
             log.debug(Backtrace.new(e).to_s)
             remove(r[:host], r[:port]) if errors > Remotes::TOLERANCE
           end
         end
       end
       pool.shutdown
-      raise 'Failed to terminate the pool' unless pool.wait_for_termination(60)
+      pool.kill unless pool.wait_for_termination(5 * 60)
     end
 
     def errors(host, port = Remotes::PORT)

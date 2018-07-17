@@ -54,6 +54,12 @@ module Zold
     # protocol.
     PROTOCOL_HEADER = 'X-Zold-Protocol'
 
+    # Read timeout in seconds
+    READ_TIMEOUT = 32
+
+    # Connect timeout in seconds
+    CONNECT_TIMEOUT = 8
+
     # @todo #98:30m/DEV The following two statements are seen as issues by rubocop
     #  raising a Lint/AmbiguousBlockAssociation offense. It is somthing
     #  that could be solved by changing the TargetRubyVersion in .rubocop.yml
@@ -70,8 +76,8 @@ module Zold
 
     def get
       http = Net::HTTP.new(uri.host, uri.port)
-      http.read_timeout = 8
-      http.open_timeout = 4
+      http.read_timeout = Http::READ_TIMEOUT
+      http.open_timeout = Http::CONNECT_TIMEOUT
       path = uri.path
       path += '?' + uri.query if uri.query
       http.request_get(path, headers)
@@ -81,8 +87,8 @@ module Zold
 
     def put(body)
       http = Net::HTTP.new(uri.host, uri.port)
-      http.read_timeout = 16
-      http.open_timeout = 4
+      http.read_timeout = Http::READ_TIMEOUT
+      http.open_timeout = Http::CONNECT_TIMEOUT
       path = uri.path
       path += '?' + uri.query if uri.query
       http.request_put(

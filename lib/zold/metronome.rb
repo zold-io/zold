@@ -53,6 +53,7 @@ module Zold
       alive = true
       @routines.each do |r|
         @threads << Thread.start do
+          Thread.current.abort_on_exception = true
           Thread.current.name = r.class.name
           Thread.current.priority = -100
           step = 0
