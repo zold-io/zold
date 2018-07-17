@@ -34,6 +34,7 @@ require_relative '../node/entrance'
 require_relative '../node/safe_entrance'
 require_relative '../node/spread_entrance'
 require_relative '../node/async_entrance'
+require_relative '../node/nodup_entrance'
 require_relative '../node/front'
 require_relative '../node/farm'
 require_relative 'pull'
@@ -165,20 +166,25 @@ module Zold
         invoice = Invoice.new(wallets: @wallets, log: @log).run(['invoice', invoice])
       end
       SafeEntrance.new(
-        AsyncEntrance.new(
-          SpreadEntrance.new(
-            Entrance.new(@wallets, @remotes, @copies, address, log: @log, network: opts['network']),
-            @wallets, @remotes, address,
-            log: @log,
-            ignore_score_weakeness: opts['ignore-score-weakness']
-          ), File.join(Dir.pwd, '.zoldata/entrance'), log: @log
-        ), network: opts['network']
+        NoDupEntrance.new(
+          AsyncEntrance.new(
+            SpreadEntrance.new(
+              Entrance.new(@wallets, @remotes, @copies, address, log: @log, network: opts['network']),
+              @wallets, @remotes, address,
+              log: @log,
+              ignore_score_weakeness: opts['ignore-score-weakness']
+            ),
+            File.join(Dir.pwd, '.zoldata/entrance'), log: @log
+          ),
+          @wallets
+        ),
+        network: opts['network']
       ).start do |entrance|
         Front.set(:entrance, entrance)
         Farm.new(invoice, File.join(Dir.pwd, 'farm'), log: @log)
           .start(host, opts[:port], threads: opts[:threads], strength: opts[:strength]) do |farm|
           Front.set(:farm, farm)
-          metronome(farm, entrance, opts).start do |metronome|
+          metronome(farm, opts).start do |metronome|
             Front.set(:metronome, metronome)
             @log.info("Starting up the web front at http://#{host}:#{opts[:port]}...")
             Front.run!
@@ -244,13 +250,13 @@ module Zold
       pid
     end
 
-    def metronome(farm, entrance, opts)
+    def metronome(farm, opts)
       metronome = Metronome.new(@log)
       require_relative 'routines/spread'
-      metronome.add(Routines::Spread.new(opts, @wallets, entrance, log: @log))
+      metronome.add(Routines::Spread.new(opts, @wallets, @remotes, log: @log))
       unless opts['standalone']
         require_relative 'routines/reconnect'
-        metronome.add(Routines::Reconnect.new(opts, @remotes, farm, log: Log::Quiet.new))
+        metronome.add(Routines::Reconnect.new(opts, @remotes, farm, network: opts['network'], log: Log::Quiet.new))
       end
       @log.info('Metronome created')
       metronome

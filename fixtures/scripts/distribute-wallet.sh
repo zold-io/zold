@@ -33,7 +33,8 @@ zold --home=${second} remote add localhost ${first}
 # the wallet to the remote, expecting it to distribute it to the second
 # wallet automatically.
 zold --public-key=id_rsa.pub create 0000000000000000
-zold pay --private-key=id_rsa 0000000000000000 NOPREFIX@aaaabbbbccccdddd 4.95 'To help you, dude!'
+zold pay --private-key=id_rsa 0000000000000000 NOPREFIX@aaaabbbbccccdddd 4.95 'For the book'
+zold remote clean
 zold remote add localhost ${first}
 zold push 0000000000000000
 zold remote clean
@@ -78,7 +79,7 @@ until zold fetch 0000000000000000 --ignore-score-weakness; do
   ((i++)) || sleep 1
   if ((i==5)); then
     cat ${first}/log.txt
-    echo "The wallet has not been spread, after ${i} attempts"
+    echo "The wallet 0000000000000000 has not been spread, after ${i} attempts"
     exit 8
   fi
   sleep 1

@@ -20,9 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative '../remote'
-require_relative '../pull'
-require_relative '../pay'
+require_relative '../../log'
+require_relative '../../id'
 require_relative '../push'
 
 # Spread random wallets to the network.
@@ -34,22 +33,25 @@ module Zold
   module Routines
     # Spread them
     class Spread
-      def initialize(opts, wallets, entrance, log: Log::Quiet.new)
+      def initialize(opts, wallets, remotes, log: Log::Quiet.new)
         @opts = opts
         @wallets = wallets
-        @entrance = entrance
+        @remotes = remotes
         @log = log
       end
 
       def exec(_ = 0)
+        return if @remotes.all.empty?
         sleep(60) unless @opts['routine-immediately']
-        pushed = []
-        @wallets.all.sample(10).map do |w|
-          id = Id.new(w)
-          @entrance.push(id, File.read(@wallets.find(id).path))
-          pushed << id
+        ids = @wallets.all.sample(10)
+        Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
+          ['push', "--network=#{@opts['network']}"] + ids
+        )
+        if ids.empty?
+          @log.info("Spread didn't push any wallets, we are empty")
+        else
+          @log.info("Spread #{ids.count} random wallets out of #{@wallets.all.count}: #{ids.join(', ')}")
         end
-        @log.info("Spread #{pushed.count} random wallets out of #{@wallets.all.count}: #{pushed.join(', ')}")
       end
     end
   end

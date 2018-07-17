@@ -88,10 +88,12 @@ module Zold
       end
     end
 
+    # Always returns an array with a single ID of the pushed wallet
     def push(id, body)
       @mutex.synchronize do
         AtomicFile.new(File.join(@dir, id.to_s)).write(body)
       end
+      [id]
     end
 
     private

@@ -39,10 +39,7 @@ class TestSpread < Minitest::Test
       opts = {
         'routine-immediately' => true
       }
-      entrance = Zold::Entrance.new(
-        home.wallets, home.remotes, home.copies(home.create_wallet).root, 'x', log: test_log
-      )
-      Zold::Routines::Spread.new(opts, home.wallets, entrance, log: test_log).exec
+      Zold::Routines::Spread.new(opts, home.wallets, home.remotes, log: test_log).exec
     end
   end
 end

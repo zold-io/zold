@@ -56,9 +56,21 @@ class TestWallet < Minitest::Test
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
       wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
+      before = File.read(wallet.path)
       File.write(wallet.path, File.read(wallet.path) + "\n\n\n")
       wallet.refurbish
       assert_equal(amount * -2, wallet.balance)
+      assert_equal(before, File.read(wallet.path))
+    end
+  end
+
+  def test_refurbishes_empty_wallet
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      before = File.read(wallet.path)
+      File.write(wallet.path, File.read(wallet.path) + "\n\n\n")
+      wallet.refurbish
+      assert_equal(before, File.read(wallet.path))
     end
   end
 

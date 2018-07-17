@@ -71,7 +71,8 @@ module Zold
     before do
       check_header(Http::NETWORK_HEADER) do |header|
         if header != settings.network
-          raise "Network name mismatch, you are in '#{header}', we are in '#{settings.network}'"
+          raise "Network name mismatch at #{request.url}, #{request.ip} is in '#{header}', \
+while #{settings.address} is in '#{settings.network}'"
         end
       end
       check_header(Http::PROTOCOL_HEADER) do |header|
@@ -246,16 +247,12 @@ module Zold
     end
 
     put %r{/wallet/(?<id>[A-Fa-f0-9]{16})/?} do
-      id = Id.new(params[:id])
-      wallet = settings.wallets.find(id)
       request.body.rewind
-      after = request.body.read.to_s
-      before = wallet.exists? ? AtomicFile.new(wallet.path).read.to_s : ''
-      if before == after
+      modified = settings.entrance.push(Id.new(params[:id]), request.body.read.to_s)
+      if modified.empty?
         status 304
         return
       end
-      settings.entrance.push(id, after)
       JSON.pretty_generate(
         version: settings.version,
         score: score.to_h,

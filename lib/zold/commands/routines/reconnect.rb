@@ -32,23 +32,22 @@ module Zold
   module Routines
     # Reconnect to the network
     class Reconnect
-      def initialize(opts, remotes, farm = Farm::Empty.new, log: Log::Quiet.new)
+      def initialize(opts, remotes, farm = Farm::Empty.new, network: 'test', log: Log::Quiet.new)
         @opts = opts
         @remotes = remotes
         @farm = farm
+        @network = network
         @log = log
       end
 
       def exec(_ = 0)
         sleep(60) unless @opts['routine-immediately']
-        unless @opts['routine-immediately']
-          Remote.new(remotes: @remotes, log: @log).run(%w[remote add b1.zold.io 80 --force])
-        end
-        Remote.new(remotes: @remotes, log: @log).run(%w[remote trim])
-        Remote.new(remotes: @remotes, log: @log).run(%w[remote select])
-        Remote.new(remotes: @remotes, farm: @farm, log: @log).run(
-          %w[remote update] + (@opts['never-reboot'] ? [] : ['--reboot'])
-        )
+        cmd = Remote.new(remotes: @remotes, log: @log, farm: @farm)
+        args = ['remote', "--network=#{@opts['network']}"]
+        cmd.run(args + ['add', 'b1.zold.io', '80', '--force']) unless @opts['routine-immediately']
+        cmd.run(args + ['trim'])
+        cmd.run(args + ['select'])
+        cmd.run(args + ['update'] + (@opts['never-reboot'] ? [] : ['--reboot']))
       end
     end
   end

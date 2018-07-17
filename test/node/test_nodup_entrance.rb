@@ -20,23 +20,30 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# https://github.com/zold-io/zold/issues/358
-# rename all wallets from their current names into *.z
+require 'minitest/autorun'
+require_relative '../fake_home'
+require_relative '../test__helper'
+require_relative '../../lib/zold/id'
+require_relative '../../lib/zold/node/nodup_entrance'
+require_relative 'fake_entrance'
 
-module Zold
-  # Upgrade to version 2
-  class UpgradeTo2
-    def initialize(home, log)
-      @home = home
-      @log = log
-    end
-
-    def exec
-      Dir.new(@home).each do |path|
-        next unless path =~ /^[a-f0-9]{16}$/
-        File.rename(path, "#{path}.z")
-        @log.info("Renamed #{path} to #{path}.z")
+# NoDupEntrance test.
+# Author:: Yegor Bugayenko (yegor256@gmail.com)
+# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# License:: MIT
+class TestAsyncEntrance < Minitest::Test
+  def test_ignores_dup
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      Zold::NoDupEntrance.new(RealEntrance.new, home.wallets, log: test_log).start do |e|
+        assert(e.push(wallet.id, File.read(wallet.path)).empty?)
       end
+    end
+  end
+
+  class RealEntrance < FakeEntrance
+    def push(id, _)
+      [id]
     end
   end
 end
