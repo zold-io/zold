@@ -81,7 +81,7 @@ Available options:"
       if Tax.new(from).in_debt? && !opts['dont-pay-taxes']
         require_relative 'taxes'
         Taxes.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-          ['taxes', "--private-key=#{opts['private-key']}", id.to_s]
+          ['taxes', 'pay', "--private-key=#{opts['private-key']}", id.to_s]
         )
       end
       pay(from, invoice, amount, details, opts)

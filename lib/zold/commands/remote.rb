@@ -80,6 +80,9 @@ Available options:"
         o.bool '--ignore-score-value',
           'Don\'t complain when their score is too small',
           default: false
+        o.bool '--min-score',
+          "The minimum score required for winning the election (default: #{Tax::EXACT_SCORE})",
+          default: Tax::EXACT_SCORE
         o.bool '--force',
           'Add/remove if if this operation is not possible',
           default: false
@@ -192,7 +195,7 @@ Available options:"
         r.assert_valid_score(score)
         r.assert_score_ownership(score)
         r.assert_score_strength(score) unless opts['ignore-score-weakness']
-        r.assert_score_value(score, Tax::EXACT_SCORE) unless opts['ignore-score-value']
+        r.assert_score_value(score, opts['min-score']) unless opts['ignore-score-value']
         scores << score
       end
       scores = scores.sample(1)
@@ -254,11 +257,9 @@ in #{(Time.now - start).round(2)}s")
     end
 
     def select(opts)
-      max_nodes = opts['max-nodes']
-      @log.info("Selecting #{max_nodes} strongest nodes.")
-      selected_remotes = @remotes.all.sort_by { |remote| remote[:score] }.first(max_nodes)
-      (@remotes.all - selected_remotes).each do |weak_remote|
-        @remotes.remove(weak_remote[:host], weak_remote[:port])
+      selected = @remotes.all.sort_by { |r| r[:score] }.first(opts['max-nodes'])
+      (@remotes.all - selected).each do |r|
+        @remotes.remove(r[:host], r[:port])
       end
     end
 

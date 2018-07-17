@@ -95,8 +95,8 @@ module Zold
         @log.info("Accepted #{id} in #{sec}s and modified #{modified.join(', ')}")
       end
       @mutex.synchronize do
-        @history.shift if @history.length > 16
-        @speed.shift if @speed.length > 64
+        @history.shift if @history.length >= 16
+        @speed.shift if @speed.length >= 64
         wallet = @wallets.find(id)
         @history << "#{id}/#{sec}/#{modified.count}/#{wallet.balance.to_zld}/#{wallet.txns.count}t"
         @speed << sec

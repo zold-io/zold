@@ -45,6 +45,7 @@ module Zold
           Remote.new(remotes: @remotes, log: @log).run(%w[remote add b1.zold.io 80 --force])
         end
         Remote.new(remotes: @remotes, log: @log).run(%w[remote trim])
+        Remote.new(remotes: @remotes, log: @log).run(%w[remote select])
         Remote.new(remotes: @remotes, farm: @farm, log: @log).run(
           %w[remote update] + (@opts['never-reboot'] ? [] : ['--reboot'])
         )
