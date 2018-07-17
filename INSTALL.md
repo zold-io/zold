@@ -80,7 +80,7 @@ $ gem install --no-ri --no-rdoc zold
 ## PFSense Firewall Configuration
 If your node is behind a pfsense firewall, you will need to make some special configurations in order to allow traffic to properly reach your node.
 ```
-1) Navigate to Firewall > NAT > Port Forward, followed by clicking "Add"
+1) Open the PFSense Web GUI Administration console and navigate to Firewall > NAT > Port Forward, followed by clicking "Add"
 2) Configure the NAT rules with the following:
     > Interface: WAN
     > Protocol: TCP
