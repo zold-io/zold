@@ -76,3 +76,21 @@ $ source $HOME/.rvm/scripts/rvm
 $ rvm install 2.5.1
 $ gem install --no-ri --no-rdoc zold
 ```
+
+## PFSense Firewall Configuration
+If your node is behind a pfsense firewall, you will need to make some special configurations in order to allow traffic to properly reach your node.
+```
+1) Navigate to Firewall > NAT > Port Forward, followed by clicking "Add"
+2) Configure the NAT rules with the following:
+    > Interface: WAN
+    > Protocol: TCP
+    > Source Port: defaults
+    > Destination Port: 4096
+    > Redirect Target IP: the interface on which your node is listening for requests
+    > Redirect Target Port: 4096
+    > Description: Port Forwarding Rule for ZOLD
+    > Filter rule association: pass
+3) Verify configuration using either of these two methods. If you see a JSON document you have properly setup your node:
+    > CLI: curl <ip>:4096
+    > Browser: http://<ip>:4096
+```
