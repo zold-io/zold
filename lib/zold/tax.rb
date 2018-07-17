@@ -33,7 +33,7 @@ module Zold
   # A single tax payment
   class Tax
     # The exact score a wallet can buy in order to pay taxes.
-    EXACT_SCORE = 16
+    EXACT_SCORE = 8
 
     # The maximum allowed amount in one transaction.
     MAX_PAYMENT = Amount.new(zld: 1.0)
