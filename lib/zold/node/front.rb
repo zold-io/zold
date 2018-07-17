@@ -162,12 +162,33 @@ module Zold
       content_type 'application/json'
       {
         version: settings.version,
+        protocol: settings.protocol,
+        id: wallet.id.to_s,
         score: score.to_h,
         wallets: settings.wallets.all.count,
         mtime: wallet.mtime.utc.iso8601,
         digest: wallet.digest,
         balance: wallet.balance.to_i,
         body: AtomicFile.new(wallet.path).read
+      }.to_json
+    end
+
+    get %r{/wallet/(?<id>[A-Fa-f0-9]{16}).json} do
+      id = Id.new(params[:id])
+      wallet = settings.wallets.find(id)
+      error 404 unless wallet.exists?
+      content_type 'application/json'
+      {
+        version: settings.version,
+        protocol: settings.protocol,
+        id: wallet.id.to_s,
+        score: score.to_h,
+        wallets: settings.wallets.all.count,
+        key: wallet.key.to_pub,
+        mtime: wallet.mtime.utc.iso8601,
+        digest: wallet.digest,
+        balance: wallet.balance.to_i,
+        txns: wallet.txns.count
       }.to_json
     end
 
@@ -184,7 +205,7 @@ module Zold
       wallet = settings.wallets.find(id)
       error 404 unless wallet.exists?
       content_type 'text/plain'
-      wallet.key.to_s
+      wallet.key.to_pub
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/mtime} do
