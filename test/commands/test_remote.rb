@@ -151,7 +151,6 @@ class TestRemote < Minitest::Test
         cmd.run(%W[remote add localhost #{port}])
       end
       assert_equal(12, remotes.all.count)
-
       cmd.run(%w[remote select --max-nodes=5])
       assert_equal(5, remotes.all.count)
     end

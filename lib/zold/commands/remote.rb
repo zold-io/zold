@@ -80,7 +80,7 @@ Available options:"
         o.bool '--ignore-score-value',
           'Don\'t complain when their score is too small',
           default: false
-        o.bool '--min-score',
+        o.integer '--min-score',
           "The minimum score required for winning the election (default: #{Tax::EXACT_SCORE})",
           default: Tax::EXACT_SCORE
         o.bool '--force',
@@ -96,7 +96,6 @@ Available options:"
         o.bool '--reboot',
           'Exit if any node reports version higher than we have',
           default: false
-
         # @todo #292:30min Group options by subcommands
         #  Having all the options in one place _rather than grouping them by subcommands_
         #  makes the help totally misleading and hard to read.
