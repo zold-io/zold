@@ -36,6 +36,7 @@ require_relative 'atomic_file'
 module Zold
   # All remotes
   class Remotes
+    attr_reader :mtime
     # The default TCP port all nodes are supposed to use.
     PORT = 4096
 
@@ -120,6 +121,7 @@ module Zold
       raise 'Network can\'t be nil' if network.nil?
       @network = network
       @mutex = Mutex.new
+      read_mtime
     end
 
     def all
@@ -242,9 +244,16 @@ in #{(Time.now - start).round}s; errors=#{errors}")
       save(list)
     end
 
+    def read_mtime
+      CSV.read(file, skip_lines: /\.+,\d+,\d+,\d+/).map do |r|
+        @mtime = Time.at(r[1].to_i)
+      end
+    end
+
     def load
+      read_mtime
       @mutex.synchronize do
-        raw = CSV.read(file).map do |r|
+        raw = CSV.read(file, skip_lines: /mtime,\d+,,/).map do |r|
           {
             host: r[0],
             port: r[1].to_i,
@@ -260,6 +269,7 @@ in #{(Time.now - start).round}s; errors=#{errors}")
     end
 
     def save(list)
+      @mtime = Time.now
       @mutex.synchronize do
         AtomicFile.new(file).write(
           list.uniq { |r| "#{r[:host]}:#{r[:port]}" }.map do |r|
@@ -269,7 +279,7 @@ in #{(Time.now - start).round}s; errors=#{errors}")
               r[:score],
               r[:errors]
             ].join(',')
-          end.join("\n")
+          end.join("\n") + "\nmtime,#{@mtime.to_i},,"
         )
       end
     end

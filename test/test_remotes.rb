@@ -180,4 +180,40 @@ class TestRemotes < Minitest::Test
       assert_equal(0, remotes.all.reject { |r| r[:host] == host }.size)
     end
   end
+
+  def test_mtime
+    Dir.mktmpdir 'test' do |dir|
+      file = File.join(dir, 'remotes')
+      FileUtils.touch(file)
+      remotes = Zold::Remotes.new(file)
+      sleep 2
+      remotes.add('127.0.0.1')
+      assert(Time.now - remotes.mtime <= 1)
+    end
+  end
+
+  def test_read_mtime_from_file
+    Dir.mktmpdir 'test' do |dir|
+      file = File.join(dir, 'remotes')
+      FileUtils.touch(file)
+      File.write(file, "127,0,0,0\n")
+      mtime_on_file = Time.now
+      File.write(file, "mtime,#{mtime_on_file.to_i},,\n")
+      remotes = Zold::Remotes.new(file)
+      remotes.all
+      assert_equal(mtime_on_file.to_i, remotes.mtime.to_i)
+    end
+  end
+
+  def test_mtime_written_to_file
+    Dir.mktmpdir 'test' do |dir|
+      file = File.join(dir, 'remotes')
+      FileUtils.touch(file)
+      remotes = Zold::Remotes.new(file)
+      remotes.add('127.0.0.1')
+      mtime_on_file = remotes.mtime
+      new_remotes = Zold::Remotes.new(file)
+      assert_equal(mtime_on_file.to_i, new_remotes.mtime.to_i)
+    end
+  end
 end
