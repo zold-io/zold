@@ -164,7 +164,7 @@ module Zold
       raise 'Port can\'t be over 65536' if port > 0xffff
       raise "#{host}:#{port} already exists" if exists?(host, port)
       list = load
-      list << { host: host.downcase, port: port, score: 0 }
+      list << { host: host.downcase, port: port, score: 0, errors: 0 }
       save(list)
     end
 
@@ -245,7 +245,7 @@ in #{(Time.now - start).round}s; errors=#{errors}")
     end
 
     def read_mtime
-      CSV.read(file, skip_lines: /\.+,\d+,\d+,\d+/).map do |r|
+      CSV.read(file, skip_lines: /.+,\d+,\d+,\d+/).map do |r|
         @mtime = Time.at(r[1].to_i)
       end
     end
@@ -253,7 +253,7 @@ in #{(Time.now - start).round}s; errors=#{errors}")
     def load
       read_mtime
       @mutex.synchronize do
-        raw = CSV.read(file, skip_lines: /mtime,\d+,,/).map do |r|
+        raw = CSV.read(file, skip_lines: /mtime,\d+/).map do |r|
           {
             host: r[0],
             port: r[1].to_i,
@@ -279,7 +279,7 @@ in #{(Time.now - start).round}s; errors=#{errors}")
               r[:score],
               r[:errors]
             ].join(',')
-          end.join("\n") + "\nmtime,#{@mtime.to_i},,"
+          end.join("\n") + "\nmtime,#{@mtime.to_i}"
         )
       end
     end

@@ -198,7 +198,7 @@ class TestRemotes < Minitest::Test
       FileUtils.touch(file)
       File.write(file, "127,0,0,0\n")
       mtime_on_file = Time.now
-      File.write(file, "mtime,#{mtime_on_file.to_i},,\n")
+      File.write(file, "mtime,#{mtime_on_file.to_i}\n")
       remotes = Zold::Remotes.new(file)
       remotes.all
       assert_equal(mtime_on_file.to_i, remotes.mtime.to_i)
