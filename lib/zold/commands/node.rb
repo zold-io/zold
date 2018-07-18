@@ -160,7 +160,9 @@ module Zold
         else
           @log.info("The wallet #{invoice} is not available locally, will pull now...")
           require_relative 'pull'
-          Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(['pull', invoice])
+          Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
+            ['pull', invoice, "--network=#{opts['network']}"]
+          )
         end
         require_relative 'invoice'
         invoice = Invoice.new(wallets: @wallets, log: @log).run(['invoice', invoice])
