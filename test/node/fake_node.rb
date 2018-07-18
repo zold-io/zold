@@ -61,6 +61,7 @@ class FakeNode
                 '--host=localhost',
                 '--bind-port', port.to_s,
                 '--threads=1',
+                '--dump-errors',
                 '--strength=2',
                 '--routine-immediately',
                 '--invoice=NOPREFIX@ffffffffffffffff'

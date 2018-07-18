@@ -45,11 +45,11 @@ module Zold
     configure do
       set :bind, '0.0.0.0'
       set :suppress_messages, true
-      set :dump_errors, false
       set :start, Time.now
       set :lock, false
       set :show_exceptions, false
       set :server, 'webrick'
+      set :dump_errors, false # to be injected at node.rb
       set :version, VERSION # to be injected at node.rb
       set :protocol, PROTOCOL # to be injected at node.rb
       set :ignore_score_weakness, false # to be injected at node.rb

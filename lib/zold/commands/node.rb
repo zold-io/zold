@@ -75,6 +75,9 @@ module Zold
         o.integer '--threads',
           'How many threads to use for scores finding (default: 4)',
           default: 4
+        o.bool '--dump-errors',
+          'Make HTTP front-end errors visible in the log (false by default)',
+          default: false
         o.bool '--standalone',
           'Never communicate with other nodes (mostly for testing)',
           default: false
@@ -135,6 +138,7 @@ module Zold
       host = opts[:host] || ip
       address = "#{host}:#{opts[:port]}".downcase
       @log.info("Node location: #{address}")
+      @log.info("Local address: http://localhost:#{opts['bind-port']}/")
       Front.set(
         :server_settings,
         Logger: WebrickLog.new(@log),
@@ -151,6 +155,7 @@ module Zold
       Front.set(:copies, @copies)
       Front.set(:address, address)
       Front.set(:root, Dir.pwd)
+      Front.set(:dump_errors, opts['dump-errors'])
       Front.set(:port, opts['bind-port'])
       Front.set(:reboot, !opts['never-reboot'])
       invoice = opts[:invoice]
