@@ -18,7 +18,7 @@ function start_node {
 # don't do the TRAP for killing, the test will never end.
 first=$(start_node)
 second=$(start_node)
-trap "kill -9 $(cat ${first}/pid) $(cat ${second}/pid)" EXIT
+trap "halt_nodes ${first} ${second}" EXIT
 
 # The first node is linked to the second one and the second one
 # is linked to the first one. The --home argument specifies their

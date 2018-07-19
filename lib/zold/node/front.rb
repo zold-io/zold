@@ -49,6 +49,7 @@ module Zold
       set :lock, false
       set :show_exceptions, false
       set :server, 'webrick'
+      set :halt, '' # to be injected at node.rb
       set :dump_errors, false # to be injected at node.rb
       set :version, VERSION # to be injected at node.rb
       set :protocol, PROTOCOL # to be injected at node.rb
@@ -69,6 +70,7 @@ module Zold
     use Rack::Deflater
 
     before do
+      Front.stop! if !settings.halt.empty? && params[:halt] && params[:halt] == settings.halt
       check_header(Http::NETWORK_HEADER) do |header|
         if header != settings.network
           raise "Network name mismatch at #{request.url}, #{request.ip} is in '#{header}', \
