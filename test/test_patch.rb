@@ -19,7 +19,6 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
 require 'minitest/autorun'
 require_relative 'fake_home'
 require_relative 'test__helper'
@@ -104,6 +103,27 @@ class TestPatch < Minitest::Test
       FileUtils.rm(first.path)
       assert_equal(true, patch.save(first.path))
       assert_equal(Zold::Amount.new(zld: 2.0), first.balance)
+    end
+  end
+
+  # @todo #287:30m/DEV The following method tests for positive
+  #  balance exceeding Amount::MAX. Still negative balance
+  #  less than -Amount::MAX has to be tested. This cannot be done right now
+  #  see issue #413
+  def test_wallet_not_exceed_positive_max
+    coins = 2**63 - 128
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      time = Time.now
+      one = Zold::Txn.new(1, time, Zold::Amount.new(coins: 129), 'NOPREFIX', Zold::Id.new, '-')
+      two = Zold::Txn.new(2, time, Zold::Amount.new(coins: coins), 'NOPREFIX', Zold::Id.new, '-')
+      File.open(wallet.path, 'a') { |f| f.print "#{one}\n" }
+      File.open(wallet.path, 'a') { |f| f.print "#{two}\n" }
+      patch = Zold::Patch.new(home.wallets, log: test_log)
+      error = assert_raises RuntimeError do
+        patch.join(wallet)
+      end
+      assert !error.message.index("The amount is too big: #{coins + 129}").nil?
     end
   end
 end
