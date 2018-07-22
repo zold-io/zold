@@ -108,7 +108,7 @@ while #{settings.address} is in '#{settings.network}'"
       headers['X-Zold-Version'] = settings.version
       headers[Http::PROTOCOL_HEADER] = settings.protocol.to_s
       headers['Access-Control-Allow-Origin'] = '*'
-      headers[Http::SCORE_HEADER] = score.reduced(16).to_s
+      headers[Http::SCORE_HEADER] = http_score_header
     end
 
     get '/robots.txt' do
@@ -313,6 +313,10 @@ while #{settings.address} is in '#{settings.network}'"
       best = settings.farm.best
       raise 'Score is empty, there is something wrong with the Farm!' if best.empty?
       best[0]
+    end
+
+    def http_score_header
+      score.reduced(16).to_s
     end
   end
 end

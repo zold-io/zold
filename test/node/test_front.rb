@@ -201,7 +201,7 @@ class FrontTest < Minitest::Test
       )
 
       assert_equal(
-        app.new!.send(:score).reduced(16).to_s,
+        app.new!.send(:http_score_header),
         response.header[Zold::Http::SCORE_HEADER]
       )
     end
