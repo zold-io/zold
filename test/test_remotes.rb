@@ -195,25 +195,9 @@ class TestRemotes < Minitest::Test
   def test_read_mtime_from_file
     Dir.mktmpdir 'test' do |dir|
       file = File.join(dir, 'remotes')
-      FileUtils.touch(file)
-      File.write(file, "127,0,0,0\n")
-      mtime_on_file = Time.now
       remotes = Zold::Remotes.new(file)
       remotes.all
-      assert_equal(mtime_on_file.to_i, remotes.mtime.to_i)
-    end
-  end
-
-  def test_mtime_written_to_file
-    Dir.mktmpdir 'test' do |dir|
-      file = File.join(dir, 'remotes')
-      FileUtils.touch(file)
-      remotes = Zold::Remotes.new(file)
-      remotes.add('127.0.0.1')
-      mtime_on_file = remotes.mtime
-      new_remotes = Zold::Remotes.new(file)
-      new_remotes.all
-      assert_equal(mtime_on_file.to_i, new_remotes.mtime.to_i)
+      assert_equal(File.mtime(file).to_i, remotes.mtime.to_i)
     end
   end
 end
