@@ -263,7 +263,6 @@ in #{(Time.now - start).round}s; errors=#{errors}")
     end
 
     def save(list)
-      @mtime = Time.now
       @mutex.synchronize do
         AtomicFile.new(file).write(
           list.uniq { |r| "#{r[:host]}:#{r[:port]}" }.map do |r|
@@ -276,6 +275,7 @@ in #{(Time.now - start).round}s; errors=#{errors}")
           end.join("\n")
         )
       end
+      @mtime = File.mtime(file)
     end
 
     def file

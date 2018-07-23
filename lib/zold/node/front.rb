@@ -267,8 +267,8 @@ while #{settings.address} is in '#{settings.network}'"
       JSON.pretty_generate(
         version: settings.version,
         score: score.to_h,
-        mtime: settings.remotes.mtime.utc.iso8601,
-        all: settings.remotes.all
+        all: settings.remotes.all,
+        mtime: settings.remotes.mtime.utc.iso8601
       )
     end
 
