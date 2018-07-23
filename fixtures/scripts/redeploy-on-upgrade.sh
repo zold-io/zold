@@ -20,7 +20,7 @@ low=$(reserve_port)
 secondary=$(start_node ${low} 1.1.1)
 zold remote add localhost ${high} --home=${low} --skip-ping
 
-trap "kill -9 ${primary} ${secondary}" EXIT
+trap "halt_nodes ${high}" EXIT
 
 wait_for_file ${low}/restarted
 

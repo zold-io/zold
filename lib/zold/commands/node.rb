@@ -75,6 +75,9 @@ module Zold
         o.integer '--threads',
           'How many threads to use for scores finding (default: 4)',
           default: 4
+        o.bool '--dump-errors',
+          'Make HTTP front-end errors visible in the log (false by default)',
+          default: false
         o.bool '--standalone',
           'Never communicate with other nodes (mostly for testing)',
           default: false
@@ -90,6 +93,9 @@ module Zold
         o.string '--nohup-log',
           'The file to log output into (default: zold.log)',
           default: 'zold.log'
+        o.string '--halt-code',
+          'The value of HTTP query parameter "halt," which will cause the front-end immediate termination',
+          default: ''
         o.string '--save-pid',
           'The file to save process ID into right after start (only in NOHUP mode)'
         o.bool '--never-reboot',
@@ -126,6 +132,7 @@ module Zold
       Front.set(:version, opts['expose-version'])
       Front.set(:protocol, Zold::PROTOCOL)
       Front.set(:logging, @log.debug?)
+      Front.set(:halt, opts['halt-code'])
       Front.set(:home, Dir.pwd)
       @log.info("Home directory: #{Dir.pwd}")
       @log.info("Ruby version: #{RUBY_VERSION}")
@@ -135,6 +142,7 @@ module Zold
       host = opts[:host] || ip
       address = "#{host}:#{opts[:port]}".downcase
       @log.info("Node location: #{address}")
+      @log.info("Local address: http://localhost:#{opts['bind-port']}/")
       Front.set(
         :server_settings,
         Logger: WebrickLog.new(@log),
@@ -151,6 +159,7 @@ module Zold
       Front.set(:copies, @copies)
       Front.set(:address, address)
       Front.set(:root, Dir.pwd)
+      Front.set(:dump_errors, opts['dump-errors'])
       Front.set(:port, opts['bind-port'])
       Front.set(:reboot, !opts['never-reboot'])
       invoice = opts[:invoice]
@@ -190,11 +199,10 @@ module Zold
             Front.set(:metronome, metronome)
             @log.info("Starting up the web front at http://#{host}:#{opts[:port]}...")
             Front.run!
-            @log.info("The web front stopped at http://#{host}:#{opts[:port]}")
+            @log.info("The web front stopped at http://#{host}:#{opts[:port]}, thanks for helping Zold network!")
           end
         end
       end
-      @log.info("The node #{host}:#{opts[:port]} is shut down, thanks for helping Zold network!")
     end
 
     private

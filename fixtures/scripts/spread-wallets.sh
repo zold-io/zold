@@ -16,7 +16,7 @@ function start_node {
 
 first=$(start_node)
 second=$(start_node)
-trap "kill -9 $(cat ${first}/pid) $(cat ${second}/pid)" EXIT
+trap "halt_nodes ${first} ${second}" EXIT
 
 zold --home=${first} remote clean
 zold --home=${first} remote add localhost ${second}

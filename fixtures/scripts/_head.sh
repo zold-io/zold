@@ -5,7 +5,7 @@ shopt -s expand_aliases
 
 export RUBYOPT="-W0"
 
-alias zold="$1 --ignore-this-stupid-option --ignore-global-config --trace --network=test --no-colors"
+alias zold="$1 --ignore-this-stupid-option --halt-code=test --ignore-global-config --trace --network=test --no-colors"
 
 function reserve_port {
   python -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()'
@@ -43,3 +43,10 @@ function wait_for_file {
     sleep 1
   done
 }
+
+function halt_nodes {
+  for p in "$@"; do
+    curl --silent "http://localhost:$p/version?halt=test" || echo "Failed to halt at TCP ${p}"
+  done
+}
+
