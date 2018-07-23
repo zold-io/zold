@@ -121,7 +121,7 @@ module Zold
       raise 'Network can\'t be nil' if network.nil?
       @network = network
       @mutex = Mutex.new
-      read_mtime
+      @mtime = nil
     end
 
     def all
@@ -244,21 +244,15 @@ in #{(Time.now - start).round}s; errors=#{errors}")
       save(list)
     end
 
-    def read_mtime
-      CSV.read(file, skip_lines: /.+,\d+,\d+,\d+/).map do |r|
-        @mtime = Time.at(r[1].to_i)
-      end
-    end
-
     def load
-      read_mtime
+      @mtime = File.mtime(file)
       @mutex.synchronize do
-        raw = CSV.read(file, skip_lines: /mtime,\d+/).map do |r|
+        raw = CSV.read(file).map do |row|
           {
-            host: r[0],
-            port: r[1].to_i,
-            score: r[2].to_i,
-            errors: r[3].to_i
+            host: row[0],
+            port: row[1].to_i,
+            score: row[2].to_i,
+            errors: row[3].to_i
           }
         end
         raw.reject { |r| !r[:host] || r[:port].zero? }.map do |r|
@@ -279,7 +273,7 @@ in #{(Time.now - start).round}s; errors=#{errors}")
               r[:score],
               r[:errors]
             ].join(',')
-          end.join("\n") + "\nmtime,#{@mtime.to_i}"
+          end.join("\n")
         )
       end
     end
