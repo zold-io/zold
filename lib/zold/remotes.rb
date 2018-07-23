@@ -28,6 +28,7 @@ require 'fileutils'
 require_relative 'backtrace'
 require_relative 'node/farm'
 require_relative 'atomic_file'
+require_relative 'type'
 
 # The list of remotes.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -35,7 +36,7 @@ require_relative 'atomic_file'
 # License:: MIT
 module Zold
   # All remotes
-  class Remotes
+  class Remotes < Dry::Struct
     # The default TCP port all nodes are supposed to use.
     PORT = 4096
 
@@ -48,12 +49,12 @@ module Zold
     # Default number of nodes to fetch.
     MAX_NODES = 16
 
+    attribute :file, Types::Strict::String
+    attribute :network, Types::Strict::String.optional.default('test')
+    attribute :mutex, meta(omittable: true)
+
     # Empty, for standalone mode
     class Empty < Remotes
-      def initialize
-        # Nothing here
-      end
-
       def all
         []
       end
@@ -64,33 +65,28 @@ module Zold
     end
 
     # One remote.
-    class Remote
-      attr_reader :host, :port
-      def initialize(host, port, score, idx, log: Log::Quiet.new, network: 'test')
-        @host = host
-        raise 'Post must be Integer' unless port.is_a?(Integer)
-        @port = port
-        raise 'Score must be of type Score' unless score.is_a?(Score)
-        @score = score
-        raise 'Idx must be of type Integer' unless idx.is_a?(Integer)
-        @idx = idx
-        raise 'Network can\'t be nil' if network.nil?
-        @network = network
-        @log = log
-      end
+    class Remote < Dry::Struct
+      attribute :host, Types::Strict::String
+      attribute :port, Types::Strict::Integer.constrained(gteq: 0, lt: 65_535)
+      attribute :score, Score
+      attribute :idx, Types::Strict::Integer
+      attribute :network, Types::Strict::String.optional.default('test')
+      attribute :log, (Types::Class.constructor do |value|
+        value.nil? ? Log::Quiet.new : value
+      end)
 
       def http(path = '/')
-        Http.new(uri: "http://#{@host}:#{@port}#{path}", score: @score, network: @network)
+        Http.new(uri: "http://#{host}:#{port}#{path}", score: score, network: network)
       end
 
       def to_s
-        "#{@host}:#{@port}/#{@idx}"
+        "#{host}:#{port}/#{idx}"
       end
 
       def assert_code(code, response)
         msg = response.message.strip
         return if response.code.to_i == code
-        @log.debug("#{response.code} \"#{response.message}\" at \"#{response.body}\"")
+        log.debug("#{response.code} \"#{response.message}\" at \"#{response.body}\"")
         raise "Unexpected HTTP code #{response.code}, instead of #{code}" if msg.empty?
         raise "#{msg} (HTTP code #{response.code}, instead of #{code})"
       end
@@ -101,8 +97,8 @@ module Zold
       end
 
       def assert_score_ownership(score)
-        raise "Masqueraded host #{@host} as #{score.host}: #{score}" if @host != score.host
-        raise "Masqueraded port #{@port} as #{score.port}: #{score}" if @port != score.port
+        raise "Masqueraded host #{host} as #{score.host}: #{score}" if host != score.host
+        raise "Masqueraded port #{port} as #{score.port}: #{score}" if port != score.port
       end
 
       def assert_score_strength(score)
@@ -112,14 +108,6 @@ module Zold
       def assert_score_value(score, min)
         raise "Score is too small (<#{min}): #{score}" if score.value < min
       end
-    end
-
-    def initialize(file, network: 'test')
-      raise 'File can\'t be nil' if file.nil?
-      @file = file
-      raise 'Network can\'t be nil' if network.nil?
-      @network = network
-      @mutex = Mutex.new
     end
 
     def all
@@ -138,10 +126,10 @@ module Zold
     end
 
     def reset
-      FileUtils.mkdir_p(File.dirname(@file))
+      FileUtils.mkdir_p(File.dirname(file))
       FileUtils.copy(
         File.join(File.dirname(__FILE__), '../../resources/remotes'),
-        @file
+        file
       )
     end
 
@@ -191,7 +179,14 @@ module Zold
           Thread.current.priority = -100
           start = Time.now
           begin
-            yield Remotes::Remote.new(r[:host], r[:port], score, idx, log: log, network: @network)
+            yield Remotes::Remote.new(
+              host: r[:host],
+              port: r[:port],
+              score: score,
+              idx: idx,
+              log: log,
+              network: network
+            )
             idx += 1
             raise 'Took too long to execute' if (Time.now - start).round > Remotes::RUNTIME_LIMIT
           rescue StandardError => e
@@ -243,8 +238,8 @@ in #{(Time.now - start).round}s; errors=#{errors}")
     end
 
     def load
-      @mutex.synchronize do
-        raw = CSV.read(file).map do |r|
+      _mutex.synchronize do
+        raw = CSV.read(_file).map do |r|
           {
             host: r[0],
             port: r[1].to_i,
@@ -260,8 +255,8 @@ in #{(Time.now - start).round}s; errors=#{errors}")
     end
 
     def save(list)
-      @mutex.synchronize do
-        AtomicFile.new(file).write(
+      _mutex.synchronize do
+        AtomicFile.new(_file).write(
           list.uniq { |r| "#{r[:host]}:#{r[:port]}" }.map do |r|
             [
               r[:host],
@@ -274,9 +269,13 @@ in #{(Time.now - start).round}s; errors=#{errors}")
       end
     end
 
-    def file
-      reset unless File.exist?(@file)
-      @file
+    def _mutex
+      mutex.nil? ? Mutex.new : mutex
+    end
+
+    def _file
+      reset unless File.exist?(file)
+      file
     end
   end
 end

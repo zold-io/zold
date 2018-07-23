@@ -39,7 +39,7 @@ require_relative '../../lib/zold/commands/remote'
 class TestRemote < Minitest::Test
   def test_updates_remote
     Dir.mktmpdir 'test' do |dir|
-      remotes = Zold::Remotes.new(File.join(dir, 'a/b/c/remotes'))
+      remotes = Zold::Remotes.new(file: File.join(dir, 'a/b/c/remotes'))
       zero = Zold::Score::ZERO
       stub_request(:get, "http://#{zero.host}:#{zero.port}/remotes").to_return(
         status: 200,
@@ -75,7 +75,7 @@ class TestRemote < Minitest::Test
   def test_elects_a_remote
     Dir.mktmpdir 'test' do |dir|
       zero = Zold::Score::ZERO
-      remotes = Zold::Remotes.new(File.join(dir, 'remotes.txt'))
+      remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.txt'))
       remotes.clean
       remotes.add(zero.host, zero.port)
       stub_request(:get, "http://#{zero.host}:#{zero.port}/").to_return(
@@ -93,7 +93,7 @@ class TestRemote < Minitest::Test
 
   def test_remote_trim_with_tolerate
     Dir.mktmpdir 'test' do |dir|
-      remotes = Zold::Remotes.new(File.join(dir, 'remotes.txt'))
+      remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.txt'))
       zero = Zold::Score::ZERO
       stub_request(:get, "http://#{zero.host}:#{zero.port}/remotes").to_return(
         status: 200,
@@ -128,7 +128,7 @@ class TestRemote < Minitest::Test
 
   def test_select_respects_max_nodes_option
     Dir.mktmpdir 'test' do |dir|
-      remotes = Zold::Remotes.new(File.join(dir, 'remotes.txt'))
+      remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.txt'))
       zero = Zold::Score::ZERO
       cmd = Zold::Remote.new(remotes: remotes, log: test_log)
       (5000..5010).each do |port|
