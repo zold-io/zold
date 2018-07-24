@@ -24,7 +24,7 @@
 #  classes have been refactored for using dry-types, even tough the issue has
 #  been boosted refactoring the whole project is very cumbersome. Please refer
 #  to Score and Http class on how to perform all the changes for the project to
-# adopt dry-types
+#  adopt dry-types
 require 'dry-types'
 require 'dry-struct'
 
