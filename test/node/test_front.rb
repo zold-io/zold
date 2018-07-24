@@ -68,6 +68,11 @@ class FrontTest < Minitest::Test
       response = Zold::Http.new(uri: "http://localhost:#{port}/remotes", score: score).get
       assert_equal('200', response.code, response.body)
       assert_equal(1, Zold::JsonPage.new(response.body).to_hash['all'].count, response.body)
+      assert_match(
+        /(\d{4})-(\d{2})-(\d{2})T(\d{2})\:(\d{2})\:(\d{2})Z/,
+        Zold::JsonPage.new(response.body).to_hash['mtime'].to_s,
+        response.body
+      )
     end
   end
 
