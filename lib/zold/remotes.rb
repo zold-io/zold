@@ -62,6 +62,10 @@ module Zold
       def iterate(_)
         # Nothing to do here
       end
+
+      def mtime
+        Time.now
+      end
     end
 
     # One remote.
