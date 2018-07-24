@@ -149,7 +149,7 @@ module Zold
         AccessLog: []
       )
       if opts['standalone']
-        @remotes = Remotes::Empty.new
+        @remotes = Zold::Remotes::Empty.new(file: '/tmp/standalone')
         @log.debug('Running in standalone mode! (will never talk to other remotes)')
       end
       Front.set(:ignore_score_weakness, opts['ignore-score-weakness'])

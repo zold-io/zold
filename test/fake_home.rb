@@ -58,7 +58,7 @@ class FakeHome
   end
 
   def remotes
-    remotes = Zold::Remotes.new(File.join(@dir, 'secrets/remotes'))
+    remotes = Zold::Remotes.new(file: File.join(@dir, 'secrets/remotes'))
     remotes.clean
     remotes
   end

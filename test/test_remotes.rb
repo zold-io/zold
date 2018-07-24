@@ -47,7 +47,7 @@ class TestRemotes < Minitest::Test
     Dir.mktmpdir 'test' do |dir|
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
-      remotes = Zold::Remotes.new(file)
+      remotes = Zold::Remotes.new(file: file)
       remotes.add('127.0.0.1')
       assert(1, remotes.all.count)
     end
@@ -63,7 +63,7 @@ class TestRemotes < Minitest::Test
         "\n\n\n\n"
       ].each do |t|
         File.write(file, t)
-        remotes = Zold::Remotes.new(file)
+        remotes = Zold::Remotes.new(file: file)
         assert(remotes.all.empty?, remotes.all)
       end
     end
@@ -73,7 +73,7 @@ class TestRemotes < Minitest::Test
     Dir.mktmpdir 'test' do |dir|
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
-      remotes = Zold::Remotes.new(file)
+      remotes = Zold::Remotes.new(file: file)
       ips = (0..50)
       ips.each { |i| remotes.add("0.0.0.#{i}", 9999) }
       remotes.iterate(Zold::Log::Quiet.new) { raise 'Intended' }
@@ -85,7 +85,7 @@ class TestRemotes < Minitest::Test
     Dir.mktmpdir 'test' do |dir|
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
-      remotes = Zold::Remotes.new(file)
+      remotes = Zold::Remotes.new(file: file)
       remotes.add('0.0.0.1', 9999)
       log = TestLogger.new
       remotes.iterate(log) { raise 'Intended' }
@@ -97,7 +97,7 @@ class TestRemotes < Minitest::Test
     Dir.mktmpdir 'test' do |dir|
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
-      remotes = Zold::Remotes.new(file)
+      remotes = Zold::Remotes.new(file: file)
       remotes.add('127.0.0.1')
       log = TestLogger.new
       remotes.iterate(log) { sleep(17) }
@@ -109,7 +109,7 @@ class TestRemotes < Minitest::Test
     Dir.mktmpdir 'test' do |dir|
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
-      remotes = Zold::Remotes.new(file)
+      remotes = Zold::Remotes.new(file: file)
       remotes.add('127.0.0.1')
       remotes.add('LOCALHOST', 433)
       remotes.remove('localhost', 433)
@@ -119,7 +119,7 @@ class TestRemotes < Minitest::Test
 
   def test_resets_remotes
     Dir.mktmpdir 'test' do |dir|
-      remotes = Zold::Remotes.new(File.join(dir, 'remotes'))
+      remotes = Zold::Remotes.new(file: File.join(dir, 'remotes'))
       remotes.clean
       remotes.reset
       remotes.reset
@@ -131,7 +131,7 @@ class TestRemotes < Minitest::Test
     Dir.mktmpdir 'test' do |dir|
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
-      remotes = Zold::Remotes.new(file)
+      remotes = Zold::Remotes.new(file: file)
       remotes.add('127.0.0.1', 1024)
       remotes.rescore('127.0.0.1', 1024, 15)
       remotes.all.each do |r|
@@ -144,7 +144,7 @@ class TestRemotes < Minitest::Test
   def test_tolerates_invalid_requests
     Dir.mktmpdir 'test' do |dir|
       file = File.join(dir, 'remotes')
-      remotes = Zold::Remotes.new(file)
+      remotes = Zold::Remotes.new(file: file)
       remotes.error('127.0.0.1', 1024)
       remotes.rescore('127.0.0.1', 1024, 15)
     end
@@ -152,7 +152,7 @@ class TestRemotes < Minitest::Test
 
   def test_modifies_from_many_threads
     Dir.mktmpdir 'test' do |dir|
-      remotes = Zold::Remotes.new(File.join(dir, 'a.csv'))
+      remotes = Zold::Remotes.new(file: File.join(dir, 'a.csv'))
       remotes.clean
       threads = 5
       pool = Concurrent::FixedThreadPool.new(threads)
@@ -185,7 +185,7 @@ class TestRemotes < Minitest::Test
     Dir.mktmpdir 'test' do |dir|
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
-      remotes = Zold::Remotes.new(file)
+      remotes = Zold::Remotes.new(file: file)
       sleep 2
       remotes.add('127.0.0.1')
       assert(Time.now - remotes.mtime <= 1)
@@ -195,9 +195,14 @@ class TestRemotes < Minitest::Test
   def test_read_mtime_from_file
     Dir.mktmpdir 'test' do |dir|
       file = File.join(dir, 'remotes')
-      remotes = Zold::Remotes.new(file)
+      remotes = Zold::Remotes.new(file: file)
       remotes.all
       assert_equal(File.mtime(file).to_i, remotes.mtime.to_i)
     end
+  end
+
+  def test_empty_remotes
+    remotes = Zold::Remotes::Empty.new(file: '/tmp/empty')
+    assert(remotes.is_a?(Zold::Remotes))
   end
 end

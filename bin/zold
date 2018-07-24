@@ -149,7 +149,7 @@ Available options:"
   Zold::RenameForeignWallets.new(Dir.pwd, opts['network'], log).exec
 
   wallets = Zold::Wallets.new('.')
-  remotes = Zold::Remotes.new('./.zoldata/remotes', network: opts['network'])
+  remotes = Zold::Remotes.new(file: './.zoldata/remotes', network: opts['network'])
   copies = './.zoldata/copies'
 
   case command
