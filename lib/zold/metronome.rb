@@ -55,7 +55,6 @@ module Zold
         @threads << Thread.start do
           Thread.current.abort_on_exception = true
           Thread.current.name = r.class.name
-          Thread.current.priority = -100
           step = 0
           while alive
             start = Time.now
