@@ -37,14 +37,13 @@ class TestPull < Minitest::Test
     FakeHome.new.run do |home|
       remotes = home.remotes
       remotes.add('localhost', 80)
-      wallet_json = home.create_wallet_json
-
-      wallet_id = Zold::JsonPage.new(wallet_json).to_hash['id']
-      stub_request(:get, "http://localhost:80/wallet/#{wallet_id}").to_return(status: 200, body: wallet_json)
+      json = home.create_wallet_json
+      id = Zold::JsonPage.new(json).to_hash['id']
+      stub_request(:get, "http://localhost:80/wallet/#{id}").to_return(status: 200, body: json)
       Zold::Pull.new(wallets: home.wallets, remotes: remotes, copies: home.copies.root.to_s, log: test_log).run(
-        ['--ignore-this-stupid-option', 'pull', wallet_id.to_s]
+        ['--ignore-this-stupid-option', 'pull', id.to_s]
       )
-      assert(home.wallets.find(Zold::Id.new(wallet_id)).exists?)
+      assert(home.wallets.find(Zold::Id.new(id)).exists?)
     end
   end
 end
