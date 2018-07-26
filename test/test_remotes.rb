@@ -44,7 +44,7 @@ class TestRemotes < Minitest::Test
   end
 
   def test_adds_remotes
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
       remotes = Zold::Remotes.new(file: file)
@@ -54,7 +54,7 @@ class TestRemotes < Minitest::Test
   end
 
   def test_reads_broken_file
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       file = File.join(dir, 'remotes')
       [
         ',0,0,0',
@@ -70,7 +70,7 @@ class TestRemotes < Minitest::Test
   end
 
   def test_iterates_and_fails
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
       remotes = Zold::Remotes.new(file: file)
@@ -81,8 +81,19 @@ class TestRemotes < Minitest::Test
     end
   end
 
+  def test_iterates_them_all
+    Dir.mktmpdir do |dir|
+      remotes = Zold::Remotes.new(file: File.join(dir, 'rrr.csv'))
+      remotes.clean
+      5.times { |i| remotes.add("0.0.0.#{i}", 8080) }
+      total = 0
+      remotes.iterate(test_log) { total += 1 }
+      assert_equal(5, total)
+    end
+  end
+
   def test_log_msg_of_iterates_when_fail
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
       remotes = Zold::Remotes.new(file: file)
@@ -94,19 +105,19 @@ class TestRemotes < Minitest::Test
   end
 
   def test_log_msg_of_iterates_when_take_too_long
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
-      remotes = Zold::Remotes.new(file: file)
+      remotes = Zold::Remotes.new(file: file, timeout: 1)
       remotes.add('127.0.0.1')
       log = TestLogger.new
-      remotes.iterate(log) { sleep(17) }
+      remotes.iterate(log) { sleep(2) }
       assert(log.msg.include?('Took too long to execute'))
     end
   end
 
   def test_removes_remotes
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
       remotes = Zold::Remotes.new(file: file)
@@ -118,7 +129,7 @@ class TestRemotes < Minitest::Test
   end
 
   def test_resets_remotes
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes'))
       remotes.clean
       remotes.reset
@@ -128,7 +139,7 @@ class TestRemotes < Minitest::Test
   end
 
   def test_modifies_score
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
       remotes = Zold::Remotes.new(file: file)
@@ -142,7 +153,7 @@ class TestRemotes < Minitest::Test
   end
 
   def test_tolerates_invalid_requests
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       file = File.join(dir, 'remotes')
       remotes = Zold::Remotes.new(file: file)
       remotes.error('127.0.0.1', 1024)
@@ -151,7 +162,7 @@ class TestRemotes < Minitest::Test
   end
 
   def test_modifies_from_many_threads
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'a.csv'))
       remotes.clean
       threads = 5
@@ -198,6 +209,29 @@ class TestRemotes < Minitest::Test
       remotes = Zold::Remotes.new(file: file)
       remotes.all
       assert_equal(File.mtime(file).to_i, remotes.mtime.to_i)
+    end
+  end
+
+  def test_adds_from_many_threads
+    Dir.mktmpdir do |dir|
+      remotes = Zold::Remotes.new(file: File.join(dir, 'xx.csv'))
+      remotes.clean
+      threads = 5
+      pool = Concurrent::FixedThreadPool.new(threads)
+      done = Concurrent::AtomicFixnum.new
+      latch = Concurrent::CountDownLatch.new(1)
+      threads.times do |i|
+        pool.post do
+          Zold::VerboseThread.new(test_log).run(true) do
+            latch.wait(10)
+            remotes.add('127.0.0.1', 8080 + i)
+            done.increment
+          end
+        end
+      end
+      latch.count_down
+      sleep 0.1 until done.value == threads
+      assert_equal(threads, remotes.all.count)
     end
   end
 

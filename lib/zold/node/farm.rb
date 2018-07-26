@@ -78,7 +78,6 @@ module Zold
         Thread.new do
           Thread.current.abort_on_exception = true
           Thread.current.name = "f#{t}"
-          Thread.current.priority = -100
           loop do
             VerboseThread.new(@log).run do
               cycle(host, port, strength, threads)
@@ -90,7 +89,6 @@ module Zold
       @cleanup = Thread.new do
         Thread.current.abort_on_exception = true
         Thread.current.name = 'cleanup'
-        Thread.current.priority = -100
         while alive
           sleep(60) unless strength == 1 # which will only happen in tests
           VerboseThread.new(@log).run do
@@ -147,6 +145,9 @@ module Zold
       return unless s.strength >= strength
       Thread.current.name = s.to_mnemo
       save(threads, [s.next])
+      # score = Score.parse(`ruby #{File.join(File.dirname(__FILE__), '../../../bin/zold')} next "#{s}"`)
+      # @log.debug("New score discovered: #{score}")
+      # save(threads, [score])
       cleanup(host, port, strength, threads)
     end
 

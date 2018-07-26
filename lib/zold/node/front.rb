@@ -70,7 +70,10 @@ module Zold
     use Rack::Deflater
 
     before do
-      Front.stop! if !settings.halt.empty? && params[:halt] && params[:halt] == settings.halt
+      if !settings.halt.empty? && params[:halt] && params[:halt] == settings.halt
+        settings.log.error('Halt signal received, shutting the front end down...')
+        Front.stop!
+      end
       check_header(Http::NETWORK_HEADER) do |header|
         if header != settings.network
           raise "Network name mismatch at #{request.url}, #{request.ip} is in '#{header}', \
@@ -121,6 +124,11 @@ while #{settings.address} is in '#{settings.network}'"
       settings.version
     end
 
+    get '/pid' do
+      content_type 'text/plain'
+      Process.pid.to_s
+    end
+
     get '/score' do
       content_type 'text/plain'
       score.to_s
@@ -145,6 +153,7 @@ while #{settings.address} is in '#{settings.network}'"
         score: score.to_h,
         pid: Process.pid,
         cpus: Concurrent.processor_count,
+        platform: RUBY_PLATFORM,
         uptime: `uptime`.strip,
         threads: "#{Thread.list.select { |t| t.status == 'run' }.count}/#{Thread.list.count}",
         wallets: settings.wallets.all.count,

@@ -140,7 +140,7 @@ class TestMerge < Minitest::Test
   def test_merges_scenarios
     base = 'fixtures/merge'
     Dir.new(base).select { |f| File.directory?(File.join(base, f)) && !f.start_with?('.') }.each do |f|
-      Dir.mktmpdir 'test' do |dir|
+      Dir.mktmpdir do |dir|
         FileUtils.cp_r(File.join('fixtures/merge', "#{f}/."), dir)
         scores = File.join(dir, 'copies/0123456789abcdef/scores.z')
         File.write(scores, File.read(scores).gsub(/NOW/, Time.now.utc.iso8601))

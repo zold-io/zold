@@ -74,6 +74,7 @@ class FakeNode
           @log.debug("Waiting for #{uri}...")
           sleep 1
         end
+        raise 'The node is dead' unless node.alive?
         begin
           yield port
         ensure

@@ -25,6 +25,9 @@ require_relative '../lib/zold/id'
 require_relative '../lib/zold/wallet'
 require_relative '../lib/zold/wallets'
 require_relative '../lib/zold/key'
+require_relative '../lib/zold/version'
+require_relative '../lib/zold/remotes'
+require_relative '../lib/zold/atomic_file'
 
 # Fake home dir.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -37,7 +40,7 @@ class FakeHome
   end
 
   def run
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       FileUtils.copy(File.join(__dir__, '../fixtures/id_rsa'), File.join(dir, 'id_rsa'))
       yield FakeHome.new(dir)
     end
@@ -47,10 +50,29 @@ class FakeHome
     Zold::Wallets.new(@dir)
   end
 
-  def create_wallet(id = Zold::Id.new)
-    wallet = Zold::Wallet.new(File.join(@dir, id.to_s))
+  def create_wallet(id = Zold::Id.new, dir = @dir)
+    wallet = Zold::Wallet.new(File.join(dir, id.to_s))
     wallet.init(id, Zold::Key.new(file: File.join(__dir__, '../fixtures/id_rsa.pub')))
     wallet
+  end
+
+  def create_wallet_json(id = Zold::Id.new)
+    require_relative '../lib/zold/score'
+    score = Zold::Score::ZERO
+    Dir.mktmpdir 'wallets' do |external_dir|
+      wallet = create_wallet(id, external_dir)
+      {
+        version: Zold::VERSION,
+        protocol: Zold::PROTOCOL,
+        id: wallet.id.to_s,
+        score: score.to_h,
+        wallets: 1,
+        mtime: wallet.mtime.utc.iso8601,
+        digest: wallet.digest,
+        balance: wallet.balance.to_i,
+        body: Zold::AtomicFile.new(wallet.path).read
+      }.to_json
+    end
   end
 
   def copies(wallet = create_wallet)

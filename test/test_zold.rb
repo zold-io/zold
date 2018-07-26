@@ -34,7 +34,8 @@ require_relative '../lib/zold/version'
 class TestZold < Minitest::Test
   def test_all_scripts
     Dir.new('fixtures/scripts').select { |f| f =~ /\.sh$/ && !f.start_with?('_') }.each do |f|
-      Dir.mktmpdir 'test' do |dir|
+      # next unless f == 'redeploy-on-upgrade.sh'
+      Dir.mktmpdir do |dir|
         FileUtils.cp('fixtures/id_rsa.pub', dir)
         FileUtils.cp('fixtures/id_rsa', dir)
         script = File.join(dir, f)
@@ -68,7 +69,7 @@ class TestZold < Minitest::Test
   end
 
   def test_create_new_wallet
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       FileUtils.cp('fixtures/id_rsa.pub', dir)
       FileUtils.cp('fixtures/id_rsa', dir)
       stdout = exec(

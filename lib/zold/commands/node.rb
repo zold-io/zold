@@ -114,6 +114,10 @@ module Zold
           "The name of the network (default: #{Wallet::MAIN_NETWORK})",
           require: true,
           default: Wallet::MAIN_NETWORK
+        o.integer '--nohup-max-cycles',
+          'Maximum amount of nohup re-starts (-1 by default, which means forever)',
+          require: true,
+          default: -1
         o.bool '--help', 'Print instructions'
       end
       if opts.help?
@@ -199,7 +203,8 @@ module Zold
             Front.set(:metronome, metronome)
             @log.info("Starting up the web front at http://#{host}:#{opts[:port]}...")
             Front.run!
-            @log.info("The web front stopped at http://#{host}:#{opts[:port]}, thanks for helping Zold network!")
+            @log.info("The web front stopped at http://#{host}:#{opts[:port]}")
+            @log.info('Thanks for helping Zold network!')
           end
         end
       end
@@ -241,19 +246,26 @@ module Zold
         end
         myself = File.expand_path($PROGRAM_NAME)
         args = ARGV.delete_if { |a| a.start_with?('--nohup', '--home') }
+        cycle = 0
         loop do
           begin
             code = exec("#{myself} #{args.join(' ')}", nohup_log)
-            if code != 0
-              nohup_log.print("Let's wait for a minute, because of the failure...")
-              sleep(60)
-            end
+            raise "Exit code is #{code}" if code != 0
             exec(opts['nohup-command'], nohup_log)
           rescue StandardError => e
             nohup_log.print(Backtrace.new(e).to_s)
-            nohup_log.print("Let's wait for a minutes, because of the exception...")
-            sleep(60)
+            if cycle < opts['nohup-max-cycles']
+              nohup_log.print("Let's wait for a minutes, because of the exception...")
+              sleep(60)
+            end
           end
+          next if opts['nohup-max-cycles'].negative?
+          cycle += 1
+          if cycle > opts['nohup-max-cycles']
+            nohup_log.print("There are no more nohup cycles left, after the cycle no.#{cycle}")
+            break
+          end
+          nohup_log.print("Going for nohup cycle no.#{cycle}")
         end
       end
       Process.detach(pid)

@@ -207,10 +207,13 @@ Available options:"
     end
 
     def trim(opts)
-      @remotes.all.each do |r|
-        remove(r[:host], r[:port], opts) if r[:errors] > opts['tolerate']
+      all = @remotes.all
+      all.each do |r|
+        next if r[:errors] <= opts['tolerate']
+        remove(r[:host], r[:port], opts)
+        @log.info("#{r[:host]}:#{r[:port]} removed because of #{r[:errors]} errors (over #{opts['tolerate']})")
       end
-      @log.info("The list of remotes trimmed, #{@remotes.all.count} nodes left there")
+      @log.info("The list of #{all.count} remotes trimmed, #{@remotes.all.count} nodes left there")
     end
 
     def update(opts, deep = true)
@@ -256,7 +259,7 @@ in #{(Time.now - start).round(2)}s")
     end
 
     def select(opts)
-      selected = @remotes.all.sort_by { |r| r[:score] }.first(opts['max-nodes'])
+      selected = @remotes.all.sort_by { |r| r[:score] }.reverse.first(opts['max-nodes'])
       (@remotes.all - selected).each do |r|
         @remotes.remove(r[:host], r[:port])
       end

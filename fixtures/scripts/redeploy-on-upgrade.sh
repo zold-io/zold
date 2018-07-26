@@ -4,9 +4,9 @@ function start_node {
   mkdir $1
   cd $1
   zold remote clean
-  zold node $3 --nohup --nohup-command='touch restarted' --nohup-log=log \
+  zold node $3 --nohup --nohup-command='touch restarted' --nohup-log=log --nohup-max-cycles=0 \
     --expose-version=$2 --save-pid=pid --routine-immediately \
-    --verbose --trace --invoice=NOPREFIX@ffffffffffffffff \
+    --verbose --trace --invoice=REDEPLOY@ffffffffffffffff \
     --host=localhost --port=$1 --bind-port=$1 --threads=0 > /dev/null 2>&1
   wait_for_port $1
   cat pid
