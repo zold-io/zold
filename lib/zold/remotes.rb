@@ -52,20 +52,20 @@ module Zold
 
     attribute :file, Types::Strict::String
     attribute :network, Types::Strict::String.optional.default('test')
-    attribute :mutex, meta(omittable: true)
+    attribute :mutex, Types::Any.optional.default(Mutex.new)
 
     # Empty, for standalone mode
     class Empty < Remotes
+      def initialize(_file)
+        @mtime = Time.now
+      end
+
       def all
         []
       end
 
       def iterate(_)
         # Nothing to do here
-      end
-
-      def mtime
-        Time.now
       end
     end
 
@@ -244,7 +244,7 @@ in #{(Time.now - start).round}s; errors=#{errors}")
 
     def load
       @mtime = File.mtime(_file)
-      _mutex.synchronize do
+      mutex.synchronize do
         raw = CSV.read(_file).map do |row|
           {
             host: row[0],
@@ -261,7 +261,7 @@ in #{(Time.now - start).round}s; errors=#{errors}")
     end
 
     def save(list)
-      _mutex.synchronize do
+      mutex.synchronize do
         AtomicFile.new(_file).write(
           list.uniq { |r| "#{r[:host]}:#{r[:port]}" }.map do |r|
             [
@@ -274,10 +274,6 @@ in #{(Time.now - start).round}s; errors=#{errors}")
         )
       end
       @mtime = File.mtime(_file)
-    end
-
-    def _mutex
-      mutex.nil? ? Mutex.new : mutex
     end
 
     def _file

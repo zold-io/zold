@@ -203,6 +203,7 @@ class TestRemotes < Minitest::Test
 
   def test_empty_remotes
     remotes = Zold::Remotes::Empty.new(file: '/tmp/empty')
+    assert(Time.now - remotes.mtime <= 1)
     assert(remotes.is_a?(Zold::Remotes))
   end
 end
