@@ -20,10 +20,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# @todo #98:30m/DEV Right now only Score and Http classes have been refactored for using
-#  dry-types, even tough the issue has been boosted refactoring the whole project
-#  is very cumbersome. Please refer to Score and Http class on how to perform all
-#  the changes for the project to adopt dry-types
+# @todo #394:30m/DEV Right now only Score, Http, Zold::Remotes and Zold::Remote
+#  classes have been refactored for using dry-types, even tough the issue has
+#  been boosted refactoring the whole project is very cumbersome. Please refer
+#  to Score and Http class on how to perform all the changes for the project to
+#  adopt dry-types
 require 'dry-types'
 require 'dry-struct'
 
