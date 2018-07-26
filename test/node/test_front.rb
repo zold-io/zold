@@ -167,12 +167,20 @@ class FrontTest < Minitest::Test
     end
   end
 
-  def app
-    Zold::Front
+  def test_performance
+    start = Time.now
+    total = 50
+    FakeNode.new(log: test_log).run(['--threads=4', '--strength=6', '--no-metronome']) do |port|
+      total.times do
+        Zold::Http.new(uri: URI("http://localhost:#{port}/"), score: nil).get
+      end
+    end
+    sec = (Time.now - start) / total
+    test_log.info("Average response time is #{sec.round(2)}s")
   end
 
-  def http_score_header
-    app.settings.farm.best[0].reduced(16).to_s
+  def app
+    Zold::Front
   end
 
   def test_headers_are_being_set_correctly
@@ -199,7 +207,7 @@ class FrontTest < Minitest::Test
         response.header['Access-Control-Allow-Origin']
       )
       assert_equal(
-        http_score_header,
+        app.new!.http_score_header.strip,
         response.header[Zold::Http::SCORE_HEADER]
       )
     end

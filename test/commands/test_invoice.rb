@@ -35,7 +35,7 @@ require_relative '../../lib/zold/commands/invoice'
 # License:: MIT
 class TestInvoice < Minitest::Test
   def test_generates_invoice
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       id = Zold::Id.new
       wallets = Zold::Wallets.new(dir)
       source = wallets.find(id)

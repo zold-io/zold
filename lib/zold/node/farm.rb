@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'time'
+require 'open3'
 require_relative '../log'
 require_relative '../score'
 require_relative '../verbose_thread'
@@ -78,7 +79,6 @@ module Zold
         Thread.new do
           Thread.current.abort_on_exception = true
           Thread.current.name = "f#{t}"
-          Thread.current.priority = -100
           loop do
             VerboseThread.new(@log).run do
               cycle(host, port, strength, threads)
@@ -90,7 +90,6 @@ module Zold
       @cleanup = Thread.new do
         Thread.current.abort_on_exception = true
         Thread.current.name = 'cleanup'
-        Thread.current.priority = -100
         while alive
           sleep(60) unless strength == 1 # which will only happen in tests
           VerboseThread.new(@log).run do
@@ -146,8 +145,33 @@ module Zold
       return unless s.port == port
       return unless s.strength >= strength
       Thread.current.name = s.to_mnemo
-      save(threads, [s.next])
-      cleanup(host, port, strength, threads)
+      cmd = "ruby #{File.join(File.dirname(__FILE__), '../../../bin/zold')} next \"#{s}\""
+      Open3.popen2e(cmd) do |stdin, stdout, thr|
+        stdin.close
+        buffer = +''
+        loop do
+          begin
+            buffer << stdout.read_nonblock(1)
+          rescue IO::WaitReadable => e
+            @log.debug("Still waiting for data from the score provider: #{e.message}")
+          end
+          if buffer.end_with?("\n")
+            score = Score.parse(buffer)
+            @log.debug("New score discovered: #{score}")
+            save(threads, [score])
+            cleanup(host, port, strength, threads)
+            break
+          end
+          break if stdout.eof?
+          break unless Thread.current.alive?
+          sleep 0.1
+        end
+        begin
+          Process.kill('TERM', thr.pid)
+        rescue StandardError => e
+          @log.debug("No need to kill process ##{thr.pid} since it's dead already: #{e.message}")
+        end
+      end
     end
 
     def save(threads, list = [])

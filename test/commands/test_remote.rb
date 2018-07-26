@@ -38,8 +38,8 @@ require_relative '../../lib/zold/commands/remote'
 # License:: MIT
 class TestRemote < Minitest::Test
   def test_updates_remote
-    Dir.mktmpdir 'test' do |dir|
-      remotes = Zold::Remotes.new(File.join(dir, 'a/b/c/remotes'))
+    Dir.mktmpdir do |dir|
+      remotes = Zold::Remotes.new(file: File.join(dir, 'a/b/c/remotes'))
       zero = Zold::Score::ZERO
       stub_request(:get, "http://#{zero.host}:#{zero.port}/remotes").to_return(
         status: 200,
@@ -73,9 +73,9 @@ class TestRemote < Minitest::Test
   end
 
   def test_elects_a_remote
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       zero = Zold::Score::ZERO
-      remotes = Zold::Remotes.new(File.join(dir, 'remotes.txt'))
+      remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.txt'))
       remotes.clean
       remotes.add(zero.host, zero.port)
       stub_request(:get, "http://#{zero.host}:#{zero.port}/").to_return(
@@ -92,8 +92,8 @@ class TestRemote < Minitest::Test
   end
 
   def test_remote_trim_with_tolerate
-    Dir.mktmpdir 'test' do |dir|
-      remotes = Zold::Remotes.new(File.join(dir, 'remotes.txt'))
+    Dir.mktmpdir do |dir|
+      remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.txt'))
       zero = Zold::Score::ZERO
       stub_request(:get, "http://#{zero.host}:#{zero.port}/remotes").to_return(
         status: 200,
@@ -105,14 +105,13 @@ class TestRemote < Minitest::Test
           ]
         }.to_json
       )
-      stub_request(:get, 'http://localhost:888/remotes').to_return(
-        status: 404
-      )
+      stub_request(:get, 'http://localhost:888/remotes').to_return(status: 404)
       cmd = Zold::Remote.new(remotes: remotes, log: test_log)
       cmd.run(%w[remote clean])
       assert(remotes.all.empty?)
       cmd.run(['remote', 'add', zero.host, zero.port.to_s, '--skip-ping'])
-      cmd.run(%w[remote add localhost 888 --skip-ping])
+      cmd.run(['remote', 'update', '--ignore-score-weakness', '--skip-ping'])
+      assert_equal(2, remotes.all.count)
       cmd.run(['remote', 'update', '--ignore-score-weakness'])
       cmd.run(['remote', 'trim', '--tolerate=0'])
       assert_equal(1, remotes.all.count)
@@ -127,8 +126,8 @@ class TestRemote < Minitest::Test
   end
 
   def test_select_respects_max_nodes_option
-    Dir.mktmpdir 'test' do |dir|
-      remotes = Zold::Remotes.new(File.join(dir, 'remotes.txt'))
+    Dir.mktmpdir do |dir|
+      remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.txt'))
       zero = Zold::Score::ZERO
       cmd = Zold::Remote.new(remotes: remotes, log: test_log)
       (5000..5010).each do |port|

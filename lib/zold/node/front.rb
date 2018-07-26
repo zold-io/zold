@@ -70,7 +70,10 @@ module Zold
     use Rack::Deflater
 
     before do
-      Front.stop! if !settings.halt.empty? && params[:halt] && params[:halt] == settings.halt
+      if !settings.halt.empty? && params[:halt] && params[:halt] == settings.halt
+        settings.log.error('Halt signal received, shutting the front end down...')
+        Front.stop!
+      end
       check_header(Http::NETWORK_HEADER) do |header|
         if header != settings.network
           raise "Network name mismatch at #{request.url}, #{request.ip} is in '#{header}', \
@@ -108,7 +111,7 @@ while #{settings.address} is in '#{settings.network}'"
       headers['X-Zold-Version'] = settings.version
       headers[Http::PROTOCOL_HEADER] = settings.protocol.to_s
       headers['Access-Control-Allow-Origin'] = '*'
-      headers[Http::SCORE_HEADER] = score.reduced(16).to_s
+      headers[Http::SCORE_HEADER] = http_score_header
     end
 
     get '/robots.txt' do
@@ -119,6 +122,11 @@ while #{settings.address} is in '#{settings.network}'"
     get '/version' do
       content_type 'text/plain'
       settings.version
+    end
+
+    get '/pid' do
+      content_type 'text/plain'
+      Process.pid.to_s
     end
 
     get '/score' do
@@ -145,6 +153,7 @@ while #{settings.address} is in '#{settings.network}'"
         score: score.to_h,
         pid: Process.pid,
         cpus: Concurrent.processor_count,
+        platform: RUBY_PLATFORM,
         uptime: `uptime`.strip,
         threads: "#{Thread.list.select { |t| t.status == 'run' }.count}/#{Thread.list.count}",
         wallets: settings.wallets.all.count,
@@ -298,6 +307,10 @@ while #{settings.address} is in '#{settings.network}'"
       e = env['sinatra.error']
       content_type 'text/plain'
       Backtrace.new(e).to_s
+    end
+
+    def http_score_header
+      score.reduced(16).to_s
     end
 
     private

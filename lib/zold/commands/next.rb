@@ -20,18 +20,38 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# @todo #394:30m/DEV Right now only Score, Http, Zold::Remotes and Zold::Remote
-#  classes have been refactored for using dry-types, even tough the issue has
-#  been boosted refactoring the whole project is very cumbersome. Please refer
-#  to Score and Http class on how to perform all the changes for the project to
-#  adopt dry-types
-require 'dry-types'
-require 'dry-struct'
+require 'slop'
+require_relative '../log'
+require_relative '../score'
 
-# HTTP page.
+# NEXT command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Types
-  include Dry::Types.module
+module Zold
+  # Calculate next score
+  class Next
+    def initialize(log: Log::Quiet.new)
+      @log = log
+    end
+
+    def run(args = [])
+      opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
+        o.banner = "Usage: zold next [options] score
+Available options:"
+        o.bool '--help', 'Print instructions'
+      end
+      if opts.help?
+        @log.info(opts.to_s)
+        return
+      end
+      calculate(opts)
+    end
+
+    private
+
+    def calculate(opts)
+      @log.info(Score.parse(opts.arguments[1]).next.to_s)
+    end
+  end
 end

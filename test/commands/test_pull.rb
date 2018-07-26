@@ -20,18 +20,30 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# @todo #394:30m/DEV Right now only Score, Http, Zold::Remotes and Zold::Remote
-#  classes have been refactored for using dry-types, even tough the issue has
-#  been boosted refactoring the whole project is very cumbersome. Please refer
-#  to Score and Http class on how to perform all the changes for the project to
-#  adopt dry-types
-require 'dry-types'
-require 'dry-struct'
+require 'minitest/autorun'
+require 'webmock/minitest'
+require_relative '../fake_home'
+require_relative '../test__helper'
+require_relative '../../lib/zold/id'
+require_relative '../../lib/zold/json_page'
+require_relative '../../lib/zold/commands/pull'
 
-# HTTP page.
+# PUSH test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Types
-  include Dry::Types.module
+class TestPull < Minitest::Test
+  def test_pull_wallet
+    FakeHome.new.run do |home|
+      remotes = home.remotes
+      remotes.add('localhost', 80)
+      json = home.create_wallet_json
+      id = Zold::JsonPage.new(json).to_hash['id']
+      stub_request(:get, "http://localhost:80/wallet/#{id}").to_return(status: 200, body: json)
+      Zold::Pull.new(wallets: home.wallets, remotes: remotes, copies: home.copies.root.to_s, log: test_log).run(
+        ['--ignore-this-stupid-option', 'pull', id.to_s]
+      )
+      assert(home.wallets.find(Zold::Id.new(id)).exists?)
+    end
+  end
 end

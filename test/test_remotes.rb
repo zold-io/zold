@@ -44,17 +44,17 @@ class TestRemotes < Minitest::Test
   end
 
   def test_adds_remotes
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
-      remotes = Zold::Remotes.new(file)
+      remotes = Zold::Remotes.new(file: file)
       remotes.add('127.0.0.1')
       assert(1, remotes.all.count)
     end
   end
 
   def test_reads_broken_file
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       file = File.join(dir, 'remotes')
       [
         ',0,0,0',
@@ -63,17 +63,17 @@ class TestRemotes < Minitest::Test
         "\n\n\n\n"
       ].each do |t|
         File.write(file, t)
-        remotes = Zold::Remotes.new(file)
+        remotes = Zold::Remotes.new(file: file)
         assert(remotes.all.empty?, remotes.all)
       end
     end
   end
 
   def test_iterates_and_fails
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
-      remotes = Zold::Remotes.new(file)
+      remotes = Zold::Remotes.new(file: file)
       ips = (0..50)
       ips.each { |i| remotes.add("0.0.0.#{i}", 9999) }
       remotes.iterate(Zold::Log::Quiet.new) { raise 'Intended' }
@@ -81,11 +81,22 @@ class TestRemotes < Minitest::Test
     end
   end
 
+  def test_iterates_them_all
+    Dir.mktmpdir do |dir|
+      remotes = Zold::Remotes.new(file: File.join(dir, 'rrr.csv'))
+      remotes.clean
+      5.times { |i| remotes.add("0.0.0.#{i}", 8080) }
+      total = 0
+      remotes.iterate(test_log) { total += 1 }
+      assert_equal(5, total)
+    end
+  end
+
   def test_log_msg_of_iterates_when_fail
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
-      remotes = Zold::Remotes.new(file)
+      remotes = Zold::Remotes.new(file: file)
       remotes.add('0.0.0.1', 9999)
       log = TestLogger.new
       remotes.iterate(log) { raise 'Intended' }
@@ -94,22 +105,22 @@ class TestRemotes < Minitest::Test
   end
 
   def test_log_msg_of_iterates_when_take_too_long
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
-      remotes = Zold::Remotes.new(file)
+      remotes = Zold::Remotes.new(file: file, timeout: 1)
       remotes.add('127.0.0.1')
       log = TestLogger.new
-      remotes.iterate(log) { sleep(17) }
+      remotes.iterate(log) { sleep(2) }
       assert(log.msg.include?('Took too long to execute'))
     end
   end
 
   def test_removes_remotes
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
-      remotes = Zold::Remotes.new(file)
+      remotes = Zold::Remotes.new(file: file)
       remotes.add('127.0.0.1')
       remotes.add('LOCALHOST', 433)
       remotes.remove('localhost', 433)
@@ -118,8 +129,8 @@ class TestRemotes < Minitest::Test
   end
 
   def test_resets_remotes
-    Dir.mktmpdir 'test' do |dir|
-      remotes = Zold::Remotes.new(File.join(dir, 'remotes'))
+    Dir.mktmpdir do |dir|
+      remotes = Zold::Remotes.new(file: File.join(dir, 'remotes'))
       remotes.clean
       remotes.reset
       remotes.reset
@@ -128,10 +139,10 @@ class TestRemotes < Minitest::Test
   end
 
   def test_modifies_score
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
-      remotes = Zold::Remotes.new(file)
+      remotes = Zold::Remotes.new(file: file)
       remotes.add('127.0.0.1', 1024)
       remotes.rescore('127.0.0.1', 1024, 15)
       remotes.all.each do |r|
@@ -142,17 +153,17 @@ class TestRemotes < Minitest::Test
   end
 
   def test_tolerates_invalid_requests
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       file = File.join(dir, 'remotes')
-      remotes = Zold::Remotes.new(file)
+      remotes = Zold::Remotes.new(file: file)
       remotes.error('127.0.0.1', 1024)
       remotes.rescore('127.0.0.1', 1024, 15)
     end
   end
 
   def test_modifies_from_many_threads
-    Dir.mktmpdir 'test' do |dir|
-      remotes = Zold::Remotes.new(File.join(dir, 'a.csv'))
+    Dir.mktmpdir do |dir|
+      remotes = Zold::Remotes.new(file: File.join(dir, 'a.csv'))
       remotes.clean
       threads = 5
       pool = Concurrent::FixedThreadPool.new(threads)
@@ -179,5 +190,33 @@ class TestRemotes < Minitest::Test
       assert_equal(cycles.value, success.value)
       assert_equal(0, remotes.all.reject { |r| r[:host] == host }.size)
     end
+  end
+
+  def test_adds_from_many_threads
+    Dir.mktmpdir do |dir|
+      remotes = Zold::Remotes.new(file: File.join(dir, 'xx.csv'))
+      remotes.clean
+      threads = 5
+      pool = Concurrent::FixedThreadPool.new(threads)
+      done = Concurrent::AtomicFixnum.new
+      latch = Concurrent::CountDownLatch.new(1)
+      threads.times do |i|
+        pool.post do
+          Zold::VerboseThread.new(test_log).run(true) do
+            latch.wait(10)
+            remotes.add('127.0.0.1', 8080 + i)
+            done.increment
+          end
+        end
+      end
+      latch.count_down
+      sleep 0.1 until done.value == threads
+      assert_equal(threads, remotes.all.count)
+    end
+  end
+
+  def test_empty_remotes
+    remotes = Zold::Remotes::Empty.new(file: '/tmp/empty')
+    assert(remotes.is_a?(Zold::Remotes))
   end
 end

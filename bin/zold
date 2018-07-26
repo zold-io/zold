@@ -95,6 +95,8 @@ Available commands:
       Run node at the given TCP port
     #{Rainbow('alias').green} [alias] [wallet ID]
       Set an alias for a wallet
+    #{Rainbow('next').green} score
+      Generate next score from the provided one
     #{Rainbow('score').green} [options]
       Generate score for the given host and port
 Available options:"
@@ -149,7 +151,7 @@ Available options:"
   Zold::RenameForeignWallets.new(Dir.pwd, opts['network'], log).exec
 
   wallets = Zold::Wallets.new('.')
-  remotes = Zold::Remotes.new('./.zoldata/remotes', network: opts['network'])
+  remotes = Zold::Remotes.new(file: './.zoldata/remotes', network: opts['network'])
   copies = './.zoldata/copies'
 
   case command
@@ -201,6 +203,9 @@ Available options:"
   when 'score'
     require_relative '../lib/zold/commands/calculate'
     Zold::Calculate.new(log: log).run(args)
+  when 'next'
+    require_relative '../lib/zold/commands/next'
+    Zold::Next.new(log: log).run(args)
   else
     raise "Command '#{command}' is not supported"
   end

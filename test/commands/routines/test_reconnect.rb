@@ -33,8 +33,8 @@ require_relative '../../../lib/zold/commands/routines/reconnect.rb'
 # License:: MIT
 class TestReconnect < Minitest::Test
   def test_reconnects
-    Dir.mktmpdir 'test' do |dir|
-      remotes = Zold::Remotes.new(File.join(dir, 'remotes.csv'))
+    Dir.mktmpdir do |dir|
+      remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.csv'))
       remotes.clean
       stub_request(:get, 'http://b1.zold.io:80/remotes').to_return(status: 404)
       opts = { 'never-reboot' => true, 'routine-immediately' => true }
