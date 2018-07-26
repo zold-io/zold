@@ -166,4 +166,16 @@ class FrontTest < Minitest::Test
       )
     end
   end
+
+  def test_performance
+    start = Time.now
+    total = 50
+    FakeNode.new(log: test_log).run(['--threads=4', '--strength=6', '--no-metronome']) do |port|
+      total.times do
+        Zold::Http.new(uri: URI("http://localhost:#{port}/"), score: nil).get
+      end
+    end
+    sec = (Time.now - start) / total
+    test_log.info("Average response time is #{sec.round(2)}s")
+  end
 end

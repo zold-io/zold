@@ -26,6 +26,7 @@ require 'uri'
 require 'time'
 require 'fileutils'
 require_relative 'backtrace'
+require_relative 'score'
 require_relative 'node/farm'
 require_relative 'atomic_file'
 require_relative 'type'
@@ -61,7 +62,7 @@ module Zold
     class Remote < Dry::Struct
       attribute :host, Types::Strict::String
       attribute :port, Types::Strict::Integer.constrained(gteq: 0, lt: 65_535)
-      attribute :score, Score
+      attribute :score, Object
       attribute :idx, Types::Strict::Integer
       attribute :network, Types::Strict::String.optional.default('test')
       attribute :log, (Types::Class.constructor do |value|

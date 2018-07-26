@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'open3'
 require 'slop'
 require_relative '../version'
 require_relative '../score'
@@ -118,6 +119,10 @@ module Zold
           'Maximum amount of nohup re-starts (-1 by default, which means forever)',
           require: true,
           default: -1
+        o.bool '--no-metronome',
+          'Don\'t run the metronome',
+          required: true,
+          default: false
         o.bool '--help', 'Print instructions'
       end
       if opts.help?
@@ -274,6 +279,7 @@ module Zold
 
     def metronome(farm, opts)
       metronome = Metronome.new(@log)
+      return metronome if opts['no-metronome']
       require_relative 'routines/spread'
       metronome.add(Routines::Spread.new(opts, @wallets, @remotes, log: @log))
       unless opts['standalone']
