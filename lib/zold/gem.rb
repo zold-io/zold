@@ -20,41 +20,27 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-gem 'openssl'
-require 'openssl'
-require 'minitest/autorun'
+require 'uri'
+require 'net/http'
+require_relative 'json_page'
 
-STDOUT.sync = true
+# Class representing the Zold gem on Rubygems
+# Author:: Yegor Bugayenko (yegor256@gmail.com)
+# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# License:: MIT
+module Zold
+  # Gem
+  class Gem
+    BASE_URI = 'rubygems.org'
+    API_VERSION = '/api/v1/'
 
-ENV['RACK_ENV'] = 'test'
-
-require 'simplecov'
-SimpleCov.start
-if ENV['CI'] == 'true'
-  require 'codecov'
-  SimpleCov.formatter = SimpleCov::Formatter::Codecov
-end
-
-module Minitest
-  class Test
-    def test_log
-      require_relative '../lib/zold/log'
-      @test_log = Zold::Log::Verbose.new
-      @test_log = Zold::Log::Quiet.new if ENV['TEST_QUIET_LOG']
-      @test_log
-    end
-
-    class TestLogger
-      attr_reader :msg
-      def initialize
-        @msg = []
-      end
-
-      def info(msg)
-        @msg << msg
-      end
-
-      def debug(msg); end
+    def last_version
+      uri = URI(API_VERSION + 'versions/zold/latest.json')
+      http = Net::HTTP.new(BASE_URI)
+      path = uri.path
+      path += '?' + uri.query if uri.query
+      res = http.request_get(path)
+      JsonPage.new(res.body).to_hash['version']
     end
   end
 end
