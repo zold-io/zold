@@ -59,6 +59,27 @@ class TestTax < Minitest::Test
     end
   end
 
+  def test_calculates_debt
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      wallet.add(
+        Zold::Txn.new(
+          1,
+          Time.now - 24 * 60 * 60 * 365,
+          Zold::Amount.new(zld: 19.99),
+          'NOPREFIX', Zold::Id.new, '-'
+        )
+      )
+      score = Zold::Score.new(
+        time: Time.now, host: 'localhost', port: 80, invoice: 'NOPREFIX@cccccccccccccccc',
+        suffixes: %w[A B C D E F G H I J K L M N O P Q R S T U V]
+      )
+      tax = Zold::Tax.new(wallet)
+      tax.pay(Zold::Key.new(file: 'fixtures/id_rsa'), score)
+      assert(tax.debt > Zold::Amount::ZERO)
+    end
+  end
+
   def test_checks_existence_of_duplicates
     FakeHome.new.run do |home|
       wallet = home.create_wallet

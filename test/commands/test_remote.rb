@@ -139,15 +139,15 @@ class TestRemote < Minitest::Test
           version: Zold::VERSION,
           score: zero.to_h,
           all: [
-            { host: 'localhost', port: 888 }
+            { host: 'localhost', port: 8883 }
           ]
         }.to_json
       )
-      stub_request(:get, 'http://localhost:888/remotes').to_return(status: 404)
       stub_request(:get, 'http://rubygems.org/api/v1/versions/zold/latest.json').to_return(
         status: 200,
         body: '{"version": "0.0.0"}'
       )
+      stub_request(:get, 'http://localhost:8883/remotes').to_return(status: 404)
       cmd = Zold::Remote.new(remotes: remotes, log: test_log)
       cmd.run(%w[remote clean])
       assert(remotes.all.empty?)
