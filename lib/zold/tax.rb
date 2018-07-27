@@ -77,15 +77,16 @@ module Zold
 
     def debt
       txns = @wallet.txns
-      scores = txns.map do |t|
+      scored = txns.map do |t|
         pfx, body = t.details.split(' ', 2)
         next if pfx != Tax::PREFIX || body.nil?
         score = Score.parse_text(body)
         next if !score.valid? || score.value != Tax::EXACT_SCORE
+        next if score.strength < Score::STRENGTH
         next if t.amount > Tax::MAX_PAYMENT
         score
-      end.reject(&:nil?).uniq(&:hash)
-      paid = scores.empty? ? Amount::ZERO : scores.map(&:amount).inject(&:+) * -1
+      end.reject(&:nil?).uniq(&:sign)
+      paid = scored.empty? ? Amount::ZERO : scored.map(&:amount).inject(&:+) * -1
       owned = Tax::FEE_TXN_HOUR * txns.count * @wallet.age
       owned - paid
     end

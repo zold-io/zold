@@ -117,7 +117,7 @@ module Zold
         details
       )
       txn = txn.signed(pvt, id)
-      raise 'This is not the private right key for this wallet' unless Signature.new.valid?(key, id, txn)
+      raise 'This is not the right private key for this wallet' unless Signature.new.valid?(key, id, txn)
       add(txn)
       txn
     end
