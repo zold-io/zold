@@ -230,7 +230,8 @@ Available options:"
         r.assert_score_strength(score) unless opts['ignore-score-weakness']
         @remotes.rescore(score.host, score.port, score.value)
         gem = Zold::Gem.new
-        if Semantic::Version.new(VERSION) < Semantic::Version.new(json['version']) or Semantic::Version.new(VERSION) < Semantic::Version.new(gem.last_version)
+        if Semantic::Version.new(VERSION) < Semantic::Version.new(json['version']) ||
+           Semantic::Version.new(VERSION) < Semantic::Version.new(gem.last_version)
           if opts['reboot']
             @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, reboot! \
 (use --never-reboot to avoid this from happening)")
