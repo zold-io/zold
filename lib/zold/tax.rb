@@ -78,7 +78,7 @@ module Zold
     def debt
       txns = @wallet.txns
       scores = txns.map do |t|
-        pfx, body = t.details.split(' ')
+        pfx, body = t.details.split(' ', 2)
         next if pfx != Tax::PREFIX || body.nil?
         score = Score.parse_text(body)
         next if !score.valid? || score.value != Tax::EXACT_SCORE

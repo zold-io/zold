@@ -46,9 +46,7 @@ class FakeNode
     start = Dir.pwd
     begin
       FakeHome.new.run do |home|
-        server = TCPServer.new('127.0.0.1', 0)
-        port = server.addr[1]
-        server.close
+        port = FakeNode.random_port
         node = Thread.new do
           Zold::VerboseThread.new(@log).run do
             Thread.current.abort_on_exception = true
@@ -87,14 +85,14 @@ class FakeNode
     end
   end
 
-  def self.port
+  def self.random_port
     loop do
       server = TCPServer.new('127.0.0.1', 0)
       port = server.addr[1]
       server.close
       next if @@ports.include?(port)
       @@ports << port
-      port
+      return port
     end
   end
 end
