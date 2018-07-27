@@ -100,6 +100,13 @@ class TestRemote < Minitest::Test
       cmd.run(['remote', 'add', zero.host, zero.port.to_s, '--skip-ping'])
       cmd.run(['remote', 'update', '--ignore-score-weakness', '--skip-ping', '--reboot'])
       assert(log.msg.to_s.include?(', reboot!'))
+      log.msg = []
+      stub_request(:get, 'http://rubygems.org/api/v1/versions/zold/latest.json').to_return(
+        status: 200,
+        body: "{\"version\": \"#{Zold::VERSION}\"}"
+      )
+      cmd.run(['remote', 'update', '--ignore-score-weakness', '--skip-ping', '--reboot'])
+      assert(!log.msg.to_s.include?(', reboot!'))
     end
   end
 

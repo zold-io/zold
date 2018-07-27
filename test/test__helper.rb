@@ -45,7 +45,7 @@ module Minitest
     end
 
     class TestLogger
-      attr_reader :msg
+      attr_accessor :msg
       def initialize
         @msg = []
       end
