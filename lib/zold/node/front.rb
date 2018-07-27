@@ -111,7 +111,7 @@ while #{settings.address} is in '#{settings.network}'"
       headers['X-Zold-Version'] = settings.version
       headers[Http::PROTOCOL_HEADER] = settings.protocol.to_s
       headers['Access-Control-Allow-Origin'] = '*'
-      headers[Http::SCORE_HEADER] = http_score_header
+      headers[Http::SCORE_HEADER] = score.reduced(16).to_s
     end
 
     get '/robots.txt' do
@@ -307,10 +307,6 @@ while #{settings.address} is in '#{settings.network}'"
       e = env['sinatra.error']
       content_type 'text/plain'
       Backtrace.new(e).to_s
-    end
-
-    def http_score_header
-      score.reduced(16).to_s
     end
 
     private

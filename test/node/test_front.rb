@@ -184,32 +184,37 @@ class FrontTest < Minitest::Test
   end
 
   def test_headers_are_being_set_correctly
-    FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
-      response = Zold::Http.new(uri: URI("http://localhost:#{port}/"), score: nil).get
-      assert_equal(
-        'no-cache',
-        response.header['Cache-Control']
-      )
-      assert_equal(
-        'close',
-        response.header['Connection']
-      )
-      assert_equal(
-        app.settings.version,
-        response.header['X-Zold-Version']
-      )
-      assert_equal(
-        app.settings.protocol.to_s,
-        response.header[Zold::Http::PROTOCOL_HEADER]
-      )
-      assert_equal(
-        '*',
-        response.header['Access-Control-Allow-Origin']
-      )
-      assert_equal(
-        app.new!.http_score_header.strip,
-        response.header[Zold::Http::SCORE_HEADER]
-      )
+    Time.stub :now, Time.at(0) do
+      FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
+        response = Zold::Http.new(uri: URI("http://localhost:#{port}/"), score: nil).get
+        assert_equal(
+          'no-cache',
+          response.header['Cache-Control']
+        )
+        assert_equal(
+          'close',
+          response.header['Connection']
+        )
+        assert_equal(
+          app.settings.version,
+          response.header['X-Zold-Version']
+        )
+        assert_equal(
+          app.settings.protocol.to_s,
+          response.header[Zold::Http::PROTOCOL_HEADER]
+        )
+        assert_equal(
+          '*',
+          response.header['Access-Control-Allow-Origin']
+        )
+        score = Zold::Score.new(
+          time: Time.now, host: 'localhost', port: port, invoice: 'NOPREFIX@ffffffffffffffff', strength: 2
+        )
+        assert_equal(
+          score.to_s,
+          response.header[Zold::Http::SCORE_HEADER]
+        )
+      end
     end
   end
 end
