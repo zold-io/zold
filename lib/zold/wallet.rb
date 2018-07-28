@@ -161,7 +161,7 @@ module Zold
     # Age of wallet in hours
     def age
       list = txns
-      list.empty? ? 0 : (Time.now - list.min_by(&:date).date) / 60
+      list.empty? ? 0 : (Time.now - list.min_by(&:date).date) / (60 * 60)
     end
 
     def txns

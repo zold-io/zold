@@ -48,7 +48,7 @@ module Zold
     TRIAL = Amount.new(zld: 1.0)
 
     # For how many days to pay at once.
-    DAYS_INCREMENT = 32
+    DAYS_INCREMENT = 64
 
     # Text prefix for taxes details
     PREFIX = 'TAXES'

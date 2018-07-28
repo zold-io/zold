@@ -109,6 +109,22 @@ class TestWallet < Minitest::Test
     end
   end
 
+  def test_calculates_wallet_age_in_hours
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      hours = 100
+      wallet.add(
+        Zold::Txn.new(
+          1,
+          Time.now - 100 * 60 * 60,
+          Zold::Amount.new(zld: 1.99),
+          'NOPREFIX', Zold::Id.new, '-'
+        )
+      )
+      assert_equal(hours, wallet.age.round)
+    end
+  end
+
   def test_returns_modified_time
     FakeHome.new.run do |home|
       wallet = home.create_wallet
