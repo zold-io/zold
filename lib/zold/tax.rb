@@ -86,7 +86,7 @@ module Zold
         next if t.amount > Tax::MAX_PAYMENT
         t
       end.reject(&:nil?).uniq(&:details)
-      paid = scored.empty? ? Amount::ZERO : scored.map(&:amount).inject(&:+) * -1
+      paid = scored.empty? ? Amount::ZERO : scored.map(&:amount).inject(&:+)
       owned = Tax::FEE_TXN_HOUR * txns.count * @wallet.age
       owned - paid
     end

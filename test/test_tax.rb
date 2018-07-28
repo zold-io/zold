@@ -80,6 +80,24 @@ class TestTax < Minitest::Test
     end
   end
 
+  def test_takes_tax_payment_into_account
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      wallet.add(
+        Zold::Txn.new(
+          1,
+          Time.now,
+          Zold::Amount.new(coins: 95_596_800),
+          'NOPREFIX', Zold::Id.new('912ecc24b32dbe74'),
+          'TAXES 6 5b5a21a9 b2.zold.io 1000 DCexx0hG 912ecc24b32dbe74 \
+386d4a ec9eae 306e3d 119d073 1c00dba 1376703 203589 5b55f7'
+        )
+      )
+      tax = Zold::Tax.new(wallet)
+      assert(tax.debt < Zold::Amount::ZERO)
+    end
+  end
+
   def test_checks_existence_of_duplicates
     FakeHome.new.run do |home|
       wallet = home.create_wallet
