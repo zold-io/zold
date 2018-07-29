@@ -38,8 +38,8 @@ class FarmTest < Minitest::Test
   end
 
   def test_renders_in_json
-    Dir.mktmpdir 'test' do |dir|
-      farm = Zold::Farm.new('NOPREFIX@ffffffffffffffff', File.join(dir, 'f'), log: test_log)
+    Dir.mktmpdir do |dir|
+      farm = Zold::Farm.new('NOPREFIX6@ffffffffffffffff', File.join(dir, 'f'), log: test_log)
       farm.start('localhost', 80, threads: 4, strength: 2) do
         sleep 0.1 while farm.best.empty? || farm.best[0].value.zero?
         count = 0
@@ -50,8 +50,8 @@ class FarmTest < Minitest::Test
   end
 
   def test_renders_in_text
-    Dir.mktmpdir 'test' do |dir|
-      farm = Zold::Farm.new('NOPREFIX@ffffffffffffffff', File.join(dir, 'f'), log: test_log)
+    Dir.mktmpdir do |dir|
+      farm = Zold::Farm.new('NOPREFIX7@ffffffffffffffff', File.join(dir, 'f'), log: test_log)
       farm.start('localhost', 80, threads: 2, strength: 1) do
         assert(!farm.to_text.nil?)
       end
@@ -59,20 +59,20 @@ class FarmTest < Minitest::Test
   end
 
   def test_makes_best_score_in_background
-    Dir.mktmpdir 'test' do |dir|
-      farm = Zold::Farm.new('NOPREFIX@ffffffffffffffff', File.join(dir, 'f'), log: test_log)
-      farm.start('localhost', 80, threads: 4, strength: 2) do
-        sleep 0.1 while farm.best.empty? || farm.best[0].value.zero?
+    Dir.mktmpdir do |dir|
+      farm = Zold::Farm.new('NOPREFIX1@ffffffffffffffff', File.join(dir, 'f'), log: test_log)
+      farm.start('localhost', 80, threads: 4, strength: 3) do
+        sleep 0.1 while farm.best.empty? || farm.best[0].value < 3
         score = farm.best[0]
         assert(!score.expired?)
-        assert(score.value.positive?)
+        assert(score.value >= 3)
       end
     end
   end
 
   def test_correct_score_from_empty_farm
-    Dir.mktmpdir 'test' do |dir|
-      farm = Zold::Farm.new('NOPREFIX@cccccccccccccccc', File.join(dir, 'f'), log: test_log)
+    Dir.mktmpdir do |dir|
+      farm = Zold::Farm.new('NOPREFIX2@cccccccccccccccc', File.join(dir, 'f'), log: test_log)
       farm.start('example.com', 8080, threads: 0, strength: 1) do
         score = farm.best[0]
         assert(!score.expired?)
@@ -84,9 +84,9 @@ class FarmTest < Minitest::Test
   end
 
   def test_pre_loads_history
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       cache = File.join(dir, 'cache')
-      farm = Zold::Farm.new('NOPREFIX@cccccccccccccccc', cache, log: test_log)
+      farm = Zold::Farm.new('NOPREFIX3@cccccccccccccccc', cache, log: test_log)
       farm.start('example.com', 8080, threads: 0, strength: 1) do
         score = farm.best[0]
         assert_equal(0, score.value)
@@ -98,15 +98,16 @@ class FarmTest < Minitest::Test
   end
 
   def test_drops_expired_scores_from_history
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       cache = File.join(dir, 'cache')
       score = Zold::Score.new(
         time: Time.parse('2017-07-19T21:24:51Z'),
-        host: 'some-host', port: 9999, invoice: 'NOPREFIX@ffffffffffffffff', suffixes: %w[13f7f01 b2b32b 4ade7e],
+        host: 'some-host', port: 9999, invoice: 'NOPREFIX4@ffffffffffffffff',
+        suffixes: %w[13f7f01 b2b32b 4ade7e],
         strength: 6
       )
       File.write(cache, score.to_s)
-      farm = Zold::Farm.new('NOPREFIX@ffffffffffffffff', cache, log: test_log)
+      farm = Zold::Farm.new('NOPREFIX4@ffffffffffffffff', cache, log: test_log)
       farm.start(score.host, score.port, threads: 1, strength: score.strength) do
         100.times do
           sleep(0.1)
@@ -121,7 +122,7 @@ class FarmTest < Minitest::Test
 
   def test_garbage_farm_file
     log = SaveLastMessageLogger.new
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       file = File.join(dir, 'corrupted_farm')
       [
         '0/6: 2018-06-26ABCT00:32:43Z 178.128.165.12 4096 MIRhypo1@c13620484b46caa4',
@@ -129,14 +130,14 @@ class FarmTest < Minitest::Test
       ].each do |score_garbage_line|
         valid_score = Zold::Score.new(
           time: Time.parse('2017-07-19T21:24:51Z'),
-          host: 'some-host', port: 9999, invoice: 'NOPREFIX@ffffffffffffffff',
+          host: 'some-host', port: 9999, invoice: 'NOPREFIX5@ffffffffffffffff',
           suffixes: %w[13f7f01 b2b32b 4ade7e], strength: 6
         )
         File.open(file, 'w') do |f|
           f.puts(score_garbage_line)
           f.puts(valid_score)
         end
-        farm = Zold::Farm.new('NOPREFIX@ffffffffffffffff', file, log: log)
+        farm = Zold::Farm.new('NOPREFIX5@ffffffffffffffff', file, log: log)
         assert_equal(1, farm.best.count)
         assert(log.msg.include?('Invalid score'))
       end

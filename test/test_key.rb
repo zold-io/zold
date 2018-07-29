@@ -53,7 +53,7 @@ class TestKey < Minitest::Test
   end
 
   def test_signs_and_verifies_with_random_key
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       key = OpenSSL::PKey::RSA.new(2048)
       file = File.join(dir, 'temp')
       File.write(file, key.public_key.to_s)

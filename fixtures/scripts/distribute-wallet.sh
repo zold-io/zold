@@ -4,7 +4,7 @@ function start_node {
   port=$(reserve_port)
   mkdir ${port}
   cd ${port}
-  zold node --trace --invoice=NOPREFIX@ffffffffffffffff \
+  zold node --trace --invoice=DISTRWALLET@ffffffffffffffff \
     --host=localhost --port=${port} --bind-port=${port} \
     --threads=0 --routine-immediately > log.txt &
   pid=$!

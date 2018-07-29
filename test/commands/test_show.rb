@@ -35,7 +35,7 @@ require_relative '../../lib/zold/commands/show'
 # License:: MIT
 class TestShow < Minitest::Test
   def test_checks_wallet_balance
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       id = Zold::Id.new
       wallets = Zold::Wallets.new(dir)
       wallet = wallets.find(id)

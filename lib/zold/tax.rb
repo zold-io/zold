@@ -48,7 +48,7 @@ module Zold
     TRIAL = Amount.new(zld: 1.0)
 
     # For how many days to pay at once.
-    DAYS_INCREMENT = 32
+    DAYS_INCREMENT = 64
 
     # Text prefix for taxes details
     PREFIX = 'TAXES'
@@ -77,15 +77,16 @@ module Zold
 
     def debt
       txns = @wallet.txns
-      scores = txns.map do |t|
-        pfx, body = t.details.split(' ')
+      scored = txns.map do |t|
+        pfx, body = t.details.split(' ', 2)
         next if pfx != Tax::PREFIX || body.nil?
         score = Score.parse_text(body)
         next if !score.valid? || score.value != Tax::EXACT_SCORE
+        next if score.strength < Score::STRENGTH
         next if t.amount > Tax::MAX_PAYMENT
-        score
-      end.reject(&:nil?).uniq(&:hash)
-      paid = scores.empty? ? Amount::ZERO : scores.map(&:amount).inject(&:+) * -1
+        t
+      end.reject(&:nil?).uniq(&:details)
+      paid = scored.empty? ? Amount::ZERO : scored.map(&:amount).inject(&:+)
       owned = Tax::FEE_TXN_HOUR * txns.count * @wallet.age
       owned - paid
     end
