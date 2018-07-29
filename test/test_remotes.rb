@@ -185,4 +185,17 @@ class TestRemotes < Minitest::Test
     remotes = Zold::Remotes::Empty.new(file: '/tmp/empty')
     assert(remotes.is_a?(Zold::Remotes))
   end
+
+  def test_error_counter
+    Dir.mktmpdir 'test' do |dir|
+      file = File.join(dir, 'remotes')
+      remotes = Zold::Remotes.new(file: file)
+      remotes.add('127.0.0.1', 1024)
+      remotes.error('127.0.0.1', 1024)
+      assert(remotes.errors('127.0.0.1', 1024) == 1)
+      log = TestLogger.new
+      remotes.iterate(log) {}
+      assert(remotes.errors('127.0.0.1', 1024).zero?)
+    end
+  end
 end
