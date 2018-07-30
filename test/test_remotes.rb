@@ -196,10 +196,11 @@ class TestRemotes < Minitest::Test
     Dir.mktmpdir 'test' do |dir|
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
-      remotes = Zold::Remotes.new(file: file)
-      sleep 2
-      remotes.add('127.0.0.1')
-      assert(Time.now - remotes.mtime <= 1)
+      File.stub :mtime, Time.mktime(2018, 1, 1) do
+        remotes = Zold::Remotes.new(file: file)
+        remotes.add('127.0.0.1')
+        assert_equal(Time.mktime(2018, 1, 1), remotes.mtime)
+      end
     end
   end
 
@@ -236,8 +237,10 @@ class TestRemotes < Minitest::Test
   end
 
   def test_empty_remotes
-    remotes = Zold::Remotes::Empty.new(file: '/tmp/empty')
-    assert(Time.now - remotes.mtime <= 1)
-    assert(remotes.is_a?(Zold::Remotes))
+    Time.stub :now, Time.mktime(2018, 1, 1) do
+      remotes = Zold::Remotes::Empty.new(file: '/tmp/empty')
+      assert_equal(Time.mktime(2018, 1, 1), remotes.mtime)
+      assert(remotes.is_a?(Zold::Remotes))
+    end
   end
 end
