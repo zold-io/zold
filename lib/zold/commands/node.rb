@@ -123,6 +123,9 @@ module Zold
           'Don\'t run the metronome',
           required: true,
           default: false
+        o.string '--alias',
+          'The alias of the node (default: host:port)',
+          require: false
         o.bool '--help', 'Print instructions'
       end
       if opts.help?
@@ -171,6 +174,8 @@ module Zold
       Front.set(:dump_errors, opts['dump-errors'])
       Front.set(:port, opts['bind-port'])
       Front.set(:reboot, !opts['never-reboot'])
+      node_alias = opts[:alias] || address
+      Front.set(:node_alias, node_alias)
       invoice = opts[:invoice]
       unless invoice.include?('@')
         if @wallets.find(Id.new(invoice)).exists?

@@ -23,6 +23,7 @@
 require 'minitest/autorun'
 require 'json'
 require 'time'
+require 'securerandom'
 require_relative '../test__helper'
 require_relative 'fake_node'
 require_relative '../fake_home'
@@ -215,6 +216,36 @@ class FrontTest < Minitest::Test
           response.header[Zold::Http::SCORE_HEADER]
         )
       end
+    end
+  end
+
+  def test_alias_parameter
+    name = SecureRandom.hex
+    FakeNode.new(log: test_log).run(['--ignore-score-weakness', "--alias=#{name}"]) do |port|
+      [
+        '/',
+        '/remotes'
+      ].each do |path|
+        uri = URI("http://localhost:#{port}#{path}")
+        response = Zold::Http.new(uri: uri, score: nil).get
+        assert_match(
+          name,
+          Zold::JsonPage.new(response.body).to_hash['alias'].to_s,
+          response.body
+        )
+      end
+    end
+  end
+
+  def test_default_alias_parameter
+    FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
+      uri = URI("http://localhost:#{port}/")
+      response = Zold::Http.new(uri: uri, score: nil).get
+      assert_match(
+        "localhost:#{port}",
+        Zold::JsonPage.new(response.body).to_hash['alias'].to_s,
+        response.body
+      )
     end
   end
 end
