@@ -220,7 +220,7 @@ class FrontTest < Minitest::Test
   end
 
   def test_alias_parameter
-    name = SecureRandom.hex
+    name = SecureRandom.hex(4)
     FakeNode.new(log: test_log).run(['--ignore-score-weakness', "--alias=#{name}"]) do |port|
       [
         '/',
@@ -247,5 +247,15 @@ class FrontTest < Minitest::Test
         response.body
       )
     end
+  end
+
+  def test_invalid_alias
+    exception = assert_raises RuntimeError do
+      FakeNode.new(log: test_log).run(['--ignore-score-weakness', '--alias=invalid-alias']) do |port|
+        uri = URI("http://localhost:#{port}/")
+        Zold::Http.new(uri: uri, score: nil).get
+      end
+    end
+    assert_equal('--alias should be a 4 to 16 char long alphanumeric string', exception.message)
   end
 end

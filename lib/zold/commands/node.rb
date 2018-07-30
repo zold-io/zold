@@ -175,6 +175,11 @@ module Zold
       Front.set(:port, opts['bind-port'])
       Front.set(:reboot, !opts['never-reboot'])
       node_alias = opts[:alias] || address
+      unless node_alias.eql?(address)
+        re = Regexp.new(/^[a-z0-9]{4,16}$/)
+        puts re.match(node_alias)
+        raise '--alias should be a 4 to 16 char long alphanumeric string' unless re.match(node_alias)
+      end
       Front.set(:node_alias, node_alias)
       invoice = opts[:invoice]
       unless invoice.include?('@')
