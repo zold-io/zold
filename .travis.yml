@@ -11,6 +11,7 @@ install:
   - gem install pdd
 script:
   - pdd -f /dev/null
+  - export RUBYOPT="-W0"
   - rake --quiet
 after_success:
   - "bash <(curl -s https://codecov.io/bash)"
