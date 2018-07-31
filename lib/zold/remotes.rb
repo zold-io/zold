@@ -37,7 +37,6 @@ require_relative 'type'
 module Zold
   # All remotes
   class Remotes < Dry::Struct
-    attr_reader :mtime
     # The default TCP port all nodes are supposed to use.
     PORT = 4096
 
@@ -54,16 +53,16 @@ module Zold
 
     # Empty, for standalone mode
     class Empty < Remotes
-      def initialize(_file)
-        @mtime = Time.now
-      end
-
       def all
         []
       end
 
       def iterate(_)
         # Nothing to do here
+      end
+
+      def mtime
+        Time.now
       end
     end
 
@@ -229,6 +228,10 @@ in #{(Time.now - start).round}s; errors=#{errors}")
       if_present(host, port) { |r| r[:score] = score }
     end
 
+    def mtime
+      File.mtime(file)
+    end
+
     private
 
     def modify
@@ -248,7 +251,6 @@ in #{(Time.now - start).round}s; errors=#{errors}")
 
     def load
       reset unless File.exist?(file)
-      @mtime = File.mtime(file)
       raw = CSV.read(file).map do |row|
         {
           host: row[0],
@@ -274,7 +276,6 @@ in #{(Time.now - start).round}s; errors=#{errors}")
           ].join(',')
         end.join("\n")
       )
-      @mtime = File.mtime(file)
     end
   end
 end
