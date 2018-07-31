@@ -95,9 +95,10 @@ while #{settings.address} is in '#{settings.network}'"
         error(400, 'The score is weak') if s.strength < Score::STRENGTH && !settings.ignore_score_weakness
         if s.value > 3
           require_relative '../commands/remote'
-          Remote.new(remotes: settings.remotes, log: settings.log).run(
-            ['remote', 'add', s.host, s.port.to_s, '--force', "--network=#{settings.network}"]
-          )
+          cmd = Remote.new(remotes: settings.remotes, log: settings.log)
+          cmd.run(['remote', 'add', s.host, s.port.to_s, '--force', "--network=#{settings.network}"])
+          cmd.run(%w[remote trim])
+          cmd.run(%w[remote select])
         else
           settings.log.debug("#{request.url}: the score is too weak: #{s}")
         end
