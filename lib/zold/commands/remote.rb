@@ -83,6 +83,9 @@ Available options:"
         o.integer '--min-score',
           "The minimum score required for winning the election (default: #{Tax::EXACT_SCORE})",
           default: Tax::EXACT_SCORE
+        o.integer '--max-winners',
+          'The maximum amount of election winners the election (default: 1)',
+          default: 1
         o.bool '--force',
           'Add/remove if if this operation is not possible',
           default: false
@@ -197,11 +200,11 @@ Available options:"
         r.assert_score_value(score, opts['min-score']) unless opts['ignore-score-value']
         scores << score
       end
-      scores = scores.sample(1)
+      scores = scores.sample(opts['max-winners'])
       if scores.empty?
         @log.info("No winners elected out of #{@remotes.all.count} remotes")
       else
-        @log.info("Elected: #{scores[0]}")
+        scores.each { |s| @log.info("Elected: #{s}") }
       end
       scores
     end
