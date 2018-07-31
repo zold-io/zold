@@ -239,7 +239,7 @@ it's recommended to reboot, but I don't do it because of --never-reboot")
         end
         if deep
           json['all'].each do |s|
-            add(s['host'], s['port'], opts) unless @remotes.exists?(s['host'], s['port'])
+            @remotes.add(s['host'], s['port'])
           end
         end
         capacity << { host: score.host, port: score.port, count: json['all'].count }
