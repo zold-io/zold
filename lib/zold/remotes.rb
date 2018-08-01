@@ -168,13 +168,14 @@ module Zold
     def iterate(log, farm: Farm::Empty.new)
       raise 'Log can\'t be nil' if log.nil?
       raise 'Farm can\'t be nil' if farm.nil?
-      return if all.empty?
+      list = all
+      return if list.empty?
       best = farm.best[0]
       require_relative 'score'
       score = best.nil? ? Score::ZERO : best
       idx = 0
-      pool = Concurrent::FixedThreadPool.new([all.count, Concurrent.processor_count * 4].min, max_queue: 0)
-      all.each do |r|
+      pool = Concurrent::FixedThreadPool.new([list.count, Concurrent.processor_count * 4].min, max_queue: 0)
+      list.each do |r|
         pool.post do
           Thread.current.abort_on_exception = true
           Thread.current.name = 'remotes'
@@ -192,9 +193,8 @@ module Zold
             raise 'Took too long to execute' if (Time.now - start).round > @timeout
           rescue StandardError => e
             error(r[:host], r[:port])
-            errors = errors(r[:host], r[:port])
             log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message} \
-in #{(Time.now - start).round}s; errors=#{errors}")
+in #{(Time.now - start).round}s")
             log.debug(Backtrace.new(e).to_s)
             remove(r[:host], r[:port]) if errors > Remotes::TOLERANCE
           end
@@ -202,17 +202,6 @@ in #{(Time.now - start).round}s; errors=#{errors}")
       end
       pool.shutdown
       pool.kill unless pool.wait_for_termination(5 * 60)
-    end
-
-    def errors(host, port = Remotes::PORT)
-      raise 'Host can\'t be nil' if host.nil?
-      raise 'Port can\'t be nil' if port.nil?
-      raise 'Port has to be of type Integer' unless port.is_a?(Integer)
-      @mutex.synchronize do
-        list = load
-        raise "#{host}:#{port} is absent among #{list.count} remotes" unless exists?(host, port)
-        list.find { |r| r[:host] == host.downcase && r[:port] == port }[:errors]
-      end
     end
 
     def error(host, port = Remotes::PORT)
