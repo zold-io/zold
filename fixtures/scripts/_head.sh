@@ -14,7 +14,7 @@ function reserve_port {
 function wait_for_url {
   i=0
   while ! curl --silent --fail $1 > /dev/null; do
-    ((i++))
+    ((i++)) || sleep 0
     if ((i==30)); then
       echo "URL $1 is not available after ${i} attempts"
       exit 12
@@ -26,7 +26,7 @@ function wait_for_url {
 function wait_for_port {
   i=0
   while ! nc -z localhost $1; do
-    ((i++))
+    ((i++)) || sleep 0
     if ((i==30)); then
       echo "Port $1 is not available after ${i} attempts"
       exit 13
@@ -38,7 +38,7 @@ function wait_for_port {
 function wait_for_file {
   i=0
   while [ ! -f $1 ]; do
-    ((i++))
+    ((i++)) || sleep 0
     if ((i==30)); then
       echo "File $1 not found, giving up after ${i} attempts"
       exit 14
@@ -53,7 +53,7 @@ function halt_nodes {
     if [[ "${pid}" =~ ^[0-9]+$ ]]; then
       i=0
       while kill -0 ${pid}; do
-        ((i++))
+        ((i++)) || sleep 0
         if ((i==30)); then
           echo "Process ${pid} didn't die, it's a bug"
           exit 15

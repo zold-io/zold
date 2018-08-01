@@ -33,7 +33,7 @@ zold remote add localhost ${second}
 i=0
 until zold fetch 0000000000000000 --ignore-score-weakness; do
   echo 'Failed to fetch, let us try again'
-  ((i++))
+  ((i++)) || sleep 0
   if ((i==5)); then
     cat ${first}/log.txt
     echo "The wallet has not been distributed, after ${i} attempts"
