@@ -44,11 +44,11 @@ zold remote add localhost ${second}
 # to be visible there. We are doing a number of attempts with a small
 # delay between them, in order to give the first node a chance to distribute
 # the wallet.
-(( i = 0 ))
+((i = 0))
 until zold fetch 0000000000000000 --ignore-score-weakness; do
   echo 'Failed to fetch, let us try again'
-  (( i++ ))
-  if (( i==5 )); then
+  ((i++))
+  if ((i==5)); then
     cat ${first}/log.txt
     echo "The wallet has not been distributed, after ${i} attempts"
     exit 9
@@ -75,11 +75,11 @@ fi
 # Now, we remove the wallet from the second node and expect the first
 # one to "spread" it again, almost immediately.
 rm ${second}/0000000000000000.z
-(( i = 0 ))
+((i = 0))
 until zold fetch 0000000000000000 --ignore-score-weakness; do
   echo 'Failed to fetch, let us try again'
-  (( i++ ))
-  if (( i==5 )); then
+  ((i++))
+  if ((i==5)); then
     cat ${first}/log.txt
     echo "The wallet 0000000000000000 has not been spread, after ${i} attempts"
     exit 8
