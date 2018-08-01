@@ -36,7 +36,7 @@ function wait_for_port {
 }
 
 function wait_for_file {
-  ((i=))
+  ((i=0))
   while [ ! -f $1 ]; do
     ((i++))
     if ((i==30)); then
