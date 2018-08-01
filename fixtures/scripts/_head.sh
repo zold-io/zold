@@ -12,7 +12,7 @@ function reserve_port {
 }
 
 function wait_for_url {
-  ((i=0))
+  i = 0
   while ! curl --silent --fail $1 > /dev/null; do
     ((i++))
     if ((i==30)); then
@@ -24,7 +24,7 @@ function wait_for_url {
 }
 
 function wait_for_port {
-  ((i=0))
+  i = 0
   while ! nc -z localhost $1; do
     ((i++))
     if ((i==30)); then
@@ -36,7 +36,7 @@ function wait_for_port {
 }
 
 function wait_for_file {
-  ((i=0))
+  i = 0
   while [ ! -f $1 ]; do
     ((i++))
     if ((i==30)); then
@@ -51,7 +51,7 @@ function halt_nodes {
   for p in "$@"; do
     pid=$(curl --silent "http://localhost:$p/pid?halt=test" || echo 'absent')
     if [[ "${pid}" =~ ^[0-9]+$ ]]; then
-      ((i=0))
+      i = 0
       while kill -0 ${pid}; do
         ((i++))
         if ((i==30)); then
