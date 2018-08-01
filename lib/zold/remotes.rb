@@ -26,6 +26,7 @@ require 'uri'
 require 'time'
 require 'fileutils'
 require_relative 'backtrace'
+require_relative 'score'
 require_relative 'node/farm'
 require_relative 'atomic_file'
 require_relative 'type'
@@ -36,22 +37,15 @@ require_relative 'type'
 # License:: MIT
 module Zold
   # All remotes
-  class Remotes < Dry::Struct
+  class Remotes
     # The default TCP port all nodes are supposed to use.
     PORT = 4096
 
     # At what amount of errors we delete the remote automatically
     TOLERANCE = 8
 
-    # After this limit, the remote runtime must be recorded
-    RUNTIME_LIMIT = 16
-
     # Default number of nodes to fetch.
     MAX_NODES = 16
-
-    attribute :file, Types::Strict::String
-    attribute :network, Types::Strict::String.optional.default('test')
-    attribute :mutex, meta(omittable: true)
 
     # Empty, for standalone mode
     class Empty < Remotes
@@ -68,7 +62,7 @@ module Zold
     class Remote < Dry::Struct
       attribute :host, Types::Strict::String
       attribute :port, Types::Strict::Integer.constrained(gteq: 0, lt: 65_535)
-      attribute :score, Score
+      attribute :score, Object
       attribute :idx, Types::Strict::Integer
       attribute :network, Types::Strict::String.optional.default('test')
       attribute :log, (Types::Class.constructor do |value|
@@ -110,26 +104,35 @@ module Zold
       end
     end
 
+    def initialize(file:, network: 'test', mutex: Mutex.new, timeout: 16)
+      @file = file
+      @network = network
+      @mutex = mutex
+      @timeout = timeout
+    end
+
     def all
-      list = load
-      max_score = list.map { |r| r[:score] }.max || 0
-      max_score = 1 if max_score.zero?
-      max_errors = list.map { |r| r[:errors] }.max || 0
-      max_errors = 1 if max_errors.zero?
-      list.sort_by do |r|
-        (1 - r[:errors] / max_errors) * 5 + (r[:score] / max_score)
-      end.reverse
+      @mutex.synchronize do
+        list = load
+        max_score = list.map { |r| r[:score] }.max || 0
+        max_score = 1 if max_score.zero?
+        max_errors = list.map { |r| r[:errors] }.max || 0
+        max_errors = 1 if max_errors.zero?
+        list.sort_by do |r|
+          (1 - r[:errors] / max_errors) * 5 + (r[:score] / max_score)
+        end.reverse
+      end
     end
 
     def clean
-      save([])
+      modify { [] }
     end
 
     def reset
-      FileUtils.mkdir_p(File.dirname(file))
+      FileUtils.mkdir_p(File.dirname(@file))
       FileUtils.copy(
         File.join(File.dirname(__FILE__), '../../resources/remotes'),
-        file
+        @file
       )
     end
 
@@ -148,35 +151,34 @@ module Zold
       raise 'Port can\'t be zero' if port.zero?
       raise 'Port can\'t be negative' if port.negative?
       raise 'Port can\'t be over 65536' if port > 0xffff
-      raise "#{host}:#{port} already exists" if exists?(host, port)
-      list = load
-      list << { host: host.downcase, port: port, score: 0 }
-      save(list)
+      modify do |list|
+        list + [{ host: host.downcase, port: port, score: 0 }]
+      end
     end
 
     def remove(host, port = Remotes::PORT)
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
       raise 'Host can\'t be nil' if host.nil?
       raise 'Port can\'t be nil' if port.nil?
-      list = load
-      list.reject! { |r| r[:host] == host.downcase && r[:port] == port }
-      save(list)
+      modify do |list|
+        list.reject { |r| r[:host] == host.downcase && r[:port] == port }
+      end
     end
 
     def iterate(log, farm: Farm::Empty.new)
       raise 'Log can\'t be nil' if log.nil?
       raise 'Farm can\'t be nil' if farm.nil?
-      return if all.empty?
+      list = all
+      return if list.empty?
       best = farm.best[0]
       require_relative 'score'
       score = best.nil? ? Score::ZERO : best
       idx = 0
-      pool = Concurrent::FixedThreadPool.new([all.count, Concurrent.processor_count * 4].min, max_queue: 0)
-      all.each do |r|
+      pool = Concurrent::FixedThreadPool.new([list.count, Concurrent.processor_count * 4].min, max_queue: 0)
+      list.each do |r|
         pool.post do
           Thread.current.abort_on_exception = true
           Thread.current.name = 'remotes'
-          Thread.current.priority = -100
           start = Time.now
           begin
             yield Remotes::Remote.new(
@@ -185,16 +187,15 @@ module Zold
               score: score,
               idx: idx,
               log: log,
-              network: network
+              network: @network
             )
             idx += 1
             raise 'Took too long to execute' if (Time.now - start).round > @timeout
             unerror(r[:host], r[:port])
           rescue StandardError => e
             error(r[:host], r[:port])
-            errors = errors(r[:host], r[:port])
             log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message} \
-in #{(Time.now - start).round}s; errors=#{errors}")
+in #{(Time.now - start).round}s")
             log.debug(Backtrace.new(e).to_s)
             remove(r[:host], r[:port]) if errors > Remotes::TOLERANCE
           end
@@ -202,15 +203,6 @@ in #{(Time.now - start).round}s; errors=#{errors}")
       end
       pool.shutdown
       pool.kill unless pool.wait_for_termination(5 * 60)
-    end
-
-    def errors(host, port = Remotes::PORT)
-      raise 'Host can\'t be nil' if host.nil?
-      raise 'Port can\'t be nil' if port.nil?
-      raise 'Port has to be of type Integer' unless port.is_a?(Integer)
-      list = load
-      raise "#{host}:#{port} is absent among #{list.count} remotes" unless exists?(host, port)
-      list.find { |r| r[:host] == host.downcase && r[:port] == port }[:errors]
     end
 
     def error(host, port = Remotes::PORT)
@@ -238,53 +230,48 @@ in #{(Time.now - start).round}s; errors=#{errors}")
 
     private
 
+    def modify
+      @mutex.synchronize do
+        save(yield(load))
+      end
+    end
+
     def if_present(host, port)
-      list = load
-      remote = list.find { |r| r[:host] == host.downcase && r[:port] == port }
-      return unless remote
-      yield remote
-      save(list)
+      modify do |list|
+        remote = list.find { |r| r[:host] == host.downcase && r[:port] == port }
+        return unless remote
+        yield remote
+        list
+      end
     end
 
     def load
-      _mutex.synchronize do
-        raw = CSV.read(_file).map do |r|
-          {
-            host: r[0],
-            port: r[1].to_i,
-            score: r[2].to_i,
-            errors: r[3].to_i
-          }
-        end
-        raw.reject { |r| !r[:host] || r[:port].zero? }.map do |r|
-          r[:home] = URI("http://#{r[:host]}:#{r[:port]}/")
-          r
-        end
+      reset unless File.exist?(@file)
+      raw = CSV.read(@file).map do |r|
+        {
+          host: r[0],
+          port: r[1].to_i,
+          score: r[2].to_i,
+          errors: r[3].to_i
+        }
+      end
+      raw.reject { |r| !r[:host] || r[:port].zero? }.map do |r|
+        r[:home] = URI("http://#{r[:host]}:#{r[:port]}/")
+        r
       end
     end
 
     def save(list)
-      _mutex.synchronize do
-        AtomicFile.new(_file).write(
-          list.uniq { |r| "#{r[:host]}:#{r[:port]}" }.map do |r|
-            [
-              r[:host],
-              r[:port],
-              r[:score],
-              r[:errors]
-            ].join(',')
-          end.join("\n")
-        )
-      end
-    end
-
-    def _mutex
-      mutex.nil? ? Mutex.new : mutex
-    end
-
-    def _file
-      reset unless File.exist?(file)
-      file
+      AtomicFile.new(@file).write(
+        list.uniq { |r| "#{r[:host]}:#{r[:port]}" }.map do |r|
+          [
+            r[:host],
+            r[:port],
+            r[:score],
+            r[:errors]
+          ].join(',')
+        end.join("\n")
+      )
     end
   end
 end
