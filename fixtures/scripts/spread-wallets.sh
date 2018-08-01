@@ -30,7 +30,7 @@ zold push 0000000000000000
 zold remote clean
 zold remote add localhost ${second}
 
-((i = 0))
+((i=0))
 until zold fetch 0000000000000000 --ignore-score-weakness; do
   echo 'Failed to fetch, let us try again'
   ((i++))
