@@ -219,7 +219,7 @@ class TestRemotes < Minitest::Test
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'uu-90.csv'))
       remotes.clean
-      threads = 5
+      threads = 20
       pool = Concurrent::FixedThreadPool.new(threads)
       done = Concurrent::AtomicFixnum.new
       start = Time.now
