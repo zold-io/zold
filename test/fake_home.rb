@@ -40,7 +40,7 @@ class FakeHome
   end
 
   def run
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       FileUtils.copy(File.join(__dir__, '../fixtures/id_rsa'), File.join(dir, 'id_rsa'))
       yield FakeHome.new(dir)
     end

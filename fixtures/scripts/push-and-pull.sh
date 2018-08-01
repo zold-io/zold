@@ -4,7 +4,7 @@ port=$(reserve_port)
 
 mkdir server
 cd server
-zold node --trace --invoice=NOPREFIX@ffffffffffffffff \
+zold node --trace --invoice=PUSHNPULL@ffffffffffffffff \
   --host=localhost --port=${port} --bind-port=${port} \
   --threads=0 --standalone &
 pid=$!

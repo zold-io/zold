@@ -117,7 +117,7 @@ module Zold
         details
       )
       txn = txn.signed(pvt, id)
-      raise 'This is not the private right key for this wallet' unless Signature.new.valid?(key, id, txn)
+      raise 'This is not the right private key for this wallet' unless Signature.new.valid?(key, id, txn)
       add(txn)
       txn
     end
@@ -161,7 +161,7 @@ module Zold
     # Age of wallet in hours
     def age
       list = txns
-      list.empty? ? 0 : (Time.now - list.min_by(&:date).date) / 60
+      list.empty? ? 0 : (Time.now - list.min_by(&:date).date) / (60 * 60)
     end
 
     def txns

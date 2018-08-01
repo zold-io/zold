@@ -35,7 +35,7 @@ require_relative '../lib/zold/verbose_thread'
 # License:: MIT
 class TestAtomicFile < Minitest::Test
   def test_writes_and_reads
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       file = Zold::AtomicFile.new(File.join(dir, 'test.txt'))
       ['', 'hello, dude!'].each do |t|
         file.write(t)
@@ -45,7 +45,7 @@ class TestAtomicFile < Minitest::Test
   end
 
   def test_writes_from_many_threads
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       file = Zold::AtomicFile.new(File.join(dir, 'a.txt'))
       threads = 10
       pool = Concurrent::FixedThreadPool.new(threads)

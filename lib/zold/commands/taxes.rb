@@ -99,7 +99,7 @@ Available options:"
 
     private
 
-    def pay(wallet, _)
+    def pay(wallet, opts)
       raise 'The wallet is absent' unless wallet.exists?
       tax = Tax.new(wallet)
       debt = tax.debt

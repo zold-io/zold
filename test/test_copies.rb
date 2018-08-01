@@ -35,7 +35,7 @@ require_relative '../lib/zold/wallet'
 # License:: MIT
 class TestCopies < Minitest::Test
   def test_adds_and_removes_copies
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       copies = Zold::Copies.new(File.join(dir, 'my/a/copies'), log: test_log)
       copies.add(content('alpha'), '192.168.0.1', 80, 1)
       copies.add(content('beta'), '192.168.0.2', 80, 3)
@@ -50,14 +50,14 @@ class TestCopies < Minitest::Test
   end
 
   def test_lists_empty_dir
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       copies = Zold::Copies.new(File.join(dir, 'xxx'), log: test_log)
       assert(copies.all.empty?, "#{copies.all.count} is not zero")
     end
   end
 
   def test_overwrites_host
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       copies = Zold::Copies.new(File.join(dir, 'my/a/copies-2'), log: test_log)
       host = 'b1.zold.io'
       copies.add(content('z1'), host, 80, 5)
@@ -69,7 +69,7 @@ class TestCopies < Minitest::Test
   end
 
   def test_cleans_copies
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       copies = Zold::Copies.new(dir, log: test_log)
       copies.add(content('h1'), 'zold.io', 4096, 10, Time.now - 25 * 60 * 60)
       copies.add(content('h1'), 'zold.io', 4097, 20, Time.now - 26 * 60 * 60)
@@ -81,7 +81,7 @@ class TestCopies < Minitest::Test
   end
 
   def test_cleans_broken_copies
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       copies = Zold::Copies.new(dir, log: test_log)
       copies.add('broken wallet content', 'zold.io', 4096, 10, Time.now)
       copies.clean
@@ -90,7 +90,7 @@ class TestCopies < Minitest::Test
   end
 
   def test_ignores_garbage
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       copies = Zold::Copies.new(dir, log: test_log)
       copies.add(content('h1'), 'zold.io', 50, 80, Time.now - 25 * 60 * 60)
       FileUtils.mkdir(File.join(dir, '55'))
@@ -99,7 +99,7 @@ class TestCopies < Minitest::Test
   end
 
   def test_sorts_them_by_score
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       copies = Zold::Copies.new(dir, log: test_log)
       copies.add(content('content-1'), '1.zold.io', 80, 1)
       copies.add(content('content-2'), '2.zold.io', 80, 2)
@@ -110,7 +110,7 @@ class TestCopies < Minitest::Test
   end
 
   def test_ignores_too_old_scores
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       copies = Zold::Copies.new(dir, log: test_log)
       copies.add(content('h1'), 'zold.io', 50, 80, Time.now - 1000 * 60 * 60)
       assert_equal(0, copies.all[0][:score])

@@ -25,6 +25,7 @@ STDOUT.sync = true
 require 'json'
 require 'sinatra/base'
 require 'webrick'
+require 'get_process_mem'
 require 'diffy'
 require 'concurrent'
 require_relative '../backtrace'
@@ -70,7 +71,10 @@ module Zold
     use Rack::Deflater
 
     before do
-      Front.stop! if !settings.halt.empty? && params[:halt] && params[:halt] == settings.halt
+      if !settings.halt.empty? && params[:halt] && params[:halt] == settings.halt
+        settings.log.error('Halt signal received, shutting the front end down...')
+        Front.stop!
+      end
       check_header(Http::NETWORK_HEADER) do |header|
         if header != settings.network
           raise "Network name mismatch at #{request.url}, #{request.ip} is in '#{header}', \
@@ -91,9 +95,10 @@ while #{settings.address} is in '#{settings.network}'"
         error(400, 'The score is weak') if s.strength < Score::STRENGTH && !settings.ignore_score_weakness
         if s.value > 3
           require_relative '../commands/remote'
-          Remote.new(remotes: settings.remotes, log: settings.log).run(
-            ['remote', 'add', s.host, s.port.to_s, '--force', "--network=#{settings.network}"]
-          )
+          cmd = Remote.new(remotes: settings.remotes, log: settings.log)
+          cmd.run(['remote', 'add', s.host, s.port.to_s, '--force', "--network=#{settings.network}"])
+          cmd.run(%w[remote trim])
+          cmd.run(%w[remote select])
         else
           settings.log.debug("#{request.url}: the score is too weak: #{s}")
         end
@@ -121,6 +126,11 @@ while #{settings.address} is in '#{settings.network}'"
       settings.version
     end
 
+    get '/pid' do
+      content_type 'text/plain'
+      Process.pid.to_s
+    end
+
     get '/score' do
       content_type 'text/plain'
       score.to_s
@@ -145,6 +155,7 @@ while #{settings.address} is in '#{settings.network}'"
         score: score.to_h,
         pid: Process.pid,
         cpus: Concurrent.processor_count,
+        memory: GetProcessMem.new.bytes,
         platform: RUBY_PLATFORM,
         uptime: `uptime`.strip,
         threads: "#{Thread.list.select { |t| t.status == 'run' }.count}/#{Thread.list.count}",

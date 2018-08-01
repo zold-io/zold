@@ -83,6 +83,9 @@ Available options:"
         o.integer '--min-score',
           "The minimum score required for winning the election (default: #{Tax::EXACT_SCORE})",
           default: Tax::EXACT_SCORE
+        o.integer '--max-winners',
+          'The maximum amount of election winners the election (default: 1)',
+          default: 1
         o.bool '--force',
           'Add/remove if if this operation is not possible',
           default: false
@@ -197,20 +200,23 @@ Available options:"
         r.assert_score_value(score, opts['min-score']) unless opts['ignore-score-value']
         scores << score
       end
-      scores = scores.sample(1)
+      scores = scores.sample(opts['max-winners'])
       if scores.empty?
         @log.info("No winners elected out of #{@remotes.all.count} remotes")
       else
-        @log.info("Elected: #{scores[0]}")
+        scores.each { |s| @log.info("Elected: #{s}") }
       end
       scores
     end
 
     def trim(opts)
-      @remotes.all.each do |r|
-        remove(r[:host], r[:port], opts) if r[:errors] > opts['tolerate']
+      all = @remotes.all
+      all.each do |r|
+        next if r[:errors] <= opts['tolerate']
+        remove(r[:host], r[:port], opts)
+        @log.info("#{r[:host]}:#{r[:port]} removed because of #{r[:errors]} errors (over #{opts['tolerate']})")
       end
-      @log.info("The list of remotes trimmed, #{@remotes.all.count} nodes left there")
+      @log.info("The list of #{all.count} remotes trimmed, #{@remotes.all.count} nodes left there")
     end
 
     def update(opts, deep = true)
@@ -236,7 +242,7 @@ it's recommended to reboot, but I don't do it because of --never-reboot")
         end
         if deep
           json['all'].each do |s|
-            add(s['host'], s['port'], opts) unless @remotes.exists?(s['host'], s['port'])
+            @remotes.add(s['host'], s['port'])
           end
         end
         capacity << { host: score.host, port: score.port, count: json['all'].count }
@@ -256,7 +262,7 @@ in #{(Time.now - start).round(2)}s")
     end
 
     def select(opts)
-      selected = @remotes.all.sort_by { |r| r[:score] }.first(opts['max-nodes'])
+      selected = @remotes.all.sort_by { |r| r[:score] }.reverse.first(opts['max-nodes'])
       (@remotes.all - selected).each do |r|
         @remotes.remove(r[:host], r[:port])
       end

@@ -33,7 +33,7 @@ require_relative '../../lib/zold/commands/create'
 # License:: MIT
 class TestCreate < Minitest::Test
   def test_creates_wallet
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir do |dir|
       wallet = Zold::Create.new(wallets: Zold::Wallets.new(dir), log: test_log).run(
         ['create', '--public-key=fixtures/id_rsa.pub']
       )

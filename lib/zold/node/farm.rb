@@ -21,9 +21,11 @@
 # SOFTWARE.
 
 require 'time'
+require 'open3'
 require_relative '../log'
 require_relative '../score'
 require_relative '../verbose_thread'
+require_relative '../backtrace'
 require_relative '../atomic_file'
 
 # The farm of scores.
@@ -78,20 +80,19 @@ module Zold
         Thread.new do
           Thread.current.abort_on_exception = true
           Thread.current.name = "f#{t}"
-          Thread.current.priority = -100
           loop do
             VerboseThread.new(@log).run do
               cycle(host, port, strength, threads)
             end
+            break unless @alive
           end
         end
       end
-      alive = true
+      @alive = true
       @cleanup = Thread.new do
         Thread.current.abort_on_exception = true
         Thread.current.name = 'cleanup'
-        Thread.current.priority = -100
-        while alive
+        while @alive
           sleep(60) unless strength == 1 # which will only happen in tests
           VerboseThread.new(@log).run do
             cleanup(host, port, strength, threads)
@@ -105,7 +106,7 @@ module Zold
       ensure
         @log.info("Terminating the farm with #{@threads.count} threads...")
         start = Time.now
-        alive = false
+        @alive = false
         if strength == 1
           @cleanup.join
           @log.info("Cleanup thread finished in #{(Time.now - start).round(2)}s")
@@ -115,8 +116,8 @@ module Zold
         end
         @threads.each do |t|
           tstart = Time.now
-          t.exit
-          @log.info("Thread #{t.name} terminated in #{(Time.now - tstart).round(2)}s")
+          t.join(0.1)
+          @log.info("Thread #{t.name} finished in #{(Time.now - tstart).round(2)}s")
         end
         @log.info("Farm stopped in #{(Time.now - start).round(2)}s")
       end
@@ -146,8 +147,42 @@ module Zold
       return unless s.port == port
       return unless s.strength >= strength
       Thread.current.name = s.to_mnemo
-      save(threads, [s.next])
-      cleanup(host, port, strength, threads)
+      bin = File.expand_path(File.join(File.dirname(__FILE__), '../../../bin/zold'))
+      Open3.popen2e("ruby #{bin} next \"#{s}\"") do |stdin, stdout, thr|
+        @log.debug("Score counting started in process ##{thr.pid}")
+        begin
+          stdin.close
+          buffer = +''
+          loop do
+            begin
+              buffer << stdout.read_nonblock(1024)
+            rescue IO::WaitReadable => e
+              @log.debug("Still waiting for data from the score provider: #{e.message}")
+            end
+            if buffer.end_with?("\n")
+              score = Score.parse(buffer.strip)
+              @log.debug("New score discovered: #{score}")
+              save(threads, [score])
+              cleanup(host, port, strength, threads)
+              break
+            end
+            break if stdout.eof?
+            break unless @alive
+            sleep 0.1
+          end
+        rescue StandardError => e
+          @log.error(Backtrace.new(e).to_s)
+        ensure
+          kill(thr.pid)
+        end
+      end
+    end
+
+    def kill(pid)
+      Process.kill('TERM', pid)
+      @log.debug("Process ##{pid} killed")
+    rescue StandardError => e
+      @log.debug("No need to kill process ##{pid} since it's dead already: #{e.message}")
     end
 
     def save(threads, list = [])

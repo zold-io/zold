@@ -4,7 +4,7 @@ function start_node {
   port=$(reserve_port)
   mkdir ${port}
   cd ${port}
-  zold node --trace --invoice=NOPREFIX@ffffffffffffffff \
+  zold node --trace --invoice=SPREADWALLETS@ffffffffffffffff \
     --host=localhost --port=${port} --bind-port=${port} \
     --threads=0 > log.txt &
   pid=$!
@@ -30,9 +30,10 @@ zold push 0000000000000000
 zold remote clean
 zold remote add localhost ${second}
 
+i=0
 until zold fetch 0000000000000000 --ignore-score-weakness; do
   echo 'Failed to fetch, let us try again'
-  ((i++)) || sleep 2
+  ((i++)) || sleep 0
   if ((i==5)); then
     cat ${first}/log.txt
     echo "The wallet has not been distributed, after ${i} attempts"
