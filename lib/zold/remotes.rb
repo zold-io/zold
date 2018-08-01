@@ -112,14 +112,16 @@ module Zold
     end
 
     def all
-      list = load
-      max_score = list.map { |r| r[:score] }.max || 0
-      max_score = 1 if max_score.zero?
-      max_errors = list.map { |r| r[:errors] }.max || 0
-      max_errors = 1 if max_errors.zero?
-      list.sort_by do |r|
-        (1 - r[:errors] / max_errors) * 5 + (r[:score] / max_score)
-      end.reverse
+      @mutex.synchronize do
+        list = load
+        max_score = list.map { |r| r[:score] }.max || 0
+        max_score = 1 if max_score.zero?
+        max_errors = list.map { |r| r[:errors] }.max || 0
+        max_errors = 1 if max_errors.zero?
+        list.sort_by do |r|
+          (1 - r[:errors] / max_errors) * 5 + (r[:score] / max_score)
+        end.reverse
+      end
     end
 
     def clean
@@ -206,9 +208,11 @@ in #{(Time.now - start).round}s; errors=#{errors}")
       raise 'Host can\'t be nil' if host.nil?
       raise 'Port can\'t be nil' if port.nil?
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
-      list = load
-      raise "#{host}:#{port} is absent among #{list.count} remotes" unless exists?(host, port)
-      list.find { |r| r[:host] == host.downcase && r[:port] == port }[:errors]
+      @mutex.synchronize do
+        list = load
+        raise "#{host}:#{port} is absent among #{list.count} remotes" unless exists?(host, port)
+        list.find { |r| r[:host] == host.downcase && r[:port] == port }[:errors]
+      end
     end
 
     def error(host, port = Remotes::PORT)
