@@ -155,7 +155,7 @@ while #{settings.address} is in '#{settings.network}'"
         score: score.to_h,
         pid: Process.pid,
         cpus: Concurrent.processor_count,
-        memory: GetProcessMem.new.inspect.bytes,
+        memory: GetProcessMem.new.bytes,
         platform: RUBY_PLATFORM,
         uptime: `uptime`.strip,
         threads: "#{Thread.list.select { |t| t.status == 'run' }.count}/#{Thread.list.count}",
