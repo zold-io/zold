@@ -29,8 +29,8 @@ install:
   - cmd: git --version
   - cmd: bundle config --local path vendor/bundle
 build_script:
-  - bundle update --with-openssl-dir=%openssl_dir%
-  - bundle install --with-openssl-dir=%openssl_dir%
+  - bundle update
+  - bundle install
 test_script:
   - rake
 cache:
