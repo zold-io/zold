@@ -67,6 +67,7 @@ module Zold
       set :wallets, nil? # to be injected at node.rb
       set :remotes, nil? # to be injected at node.rb
       set :copies, nil? # to be injected at node.rb
+      set :node_alias, nil? # to be injected at node.rb
     end
     use Rack::Deflater
 
@@ -150,6 +151,7 @@ while #{settings.address} is in '#{settings.network}'"
       content_type 'application/json'
       JSON.pretty_generate(
         version: settings.version,
+        alias: settings.node_alias,
         network: settings.network,
         protocol: settings.protocol,
         score: score.to_h,
@@ -177,6 +179,7 @@ while #{settings.address} is in '#{settings.network}'"
       content_type 'application/json'
       {
         version: settings.version,
+        alias: settings.node_alias,
         protocol: settings.protocol,
         id: wallet.id.to_s,
         score: score.to_h,
@@ -195,6 +198,7 @@ while #{settings.address} is in '#{settings.network}'"
       content_type 'application/json'
       {
         version: settings.version,
+        alias: settings.node_alias,
         protocol: settings.protocol,
         id: wallet.id.to_s,
         score: score.to_h,
@@ -269,6 +273,7 @@ while #{settings.address} is in '#{settings.network}'"
       end
       JSON.pretty_generate(
         version: settings.version,
+        alias: settings.node_alias,
         score: score.to_h,
         wallets: settings.wallets.all.count
       )
@@ -278,6 +283,7 @@ while #{settings.address} is in '#{settings.network}'"
       content_type 'application/json'
       JSON.pretty_generate(
         version: settings.version,
+        alias: settings.node_alias,
         score: score.to_h,
         all: settings.remotes.all
       )
