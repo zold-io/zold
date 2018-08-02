@@ -27,7 +27,7 @@ install:
       }
   - cmd: ruby --version
   - cmd: git --version
-  - cmd: bundle config --local path vendor/bundle --with-ssl-dir=%openssl_dir%
+  - cmd: bundle config --local path vendor/bundle --use-system-libraries
 build_script:
   - bundle update
   - bundle install
