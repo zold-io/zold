@@ -13,8 +13,8 @@ environment:
     - RUBY_VERSION: 24
     - RUBY_VERSION: 25
 install:
+  - cmd: set PATH=C:\Ruby%RUBY_VERSION%-X64\bin;%PATH%
   - ps: |
-      $Env:PATH = "C:\Ruby${RUBY_VERSION}-X64\bin;${Env:PATH}"
       if ($Env:ruby_version -match "^23" ) {
         # RubyInstaller; download OpenSSL headers from OpenKnapsack Project
         $Env:openssl_dir = "C:/Ruby${RUBY_VERSION}-X64"
