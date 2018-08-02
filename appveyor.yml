@@ -17,10 +17,10 @@ install:
       $Env:PATH = "C:\Ruby${Env:ruby_version}-X64\bin;${Env:PATH}"
       if ($Env:ruby_version -match "^23" ) {
         # RubyInstaller; download OpenSSL headers from OpenKnapsack Project
-        $Env:openssl_dir = "C:\Ruby${Env:ruby_version}"
+        $Env:openssl_dir = "C:\Ruby${Env:ruby_version}-X64"
         appveyor DownloadFile http://dl.bintray.com/oneclick/OpenKnapsack/x64/openssl-1.0.2j-x64-windows.tar.lzma
         7z e openssl-1.0.2j-x64-windows.tar.lzma
-        7z x -y -oC:\Ruby${Env:ruby_version} openssl-1.0.2j-x64-windows.tar
+        7z x -y -oC:\Ruby${Env:ruby_version}-X64 openssl-1.0.2j-x64-windows.tar
       } else {
         # RubyInstaller2; openssl package seems to be installed already
         $Env:openssl_dir = "C:\msys64\mingw64"
@@ -29,6 +29,7 @@ install:
   - cmd: git --version
   - cmd: bundle config --local path vendor/bundle
 build_script:
+  - bundle config build.zold --with-ssl-dir=%openssl_dir% --with-opt-include=C:\Ruby${Env:ruby_version}-X64
   - bundle update
   - bundle install
 test_script:
