@@ -185,6 +185,7 @@ while #{settings.address} is in '#{settings.network}'"
         score: score.to_h,
         wallets: settings.wallets.all.count,
         mtime: wallet.mtime.utc.iso8601,
+        size: File.size(wallet.path),
         digest: wallet.digest,
         balance: wallet.balance.to_i,
         body: AtomicFile.new(wallet.path).read
@@ -259,6 +260,7 @@ while #{settings.address} is in '#{settings.network}'"
         '--',
         "Balance: #{wallet.balance.to_zld}",
         "Transactions: #{wallet.txns.count}",
+        "Wallet size: #{File.size(wallet.path)} bytes",
         "Modified: #{wallet.mtime.utc.iso8601}",
         "Digest: #{wallet.digest}"
       ].join("\n")
