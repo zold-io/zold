@@ -20,6 +20,7 @@ install:
   - cmd: git --version
   - cmd: bundle config --local path vendor/bundle --with-ssl-dir=%openssl_dir%
 build_script:
+  - bundle exec gem install openssl --with-openssl-dir=%openssl_dir%
   - bundle update
   - bundle install
 test_script:
