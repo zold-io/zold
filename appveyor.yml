@@ -27,9 +27,8 @@ install:
       }
   - cmd: ruby --version
   - cmd: git --version
-  - cmd: bundle config --local path vendor/bundle
+  - cmd: bundle config --local path vendor/bundle --with-ssl-dir=%openssl_dir% --with-opt-include=C:\Ruby${Env:ruby_version}-X64
 build_script:
-  - bundle config build.zold --with-ssl-dir=%openssl_dir% --with-opt-include=C:\Ruby${Env:ruby_version}-X64
   - bundle update
   - bundle install
 test_script:
