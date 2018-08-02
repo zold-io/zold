@@ -46,9 +46,11 @@ module Zold
     # Default number of nodes to fetch.
     MAX_NODES = 16
 
+    # Mutex object
+    MUTEX = Mutex.new
+
     attribute :file, Types::Strict::String
     attribute :network, Types::Strict::String.optional.default('test')
-    attribute :mutex, Types::Any.optional.default(Mutex.new)
     attribute :timeout, Types::Strict::Integer.optional.default(16)
 
     # Empty, for standalone mode
@@ -235,7 +237,7 @@ in #{(Time.now - start).round}s; errors=#{errors}")
     private
 
     def modify
-      mutex.synchronize do
+      MUTEX.synchronize do
         save(yield(load))
       end
     end
