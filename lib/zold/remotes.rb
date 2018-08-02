@@ -217,7 +217,7 @@ in #{(Time.now - start).round}s")
       raise 'Port can\'t be nil' if port.nil?
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
       return if errors(host, port).zero?
-      if_present(host, port) do { |r| r[:errors] -= 1 }
+      if_present(host, port) { |r| r[:errors] -= 1 }
     end
 
     def rescore(host, port, score)
