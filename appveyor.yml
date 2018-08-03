@@ -15,10 +15,19 @@ environment:
 install:
   - cmd: set PATH=C:\Ruby%RUBY_VERSION%-X64\bin;%PATH%
   - ps: |
-      $Env:openssl_dir = "C:/OpenSSL-Win64/bin"
+      if ($Env:ruby_version -match "^23" ) {
+        # RubyInstaller; download OpenSSL headers from OpenKnapsack Project
+        $Env:openssl_dir = "C:\Ruby%RUBY_VERSION%-X64"
+        appveyor DownloadFile http://dl.bintray.com/oneclick/OpenKnapsack/x64/openssl-1.0.2j-x64-windows.tar.lzma
+        7z e openssl-1.0.2j-x64-windows.tar.lzma
+        7z x -y -oC:\Ruby%RUBY_VERSION%-X64 openssl-1.0.2j-x64-windows.tar
+      } else {
+        # RubyInstaller2; openssl package seems to be installed already
+        $Env:openssl_dir = "C:\msys64\mingw64"
+      }
   - cmd: ruby --version
   - cmd: git --version
-  - cmd: bundle config --local path vendor/bundle --with-ssl-dir=%openssl_dir%
+  - cmd: bundle config --local path vendor/bundle
 build_script:
   - bundle exec gem install openssl --with-openssl-dir=%openssl_dir%
   - bundle update
