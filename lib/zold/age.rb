@@ -20,51 +20,29 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'uri'
-require 'json'
 require 'time'
-require 'slop'
-require 'rainbow'
-require_relative 'args'
-require_relative '../age'
-require_relative '../log'
-require_relative '../http'
-require_relative '../score'
-require_relative '../copies'
 
-# CLEAN command.
+# Age
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # CLEAN command
-  class Clean
-    def initialize(wallets:, copies:, log: Log::Quiet.new)
-      @wallets = wallets
-      @copies = copies
-      @log = log
+  # Age
+  class Age
+    def initialize(time)
+      @time = time
+      @time = Time.parse(@time) unless time.is_a?(Time)
     end
 
-    def run(args = [])
-      opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
-        o.banner = "Usage: zold clean [ID...] [options]
-Available options:"
-        o.bool '--help', 'Print instructions'
-      end
-      mine = Args.new(opts, @log).take || return
-      mine = @wallets.all if mine.empty?
-      mine.map { |i| Id.new(i) }.each do |id|
-        clean(Copies.new(File.join(@copies, id), log: @log), opts)
-      end
-    end
-
-    def clean(cps, _)
-      deleted = cps.clean
-      @log.debug("#{deleted} expired local copies removed for #{cps}, #{cps.all.count} left:")
-      cps.all.each do |c|
-        wallet = Wallet.new(c[:path])
-        @log.debug("  #{c[:name]}: #{c[:score]} #{wallet.balance}/#{wallet.txns.count}t/\
-#{wallet.digest[0, 6]}/#{File.size(c[:path])}b/#{Age.new(File.mtime(c[:path]))}")
+    def to_s
+      return '?' if @time.nil?
+      sec = Time.now - @time
+      if sec < 60
+        "#{sec.round(2)}s"
+      elsif sec < 60 * 60
+        "#{(sec / 60).round}m"
+      else
+        "#{(sec / 3600).round}h"
       end
     end
   end

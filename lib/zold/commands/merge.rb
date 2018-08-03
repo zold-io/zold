@@ -84,10 +84,10 @@ Available options:"
       end
       modified = patch.save(wallet.path, overwrite: true)
       if modified
-        @log.debug("#{cps.count} copies with the total score of #{score} successfully merged \
+        @log.info("#{cps.count} copies with the total score of #{score} successfully merged \
 into #{wallet.id}/#{wallet.balance}/#{wallet.txns.count}t")
       else
-        @log.debug("Nothing changed in #{wallet.id} after merge of #{cps.count} copies")
+        @log.info("Nothing changed in #{wallet.id} after merge of #{cps.count} copies")
       end
       modified
     end
