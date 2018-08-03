@@ -28,10 +28,11 @@ install:
   - cmd: ruby --version
   - cmd: git --version
   - cmd: bundle config --local path vendor/bundle
-build_script:
-  - bundle exec gem install openssl --with-openssl-dir=%openssl_dir%
-  - bundle update
-  - bundle install
+  - cmd: gem install openssl
+  - cmd: gem list openssl
+  - cmd: ruby -ropenssl -e 'puts \"OpenSSL Version - #{OpenSSL::OPENSSL_VERSION}\"; puts \"OpenSSL Library Version - #{OpenSSL::OPENSSL_LIBRARY_VERSION}\"'
+  - cmd: bundle install
+build_script: off
 test_script:
   - rake
 cache:
