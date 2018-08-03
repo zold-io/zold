@@ -15,6 +15,7 @@ environment:
 install:
   - set PATH=C:\Ruby%RUBY_VERSION%\bin;%PATH%
   - bundle config --local path vendor/bundle
+  - gem install openssl -- --with-openssl-dir=C:/OpenSSL-Win64
   - bundle install
 build: off
 before_test:
