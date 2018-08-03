@@ -101,6 +101,9 @@ module Zold
       t
     end
 
+    # Sign the transaction and add RSA signature to it
+    # +pvt+:: The private RSA key of the paying wallet
+    # +id+:: Paying wallet ID
     def signed(pvt, id)
       t = clone
       t.sign = Signature.new.sign(pvt, id, self)
