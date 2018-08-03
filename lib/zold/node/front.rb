@@ -266,6 +266,14 @@ while #{settings.address} is in '#{settings.network}'"
       ].join("\n")
     end
 
+    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.bin} do
+      id = Id.new(params[:id])
+      wallet = settings.wallets.find(id)
+      error 404 unless wallet.exists?
+      content_type 'text/plain'
+      AtomicFile.new(wallet.path).read
+    end
+
     put %r{/wallet/(?<id>[A-Fa-f0-9]{16})/?} do
       request.body.rewind
       modified = settings.entrance.push(Id.new(params[:id]), request.body.read.to_s)
