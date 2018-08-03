@@ -75,6 +75,11 @@ module Zold
         details == other.details && sign == other.sign
     end
 
+    def <=>(other)
+      raise 'Can only compare with Txn' unless other.is_a?(Txn)
+      [date, amount * -1, id, bnf] <=> [other.date, other.amount * -1, other.id, other.bnf]
+    end
+
     def to_s
       [
         Hexnum.new(@id, 4).to_s,

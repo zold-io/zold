@@ -28,6 +28,7 @@ require_relative 'id'
 require_relative 'txn'
 require_relative 'tax'
 require_relative 'amount'
+require_relative 'hexnum'
 require_relative 'signature'
 require_relative 'atomic_file'
 
@@ -168,7 +169,7 @@ module Zold
       lines.drop(5)
         .each_with_index
         .map { |line, i| Txn.parse(line, i + 6) }
-        .sort_by { |t| [t.date, t.amount * -1] }
+        .sort
     end
 
     def refurbish

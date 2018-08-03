@@ -34,6 +34,14 @@ require_relative '../lib/zold/commands/pay'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class TestWallet < Minitest::Test
+  def test_reads_empty_wallet
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      assert(wallet.txns.empty?)
+      assert_equal(Zold::Amount::ZERO, wallet.balance)
+    end
+  end
+
   def test_adds_transaction
     FakeHome.new.run do |home|
       wallet = home.create_wallet
@@ -169,6 +177,35 @@ class TestWallet < Minitest::Test
         sum == Zold::Amount.new(coins: 235_965_503_242),
         "#{sum} (#{sum.to_i}) is not equal to #{Zold::Amount.new(zld: 54.94)}"
       )
+    end
+  end
+
+  def test_sorts_them_always_right
+    FakeHome.new.run do |home|
+      time = Time.now
+      txns = []
+      50.times do
+        txns << Zold::Txn.new(
+          1,
+          time,
+          Zold::Amount.new(zld: 1.99),
+          'NOPREFIX', Zold::Id.new, '-'
+        )
+      end
+      wallet = home.create_wallet
+      empty = File.read(wallet.path)
+      text = ''
+      10.times do
+        File.write(wallet.path, empty)
+        txns.shuffle!
+        txns.each { |t| wallet.add(t) }
+        wallet.refurbish
+        if text.empty?
+          text = File.read(wallet.path)
+          next
+        end
+        assert_equal(text, File.read(wallet.path))
+      end
     end
   end
 end
