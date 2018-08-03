@@ -13,26 +13,14 @@ environment:
     - RUBY_VERSION: 24
     - RUBY_VERSION: 25
 install:
-  - cmd: set PATH=C:\Ruby%RUBY_VERSION%-X64\bin;%PATH%
-  - ps: |
-      if ($Env:ruby_version -match "^23" ) {
-        # RubyInstaller; download OpenSSL headers from OpenKnapsack Project
-        $Env:openssl_dir = "C:\Ruby%RUBY_VERSION%-X64"
-        appveyor DownloadFile http://dl.bintray.com/oneclick/OpenKnapsack/x64/openssl-1.0.2j-x64-windows.tar.lzma
-        7z e openssl-1.0.2j-x64-windows.tar.lzma
-        7z x -y -oC:\Ruby%RUBY_VERSION%-X64 openssl-1.0.2j-x64-windows.tar
-      } else {
-        # RubyInstaller2; openssl package seems to be installed already
-        $Env:openssl_dir = "C:\msys64\mingw64"
-      }
-  - cmd: ruby --version
-  - cmd: git --version
-  - cmd: bundle config --local path vendor/bundle
-  - cmd: gem install openssl
-  - cmd: gem list openssl
-  - cmd: ruby -ropenssl -e 'puts \"OpenSSL Version - #{OpenSSL::OPENSSL_VERSION}\"; puts \"OpenSSL Library Version - #{OpenSSL::OPENSSL_LIBRARY_VERSION}\"'
-  - cmd: bundle install
-build_script: off
+  - set PATH=C:\Ruby%RUBY_VERSION%\bin;%PATH%
+  - bundle config --local path vendor/bundle
+  - bundle install
+build: off
+before_test:
+  - ruby -v
+  - gem -v
+  - bundle -v
 test_script:
   - rake
 cache:
