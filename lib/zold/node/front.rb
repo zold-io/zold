@@ -31,6 +31,7 @@ require 'concurrent'
 require_relative '../backtrace'
 require_relative '../version'
 require_relative '../wallet'
+require_relative '../copies'
 require_relative '../log'
 require_relative '../id'
 require_relative '../http'
@@ -272,6 +273,18 @@ while #{settings.address} is in '#{settings.network}'"
       error 404 unless wallet.exists?
       content_type 'text/plain'
       AtomicFile.new(wallet.path).read
+    end
+
+    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/copies} do
+      id = Id.new(params[:id])
+      wallet = settings.wallets.find(id)
+      error 404 unless wallet.exists?
+      content_type 'text/plain'
+      Copies.new(File.join(settings.copies, id)).all.map do |c|
+        wallet = Wallet.new(c[:path])
+        "#{c[:name]}: #{c[:score]} #{wallet.balance}/#{wallet.txns.count}t/\
+#{wallet.digest[0, 6]}/#{File.size(c[:path])}b/#{Age.new(File.mtime(c[:path]))}"
+      end.join("\n")
     end
 
     put %r{/wallet/(?<id>[A-Fa-f0-9]{16})/?} do
