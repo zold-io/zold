@@ -26,7 +26,7 @@ install:
         $Env:openssl_dir = "C:\msys64\mingw64"
       }
   - bundle config --local path vendor/bundle
-  - gem install openssl -- --with-openssl-dir=%openssl_dir% --vendor
+  - bundle exec gem install openssl -- --with-openssl-dir=%openssl_dir% --without development
   - bundle install
 build: off
 before_test:
