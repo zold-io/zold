@@ -262,7 +262,7 @@ while #{settings.address} is in '#{settings.network}'"
         '--',
         "Balance: #{wallet.balance.to_zld} ZLD (#{wallet.balance.to_i} zents)",
         "Transactions: #{wallet.txns.count}",
-        "File size: #{File.size(wallet.path)} bytes",
+        "File size: #{File.size(wallet.path)} bytes (#{Copies.new(File.join(settings.copies, id)).all.count} copies)",
         "Modified: #{wallet.mtime.utc.iso8601}",
         "Digest: #{wallet.digest}"
       ].join("\n")
