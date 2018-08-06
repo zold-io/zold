@@ -26,7 +26,6 @@ install:
         $Env:openssl_dir = "C:\msys64\mingw64"
       }
   - bundle config --local path vendor/bundle
-  - bundle exec gem install codecov
   - bundle exec gem install openssl -- --with-openssl-dir=%openssl_dir%
   - bundle install
 build: off
