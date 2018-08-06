@@ -77,11 +77,11 @@ class FrontTest < Minitest::Test
       FakeNode.new(log: test_log).run(['--ignore-score-weakness', '--standalone']) do |port|
         wallet = home.create_wallet
         test_log.debug("Wallet created: #{wallet.id}")
-        home = "http://localhost:#{port}"
-        response = Zold::Http.new(uri: "#{home}/wallet/#{wallet.id}?sync=true", score: nil)
+        base = "http://localhost:#{port}"
+        response = Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil)
           .put(File.read(wallet.path))
         assert_equal('200', response.code, response.body)
-        sleep 0.1 until Zold::Http.new(uri: "#{home}/wallet/#{wallet.id}", score: nil).get.code == '200'
+        sleep 0.1 until Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).get.code == '200'
         [
           "/wallet/#{wallet.id}.txt",
           "/wallet/#{wallet.id}.json",
@@ -92,27 +92,24 @@ class FrontTest < Minitest::Test
           "/wallet/#{wallet.id}.bin",
           "/wallet/#{wallet.id}/copies"
         ].each do |u|
-          res = Zold::Http.new(uri: "#{home}#{u}", score: nil).get
+          res = Zold::Http.new(uri: "#{base}#{u}", score: nil).get
           assert_equal('200', res.code, res.body)
         end
       end
     end
   end
 
-  # @todo #239:30min This tests is skipped since it crashes sporadically.
-  #  Let's investigate and make it stable. I don't really know what's going
-  #  on, but suspect some collision between threads:
-  #  http://www.rultor.com/t/14940-397702802
   def test_pushes_twice
-    skip
     FakeNode.new(log: test_log).run do |port|
       FakeHome.new.run do |home|
         wallet = home.create_wallet
-        response = Zold::Http.new(uri: "http://localhost:#{port}/wallet/#{wallet.id}?sync=true", score: nil)
+        base = "http://localhost:#{port}"
+        response = Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil)
           .put(File.read(wallet.path))
         assert_equal('200', response.code, response.body)
+        sleep 0.1 until Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).get.code == '200'
         3.times do
-          r = Zold::Http.new(uri: "http://localhost:#{port}/wallet/#{wallet.id}?sync=true", score: nil)
+          r = Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil)
             .put(File.read(wallet.path))
           assert_equal('304', r.code, r.body)
         end
