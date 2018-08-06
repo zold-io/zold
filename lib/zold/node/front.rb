@@ -25,11 +25,13 @@ STDOUT.sync = true
 require 'json'
 require 'sinatra/base'
 require 'webrick'
+require 'get_process_mem'
 require 'diffy'
 require 'concurrent'
 require_relative '../backtrace'
 require_relative '../version'
 require_relative '../wallet'
+require_relative '../copies'
 require_relative '../log'
 require_relative '../id'
 require_relative '../http'
@@ -66,6 +68,7 @@ module Zold
       set :wallets, nil? # to be injected at node.rb
       set :remotes, nil? # to be injected at node.rb
       set :copies, nil? # to be injected at node.rb
+      set :node_alias, nil? # to be injected at node.rb
     end
     use Rack::Deflater
 
@@ -94,9 +97,10 @@ while #{settings.address} is in '#{settings.network}'"
         error(400, 'The score is weak') if s.strength < Score::STRENGTH && !settings.ignore_score_weakness
         if s.value > 3
           require_relative '../commands/remote'
-          Remote.new(remotes: settings.remotes, log: settings.log).run(
-            ['remote', 'add', s.host, s.port.to_s, '--force', "--network=#{settings.network}"]
-          )
+          cmd = Remote.new(remotes: settings.remotes, log: settings.log)
+          cmd.run(['remote', 'add', s.host, s.port.to_s, '--force', "--network=#{settings.network}"])
+          cmd.run(%w[remote trim])
+          cmd.run(%w[remote select])
         else
           settings.log.debug("#{request.url}: the score is too weak: #{s}")
         end
@@ -148,11 +152,13 @@ while #{settings.address} is in '#{settings.network}'"
       content_type 'application/json'
       JSON.pretty_generate(
         version: settings.version,
+        alias: settings.node_alias,
         network: settings.network,
         protocol: settings.protocol,
         score: score.to_h,
         pid: Process.pid,
         cpus: Concurrent.processor_count,
+        memory: GetProcessMem.new.bytes,
         platform: RUBY_PLATFORM,
         uptime: `uptime`.strip,
         threads: "#{Thread.list.select { |t| t.status == 'run' }.count}/#{Thread.list.count}",
@@ -174,11 +180,13 @@ while #{settings.address} is in '#{settings.network}'"
       content_type 'application/json'
       {
         version: settings.version,
+        alias: settings.node_alias,
         protocol: settings.protocol,
         id: wallet.id.to_s,
         score: score.to_h,
         wallets: settings.wallets.all.count,
         mtime: wallet.mtime.utc.iso8601,
+        size: File.size(wallet.path),
         digest: wallet.digest,
         balance: wallet.balance.to_i,
         body: AtomicFile.new(wallet.path).read
@@ -192,6 +200,7 @@ while #{settings.address} is in '#{settings.network}'"
       content_type 'application/json'
       {
         version: settings.version,
+        alias: settings.node_alias,
         protocol: settings.protocol,
         id: wallet.id.to_s,
         score: score.to_h,
@@ -252,9 +261,30 @@ while #{settings.address} is in '#{settings.network}'"
         '--',
         "Balance: #{wallet.balance.to_zld}",
         "Transactions: #{wallet.txns.count}",
+        "Wallet size: #{File.size(wallet.path)} bytes",
         "Modified: #{wallet.mtime.utc.iso8601}",
         "Digest: #{wallet.digest}"
       ].join("\n")
+    end
+
+    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.bin} do
+      id = Id.new(params[:id])
+      wallet = settings.wallets.find(id)
+      error 404 unless wallet.exists?
+      content_type 'text/plain'
+      AtomicFile.new(wallet.path).read
+    end
+
+    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/copies} do
+      id = Id.new(params[:id])
+      wallet = settings.wallets.find(id)
+      error 404 unless wallet.exists?
+      content_type 'text/plain'
+      Copies.new(File.join(settings.copies, id)).all.map do |c|
+        wallet = Wallet.new(c[:path])
+        "#{c[:name]}: #{c[:score]} #{wallet.balance}/#{wallet.txns.count}t/\
+#{wallet.digest[0, 6]}/#{File.size(c[:path])}b/#{Age.new(File.mtime(c[:path]))}"
+      end.join("\n")
     end
 
     put %r{/wallet/(?<id>[A-Fa-f0-9]{16})/?} do
@@ -266,6 +296,7 @@ while #{settings.address} is in '#{settings.network}'"
       end
       JSON.pretty_generate(
         version: settings.version,
+        alias: settings.node_alias,
         score: score.to_h,
         wallets: settings.wallets.all.count
       )
@@ -275,6 +306,7 @@ while #{settings.address} is in '#{settings.network}'"
       content_type 'application/json'
       JSON.pretty_generate(
         version: settings.version,
+        alias: settings.node_alias,
         score: score.to_h,
         all: settings.remotes.all,
         mtime: settings.remotes.mtime.utc.iso8601

@@ -26,8 +26,10 @@ require 'time'
 require 'tempfile'
 require 'slop'
 require 'rainbow'
+require 'concurrent/atomics'
 require_relative 'args'
 require_relative '../log'
+require_relative '../age'
 require_relative '../http'
 require_relative '../score'
 require_relative '../json_page'
@@ -75,18 +77,24 @@ Available options:"
     private
 
     def fetch(id, cps, opts)
-      total = 0
-      nodes = 0
-      done = 0
+      total = Concurrent::AtomicFixnum.new
+      nodes = Concurrent::AtomicFixnum.new
+      done = Concurrent::AtomicFixnum.new
       @remotes.iterate(@log) do |r|
-        nodes += 1
-        total += fetch_one(id, r, cps, opts)
-        done += 1
+        nodes.increment
+        total.increment(fetch_one(id, r, cps, opts))
+        done.increment
       end
-      raise "There are no remote nodes, run 'zold remote reset'" if nodes.zero?
-      raise "No nodes out of #{nodes} have the wallet #{id}" if done.zero? && !opts['quiet-if-absent']
-      @log.info("#{done} copies of #{id} fetched for the total score of #{total} from #{nodes} nodes")
-      @log.debug("#{cps.all.count} local copies:\n  #{cps.all.map { |c| "#{c[:name]}: #{c[:score]}" }.join("\n  ")}")
+      raise "There are no remote nodes, run 'zold remote reset'" if nodes.value.zero?
+      raise "No nodes out of #{nodes.value} have the wallet #{id}" if done.value.zero? && !opts['quiet-if-absent']
+      @log.info("#{done.value} copies of #{id} fetched with the total score of \
+#{total.value} from #{nodes.value} nodes")
+      @log.debug("#{cps.all.count} local copies:")
+      cps.all.each do |c|
+        wallet = Wallet.new(c[:path])
+        @log.debug("  #{c[:name]}: #{c[:score]} #{wallet.balance}/#{wallet.txns.count}t/\
+#{wallet.digest[0, 6]}/#{File.size(c[:path])}b/#{Age.new(File.mtime(c[:path]))}")
+      end
     end
 
     def fetch_one(id, r, cps, opts)
@@ -118,7 +126,8 @@ Available options:"
           raise "The balance of #{id} is #{wallet.balance} and it's not a root wallet"
         end
         copy = cps.add(File.read(f), score.host, score.port, score.value)
-        @log.info("#{r} returned #{body.length}b/#{wallet.balance}/#{wallet.txns.count}t/#{digest(json)}/#{age(json)} \
+        @log.info("#{r} returned #{body.length}b/#{wallet.balance}/#{wallet.txns.count}t/\
+#{digest(json)}/#{Age.new(json['mtime'])} \
 as copy #{copy} of #{id} in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green} (#{json['version']})")
       end
       score.value
@@ -128,19 +137,6 @@ as copy #{copy} of #{id} in #{(Time.now - start).round(2)}s: #{Rainbow(score.val
       hash = json['digest']
       return '?' if hash.nil?
       hash[0, 6]
-    end
-
-    def age(json)
-      mtime = json['mtime']
-      return '?' if mtime.nil?
-      sec = Time.now - Time.parse(mtime)
-      if sec < 60
-        "#{sec.round(2)}s"
-      elsif sec < 60 * 60
-        "#{(sec / 60).round}m"
-      else
-        "#{(sec / 3600).round}h"
-      end
     end
   end
 end

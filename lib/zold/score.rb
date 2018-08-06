@@ -128,7 +128,7 @@ module Zold
         port,
         invoice,
         suffixes.join(' ')
-      ].join(' ')
+      ].join(' ').strip
     end
 
     def to_h

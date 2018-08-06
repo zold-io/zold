@@ -125,6 +125,7 @@ among #{payer.txns.count} transactions: #{txn.to_text}")
       wallet = Wallet.new(file)
       wallet.init(@id, @key, overwrite: overwrite, network: @network)
       @txns.each { |t| wallet.add(t) }
+      wallet.refurbish
       after = AtomicFile.new(file).read
       before != after
     end

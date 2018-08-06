@@ -28,6 +28,7 @@ require_relative 'id'
 require_relative 'txn'
 require_relative 'tax'
 require_relative 'amount'
+require_relative 'hexnum'
 require_relative 'signature'
 require_relative 'atomic_file'
 
@@ -117,7 +118,7 @@ module Zold
         details
       )
       txn = txn.signed(pvt, id)
-      raise 'This is not the private right key for this wallet' unless Signature.new.valid?(key, id, txn)
+      raise 'This is not the right private key for this wallet' unless Signature.new.valid?(key, id, txn)
       add(txn)
       txn
     end
@@ -161,14 +162,14 @@ module Zold
     # Age of wallet in hours
     def age
       list = txns
-      list.empty? ? 0 : (Time.now - list.min_by(&:date).date) / 60
+      list.empty? ? 0 : (Time.now - list.min_by(&:date).date) / (60 * 60)
     end
 
     def txns
       lines.drop(5)
         .each_with_index
         .map { |line, i| Txn.parse(line, i + 6) }
-        .sort_by { |t| [t.date, t.amount * -1] }
+        .sort
     end
 
     def refurbish

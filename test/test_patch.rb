@@ -106,4 +106,38 @@ class TestPatch < Minitest::Test
       assert_equal(Zold::Amount.new(zld: 2.0), first.balance)
     end
   end
+
+  def test_merges_fragmented_parts
+    FakeHome.new.run do |home|
+      first = home.create_wallet(Zold::Id::ROOT)
+      second = home.create_wallet
+      File.write(second.path, File.read(first.path))
+      key = Zold::Key.new(file: 'fixtures/id_rsa')
+      start = Time.parse('2017-07-19T21:24:51Z')
+      first.add(
+        Zold::Txn.new(
+          1, start, Zold::Amount.new(zld: -2.0),
+          'NOPREFIX', Zold::Id.new, 'first payment'
+        ).signed(key, first.id)
+      )
+      second.add(
+        Zold::Txn.new(
+          2, start + 1, Zold::Amount.new(zld: -2.0),
+          'NOPREFIX', Zold::Id.new, 'second payment'
+        ).signed(key, first.id)
+      )
+      first.add(
+        Zold::Txn.new(
+          3, start + 2, Zold::Amount.new(zld: -2.0),
+          'NOPREFIX', Zold::Id.new, 'third payment'
+        ).signed(key, first.id)
+      )
+      patch = Zold::Patch.new(home.wallets, log: test_log)
+      patch.join(first)
+      patch.join(second)
+      FileUtils.rm(first.path)
+      assert_equal(true, patch.save(first.path))
+      assert_equal(Zold::Amount.new(zld: -6.0), first.balance)
+    end
+  end
 end

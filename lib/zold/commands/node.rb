@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'open3'
 require 'slop'
 require_relative '../version'
 require_relative '../score'
@@ -118,6 +119,13 @@ module Zold
           'Maximum amount of nohup re-starts (-1 by default, which means forever)',
           require: true,
           default: -1
+        o.bool '--no-metronome',
+          'Don\'t run the metronome',
+          required: true,
+          default: false
+        o.string '--alias',
+          'The alias of the node (default: host:port)',
+          require: false
         o.bool '--help', 'Print instructions'
       end
       if opts.help?
@@ -166,6 +174,12 @@ module Zold
       Front.set(:dump_errors, opts['dump-errors'])
       Front.set(:port, opts['bind-port'])
       Front.set(:reboot, !opts['never-reboot'])
+      node_alias = opts[:alias] || address
+      unless node_alias.eql?(address)
+        re = Regexp.new(/^[a-z0-9]{4,16}$/)
+        raise '--alias should be a 4 to 16 char long alphanumeric string' unless re.match(node_alias)
+      end
+      Front.set(:node_alias, node_alias)
       invoice = opts[:invoice]
       unless invoice.include?('@')
         if @wallets.find(Id.new(invoice)).exists?
@@ -274,6 +288,7 @@ module Zold
 
     def metronome(farm, opts)
       metronome = Metronome.new(@log)
+      return metronome if opts['no-metronome']
       require_relative 'routines/spread'
       metronome.add(Routines::Spread.new(opts, @wallets, @remotes, log: @log))
       unless opts['standalone']

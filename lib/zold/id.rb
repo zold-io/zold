@@ -48,9 +48,14 @@ module Zold
       to_s.hash
     end
 
-    def==(other)
+    def ==(other)
       raise 'Can only compare with Id' unless other.is_a?(Id)
       to_s == other.to_s
+    end
+
+    def <=>(other)
+      raise 'Can only compare with Id' unless other.is_a?(Id)
+      to_s <=> other.to_s
     end
 
     def to_str
