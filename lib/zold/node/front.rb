@@ -188,6 +188,7 @@ while #{settings.address} is in '#{settings.network}'"
         mtime: wallet.mtime.utc.iso8601,
         size: File.size(wallet.path),
         digest: wallet.digest,
+        copies: Copies.new(File.join(settings.copies, id)).all.count,
         balance: wallet.balance.to_i,
         body: AtomicFile.new(wallet.path).read
       }.to_json
@@ -259,9 +260,9 @@ while #{settings.address} is in '#{settings.network}'"
         wallet.txns.map(&:to_text).join("\n"),
         '',
         '--',
-        "Balance: #{wallet.balance.to_zld}",
+        "Balance: #{wallet.balance.to_zld} ZLD (#{wallet.balance.to_i} zents)",
         "Transactions: #{wallet.txns.count}",
-        "Wallet size: #{File.size(wallet.path)} bytes",
+        "File size: #{File.size(wallet.path)} bytes",
         "Modified: #{wallet.mtime.utc.iso8601}",
         "Digest: #{wallet.digest}"
       ].join("\n")

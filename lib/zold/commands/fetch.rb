@@ -127,7 +127,7 @@ Available options:"
         end
         copy = cps.add(File.read(f), score.host, score.port, score.value)
         @log.info("#{r} returned #{body.length}b/#{wallet.balance}/#{wallet.txns.count}t/\
-#{digest(json)}/#{Age.new(json['mtime'])} \
+#{digest(json)}/#{Age.new(json['mtime'])}/#{json['copies']}c \
 as copy #{copy} of #{id} in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green} (#{json['version']})")
       end
       score.value
