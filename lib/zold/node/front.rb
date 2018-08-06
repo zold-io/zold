@@ -288,6 +288,17 @@ while #{settings.address} is in '#{settings.network}'"
       end.join("\n")
     end
 
+    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/copy/(?<name>[0-9]+)} do
+      id = Id.new(params[:id])
+      name = params[:name]
+      wallet = settings.wallets.find(id)
+      error 404 unless wallet.exists?
+      copy = Copies.new(File.join(settings.copies, id)).all.find { |c| c[:name] == name }
+      error 404 if copy.nil?
+      content_type 'text/plain'
+      File.read(copy[:path])
+    end
+
     put %r{/wallet/(?<id>[A-Fa-f0-9]{16})/?} do
       request.body.rewind
       modified = settings.entrance.push(Id.new(params[:id]), request.body.read.to_s)
