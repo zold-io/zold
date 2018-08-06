@@ -167,6 +167,7 @@ module Zold
         @log.debug('Running in standalone mode! (will never talk to other remotes)')
       else
         Zold::Remote.new(remotes: @remotes).run(['remote', 'remove', host, port.to_s, '--force'])
+        @log.info("Removed current node (#{address}) from list of remotes")
       end
       Front.set(:ignore_score_weakness, opts['ignore-score-weakness'])
       Front.set(:network, opts['network'])
