@@ -152,7 +152,6 @@ module Zold
       raise 'Port can\'t be zero' if port.zero?
       raise 'Port can\'t be negative' if port.negative?
       raise 'Port can\'t be over 65536' if port > 0xffff
-      raise "#{host}:#{port} already exists" if exists?(host, port)
       modify do |list|
         list + [{ host: host.downcase, port: port, score: 0, errors: 0 }]
       end
@@ -208,7 +207,6 @@ in #{(Time.now - start).round}s; errors=#{errors}")
 
     def errors(host, port = Remotes::PORT)
       raise 'Host can\'t be nil' if host.nil?
-      raise 'Port can\'t be nil' if port.nil?
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
       list = load
       raise "#{host}:#{port} is absent among #{list.count} remotes" unless exists?(host, port)
