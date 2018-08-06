@@ -237,7 +237,7 @@ in #{(Time.now - start).round}s; errors=#{errors}")
     private
 
     def modify
-      MUTEX.synchronize do
+      Remotes::MUTEX.synchronize do
         save(yield(load))
       end
     end
