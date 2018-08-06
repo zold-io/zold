@@ -140,8 +140,6 @@ module Zold
       end
     end
 
-    private
-
     def load
       FileUtils.mkdir_p(File.dirname(file))
       FileUtils.touch(file)
@@ -155,6 +153,8 @@ module Zold
         }
       end
     end
+
+    private
 
     def save(list)
       AtomicFile.new(file).write(

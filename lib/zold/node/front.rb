@@ -281,7 +281,10 @@ while #{settings.address} is in '#{settings.network}'"
       wallet = settings.wallets.find(id)
       error 404 unless wallet.exists?
       content_type 'text/plain'
-      Copies.new(File.join(settings.copies, id)).all.map do |c|
+      copies = Copies.new(File.join(settings.copies, id))
+      copies.load.map { |c| "#{c[:name]}: #{c[:host]}:#{c[:port]} #{c[:score]} #{c[:time]}" }.join("\n") +
+      "\n\n" +
+      copies.all.map do |c|
         wallet = Wallet.new(c[:path])
         "#{c[:name]}: #{c[:score]} #{wallet.balance}/#{wallet.txns.count}t/\
 #{wallet.digest[0, 6]}/#{File.size(c[:path])}b/#{Age.new(File.mtime(c[:path]))}"
