@@ -147,8 +147,8 @@ module Zold
       return unless s.port == port
       return unless s.strength >= strength
       Thread.current.name = s.to_mnemo
-      cmd = "ruby #{File.join(File.dirname(__FILE__), '../../../bin/zold')} next \"#{s}\""
-      Open3.popen2e(cmd) do |stdin, stdout, thr|
+      bin = File.expand_path(File.join(File.dirname(__FILE__), '../../../bin/zold'))
+      Open3.popen2e("ruby #{bin} next \"#{s}\"") do |stdin, stdout, thr|
         @log.debug("Score counting started in process ##{thr.pid}")
         begin
           stdin.close

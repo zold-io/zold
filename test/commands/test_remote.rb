@@ -132,12 +132,14 @@ class TestRemote < Minitest::Test
   def test_remote_trim_with_tolerate
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.txt'))
-      zero = Zold::Score::ZERO
-      stub_request(:get, "http://#{zero.host}:#{zero.port}/remotes").to_return(
+      score = Zold::Score.new(
+        time: Time.now, host: 'aa1.example.org', port: 9999, invoice: 'NOPREFIX4@ffffffffffffffff'
+      )
+      stub_request(:get, "http://#{score.host}:#{score.port}/remotes").to_return(
         status: 200,
         body: {
           version: Zold::VERSION,
-          score: zero.to_h,
+          score: score.to_h,
           all: [
             { host: 'localhost', port: 8883 }
           ]
@@ -151,7 +153,7 @@ class TestRemote < Minitest::Test
       cmd = Zold::Remote.new(remotes: remotes, log: test_log)
       cmd.run(%w[remote clean])
       assert(remotes.all.empty?)
-      cmd.run(['remote', 'add', zero.host, zero.port.to_s, '--skip-ping'])
+      cmd.run(['remote', 'add', score.host, score.port.to_s, '--skip-ping'])
       cmd.run(['remote', 'update', '--ignore-score-weakness', '--skip-ping'])
       assert_equal(2, remotes.all.count)
       cmd.run(['remote', 'update', '--ignore-score-weakness'])

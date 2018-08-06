@@ -23,6 +23,7 @@
 require 'minitest/autorun'
 require 'json'
 require 'time'
+require 'securerandom'
 require_relative '../test__helper'
 require_relative 'fake_node'
 require_relative '../fake_home'
@@ -71,26 +72,27 @@ class FrontTest < Minitest::Test
     end
   end
 
-  # @todo #212:30min The test is skipped because it crashes
-  #  sporadically. I don't know why. Let's investigate, find the
-  #  cause and fix it properly: http://www.rultor.com/t/14887-396655530
   def test_renders_wallet_pages
-    skip
     FakeHome.new.run do |home|
-      FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
+      FakeNode.new(log: test_log).run(['--ignore-score-weakness', '--standalone']) do |port|
         wallet = home.create_wallet
         test_log.debug("Wallet created: #{wallet.id}")
-        response = Zold::Http.new(uri: "http://localhost:#{port}/wallet/#{wallet.id}?sync=true", score: nil)
+        home = "http://localhost:#{port}"
+        response = Zold::Http.new(uri: "#{home}/wallet/#{wallet.id}?sync=true", score: nil)
           .put(File.read(wallet.path))
         assert_equal('200', response.code, response.body)
+        sleep 0.1 until Zold::Http.new(uri: "#{home}/wallet/#{wallet.id}", score: nil).get.code == '200'
         [
-          "/wallet/#{wallet.id}",
           "/wallet/#{wallet.id}.txt",
+          "/wallet/#{wallet.id}.json",
           "/wallet/#{wallet.id}/balance",
           "/wallet/#{wallet.id}/key",
-          "/wallet/#{wallet.id}/mtime"
+          "/wallet/#{wallet.id}/mtime",
+          "/wallet/#{wallet.id}/digest",
+          "/wallet/#{wallet.id}.bin",
+          "/wallet/#{wallet.id}/copies"
         ].each do |u|
-          res = Zold::Http.new(uri: u, score: nil).get
+          res = Zold::Http.new(uri: "#{home}#{u}", score: nil).get
           assert_equal('200', res.code, res.body)
         end
       end
@@ -177,5 +179,84 @@ class FrontTest < Minitest::Test
     end
     sec = (Time.now - start) / total
     test_log.info("Average response time is #{sec.round(2)}s")
+  end
+
+  def app
+    Zold::Front
+  end
+
+  def test_headers_are_being_set_correctly
+    Time.stub :now, Time.at(0) do
+      FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
+        response = Zold::Http.new(uri: URI("http://localhost:#{port}/"), score: nil).get
+        assert_equal(
+          'no-cache',
+          response.header['Cache-Control']
+        )
+        assert_equal(
+          'close',
+          response.header['Connection']
+        )
+        assert_equal(
+          app.settings.version,
+          response.header['X-Zold-Version']
+        )
+        assert_equal(
+          app.settings.protocol.to_s,
+          response.header[Zold::Http::PROTOCOL_HEADER]
+        )
+        assert_equal(
+          '*',
+          response.header['Access-Control-Allow-Origin']
+        )
+        score = Zold::Score.new(
+          time: Time.now, host: 'localhost', port: port, invoice: 'NOPREFIX@ffffffffffffffff', strength: 2
+        )
+        assert_equal(
+          score.to_s,
+          response.header[Zold::Http::SCORE_HEADER]
+        )
+      end
+    end
+  end
+
+  def test_alias_parameter
+    name = SecureRandom.hex(4)
+    FakeNode.new(log: test_log).run(['--ignore-score-weakness', "--alias=#{name}"]) do |port|
+      [
+        '/',
+        '/remotes'
+      ].each do |path|
+        uri = URI("http://localhost:#{port}#{path}")
+        response = Zold::Http.new(uri: uri, score: nil).get
+        assert_match(
+          name,
+          Zold::JsonPage.new(response.body).to_hash['alias'].to_s,
+          response.body
+        )
+      end
+    end
+  end
+
+  def test_default_alias_parameter
+    FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
+      uri = URI("http://localhost:#{port}/")
+      response = Zold::Http.new(uri: uri, score: nil).get
+      assert_match(
+        "localhost:#{port}",
+        Zold::JsonPage.new(response.body).to_hash['alias'].to_s,
+        response.body
+      )
+    end
+  end
+
+  def test_invalid_alias
+    exception = assert_raises RuntimeError do
+      FakeNode.new(log: test_log).run(['--ignore-score-weakness', '--alias=invalid-alias']) do |port|
+        uri = URI("http://localhost:#{port}/")
+        Zold::Http.new(uri: uri, score: nil).get
+      end
+    end
+    assert_equal('--alias should be a 4 to 16 char long alphanumeric string', exception.message)
   end
 end

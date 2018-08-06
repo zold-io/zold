@@ -215,6 +215,38 @@ class TestRemotes < Minitest::Test
     end
   end
 
+  def test_quickly_ads_and_reads
+    Dir.mktmpdir do |dir|
+      remotes = Zold::Remotes.new(file: File.join(dir, 'uu-90.csv'))
+      remotes.clean
+      threads = 20
+      pool = Concurrent::FixedThreadPool.new(threads)
+      done = Concurrent::AtomicFixnum.new
+      start = Time.now
+      alive = true
+      100.times { |i| remotes.add('192.168.0.1', 8080 + i) }
+      threads.times do |i|
+        pool.post do
+          loop do
+            break unless alive
+            Zold::VerboseThread.new(test_log).run(true) do
+              remotes.add('127.0.0.1', 8080 + i)
+              remotes.error('127.0.0.1', 8080 + i)
+              remotes.all
+              remotes.iterate(test_log) { done.increment }
+              remotes.remove('127.0.0.1', 8080 + i)
+            end
+          end
+        end
+      end
+      sleep 0.1 while done.value < 1000
+      alive = false
+      pool.shutdown
+      pool.wait_for_termination(10)
+      test_log.info("Total time: #{Time.now - start}")
+    end
+  end
+
   def test_empty_remotes
     remotes = Zold::Remotes::Empty.new(file: '/tmp/empty')
     assert(remotes.is_a?(Zold::Remotes))

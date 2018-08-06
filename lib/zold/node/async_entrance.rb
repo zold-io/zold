@@ -32,7 +32,12 @@ require_relative '../verbose_thread'
 module Zold
   # The entrance
   class AsyncEntrance
-    THREADS = Concurrent.processor_count * 4
+    # How many threads to use for processing
+    THREADS = Concurrent.processor_count * 8
+
+    # Max items in the queue. If there will be more, push() requests
+    # will be rejected.
+    MAX_QUEUE = 128
 
     def initialize(entrance, dir, log: Log::Quiet.new)
       raise 'Entrance can\'t be nil' if entrance.nil?
@@ -90,6 +95,7 @@ module Zold
 
     # Always returns an array with a single ID of the pushed wallet
     def push(id, body)
+      raise 'Queue is too long, try again later' if Dir.new(@dir).count > AsyncEntrance::MAX_QUEUE
       @mutex.synchronize do
         AtomicFile.new(File.join(@dir, id.to_s)).write(body)
       end
