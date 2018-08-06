@@ -26,7 +26,6 @@ require 'uri'
 require 'time'
 require 'fileutils'
 require_relative 'backtrace'
-require_relative 'score'
 require_relative 'node/farm'
 require_relative 'atomic_file'
 require_relative 'type'
@@ -73,7 +72,7 @@ module Zold
     class Remote < Dry::Struct
       attribute :host, Types::Strict::String
       attribute :port, Types::Strict::Integer.constrained(gteq: 0, lt: 65_535)
-      attribute :score, Object
+      attribute :score, Score
       attribute :idx, Types::Strict::Integer
       attribute :network, Types::Strict::String.optional.default('test')
       attribute :log, (Types::Class.constructor do |value|
@@ -116,16 +115,14 @@ module Zold
     end
 
     def all
-      @mutex.synchronize do
-        list = load
-        max_score = list.map { |r| r[:score] }.max || 0
-        max_score = 1 if max_score.zero?
-        max_errors = list.map { |r| r[:errors] }.max || 0
-        max_errors = 1 if max_errors.zero?
-        list.sort_by do |r|
-          (1 - r[:errors] / max_errors) * 5 + (r[:score] / max_score)
-        end.reverse
-      end
+      list = load
+      max_score = list.map { |r| r[:score] }.max || 0
+      max_score = 1 if max_score.zero?
+      max_errors = list.map { |r| r[:errors] }.max || 0
+      max_errors = 1 if max_errors.zero?
+      list.sort_by do |r|
+        (1 - r[:errors] / max_errors) * 5 + (r[:score] / max_score)
+      end.reverse
     end
 
     def clean
@@ -155,6 +152,7 @@ module Zold
       raise 'Port can\'t be zero' if port.zero?
       raise 'Port can\'t be negative' if port.negative?
       raise 'Port can\'t be over 65536' if port > 0xffff
+      raise "#{host}:#{port} already exists" if exists?(host, port)
       modify do |list|
         list + [{ host: host.downcase, port: port, score: 0, errors: 0 }]
       end
@@ -172,14 +170,13 @@ module Zold
     def iterate(log, farm: Farm::Empty.new)
       raise 'Log can\'t be nil' if log.nil?
       raise 'Farm can\'t be nil' if farm.nil?
-      list = all
-      return if list.empty?
+      return if all.empty?
       best = farm.best[0]
       require_relative 'score'
       score = best.nil? ? Score::ZERO : best
       idx = 0
-      pool = Concurrent::FixedThreadPool.new([list.count, Concurrent.processor_count * 4].min, max_queue: 0)
-      list.each do |r|
+      pool = Concurrent::FixedThreadPool.new([all.count, Concurrent.processor_count * 4].min, max_queue: 0)
+      all.each do |r|
         pool.post do
           Thread.current.abort_on_exception = true
           Thread.current.name = 'remotes'
@@ -197,8 +194,9 @@ module Zold
             raise 'Took too long to execute' if (Time.now - start).round > timeout
           rescue StandardError => e
             error(r[:host], r[:port])
+            errors = errors(r[:host], r[:port])
             log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message} \
-in #{(Time.now - start).round}s")
+in #{(Time.now - start).round}s; errors=#{errors}")
             log.debug(Backtrace.new(e).to_s)
             remove(r[:host], r[:port]) if errors > Remotes::TOLERANCE
           end
@@ -206,6 +204,15 @@ in #{(Time.now - start).round}s")
       end
       pool.shutdown
       pool.kill unless pool.wait_for_termination(5 * 60)
+    end
+
+    def errors(host, port = Remotes::PORT)
+      raise 'Host can\'t be nil' if host.nil?
+      raise 'Port can\'t be nil' if port.nil?
+      raise 'Port has to be of type Integer' unless port.is_a?(Integer)
+      list = load
+      raise "#{host}:#{port} is absent among #{list.count} remotes" unless exists?(host, port)
+      list.find { |r| r[:host] == host.downcase && r[:port] == port }[:errors]
     end
 
     def error(host, port = Remotes::PORT)
