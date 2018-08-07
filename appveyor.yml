@@ -28,7 +28,6 @@ install:
   - bundle config --local path vendor/bundle
   - bundle config build.openssl --with-openssl-dir=%openssl_dir%
   - ruby -v
-  - git -v
   - bundle -v
 build_script:
   - bundle update
