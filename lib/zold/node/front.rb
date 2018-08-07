@@ -51,6 +51,8 @@ module Zold
       set :lock, false
       set :show_exceptions, false
       set :server, 'webrick'
+      set :log, nil? # to be injected at node.rb
+      set :trace, nil? # to be injected at node.rb
       set :halt, '' # to be injected at node.rb
       set :dump_errors, false # to be injected at node.rb
       set :version, VERSION # to be injected at node.rb
@@ -59,7 +61,6 @@ module Zold
       set :reboot, false # to be injected at node.rb
       set :home, nil? # to be injected at node.rb
       set :logging, true # to be injected at node.rb
-      set :log, nil? # to be injected at node.rb
       set :address, nil? # to be injected at node.rb
       set :farm, nil? # to be injected at node.rb
       set :metronome, nil? # to be injected at node.rb
@@ -136,6 +137,11 @@ while #{settings.address} is in '#{settings.network}'"
     get '/score' do
       content_type 'text/plain'
       score.to_s
+    end
+
+    get '/trace' do
+      content_type 'text/plain'
+      settings.trace.to_s
     end
 
     get '/favicon.ico' do

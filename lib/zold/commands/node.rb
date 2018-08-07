@@ -37,6 +37,7 @@ require_relative '../node/spread_entrance'
 require_relative '../node/async_entrance'
 require_relative '../node/nodup_entrance'
 require_relative '../node/front'
+require_relative '../node/trace'
 require_relative '../node/farm'
 require_relative 'pull'
 require_relative 'push'
@@ -97,6 +98,9 @@ module Zold
         o.string '--halt-code',
           'The value of HTTP query parameter "halt," which will cause the front-end immediate termination',
           default: ''
+        o.integer '--trace-length',
+          'Maximum length of the trace to keep in memory (default: 4096)',
+          default: 4096
         o.string '--save-pid',
           'The file to save process ID into right after start (only in NOHUP mode)'
         o.bool '--never-reboot',
@@ -140,7 +144,9 @@ module Zold
         @log.info(pid)
         return
       end
-      Front.set(:log, @log)
+      trace = Trace.new(@log, opts['trace-length'])
+      Front.set(:log, trace)
+      Front.set(:trace, trace)
       Front.set(:version, opts['expose-version'])
       Front.set(:protocol, Zold::PROTOCOL)
       Front.set(:logging, @log.debug?)
