@@ -27,14 +27,13 @@ install:
       }
   - bundle config --local path vendor/bundle
   - bundle config build.openssl --with-openssl-dir=%openssl_dir%
-  - gem install openssl -- --with-openssl-dir=%openssl_dir%
-  - bundle install
-build: off
-before_test:
   - ruby -v
-  - gem -v
+  - git -v
   - bundle -v
+build_script:
+  - bundle update
+  - bundle install
 test_script:
-  - rake
+  - rake --quiet
 cache:
   - vendor/bundle
