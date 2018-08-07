@@ -42,7 +42,8 @@ class FrontTest < Minitest::Test
           '/version',
           '/farm',
           '/metronome',
-          '/score'
+          '/score',
+          '/trace'
         ],
         '404' => [
           '/this-is-absent',

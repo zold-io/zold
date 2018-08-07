@@ -26,10 +26,10 @@ require_relative '../../lib/zold/node/trace'
 
 class TraceTest < Minitest::Test
   def test_records_log_lines
-    trace = Zold::Trace.new(Zold::Log::Regular.new, 2)
-    trace.info('This should not be visible')
-    trace.info('How are you, друг?')
-    trace.info('Works?')
+    trace = Zold::Trace.new(test_log, 2)
+    trace.error('This should not be visible')
+    trace.error('How are you, друг?')
+    trace.error('Works?')
     assert(!trace.to_s.include?('visible'))
     assert(trace.to_s.include?('друг'))
   end
