@@ -31,9 +31,11 @@ module Zold
       @log = log
     end
 
+    # @todo #326:30min Ensure that #run actually reads scripts and executes
+    #  them. I've added an empty block to the #apply call as a template.
     def run
       Dir.glob("#{@directory}/*.rb").select { |f| f =~ /^(\d+)\.rb$/ }.sort.each do |script|
-        @version.apply(script)
+        @version.apply(script) {}
       end
     end
   end
