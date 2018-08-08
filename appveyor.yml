@@ -33,6 +33,6 @@ build_script:
   - bundle update
   - bundle install
 test_script:
-  - rake --quiet
+  - bundle exec rake --quiet
 cache:
   - vendor/bundle
