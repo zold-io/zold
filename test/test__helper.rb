@@ -37,6 +37,24 @@ end
 
 module Minitest
   class Test
+    def assert_wait(max: 60)
+      assert_equal_wait(true, max: max) { yield }
+    end
+
+    def assert_equal_wait(expected, max: 60)
+      start = Time.now
+      loop do
+        actual = yield
+        if expected == actual
+          assert_equal(expected, actual)
+          break
+        end
+        sleep 1
+        sec = Time.now - start
+        raise "'#{actual}' is not equal to '#{expected}' even after #{sec.round}s of waiting" if sec > max
+      end
+    end
+
     def test_log
       require_relative '../lib/zold/log'
       @test_log = Zold::Log::Verbose.new

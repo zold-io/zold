@@ -35,6 +35,7 @@ require_relative '../node/entrance'
 require_relative '../node/safe_entrance'
 require_relative '../node/spread_entrance'
 require_relative '../node/async_entrance'
+require_relative '../node/sync_entrance'
 require_relative '../node/nodup_entrance'
 require_relative '../node/front'
 require_relative '../node/trace'
@@ -181,9 +182,8 @@ module Zold
       Front.set(:port, opts['bind-port'])
       Front.set(:reboot, !opts['never-reboot'])
       node_alias = opts[:alias] || address
-      unless node_alias.eql?(address)
-        re = Regexp.new(/^[a-z0-9]{4,16}$/)
-        raise '--alias should be a 4 to 16 char long alphanumeric string' unless re.match(node_alias)
+      unless node_alias.eql?(address) || node_alias =~ /^[a-z0-9]{4,16}$/
+        raise "Alias should be a 4 to 16 char long alphanumeric string: #{node_alias}"
       end
       Front.set(:node_alias, node_alias)
       invoice = opts[:invoice]
@@ -204,7 +204,9 @@ module Zold
         NoDupEntrance.new(
           AsyncEntrance.new(
             SpreadEntrance.new(
-              Entrance.new(@wallets, @remotes, @copies, address, log: @log, network: opts['network']),
+              SyncEntrance.new(
+                Entrance.new(@wallets, @remotes, @copies, address, log: @log, network: opts['network'])
+              ),
               @wallets, @remotes, address,
               log: @log,
               ignore_score_weakeness: opts['ignore-score-weakness']

@@ -67,14 +67,13 @@ module Zold
         @pool = Concurrent::FixedThreadPool.new(
           AsyncEntrance::THREADS, max_queue: AsyncEntrance::THREADS, fallback_policy: :abort
         )
-        AsyncEntrance::THREADS.times do
+        AsyncEntrance::THREADS.times do |t|
           @pool.post do
+            Thread.current.name = "async-#{t}"
             loop do
-              VerboseThread.new(@log).run(true) do
-                take
-                break if @pool.shuttingdown?
-                sleep Random.rand(100) / 100
-              end
+              VerboseThread.new(@log).run(true) { take }
+              break if @pool.shuttingdown?
+              sleep Random.rand(100) / 100
             end
           end
         end

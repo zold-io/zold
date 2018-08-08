@@ -20,62 +20,41 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'minitest/autorun'
-require_relative 'test__helper'
-require_relative '../lib/zold/metronome'
+require 'concurrent'
+require_relative '../log'
+require_relative '../id'
+require_relative '../verbose_thread'
 
-# Metronome test.
+# The sync entrance of the web front.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestMetronome < Minitest::Test
-  def test_start_and_stop
-    metronome = Zold::Metronome.new(test_log)
-    list = []
-    metronome.add(FakeRoutine.new(list))
-    metronome.start do
-      assert_equal_wait(false) { list.empty? }
-      assert_equal(1, list.count)
-    end
-  end
-
-  def test_prints_to_text
-    metronome = Zold::Metronome.new(test_log)
-    metronome.add(FakeRoutine.new([]))
-    metronome.start do |m|
-      assert(!m.to_text.nil?)
-    end
-  end
-
-  def test_continues_even_after_error
-    metronome = Zold::Metronome.new(test_log)
-    routine = BrokenRoutine.new
-    metronome.add(routine)
-    metronome.start do
-      assert_wait { routine.count >= 2 }
-      assert(routine.count > 1)
-    end
-  end
-
-  class FakeRoutine
-    def initialize(list)
-      @list = list
+module Zold
+  # The entrance that makes sure only one thread works with a wallet
+  class SyncEntrance
+    def initialize(entrance, log: Log::Quiet.new)
+      raise 'Entrance can\'t be nil' if entrance.nil?
+      @entrance = entrance
+      raise 'Log can\'t be nil' if log.nil?
+      @log = log
+      @mutex = Mutex.new
     end
 
-    def exec(i)
-      @list << i
-    end
-  end
-
-  class BrokenRoutine
-    attr_reader :count
-    def initialize
-      @count = 0
+    def to_json
+      @entrance.to_json
     end
 
-    def exec(i)
-      @count = i
-      raise
+    def start
+      @entrance.start do
+        yield(self)
+      end
+    end
+
+    # Always returns an array with a single ID of the pushed wallet
+    def push(id, body)
+      @mutex.synchronize do
+        @entrance.push(id, body)
+      end
     end
   end
 end

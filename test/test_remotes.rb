@@ -183,7 +183,7 @@ class TestRemotes < Minitest::Test
           end
         end
       end
-      sleep 0.1 while cycles.value < 50
+      assert_wait { cycles.value >= 50 }
       alive = false
       pool.shutdown
       pool.wait_for_termination
@@ -210,7 +210,7 @@ class TestRemotes < Minitest::Test
         end
       end
       latch.count_down
-      sleep 0.1 until done.value == threads
+      assert_equal_wait(threads) { done.value }
       assert_equal(threads, remotes.all.count)
     end
   end
@@ -239,7 +239,7 @@ class TestRemotes < Minitest::Test
           end
         end
       end
-      sleep 0.1 while done.value < 1000
+      assert_wait { done.value >= 1000 }
       alive = false
       pool.shutdown
       pool.wait_for_termination(10)

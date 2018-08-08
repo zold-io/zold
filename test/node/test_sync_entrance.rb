@@ -21,61 +21,21 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
-require_relative 'test__helper'
-require_relative '../lib/zold/metronome'
+require_relative '../fake_home'
+require_relative '../test__helper'
+require_relative '../../lib/zold/node/sync_entrance'
+require_relative 'fake_entrance'
 
-# Metronome test.
+# SyncEntrance test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestMetronome < Minitest::Test
-  def test_start_and_stop
-    metronome = Zold::Metronome.new(test_log)
-    list = []
-    metronome.add(FakeRoutine.new(list))
-    metronome.start do
-      assert_equal_wait(false) { list.empty? }
-      assert_equal(1, list.count)
-    end
-  end
-
-  def test_prints_to_text
-    metronome = Zold::Metronome.new(test_log)
-    metronome.add(FakeRoutine.new([]))
-    metronome.start do |m|
-      assert(!m.to_text.nil?)
-    end
-  end
-
-  def test_continues_even_after_error
-    metronome = Zold::Metronome.new(test_log)
-    routine = BrokenRoutine.new
-    metronome.add(routine)
-    metronome.start do
-      assert_wait { routine.count >= 2 }
-      assert(routine.count > 1)
-    end
-  end
-
-  class FakeRoutine
-    def initialize(list)
-      @list = list
-    end
-
-    def exec(i)
-      @list << i
-    end
-  end
-
-  class BrokenRoutine
-    attr_reader :count
-    def initialize
-      @count = 0
-    end
-
-    def exec(i)
-      @count = i
-      raise
+class TestSyncEntrance < Minitest::Test
+  def test_renders_json
+    FakeHome.new.run do |home|
+      Zold::SyncEntrance.new(FakeEntrance.new, log: test_log).start do |e|
+        assert(!e.to_json.nil?)
+      end
     end
   end
 end

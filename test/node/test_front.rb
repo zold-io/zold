@@ -82,7 +82,7 @@ class FrontTest < Minitest::Test
         response = Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil)
           .put(File.read(wallet.path))
         assert_equal('200', response.code, response.body)
-        sleep 0.1 until Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).get.code == '200'
+        assert_equal_wait('200') { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).get.code }
         [
           "/wallet/#{wallet.id}.txt",
           "/wallet/#{wallet.id}.json",
@@ -93,8 +93,7 @@ class FrontTest < Minitest::Test
           "/wallet/#{wallet.id}.bin",
           "/wallet/#{wallet.id}/copies"
         ].each do |u|
-          res = Zold::Http.new(uri: "#{base}#{u}", score: nil).get
-          assert_equal('200', res.code, res.body)
+          assert_equal_wait('200') { Zold::Http.new(uri: "#{base}#{u}", score: nil).get.code }
         end
       end
     end
@@ -105,10 +104,11 @@ class FrontTest < Minitest::Test
       FakeHome.new.run do |home|
         wallet = home.create_wallet
         base = "http://localhost:#{port}"
-        response = Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil)
-          .put(File.read(wallet.path))
-        assert_equal('200', response.code, response.body)
-        sleep 0.1 until Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).get.code == '200'
+        assert_equal(
+          '200',
+          Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).put(File.read(wallet.path)).code
+        )
+        assert_equal_wait('200') { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).get.code }
         3.times do
           r = Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil)
             .put(File.read(wallet.path))
@@ -255,6 +255,27 @@ class FrontTest < Minitest::Test
         Zold::Http.new(uri: uri, score: nil).get
       end
     end
-    assert_equal('--alias should be a 4 to 16 char long alphanumeric string', exception.message)
+    assert(exception.message.include?('should be a 4 to 16 char long alphanumeric string'))
+  end
+
+  def test_push_fetch_in_multiple_threads
+    key = Zold::Key.new(text: File.read('fixtures/id_rsa'))
+    FakeNode.new(log: test_log).run do |port|
+      FakeHome.new.run do |home|
+        wallet = home.create_wallet(Zold::Id::ROOT)
+        base = "http://localhost:#{port}"
+        Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).put(File.read(wallet.path))
+        assert_equal_wait('200') { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).get.code }
+        cycles = 50
+        cycles.times do
+          wallet.sub(Zold::Amount.new(coins: 10), "NOPREFIX@#{Zold::Id.new}", key)
+          Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).put(File.read(wallet.path))
+          assert_equal('200', Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).get.code)
+        end
+        assert_equal_wait(-10 * cycles) do
+          Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}/balance", score: nil).get.body.to_i
+        end
+      end
+    end
   end
 end
