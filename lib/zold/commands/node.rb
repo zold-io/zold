@@ -42,6 +42,7 @@ require_relative '../node/farm'
 require_relative 'pull'
 require_relative 'push'
 require_relative 'pay'
+require_relative 'remote'
 
 # NODE command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -158,7 +159,8 @@ module Zold
       @log.info("Zold protocol version: #{Zold::PROTOCOL}")
       @log.info("Network ID: #{opts['network']}")
       host = opts[:host] || ip
-      address = "#{host}:#{opts[:port]}".downcase
+      port = opts[:port]
+      address = "#{host}:#{port}".downcase
       @log.info("Node location: #{address}")
       @log.info("Local address: http://localhost:#{opts['bind-port']}/")
       Front.set(
@@ -169,6 +171,9 @@ module Zold
       if opts['standalone']
         @remotes = Zold::Remotes::Empty.new(file: '/tmp/standalone')
         @log.debug('Running in standalone mode! (will never talk to other remotes)')
+      else
+        Zold::Remote.new(remotes: @remotes).run(['remote', 'remove', host, port.to_s, '--force'])
+        @log.info("Removed current node (#{address}) from list of remotes")
       end
       Front.set(:ignore_score_weakness, opts['ignore-score-weakness'])
       Front.set(:network, opts['network'])
