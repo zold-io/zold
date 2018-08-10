@@ -112,7 +112,7 @@ class TestWallet < Minitest::Test
       amount = Zold::Amount.new(zld: 39.99)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       txn = wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
-      wallet.add(txn.inverse(wallet.id))
+      wallet.add(txn.inverse(Zold::Id.new))
       assert(!Zold::Wallet.new(wallet.path).txns[1].sign.end_with?("\n"))
     end
   end

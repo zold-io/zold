@@ -75,21 +75,22 @@ Available options:"
         merge_one(opts, patch, wallet, "#{c[:name]}/#{idx}/#{c[:score]}")
         score += c[:score]
       end
-      wallet = @wallets.find(id)
-      if wallet.exists?
-        merge_one(opts, patch, wallet, 'localhost')
-        @log.debug("Local copy of #{id} merged: #{patch}")
-      else
-        @log.debug("Local copy of #{id} is absent, nothing to merge")
-      end
-      modified = patch.save(wallet.path, overwrite: true)
-      if modified
-        @log.info("#{cps.count} copies with the total score of #{score} successfully merged \
+      @wallets.find(id) do |wallet|
+        if wallet.exists?
+          merge_one(opts, patch, wallet, 'localhost')
+          @log.debug("Local copy of #{id} merged: #{patch}")
+        else
+          @log.debug("Local copy of #{id} is absent, nothing to merge")
+        end
+        modified = patch.save(wallet.path, overwrite: true)
+        if modified
+          @log.info("#{cps.count} copies with the total score of #{score} successfully merged \
 into #{wallet.id}/#{wallet.balance}/#{wallet.txns.count}t")
-      else
-        @log.info("Nothing changed in #{wallet.id} after merge of #{cps.count} copies")
+        else
+          @log.info("Nothing changed in #{wallet.id} after merge of #{cps.count} copies")
+        end
+        modified
       end
-      modified
     end
 
     def merge_one(opts, patch, wallet, name)

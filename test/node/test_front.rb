@@ -77,7 +77,6 @@ class FrontTest < Minitest::Test
     FakeHome.new.run do |home|
       FakeNode.new(log: test_log).run(['--ignore-score-weakness', '--standalone']) do |port|
         wallet = home.create_wallet
-        test_log.debug("Wallet created: #{wallet.id}")
         base = "http://localhost:#{port}"
         response = Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil)
           .put(File.read(wallet.path))
@@ -114,6 +113,34 @@ class FrontTest < Minitest::Test
             .put(File.read(wallet.path))
           assert_equal('304', r.code, r.body)
         end
+      end
+    end
+  end
+
+  def test_pushes_many_wallets
+    FakeNode.new(log: test_log).run do |port|
+      base = "http://localhost:#{port}"
+      FakeHome.new.run do |home|
+        threads = 20
+        done = Concurrent::AtomicFixnum.new
+        pool = Concurrent::FixedThreadPool.new(threads)
+        latch = Concurrent::CountDownLatch.new(1)
+        threads.times do |i|
+          pool.post do
+            Thread.current.name = "thread-#{i}"
+            Zold::VerboseThread.new(test_log).run(true) do
+              latch.wait(10)
+              wallet = home.create_wallet
+              Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).put(File.read(wallet.path))
+              assert_equal_wait('200') { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).get.code }
+              done.increment
+            end
+          end
+        end
+        latch.count_down
+        pool.shutdown
+        pool.wait_for_termination
+        assert_equal(threads, done.value)
       end
     end
   end

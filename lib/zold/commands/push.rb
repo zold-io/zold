@@ -59,50 +59,51 @@ Available options:"
       mine = Args.new(opts, @log).take || return
       mine = @wallets.all if mine.empty?
       mine.map { |i| Id.new(i) }.each do |id|
-        wallet = @wallets.find(id)
-        raise "The wallet #{id} is absent" unless wallet.exists?
-        push(wallet, opts)
+        push(id, opts)
       end
     end
 
     private
 
-    def push(wallet, opts)
+    def push(id, opts)
       total = 0
       nodes = 0
       done = 0
       @remotes.iterate(@log) do |r|
         nodes += 1
-        total += push_one(wallet, r, opts)
+        total += push_one(id, r, opts)
         done += 1
       end
       raise "There are no remote nodes, run 'zold remote reset'" if nodes.zero?
-      raise "No nodes out of #{nodes} accepted the wallet #{wallet.id}" if done.zero?
-      @log.info("Push finished to #{done} nodes out of #{nodes}, total score for #{wallet.id} is #{total}")
+      raise "No nodes out of #{nodes} accepted the wallet #{id}" if done.zero?
+      @log.info("Push finished to #{done} nodes out of #{nodes}, total score for #{id} is #{total}")
     end
 
-    def push_one(wallet, r, opts)
+    def push_one(id, r, opts)
       if opts['ignore-node'].include?(r.to_s)
         @log.debug("#{r} ignored because of --ignore-node")
         return 0
       end
       start = Time.now
-      content = AtomicFile.new(wallet.path).read
-      response = r.http("/wallet/#{wallet.id}#{opts['sync'] ? '?sync=true' : ''}").put(content)
-      if response.code == '304'
-        @log.info("#{r}: same version #{content.length}b/#{wallet.txns.count}t \
+      @wallets.find(id) do |wallet|
+        raise "The wallet #{id} is absent" unless wallet.exists?
+        content = AtomicFile.new(wallet.path).read
+        response = r.http("/wallet/#{wallet.id}#{opts['sync'] ? '?sync=true' : ''}").put(content)
+        if response.code == '304'
+          @log.info("#{r}: same version #{content.length}b/#{wallet.txns.count}t \
 of #{wallet.id} there, in #{(Time.now - start).round(2)}s")
-        return 0
-      end
-      r.assert_code(200, response)
-      json = JsonPage.new(response.body).to_hash
-      score = Score.parse_json(json['score'])
-      r.assert_valid_score(score)
-      r.assert_score_ownership(score)
-      r.assert_score_strength(score) unless opts['ignore-score-weakness']
-      @log.info("#{r} accepted #{content.length}b/#{wallet.digest[0, 6]}/#{wallet.txns.count}t of #{wallet.id} \
+          return 0
+        end
+        r.assert_code(200, response)
+        json = JsonPage.new(response.body).to_hash
+        score = Score.parse_json(json['score'])
+        r.assert_valid_score(score)
+        r.assert_score_ownership(score)
+        r.assert_score_strength(score) unless opts['ignore-score-weakness']
+        @log.info("#{r} accepted #{content.length}b/#{wallet.digest[0, 6]}/#{wallet.txns.count}t of #{wallet.id} \
 in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green} (#{json['version']})")
-      score.value
+        score.value
+      end
     end
   end
 end

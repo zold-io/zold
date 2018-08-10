@@ -28,7 +28,6 @@ require_relative '../backtrace'
 require_relative '../metronome'
 require_relative '../wallet'
 require_relative '../wallets'
-require_relative '../hungry_wallets'
 require_relative '../remotes'
 require_relative '../verbose_thread'
 require_relative '../node/entrance'
@@ -53,10 +52,10 @@ module Zold
   # NODE command
   class Node
     def initialize(wallets:, remotes:, copies:, log: Log::Quiet.new)
-      @wallets = HungryWallets.new(wallets)
       @remotes = remotes
       @copies = copies
       @log = log
+      @wallets = wallets
     end
 
     def run(args = [])
@@ -164,6 +163,9 @@ module Zold
       address = "#{host}:#{port}".downcase
       @log.info("Node location: #{address}")
       @log.info("Local address: http://localhost:#{opts['bind-port']}/")
+      @log.info("Remote nodes (#{@remotes.all.count}): \
+#{@remotes.all.map { |r| "#{r[:host]}:#{r[:port]}" }.join(', ')}")
+      @log.info("Wallets at: #{@wallets.path}")
       Front.set(
         :server_settings,
         Logger: WebrickLog.new(@log),
@@ -193,14 +195,16 @@ module Zold
       Front.set(:node_alias, node_alias)
       invoice = opts[:invoice]
       unless invoice.include?('@')
-        if @wallets.find(Id.new(invoice)).exists?
-          @log.info("Wallet #{invoice} already exists locally, won't pull")
-        else
-          @log.info("The wallet #{invoice} is not available locally, will pull now...")
-          require_relative 'pull'
-          Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-            ['pull', invoice, "--network=#{opts['network']}"]
-          )
+        @wallets.find(Id.new(invoice)) do |wallet|
+          if wallet.exists?
+            @log.info("Wallet #{invoice} already exists locally, won't pull")
+          else
+            @log.info("The wallet #{invoice} is not available locally, will pull now...")
+            require_relative 'pull'
+            Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
+              ['pull', invoice, "--network=#{opts['network']}"]
+            )
+          end
         end
         require_relative 'invoice'
         invoice = Invoice.new(wallets: @wallets, log: @log).run(['invoice', invoice])
@@ -210,7 +214,13 @@ module Zold
           AsyncEntrance.new(
             SpreadEntrance.new(
               SyncEntrance.new(
-                Entrance.new(@wallets, @remotes, @copies, address, log: @log, network: opts['network'])
+                Entrance.new(
+                  @wallets,
+                  @remotes, @copies, address,
+                  log: @log, network: opts['network']
+                ),
+                File.join(Dir.pwd, '.zoldata/entrance'),
+                log: @log
               ),
               @wallets, @remotes, address,
               log: @log,
@@ -306,7 +316,7 @@ module Zold
       metronome.add(Routines::Spread.new(opts, @wallets, @remotes, log: @log))
       unless opts['standalone']
         require_relative 'routines/reconnect'
-        metronome.add(Routines::Reconnect.new(opts, @remotes, farm, network: opts['network'], log: Log::Quiet.new))
+        metronome.add(Routines::Reconnect.new(opts, @remotes, farm, network: opts['network'], log: @log))
       end
       @log.info('Metronome created')
       metronome

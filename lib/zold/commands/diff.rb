@@ -53,25 +53,23 @@ Available options:"
       raise 'At least one wallet ID is required' if mine.empty?
       stdout = ''
       mine.map { |i| Id.new(i) }.each do |id|
-        stdout += diff(
-          @wallets.find(id),
-          Copies.new(File.join(@copies, id)),
-          opts
-        )
+        stdout += diff(id, Copies.new(File.join(@copies, id)), opts)
       end
       stdout
     end
 
     private
 
-    def diff(wallet, cps, _)
+    def diff(id, cps, _)
       raise "There are no remote copies, try 'zold fetch' first" if cps.all.empty?
       cps = cps.all.sort_by { |c| c[:score] }.reverse
       patch = Patch.new(@wallets, log: @log)
       cps.each do |c|
         patch.join(Wallet.new(c[:path]))
       end
-      before = AtomicFile.new(wallet.path).read
+      before = @wallets.find(id) do |wallet|
+        AtomicFile.new(wallet.path).read
+      end
       after = ''
       Tempfile.open(['', Wallet::EXTENSION]) do |f|
         patch.save(f.path, overwrite: true)

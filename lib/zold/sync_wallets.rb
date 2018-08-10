@@ -20,58 +20,59 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'slop'
-require 'rainbow'
-require_relative 'args'
-require_relative '../log'
-require_relative '../id'
-require_relative '../amount'
-require_relative '../wallet'
+require_relative 'log'
 
-# SHOW command.
+# Sync collection of wallets.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # Show command
-  class Show
-    def initialize(wallets:, log: Log::Quiet.new)
+  # Synchronized collection of wallets
+  class SyncWallets
+    def initialize(wallets, dir, timeout: 30, log: Log::Quiet.new)
       @wallets = wallets
+      @dir = dir
       @log = log
+      @timeout = timeout
     end
 
-    def run(args = [])
-      opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
-        o.banner = "Usage: zold show [ID...] [options]
-Available options:"
-        o.bool '--help', 'Print instructions'
-      end
-      mine = Args.new(opts, @log).take || return
-      if mine.empty?
-        require_relative 'list'
-        List.new(wallets: @wallets, log: @log).run(args)
-      else
-        total = Amount::ZERO
-        mine.map { |i| Id.new(i) }.each do |id|
-          @wallets.find(id) do |w|
-            total += show(w, opts)
+    def to_s
+      @wallets.to_s
+    end
+
+    def path
+      @wallets.path
+    end
+
+    def all
+      @wallets.all
+    end
+
+    def find(id)
+      @wallets.find(id) do |wallet|
+        f = File.join(@dir, id)
+        FileUtils.mkdir_p(File.dirname(f))
+        File.open(f, File::RDWR | File::CREAT) do |lock|
+          start = Time.now
+          cycles = 0
+          loop do
+            break if lock.flock(File::LOCK_EX | File::LOCK_NB)
+            sleep 0.1
+            cycles += 1
+            delay = Time.now - start
+            if delay > @timeout
+              raise "##{Process.pid}/#{Thread.current.name} can't get exclusive access to the wallet #{id} \
+because of the lock at #{lock.path}: #{File.read(lock)}"
+            end
+            if (cycles % 20).zero?
+              @log.info("##{Process.pid}/#{Thread.current.name} still waiting for \
+exclusive access to #{id}, #{delay.round}s already: #{File.read(lock)}")
+            end
           end
+          File.write(lock, "##{Process.pid}/#{Thread.current.name}")
+          yield wallet
         end
-        total
       end
-    end
-
-    private
-
-    def show(wallet, _)
-      balance = wallet.balance
-      wallet.txns.each do |t|
-        @log.info(t.to_text)
-      end
-      msg = "The balance of #{wallet}: #{balance}"
-      msg += " (net:#{wallet.network})" if wallet.network != Wallet::MAIN_NETWORK
-      @log.info(msg)
-      balance
     end
   end
 end

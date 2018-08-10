@@ -32,7 +32,7 @@ require_relative 'fake_entrance'
 # License:: MIT
 class TestSyncEntrance < Minitest::Test
   def test_renders_json
-    FakeHome.new.run do |home|
+    FakeHome.new.run do
       Zold::SyncEntrance.new(FakeEntrance.new, log: test_log).start do |e|
         assert(!e.to_json.nil?)
       end

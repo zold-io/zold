@@ -35,6 +35,7 @@ require_relative '../lib/zold'
 require_relative '../lib/zold/version'
 require_relative '../lib/zold/wallet'
 require_relative '../lib/zold/wallets'
+require_relative '../lib/zold/sync_wallets'
 require_relative '../lib/zold/log'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/amount'
@@ -43,6 +44,7 @@ require_relative '../lib/zold/remotes'
 require_relative '../lib/zold/upgrades'
 require_relative '../lib/zold/version_file'
 
+Thread.current.name = 'main'
 
 Encoding.default_external = Encoding::UTF_8
 Encoding.default_internal = Encoding::UTF_8
@@ -138,7 +140,9 @@ Available options:"
   FileUtils.mkdir_p(opts[:home])
   Dir.chdir(opts[:home])
 
-  Zold::Upgrades.new(Zold::VersionFile.new('.zoldata/version'), 'upgrades').run
+  zoldata = File.expand_path(File.join(Dir.pwd, '.zoldata'))
+
+  Zold::Upgrades.new(Zold::VersionFile.new(File.join(zoldata, 'version')), 'upgrades').run
 
   # @todo #384:30min This is a workaround, move this code into Upgrades, somehow.
   #  We should find a way to run these arbitrary scripts and pass arguments
@@ -150,9 +154,9 @@ Available options:"
   require_relative '../upgrades/rename_foreign_wallets'
   Zold::RenameForeignWallets.new(Dir.pwd, opts['network'], log).exec
 
-  wallets = Zold::Wallets.new('.')
-  remotes = Zold::Remotes.new(file: './.zoldata/remotes', network: opts['network'])
-  copies = './.zoldata/copies'
+  wallets = Zold::SyncWallets.new(Zold::Wallets.new('.'), File.join(zoldata, 'locks'), log: log)
+  remotes = Zold::Remotes.new(file: File.join(zoldata, 'remotes'), network: opts['network'])
+  copies = File.join(zoldata, 'copies')
 
   case command
   when 'node'

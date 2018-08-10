@@ -34,8 +34,7 @@ class TestMetronome < Minitest::Test
     list = []
     metronome.add(FakeRoutine.new(list))
     metronome.start do
-      assert_equal_wait(false) { list.empty? }
-      assert_equal(1, list.count)
+      assert_wait { !list.empty? }
     end
   end
 

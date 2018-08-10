@@ -97,6 +97,10 @@ class TestRemote < Minitest::Test
       score = Zold::Score.new(
         time: Time.now, host: 'aa1.example.org', port: 9999, invoice: 'NOPREFIX4@ffffffffffffffff'
       )
+      stub_request(:get, 'http://localhost:8883/version').to_return(
+        status: 200,
+        body: '0.0.0'
+      )
       stub_request(:get, "http://#{score.host}:#{score.port}/remotes").to_return(
         status: 200,
         body: {

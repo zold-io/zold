@@ -37,11 +37,11 @@ end
 
 module Minitest
   class Test
-    def assert_wait(max: 60)
+    def assert_wait(max: 30)
       assert_equal_wait(true, max: max) { yield }
     end
 
-    def assert_equal_wait(expected, max: 60)
+    def assert_equal_wait(expected, max: 30)
       start = Time.now
       loop do
         actual = yield

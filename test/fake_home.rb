@@ -24,6 +24,7 @@ require 'tmpdir'
 require_relative '../lib/zold/id'
 require_relative '../lib/zold/wallet'
 require_relative '../lib/zold/wallets'
+require_relative '../lib/zold/sync_wallets'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/version'
 require_relative '../lib/zold/remotes'
@@ -47,7 +48,7 @@ class FakeHome
   end
 
   def wallets
-    Zold::Wallets.new(@dir)
+    Zold::SyncWallets.new(Zold::Wallets.new(@dir), File.join(@dir, 'locks'))
   end
 
   def create_wallet(id = Zold::Id.new, dir = @dir)

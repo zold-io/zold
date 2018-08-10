@@ -80,15 +80,15 @@ Available options:"
         o.bool '--ignore-score-value',
           'Don\'t complain when their score is too small',
           default: false
+        o.array '--ignore-node',
+          'Ignore this node and never add it to the list',
+          default: []
         o.integer '--min-score',
           "The minimum score required for winning the election (default: #{Tax::EXACT_SCORE})",
           default: Tax::EXACT_SCORE
         o.integer '--max-winners',
           'The maximum amount of election winners the election (default: 1)',
           default: 1
-        o.bool '--force',
-          'Add/remove if if this operation is not possible',
-          default: false
         o.bool '--skip-ping',
           'Don\'t ping back the node when adding it (not recommended)',
           default: false
@@ -161,29 +161,21 @@ Available options:"
     end
 
     def add(host, port, opts)
+      if opts['ignore-node'].include?("#{host}:#{port}")
+        @log.info("#{host}:#{port} won't be added since it's in the --ignore-node list")
+        return
+      end
       unless opts['skip-ping']
         res = Http.new(uri: "http://#{host}:#{port}/version", score: nil, network: opts['network']).get
         raise "The node #{host}:#{port} is not responding (code is #{res.code})" unless res.code == '200'
       end
-      if @remotes.exists?(host, port)
-        raise "#{host}:#{port} already exists in the list" unless opts['force']
-        @log.debug("#{host}:#{port} already exists in the list")
-      else
-        @remotes.add(host, port)
-        @log.info("#{host}:#{port} added to the list, #{@remotes.all.count} total")
-      end
-      @log.debug("There are #{@remotes.all.count} remote nodes in the list")
+      @remotes.add(host, port)
+      @log.info("#{host}:#{port} added to the list, #{@remotes.all.count} total")
     end
 
-    def remove(host, port, opts)
-      if @remotes.exists?(host, port)
-        @remotes.remove(host, port)
-        @log.info("#{host}:#{port} removed from the list")
-      else
-        raise "#{host}:#{port} is not in the list" unless opts['force']
-        @log.debug("#{host}:#{port} is not in the list")
-      end
-      @log.debug("There are #{@remotes.all.count} remote nodes in the list")
+    def remove(host, port, _)
+      @remotes.remove(host, port)
+      @log.info("#{host}:#{port} removed from the list, #{@remotes.all.count} total")
     end
 
     # Returns an array of Zold::Score
@@ -242,7 +234,8 @@ it's recommended to reboot, but I don't do it because of --never-reboot")
         end
         if deep
           json['all'].each do |s|
-            @remotes.add(s['host'], s['port'])
+            add(s['host'], s['port'], opts)
+            @log.info("#{s['host']}:#{s['port']} found at #{r} and added")
           end
         end
         capacity << { host: score.host, port: score.port, count: json['all'].count }
@@ -255,9 +248,9 @@ in #{(Time.now - start).round(2)}s")
       end
       total = @remotes.all.size
       if total.zero?
-        @log.debug("The list of remotes is #{Rainbow('empty').red}, run 'zold remote reset'!")
+        @log.info("The list of remotes is #{Rainbow('empty').red}, run 'zold remote reset'!")
       else
-        @log.debug("There are #{total} known remotes")
+        @log.info("There are #{total} known remotes")
       end
     end
 

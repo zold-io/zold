@@ -59,8 +59,9 @@ module Zold
         wallet = Wallet.new(f.path)
         wallet.refurbish
         after = File.read(wallet.path)
-        wallet = @wallets.find(id)
-        before = wallet.exists? ? AtomicFile.new(wallet.path).read.to_s : ''
+        before = @wallets.find(id) do |w|
+          w.exists? ? AtomicFile.new(w.path).read.to_s : ''
+        end
         if before == after
           @log.info("Duplicate of #{id}/#{wallet.digest[0, 6]}/#{after.length}b/#{wallet.txns.count}t ignored")
           return []
