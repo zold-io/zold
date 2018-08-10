@@ -9,12 +9,12 @@ branches:
 os: Windows Server 2012
 environment:
   matrix:
-    - RUBY_VERSION: 23
-    - RUBY_VERSION: 24
-    - RUBY_VERSION: 25
+    - ruby_version: "23-x64"
+    - ruby_version: "24-x64"
+    - ruby_version: "25-x64"
 install:
   - ps: |
-      $Env:PATH = "C:\Ruby${Env:ruby_version}-X64\bin;${Env:PATH}"
+      $Env:PATH = "C:\Ruby${Env:ruby_version}\bin;${Env:PATH}"
       if ($Env:ruby_version -match "^23" ) {
         # RubyInstaller; download OpenSSL headers from OpenKnapsack Project
         $Env:openssl_dir = "C:\Ruby${Env:ruby_version}"
@@ -25,13 +25,14 @@ install:
         # RubyInstaller2; openssl package seems to be installed already
         $Env:openssl_dir = "C:\msys64\mingw64"
       }
-  - cmd: ruby --version
-  - cmd: git --version
-  - cmd: bundle config --local path vendor/bundle
+  - bundle config --local path vendor/bundle
+  - bundle config build.openssl --with-openssl-dir=%openssl_dir%
+  - ruby -v
+  - bundle -v
 build_script:
   - bundle update
   - bundle install
 test_script:
-  - rake
+  - bundle exec rake --quiet
 cache:
   - vendor/bundle
