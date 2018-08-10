@@ -124,6 +124,8 @@ Available options:"
     end
   end
 
+  log = Zold::Log::Sync.new(log)
+
   commands = opts.arguments.reject { |a| a.start_with?('-') }
   command = commands[0]
 

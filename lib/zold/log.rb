@@ -46,6 +46,40 @@ module Zold
   # messages. The user turns this mode by using --verbose command line argument.
   #
   module Log
+    # Synchronized
+    class Sync
+      def initialize(log)
+        @log = log
+        @mutex = Mutex.new
+      end
+
+      def debug(msg)
+        @mutex.synchronize do
+          @log.debug(msg)
+        end
+      end
+
+      def debug?
+        @log.debug?
+      end
+
+      def info(msg)
+        @mutex.synchronize do
+          @log.info(msg)
+        end
+      end
+
+      def info?
+        @log.info?
+      end
+
+      def error(msg)
+        @mutex.synchronize do
+          @log.error(msg)
+        end
+      end
+    end
+
     # Extra verbose log
     class Verbose
       def debug(msg)

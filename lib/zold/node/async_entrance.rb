@@ -94,7 +94,9 @@ module Zold
 
     # Always returns an array with a single ID of the pushed wallet
     def push(id, body)
-      raise 'Queue is too long, try again later' if Dir.new(@dir).count > AsyncEntrance::MAX_QUEUE
+      if Dir.new(@dir).count > AsyncEntrance::MAX_QUEUE
+        raise "Queue is too long (#{Dir.new(@dir).count} wallets), try again later"
+      end
       @mutex.synchronize do
         AtomicFile.new(File.join(@dir, id.to_s)).write(body)
       end
