@@ -145,9 +145,9 @@ module Zold
         @log.info(pid)
         return
       end
-      trace = Trace.new(@log, opts['trace-length'])
-      Front.set(:log, trace)
-      Front.set(:trace, trace)
+      @log = Trace.new(@log, opts['trace-length'])
+      Front.set(:log, @log)
+      Front.set(:trace, @log)
       Front.set(:version, opts['expose-version'])
       Front.set(:protocol, Zold::PROTOCOL)
       Front.set(:logging, @log.debug?)
@@ -174,8 +174,8 @@ module Zold
       if opts['standalone']
         @remotes = Zold::Remotes::Empty.new(file: '/tmp/standalone')
         @log.debug('Running in standalone mode! (will never talk to other remotes)')
-      else
-        Zold::Remote.new(remotes: @remotes).run(['remote', 'remove', host, port.to_s, '--force'])
+      elsif @remotes.exists?(host, port)
+        Zold::Remote.new(remotes: @remotes).run(['remote', 'remove', host, port.to_s])
         @log.info("Removed current node (#{address}) from list of remotes")
       end
       Front.set(:ignore_score_weakness, opts['ignore-score-weakness'])

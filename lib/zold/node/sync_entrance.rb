@@ -68,7 +68,7 @@ module Zold
             raise "##{Process.pid}/#{Thread.current.name} can't get exclusive access to the wallet #{id}/e \
 because of the lock at #{lock.path}: #{File.read(lock)}"
           end
-          if (cycles % 20).zero?
+          if (cycles % 20).zero? && delay > 10
             @log.info("##{Process.pid}/#{Thread.current.name} still waiting for \
 exclusive access to #{id}/e, #{delay.round}s already")
           end
