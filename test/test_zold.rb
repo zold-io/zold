@@ -32,6 +32,9 @@ require_relative '../lib/zold/version'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class TestZold < Minitest::Test
+  # @todo #181:30min This test is failing randomly, especially the distribute_wallet part
+  #  we should also maybe split these tests to run a single test for each script in
+  #  fixture/scripts dir
   def test_all_scripts
     skip
     Dir.new('fixtures/scripts').select { |f| f =~ /\.sh$/ && !f.start_with?('_') }.each do |f|

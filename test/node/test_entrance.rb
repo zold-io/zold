@@ -59,6 +59,8 @@ class TestEntrance < Minitest::Test
     end
   end
 
+  # @todo #181:30min This test is failing randomly when checking that speed is positive,
+  #  it's 0 instead; we should make sure that no matter what tests always pass in all conditions
   def test_renders_json
     skip
     FakeHome.new.run do |home|
