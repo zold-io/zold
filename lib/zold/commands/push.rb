@@ -69,6 +69,7 @@ Available options:"
       total = 0
       nodes = 0
       done = 0
+      start = Time.now
       @remotes.iterate(@log) do |r|
         nodes += 1
         total += push_one(id, r, opts)
@@ -76,7 +77,8 @@ Available options:"
       end
       raise "There are no remote nodes, run 'zold remote reset'" if nodes.zero?
       raise "No nodes out of #{nodes} accepted the wallet #{id}" if done.zero?
-      @log.info("Push finished to #{done} nodes out of #{nodes}, total score for #{id} is #{total}")
+      @log.info("Push finished to #{done} nodes out of #{nodes} in #{(Time.now - start).round}s, \
+total score for #{id} is #{total}")
     end
 
     def push_one(id, r, opts)
@@ -85,10 +87,12 @@ Available options:"
         return 0
       end
       start = Time.now
-      @wallets.find(id) do |wallet|
+      content = @wallets.find(id) do |wallet|
         raise "The wallet #{id} is absent" unless wallet.exists?
-        content = AtomicFile.new(wallet.path).read
-        response = r.http("/wallet/#{wallet.id}#{opts['sync'] ? '?sync=true' : ''}").put(content)
+        AtomicFile.new(wallet.path).read
+      end
+      response = r.http("/wallet/#{id}#{opts['sync'] ? '?sync=true' : ''}").put(content)
+      @wallets.find(id) do |wallet|
         if response.code == '304'
           @log.info("#{r}: same version #{content.length}b/#{wallet.txns.count}t \
 of #{wallet.id} there, in #{(Time.now - start).round(2)}s")

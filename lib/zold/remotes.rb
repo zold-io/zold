@@ -82,6 +82,7 @@ module Zold
         return if response.code.to_i == code
         log.debug("#{response.code} \"#{response.message}\" at \"#{response.body}\"")
         raise "Unexpected HTTP code #{response.code}, instead of #{code}" if msg.empty?
+        raise "#{response.code}/#{response.header['X-Zold-Error']}" if response.header['X-Zold-Error']
         raise "#{msg} (HTTP code #{response.code}, instead of #{code})"
       end
 

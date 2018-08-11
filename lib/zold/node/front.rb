@@ -296,12 +296,14 @@ while #{settings.address} is in '#{settings.network}'"
         error 404 unless wallet.exists?
         content_type 'text/plain'
         copies = Copies.new(File.join(settings.copies, id))
-        copies.load.map { |c| "#{c[:name]}: #{c[:host]}:#{c[:port]} #{c[:score]} #{c[:time]}" }.join("\n") +
+        copies.load.map do |c|
+          "#{c[:name]}: #{c[:host]}:#{c[:port]} #{c[:score]} #{c[:time].utc.iso8601}"
+        end.join("\n") +
         "\n\n" +
         copies.all.map do |c|
           w = Wallet.new(c[:path])
           "#{c[:name]}: #{c[:score]} #{w.balance}/#{w.txns.count}t/\
-  #{w.digest[0, 6]}/#{File.size(c[:path])}b/#{Age.new(File.mtime(c[:path]))}"
+#{w.digest[0, 6]}/#{File.size(c[:path])}b/#{Age.new(File.mtime(c[:path]))}"
         end.join("\n")
       end
     end
@@ -369,6 +371,7 @@ while #{settings.address} is in '#{settings.network}'"
       status 503
       e = env['sinatra.error']
       content_type 'text/plain'
+      headers['X-Zold-Error'] = e.message
       Backtrace.new(e).to_s
     end
 
