@@ -192,6 +192,7 @@ module Zold
             )
             idx += 1
             raise 'Took too long to execute' if (Time.now - start).round > @timeout
+            unerror(r[:host], r[:port])
           rescue StandardError => e
             error(r[:host], r[:port])
             log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message} \
@@ -210,6 +211,17 @@ in #{(Time.now - start).round}s")
       raise 'Port can\'t be nil' if port.nil?
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
       if_present(host, port) { |r| r[:errors] += 1 }
+    end
+
+    def unerror(host, port = Remotes::PORT)
+      raise 'Host can\'t be nil' if host.nil?
+      raise 'Port can\'t be nil' if port.nil?
+      raise 'Port has to be of type Integer' unless port.is_a?(Integer)
+      return if errors(host, port).zero?
+      if_present(host, port) do |r|
+          return if r[:errors].zero?
+          r[:errors] -= 1
+      end
     end
 
     def rescore(host, port, score)
