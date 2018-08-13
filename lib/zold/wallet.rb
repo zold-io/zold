@@ -126,6 +126,7 @@ module Zold
     def add(txn)
       raise 'The txn has to be of type Txn' unless txn.is_a?(Txn)
       dup = txns.find { |t| t.bnf == txn.bnf && t.id == txn.id }
+      raise "Wallet #{id} can't pay itself: #{txn}" if txn.bnf == id
       raise "The transaction with the same ID and BNF already exists: #{dup}" unless dup.nil?
       raise "The tax payment already exists: #{txn}" if Tax.new(self).exists?(txn)
       File.open(@file, 'a') { |f| f.print "#{txn}\n" }

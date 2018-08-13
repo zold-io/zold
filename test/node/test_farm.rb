@@ -41,7 +41,7 @@ class FarmTest < Minitest::Test
     Dir.mktmpdir do |dir|
       farm = Zold::Farm.new('NOPREFIX6@ffffffffffffffff', File.join(dir, 'f'), log: test_log)
       farm.start('localhost', 80, threads: 4, strength: 2) do
-        sleep 0.1 while farm.best.empty? || farm.best[0].value.zero?
+        assert_wait { !farm.best.empty? && !farm.best[0].value.zero? }
         count = 0
         100.times { count += farm.to_json[:best].length }
         assert(count.positive?)
@@ -62,7 +62,7 @@ class FarmTest < Minitest::Test
     Dir.mktmpdir do |dir|
       farm = Zold::Farm.new('NOPREFIX1@ffffffffffffffff', File.join(dir, 'f'), log: test_log)
       farm.start('localhost', 80, threads: 4, strength: 3) do
-        sleep 0.1 while farm.best.empty? || farm.best[0].value < 3
+        assert_wait { !farm.best.empty? && farm.best[0].value >= 3 }
         score = farm.best[0]
         assert(!score.expired?)
         assert(score.value >= 3)

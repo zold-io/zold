@@ -44,10 +44,14 @@ module Zold
         sleep(60) unless @opts['routine-immediately']
         cmd = Remote.new(remotes: @remotes, log: @log, farm: @farm)
         args = ['remote', "--network=#{@opts['network']}"]
-        cmd.run(args + ['add', 'b1.zold.io', '80', '--force']) unless @opts['routine-immediately']
+        score = @farm.best[0]
+        args << "--ignore-node=#{score.host}:#{score.port}" if score
+        cmd.run(args + ['add', 'b1.zold.io', '80']) unless @opts['routine-immediately']
         cmd.run(args + ['trim'])
         cmd.run(args + ['select'])
         cmd.run(args + ['update'] + (@opts['never-reboot'] ? [] : ['--reboot']))
+        @log.info("Reconnected, there are #{@remotes.all.count} remote notes: \
+#{@remotes.all.map { |r| "#{r[:host]}:#{r[:port]}" }.join(', ')}")
       end
     end
   end

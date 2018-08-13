@@ -77,6 +77,7 @@ Available options:"
     private
 
     def fetch(id, cps, opts)
+      start = Time.now
       total = Concurrent::AtomicFixnum.new
       nodes = Concurrent::AtomicFixnum.new
       done = Concurrent::AtomicFixnum.new
@@ -87,7 +88,7 @@ Available options:"
       end
       raise "There are no remote nodes, run 'zold remote reset'" if nodes.value.zero?
       raise "No nodes out of #{nodes.value} have the wallet #{id}" if done.value.zero? && !opts['quiet-if-absent']
-      @log.info("#{done.value} copies of #{id} fetched with the total score of \
+      @log.info("#{done.value} copies of #{id} fetched in #{(Time.now - start).round}s with the total score of \
 #{total.value} from #{nodes.value} nodes")
       @log.debug("#{cps.all.count} local copies:")
       cps.all.each do |c|
@@ -127,7 +128,7 @@ Available options:"
         end
         copy = cps.add(File.read(f), score.host, score.port, score.value)
         @log.info("#{r} returned #{body.length}b/#{wallet.balance}/#{wallet.txns.count}t/\
-#{digest(json)}/#{Age.new(json['mtime'])} \
+#{digest(json)}/#{Age.new(json['mtime'])}/#{json['copies']}c \
 as copy #{copy} of #{id} in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green} (#{json['version']})")
       end
       score.value

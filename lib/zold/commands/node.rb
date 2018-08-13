@@ -28,19 +28,21 @@ require_relative '../backtrace'
 require_relative '../metronome'
 require_relative '../wallet'
 require_relative '../wallets'
-require_relative '../hungry_wallets'
 require_relative '../remotes'
 require_relative '../verbose_thread'
 require_relative '../node/entrance'
 require_relative '../node/safe_entrance'
 require_relative '../node/spread_entrance'
 require_relative '../node/async_entrance'
+require_relative '../node/sync_entrance'
 require_relative '../node/nodup_entrance'
 require_relative '../node/front'
+require_relative '../node/trace'
 require_relative '../node/farm'
 require_relative 'pull'
 require_relative 'push'
 require_relative 'pay'
+require_relative 'remote'
 
 # NODE command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -50,10 +52,10 @@ module Zold
   # NODE command
   class Node
     def initialize(wallets:, remotes:, copies:, log: Log::Quiet.new)
-      @wallets = HungryWallets.new(wallets)
       @remotes = remotes
       @copies = copies
       @log = log
+      @wallets = wallets
     end
 
     def run(args = [])
@@ -97,6 +99,9 @@ module Zold
         o.string '--halt-code',
           'The value of HTTP query parameter "halt," which will cause the front-end immediate termination',
           default: ''
+        o.integer '--trace-length',
+          'Maximum length of the trace to keep in memory (default: 4096)',
+          default: 4096
         o.string '--save-pid',
           'The file to save process ID into right after start (only in NOHUP mode)'
         o.bool '--never-reboot',
@@ -140,7 +145,9 @@ module Zold
         @log.info(pid)
         return
       end
+      @log = Trace.new(@log, opts['trace-length'])
       Front.set(:log, @log)
+      Front.set(:trace, @log)
       Front.set(:version, opts['expose-version'])
       Front.set(:protocol, Zold::PROTOCOL)
       Front.set(:logging, @log.debug?)
@@ -152,9 +159,13 @@ module Zold
       @log.info("Zold protocol version: #{Zold::PROTOCOL}")
       @log.info("Network ID: #{opts['network']}")
       host = opts[:host] || ip
-      address = "#{host}:#{opts[:port]}".downcase
+      port = opts[:port]
+      address = "#{host}:#{port}".downcase
       @log.info("Node location: #{address}")
       @log.info("Local address: http://localhost:#{opts['bind-port']}/")
+      @log.info("Remote nodes (#{@remotes.all.count}): \
+#{@remotes.all.map { |r| "#{r[:host]}:#{r[:port]}" }.join(', ')}")
+      @log.info("Wallets at: #{@wallets.path}")
       Front.set(
         :server_settings,
         Logger: WebrickLog.new(@log),
@@ -163,6 +174,9 @@ module Zold
       if opts['standalone']
         @remotes = Zold::Remotes::Empty.new(file: '/tmp/standalone')
         @log.debug('Running in standalone mode! (will never talk to other remotes)')
+      elsif @remotes.exists?(host, port)
+        Zold::Remote.new(remotes: @remotes).run(['remote', 'remove', host, port.to_s])
+        @log.info("Removed current node (#{address}) from list of remotes")
       end
       Front.set(:ignore_score_weakness, opts['ignore-score-weakness'])
       Front.set(:network, opts['network'])
@@ -175,21 +189,22 @@ module Zold
       Front.set(:port, opts['bind-port'])
       Front.set(:reboot, !opts['never-reboot'])
       node_alias = opts[:alias] || address
-      unless node_alias.eql?(address)
-        re = Regexp.new(/^[a-z0-9]{4,16}$/)
-        raise '--alias should be a 4 to 16 char long alphanumeric string' unless re.match(node_alias)
+      unless node_alias.eql?(address) || node_alias =~ /^[a-z0-9]{4,16}$/
+        raise "Alias should be a 4 to 16 char long alphanumeric string: #{node_alias}"
       end
       Front.set(:node_alias, node_alias)
       invoice = opts[:invoice]
       unless invoice.include?('@')
-        if @wallets.find(Id.new(invoice)).exists?
-          @log.info("Wallet #{invoice} already exists locally, won't pull")
-        else
-          @log.info("The wallet #{invoice} is not available locally, will pull now...")
-          require_relative 'pull'
-          Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-            ['pull', invoice, "--network=#{opts['network']}"]
-          )
+        @wallets.find(Id.new(invoice)) do |wallet|
+          if wallet.exists?
+            @log.info("Wallet #{invoice} already exists locally, won't pull")
+          else
+            @log.info("The wallet #{invoice} is not available locally, will pull now...")
+            require_relative 'pull'
+            Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
+              ['pull', invoice, "--network=#{opts['network']}"]
+            )
+          end
         end
         require_relative 'invoice'
         invoice = Invoice.new(wallets: @wallets, log: @log).run(['invoice', invoice])
@@ -198,7 +213,15 @@ module Zold
         NoDupEntrance.new(
           AsyncEntrance.new(
             SpreadEntrance.new(
-              Entrance.new(@wallets, @remotes, @copies, address, log: @log, network: opts['network']),
+              SyncEntrance.new(
+                Entrance.new(
+                  @wallets,
+                  @remotes, @copies, address,
+                  log: @log, network: opts['network']
+                ),
+                File.join(Dir.pwd, '.zoldata/entrance'),
+                log: @log
+              ),
               @wallets, @remotes, address,
               log: @log,
               ignore_score_weakeness: opts['ignore-score-weakness']
@@ -293,7 +316,7 @@ module Zold
       metronome.add(Routines::Spread.new(opts, @wallets, @remotes, log: @log))
       unless opts['standalone']
         require_relative 'routines/reconnect'
-        metronome.add(Routines::Reconnect.new(opts, @remotes, farm, network: opts['network'], log: Log::Quiet.new))
+        metronome.add(Routines::Reconnect.new(opts, @remotes, farm, network: opts['network'], log: @log))
       end
       @log.info('Metronome created')
       metronome

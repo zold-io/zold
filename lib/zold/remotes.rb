@@ -82,6 +82,7 @@ module Zold
         return if response.code.to_i == code
         log.debug("#{response.code} \"#{response.message}\" at \"#{response.body}\"")
         raise "Unexpected HTTP code #{response.code}, instead of #{code}" if msg.empty?
+        raise "#{response.code}/#{response.header['X-Zold-Error']}" if response.header['X-Zold-Error']
         raise "#{msg} (HTTP code #{response.code}, instead of #{code})"
       end
 
@@ -178,7 +179,7 @@ module Zold
       list.each do |r|
         pool.post do
           Thread.current.abort_on_exception = true
-          Thread.current.name = 'remotes'
+          Thread.current.name = "remotes@#{r[:host]}:#{r[:port]}"
           start = Time.now
           begin
             yield Remotes::Remote.new(

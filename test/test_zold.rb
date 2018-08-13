@@ -38,7 +38,7 @@ class TestZold < Minitest::Test
   def test_all_scripts
     skip
     Dir.new('fixtures/scripts').select { |f| f =~ /\.sh$/ && !f.start_with?('_') }.each do |f|
-      # next unless f == 'redeploy-on-upgrade.sh'
+      # next unless f == 'distribute-wallet.sh'
       Dir.mktmpdir do |dir|
         FileUtils.cp('fixtures/id_rsa.pub', dir)
         FileUtils.cp('fixtures/id_rsa', dir)
@@ -55,7 +55,7 @@ class TestZold < Minitest::Test
               out << line
             end
             code = thr.value.to_i
-            assert_equal(0, code, f + out.join)
+            assert_equal(0, code, "#{f}\n#{out.join}")
           end
         end
       end

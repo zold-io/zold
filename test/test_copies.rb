@@ -125,7 +125,7 @@ class TestCopies < Minitest::Test
       wallet = home.create_wallet(id)
       amount = Zold::Amount.new(zld: 1.99)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
-      wallet.sub(amount, "NOPREFIX@#{id}", key, text, time: Time.parse('2018-01-01T01:01:01Z'))
+      wallet.sub(amount, 'NOPREFIX@0000111122223333', key, text, time: Time.parse('2018-01-01T01:01:01Z'))
       File.read(wallet.path)
     end
   end

@@ -38,10 +38,11 @@ class TestShow < Minitest::Test
     Dir.mktmpdir do |dir|
       id = Zold::Id.new
       wallets = Zold::Wallets.new(dir)
-      wallet = wallets.find(id)
-      wallet.init(Zold::Id.new, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-      balance = Zold::Show.new(wallets: wallets, log: test_log).run(['show', id.to_s])
-      assert_equal(Zold::Amount::ZERO, balance)
+      wallets.find(id) do |wallet|
+        wallet.init(Zold::Id.new, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+        balance = Zold::Show.new(wallets: wallets, log: test_log).run(['show', id.to_s])
+        assert_equal(Zold::Amount::ZERO, balance)
+      end
     end
   end
 end

@@ -101,12 +101,11 @@ module Zold
             @log.error("Payment prefix '#{txn.prefix}' doesn't match with the key of #{wallet.id}: #{txn.to_text}")
             next
           end
-          payer = @wallets.find(txn.bnf)
-          unless payer.exists?
+          unless @wallets.find(txn.bnf, &:exists?)
             @log.error("Paying wallet file is absent: #{txn.to_text}")
             next
           end
-          unless payer.has?(txn.id, wallet.id)
+          unless @wallets.find(txn.bnf) { |p| p.has?(txn.id, wallet.id) }
             @log.error("Paying wallet #{txn.bnf} doesn't have transaction ##{txn.id} \
 among #{payer.txns.count} transactions: #{txn.to_text}")
             next
