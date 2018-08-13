@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
+require 'tmpdir'
 require_relative 'fake_home'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/id'
@@ -36,9 +37,10 @@ class TestWallets < Minitest::Test
     FakeHome.new.run do |home|
       wallets = home.wallets
       id = Zold::Id.new
-      wallet = wallets.find(id)
-      wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-      assert_equal(1, wallets.all.count)
+      wallets.find(id) do |wallet|
+        wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+        assert_equal(1, wallets.all.count)
+      end
     end
   end
 
@@ -47,17 +49,19 @@ class TestWallets < Minitest::Test
       wallets = home.wallets
       FileUtils.touch(File.join(home.dir, '0xaaaaaaaaaaaaaaaaaaahello'))
       id = Zold::Id.new
-      wallet = wallets.find(id)
-      wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-      assert_equal(1, wallets.all.count)
+      wallets.find(id) do |wallet|
+        wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+        assert_equal(1, wallets.all.count)
+      end
     end
   end
 
   def test_substracts_dir_path_from_full_path
-    FakeHome.new.run do |home|
-      wallets = home.wallets
-      path = wallets.path
-      assert_equal('.', wallets.to_s(path))
+    Dir.mktmpdir do |dir|
+      Dir.chdir(dir) do
+        wallets = Zold::Wallets.new(Dir.pwd)
+        assert_equal('.', wallets.to_s)
+      end
     end
   end
 end

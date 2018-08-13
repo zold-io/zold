@@ -20,15 +20,56 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'delegate'
-
+# The web front of the node.
+# Author:: Yegor Bugayenko (yegor256@gmail.com)
+# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# License:: MIT
 module Zold
-  # Wallets decorator that adds missing wallets to the queue to be pulled later.
-  class HungryWallets < SimpleDelegator
-    # @todo #280:30min Add to the queue. Once in there, try
-    #  to pull it as soon as possible as is described in #280.
-    def find(id)
-      yield super(id)
+  # Log that traces everything
+  class Trace
+    def initialize(log, limit = 4096)
+      @log = log
+      @buffer = []
+      @mutex = Mutex.new
+      @limit = limit
+    end
+
+    def to_s
+      @mutex.synchronize do
+        @buffer.join("\n")
+      end
+    end
+
+    def debug(msg)
+      @log.debug(msg)
+      append('DBG', msg) if debug?
+    end
+
+    def debug?
+      @log.debug?
+    end
+
+    def info(msg)
+      @log.info(msg)
+      append('INF', msg) if info?
+    end
+
+    def info?
+      @log.info?
+    end
+
+    def error(msg)
+      @log.error(msg)
+      append('ERR', msg)
+    end
+
+    private
+
+    def append(level, msg)
+      @mutex.synchronize do
+        @buffer << "#{level}: #{msg}"
+        @buffer.shift if @buffer.size > @limit
+      end
     end
   end
 end

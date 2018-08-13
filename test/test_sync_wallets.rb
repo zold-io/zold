@@ -21,41 +21,49 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
-require 'json'
-require 'time'
-require 'webmock/minitest'
-require_relative '../test__helper'
-require_relative '../fake_home'
-require_relative '../../lib/zold/wallets'
-require_relative '../../lib/zold/wallet'
-require_relative '../../lib/zold/id'
-require_relative '../../lib/zold/copies'
-require_relative '../../lib/zold/key'
-require_relative '../../lib/zold/commands/pay'
-require_relative '../../lib/zold/commands/diff'
+require 'concurrent'
+require_relative 'test__helper'
+require_relative 'fake_home'
+require_relative '../lib/zold/key'
+require_relative '../lib/zold/id'
+require_relative '../lib/zold/wallets'
+require_relative '../lib/zold/sync_wallets'
+require_relative '../lib/zold/amount'
 
-# DIFF test.
+# SyncWallets test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestDiff < Minitest::Test
-  def test_diff_with_copies
+class TestSyncWallets < Minitest::Test
+  def test_adds_wallet
     FakeHome.new.run do |home|
-      wallet = home.create_wallet
-      first = home.create_wallet
-      File.write(first.path, File.read(wallet.path))
-      second = home.create_wallet
-      File.write(second.path, File.read(wallet.path))
-      Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: test_log).run(
-        ['pay', wallet.id.to_s, "NOPREFIX@#{Zold::Id.new}", '14.95', '--force', '--private-key=fixtures/id_rsa']
-      )
-      copies = home.copies(wallet)
-      copies.add(File.read(first.path), 'host-1', 80, 5)
-      copies.add(File.read(second.path), 'host-2', 80, 5)
-      diff = Zold::Diff.new(wallets: home.wallets, copies: copies.root, log: test_log).run(
-        ['diff', wallet.id.to_s]
-      )
-      assert(diff.include?('-0001;'), diff)
+      wallets = home.wallets
+      id = Zold::Id.new
+      home.create_wallet(id)
+      key = Zold::Key.new(file: 'fixtures/id_rsa')
+      amount = Zold::Amount.new(zld: 5.0)
+      threads = 10
+      pool = Concurrent::FixedThreadPool.new(threads)
+      latch = Concurrent::CountDownLatch.new(1)
+      threads.times do |i|
+        pool.post do
+          Thread.current.name = "thread-#{i}"
+          Zold::VerboseThread.new(test_log).run(true) do
+            latch.wait(10)
+            wallets.find(id) do |wallet|
+              wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
+              wallet.refurbish
+            end
+          end
+        end
+      end
+      latch.count_down
+      pool.shutdown
+      pool.wait_for_termination
+      assert_equal_wait(amount * threads * -1, max: 4) do
+        wallets.find(id, &:balance)
+      end
+      assert_equal(5, Dir.new(wallets.path).count)
     end
   end
 end

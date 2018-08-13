@@ -47,7 +47,7 @@ class TestPatch < Minitest::Test
       second.sub(Zold::Amount.new(zld: 44.0), "NOPREFIX@#{Zold::Id.new}", key)
       File.write(third.path, File.read(first.path))
       t = third.sub(Zold::Amount.new(zld: 10.0), "NOPREFIX@#{Zold::Id.new}", key)
-      third.add(t.inverse(first.id))
+      third.add(t.inverse(Zold::Id.new))
       patch = Zold::Patch.new(home.wallets, log: test_log)
       patch.join(first)
       patch.join(second)

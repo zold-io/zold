@@ -67,14 +67,13 @@ module Zold
         @pool = Concurrent::FixedThreadPool.new(
           AsyncEntrance::THREADS, max_queue: AsyncEntrance::THREADS, fallback_policy: :abort
         )
-        AsyncEntrance::THREADS.times do
+        AsyncEntrance::THREADS.times do |t|
           @pool.post do
+            Thread.current.name = "async-#{t}"
             loop do
-              VerboseThread.new(@log).run(true) do
-                take
-                break if @pool.shuttingdown?
-                sleep Random.rand(100) / 100
-              end
+              VerboseThread.new(@log).run(true) { take }
+              break if @pool.shuttingdown?
+              sleep Random.rand(100) / 100
             end
           end
         end
@@ -95,7 +94,7 @@ module Zold
 
     # Always returns an array with a single ID of the pushed wallet
     def push(id, body)
-      raise 'Queue is too long, try again later' if Dir.new(@dir).count > AsyncEntrance::MAX_QUEUE
+      raise "Queue is too long (#{queue.count} wallets), try again later" if queue.count > AsyncEntrance::MAX_QUEUE
       @mutex.synchronize do
         AtomicFile.new(File.join(@dir, id.to_s)).write(body)
       end

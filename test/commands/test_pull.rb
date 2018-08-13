@@ -43,7 +43,9 @@ class TestPull < Minitest::Test
       Zold::Pull.new(wallets: home.wallets, remotes: remotes, copies: home.copies.root.to_s, log: test_log).run(
         ['--ignore-this-stupid-option', 'pull', id.to_s]
       )
-      assert(home.wallets.find(Zold::Id.new(id)).exists?)
+      home.wallets.find(Zold::Id.new(id)) do |wallet|
+        assert(wallet.exists?)
+      end
     end
   end
 end

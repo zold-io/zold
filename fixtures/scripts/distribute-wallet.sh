@@ -73,15 +73,16 @@ if [ ! $(echo ${json} | jq -r '.wallets') == "1" ]; then
 fi
 
 # Now, we remove the wallet from the second node and expect the first
-# one to "spread" it again, almost immediately.
-rm ${second}/0000000000000000.z
+# one to "spread" it again, almost immediately. The second node should
+# have the wallet very soon.
+rm -f ${second}/0000000000000000.z
 i=0
 until zold fetch 0000000000000000 --ignore-score-weakness; do
   echo 'Failed to fetch, let us try again'
   ((i++)) || sleep 0
   if ((i==5)); then
+    echo "The wallet 0000000000000000 has not been spread, after ${i} attempts, here is the log:"
     cat ${first}/log.txt
-    echo "The wallet 0000000000000000 has not been spread, after ${i} attempts"
     exit 8
   fi
   sleep 5

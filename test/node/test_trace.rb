@@ -20,15 +20,17 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'delegate'
+require 'minitest/autorun'
+require_relative '../test__helper'
+require_relative '../../lib/zold/node/trace'
 
-module Zold
-  # Wallets decorator that adds missing wallets to the queue to be pulled later.
-  class HungryWallets < SimpleDelegator
-    # @todo #280:30min Add to the queue. Once in there, try
-    #  to pull it as soon as possible as is described in #280.
-    def find(id)
-      yield super(id)
-    end
+class TraceTest < Minitest::Test
+  def test_records_log_lines
+    trace = Zold::Trace.new(test_log, 2)
+    trace.error('This should not be visible')
+    trace.error('How are you, друг?')
+    trace.error('Works?')
+    assert(!trace.to_s.include?('visible'))
+    assert(trace.to_s.include?('друг'))
   end
 end

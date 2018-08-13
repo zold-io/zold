@@ -37,10 +37,10 @@ module Zold
     # @todo #70:30min Let's make it smarter. Instead of returning
     #  the full path let's substract the prefix from it if it's equal
     #  to the current directory in Dir.pwd.
-    def to_s(curr_dir = Dir.pwd)
-      curr_path = Pathname.new(path)
-      dir_path = Pathname.new(curr_dir)
-      curr_path.relative_path_from(dir_path).to_s
+    def to_s
+      mine = Pathname.new(File.expand_path(@dir))
+      home = Pathname.new(File.expand_path(Dir.pwd))
+      mine.relative_path_from(home).to_s
     end
 
     def path
@@ -63,7 +63,7 @@ module Zold
     def find(id)
       raise 'Id can\'t be nil' if id.nil?
       raise 'Id must be of type Id' unless id.is_a?(Id)
-      Zold::Wallet.new(File.join(path, id.to_s))
+      yield Zold::Wallet.new(File.join(path, id.to_s))
     end
   end
 end

@@ -121,6 +121,10 @@ module Zold
       def message
         @ex.message
       end
+
+      def header
+        []
+      end
     end
 
     def headers
