@@ -22,8 +22,6 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
-require 'concurrent'
-require 'concurrent/atomics'
 require_relative 'test__helper'
 require_relative '../lib/zold/log'
 require_relative '../lib/zold/remotes'
@@ -165,29 +163,11 @@ class TestRemotes < Minitest::Test
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'a.csv'))
       remotes.clean
-      threads = 5
-      pool = Concurrent::FixedThreadPool.new(threads)
-      alive = true
-      cycles = Concurrent::AtomicFixnum.new
-      success = Concurrent::AtomicFixnum.new
       host = '192.168.0.1'
       remotes.add(host)
-      threads.times do
-        pool.post do
-          while alive
-            Zold::VerboseThread.new(test_log).run(true) do
-              cycles.increment
-              remotes.error(host)
-              success.increment
-            end
-          end
-        end
+      assert_in_threads(threads: 5) do
+        remotes.error(host)
       end
-      assert_wait { cycles.value >= 50 }
-      alive = false
-      pool.shutdown
-      pool.wait_for_termination
-      assert_equal(cycles.value, success.value)
       assert_equal(0, remotes.all.reject { |r| r[:host] == host }.size)
     end
   end
@@ -196,22 +176,10 @@ class TestRemotes < Minitest::Test
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'xx.csv'))
       remotes.clean
-      threads = 5
-      pool = Concurrent::FixedThreadPool.new(threads)
-      done = Concurrent::AtomicFixnum.new
-      latch = Concurrent::CountDownLatch.new(1)
-      threads.times do |i|
-        pool.post do
-          Zold::VerboseThread.new(test_log).run(true) do
-            latch.wait(10)
-            remotes.add('127.0.0.1', 8080 + i)
-            done.increment
-          end
-        end
+      assert_in_threads(threads: 5) do |t|
+        remotes.add('127.0.0.1', 8080 + t)
       end
-      latch.count_down
-      assert_equal_wait(threads) { done.value }
-      assert_equal(threads, remotes.all.count)
+      assert_equal(5, remotes.all.count)
     end
   end
 
@@ -219,30 +187,15 @@ class TestRemotes < Minitest::Test
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'uu-90.csv'))
       remotes.clean
-      threads = 20
-      pool = Concurrent::FixedThreadPool.new(threads)
-      done = Concurrent::AtomicFixnum.new
       start = Time.now
-      alive = true
       100.times { |i| remotes.add('192.168.0.1', 8080 + i) }
-      threads.times do |i|
-        pool.post do
-          loop do
-            break unless alive
-            Zold::VerboseThread.new(test_log).run(true) do
-              remotes.add('127.0.0.1', 8080 + i)
-              remotes.error('127.0.0.1', 8080 + i)
-              remotes.all
-              remotes.iterate(test_log) { done.increment }
-              remotes.remove('127.0.0.1', 8080 + i)
-            end
-          end
-        end
+      assert_in_threads(threads: 4, loops: 10) do |t|
+        remotes.add('127.0.0.1', 8080 + t)
+        remotes.error('127.0.0.1', 8080 + t)
+        remotes.all
+        remotes.iterate(test_log) { remotes.all }
+        remotes.remove('127.0.0.1', 8080 + t)
       end
-      assert_wait { done.value >= 1000 }
-      alive = false
-      pool.shutdown
-      pool.wait_for_termination(10)
       test_log.info("Total time: #{Time.now - start}")
     end
   end

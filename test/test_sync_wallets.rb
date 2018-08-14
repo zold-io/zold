@@ -42,25 +42,13 @@ class TestSyncWallets < Minitest::Test
       home.create_wallet(id)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       amount = Zold::Amount.new(zld: 5.0)
-      threads = 10
-      pool = Concurrent::FixedThreadPool.new(threads)
-      latch = Concurrent::CountDownLatch.new(1)
-      threads.times do |i|
-        pool.post do
-          Thread.current.name = "thread-#{i}"
-          Zold::VerboseThread.new(test_log).run(true) do
-            latch.wait(10)
-            wallets.find(id) do |wallet|
-              wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
-              wallet.refurbish
-            end
-          end
+      assert_in_threads(threads: 5) do
+        wallets.find(id) do |wallet|
+          wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
+          wallet.refurbish
         end
       end
-      latch.count_down
-      pool.shutdown
-      pool.wait_for_termination
-      assert_equal_wait(amount * threads * -1, max: 4) do
+      assert_equal_wait(amount * -5, max: 4) do
         wallets.find(id, &:balance)
       end
       assert_equal(5, Dir.new(wallets.path).count)
