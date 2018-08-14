@@ -247,8 +247,9 @@ Then, you need to create three objects:
 
 ```ruby
 require 'zold/wallets'
+require 'zold/sync_wallets'
 require 'zold/remotes'
-wallets = Zold::Wallets.new(home)
+wallets = Zold::SyncWallets.new(Zold::Wallets.new(home))
 remotes = Zold::Remotes.new(File.join(home, 'remotes'))
 copies = File.join(home, 'copies')
 ```
