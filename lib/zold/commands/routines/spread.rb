@@ -42,7 +42,11 @@ module Zold
 
       def exec(_ = 0)
         return if @remotes.all.empty?
-        sleep(60) unless @opts['routine-immediately']
+        if @opts['routine-immediately']
+          @log.info('Spreading the wallets immediately, because of --routine-immediately')
+        else
+          sleep(60)
+        end
         ids = @wallets.all.sample(10)
         Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
           ['push', "--network=#{@opts['network']}"] + ids

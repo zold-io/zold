@@ -71,7 +71,9 @@ Available options:"
       invoice = mine[1]
       unless invoice.include?('@')
         require_relative 'invoice'
-        invoice = Invoice.new(wallets: @wallets, log: @log).run(['invoice', invoice])
+        invoice = Invoice.new(
+          wallets: @wallets, remotes: @remotes, copies: @copies, log: @log
+        ).run(['invoice', invoice])
       end
       raise 'Amount is required (in ZLD) as the third argument' if mine[2].nil?
       amount = Amount.new(zld: mine[2].to_f)

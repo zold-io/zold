@@ -83,6 +83,8 @@ Available commands:
       Propagate transactions to receiving wallets
     #{Rainbow('pull').green} [ID...] [options]
       Fetch and then merge
+    #{Rainbow('remove').green} [ID...] [options]
+      Remove the wallet(s) from the local storage
     #{Rainbow('show').green} [ID...] [options]
       Show all available information about the wallet
     #{Rainbow('pay').green} from to amount details [options]
@@ -172,7 +174,7 @@ Available options:"
     Zold::Remote.new(remotes: remotes, log: log).run(args)
   when 'invoice'
     require_relative '../lib/zold/commands/invoice'
-    Zold::Invoice.new(wallets: wallets, log: log).run(args)
+    Zold::Invoice.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)
   when 'pay'
     require_relative '../lib/zold/commands/pay'
     Zold::Pay.new(wallets: wallets, remotes: remotes, log: log).run(args)
@@ -185,6 +187,9 @@ Available options:"
   when 'clean'
     require_relative '../lib/zold/commands/clean'
     Zold::Clean.new(wallets: wallets, copies: copies, log: log).run(args)
+  when 'remove'
+    require_relative '../lib/zold/commands/remove'
+    Zold::Remove.new(wallets: wallets, log: log).run(args)
   when 'diff'
     require_relative '../lib/zold/commands/diff'
     Zold::Diff.new(wallets: wallets, copies: copies, log: log).run(args)

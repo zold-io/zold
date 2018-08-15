@@ -34,7 +34,7 @@ require_relative '../lib/zold/version'
 class TestZold < Minitest::Test
   def test_all_scripts
     Dir.new('fixtures/scripts').select { |f| f =~ /\.sh$/ && !f.start_with?('_') }.each do |f|
-      # next unless f == 'distribute-wallet.sh'
+      # next unless f == 'pull-on-start.sh'
       Dir.mktmpdir do |dir|
         FileUtils.cp('fixtures/id_rsa.pub', dir)
         FileUtils.cp('fixtures/id_rsa', dir)

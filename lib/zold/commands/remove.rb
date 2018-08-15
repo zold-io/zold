@@ -20,31 +20,39 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'minitest/autorun'
-require 'tmpdir'
-require_relative '../test__helper'
-require_relative '../../lib/zold/wallets'
-require_relative '../../lib/zold/amount'
-require_relative '../../lib/zold/key'
-require_relative '../../lib/zold/id'
-require_relative '../../lib/zold/commands/invoice'
+require 'slop'
+require 'rainbow'
+require_relative 'args'
+require_relative '../log'
 
-# INVOICE test.
+# REMOVe command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestInvoice < Minitest::Test
-  def test_generates_invoice
-    Dir.mktmpdir do |dir|
-      id = Zold::Id.new
-      wallets = Zold::Wallets.new(dir)
-      wallets.find(id) do |source|
-        source.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-        invoice = Zold::Invoice.new(wallets: wallets, remotes: nil, copies: nil, log: test_log).run(
-          ['invoice', id.to_s, '--length=16']
-        )
-        assert_equal(33, invoice.length)
+module Zold
+  # REMOVE command
+  class Remove
+    def initialize(wallets:, log: Log::Quiet.new)
+      @wallets = wallets
+      @log = log
+    end
+
+    def run(args = [])
+      opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
+        o.banner = "Usage: zold remove [ID...] [options]
+Available options:"
+        o.bool '--help', 'Print instructions'
       end
+      mine = Args.new(opts, @log).take || return
+      mine = @wallets.all if mine.empty?
+      mine.map { |i| Id.new(i) }.each do |id|
+        remove(id, opts)
+      end
+    end
+
+    def remove(id, _)
+      @wallets.find(id) { |w| File.delete(w.path) }
+      @log.info("Wallet #{id} removed")
     end
   end
 end

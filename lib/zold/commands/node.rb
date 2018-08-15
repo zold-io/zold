@@ -173,7 +173,7 @@ module Zold
       )
       if opts['standalone']
         @remotes = Zold::Remotes::Empty.new(file: '/tmp/standalone')
-        @log.debug('Running in standalone mode! (will never talk to other remotes)')
+        @log.info('Running in standalone mode! (will never talk to other remotes)')
       elsif @remotes.exists?(host, port)
         Zold::Remote.new(remotes: @remotes).run(['remote', 'remove', host, port.to_s])
         @log.info("Removed current node (#{address}) from list of remotes")
@@ -195,19 +195,10 @@ module Zold
       Front.set(:node_alias, node_alias)
       invoice = opts[:invoice]
       unless invoice.include?('@')
-        @wallets.find(Id.new(invoice)) do |wallet|
-          if wallet.exists?
-            @log.info("Wallet #{invoice} already exists locally, won't pull")
-          else
-            @log.info("The wallet #{invoice} is not available locally, will pull now...")
-            require_relative 'pull'
-            Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-              ['pull', invoice, "--network=#{opts['network']}"]
-            )
-          end
-        end
         require_relative 'invoice'
-        invoice = Invoice.new(wallets: @wallets, log: @log).run(['invoice', invoice])
+        invoice = Invoice.new(
+          wallets: @wallets, remotes: @remotes, copies: @copies, log: @log
+        ).run(['invoice', invoice])
       end
       SafeEntrance.new(
         NoDupEntrance.new(
