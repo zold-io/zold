@@ -198,7 +198,7 @@ module Zold
         require_relative 'invoice'
         invoice = Invoice.new(
           wallets: @wallets, remotes: @remotes, copies: @copies, log: @log
-        ).run(['invoice', invoice])
+        ).run(['invoice', invoice, "--network=#{opts['network']}"])
       end
       SafeEntrance.new(
         NoDupEntrance.new(
