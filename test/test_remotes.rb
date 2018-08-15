@@ -22,6 +22,7 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
+require 'webmock/minitest'
 require_relative 'test__helper'
 require_relative '../lib/zold/log'
 require_relative '../lib/zold/remotes'
@@ -203,5 +204,22 @@ class TestRemotes < Minitest::Test
   def test_empty_remotes
     remotes = Zold::Remotes::Empty.new(file: '/tmp/empty')
     assert(remotes.is_a?(Zold::Remotes))
+  end
+
+  def test_reports_zold_error_header
+    Dir.mktmpdir do |dir|
+      remotes = Zold::Remotes.new(file: File.join(dir, 'uu-90.csv'))
+      remotes.clean
+      remotes.add('11a-example.org', 8080)
+      stub_request(:get, 'http://11a-example.org:8080/').to_return(
+        status: 500,
+        headers: {
+          'X-Zold-Error': 'hey you'
+        }
+      )
+      remotes.iterate(test_log) do |r|
+        r.assert_code(200, r.http.get)
+      end
+    end
   end
 end

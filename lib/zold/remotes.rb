@@ -23,10 +23,12 @@
 require 'concurrent'
 require 'csv'
 require 'uri'
+require 'net/http'
 require 'time'
 require 'fileutils'
 require_relative 'backtrace'
 require_relative 'score'
+require_relative 'http'
 require_relative 'node/farm'
 require_relative 'atomic_file'
 require_relative 'type'
@@ -80,9 +82,8 @@ module Zold
       def assert_code(code, response)
         msg = response.message.strip
         return if response.code.to_i == code
-        log.debug("#{response.code} \"#{response.message}\" at \"#{response.body}\"")
-        raise "Unexpected HTTP code #{response.code}, instead of #{code}" if msg.empty?
         raise "#{response.code}/#{response.header['X-Zold-Error']}" if response.header['X-Zold-Error']
+        raise "Unexpected HTTP code #{response.code}, instead of #{code}" if msg.empty?
         raise "#{msg} (HTTP code #{response.code}, instead of #{code})"
       end
 

@@ -43,6 +43,7 @@ class TestHttp < Minitest::Test
     res = Zold::Http.new(uri: 'http://exception/', score: nil).get
     assert_equal('599', res.code)
     assert(res.body.include?('Intentionally'))
+    assert(!res.header['nothing'])
   end
 
   def test_pings_live_uri

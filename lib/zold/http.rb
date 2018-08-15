@@ -123,7 +123,7 @@ module Zold
       end
 
       def header
-        []
+        {}
       end
     end
 
