@@ -48,6 +48,9 @@ Available options:"
         o.integer '--length',
           'The length of the invoice prefix (default: 8)',
           default: 8
+        o.string '--network',
+          'The name of the network we work in',
+          default: 'test'
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
