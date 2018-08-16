@@ -131,9 +131,9 @@ module Zold
           @log.info("Thread \"#{thread.name}\" finished in #{delay}s")
           break
         end
-        if delay > 2
+        if delay > 10
           thread.exit
-          @log.info("Thread \"#{thread.name}\" forcefully terminated after #{delay}s (it's a bug!)")
+          @log.error("Thread \"#{thread.name}\" forcefully terminated after #{delay}s")
         end
       end
     end
@@ -154,7 +154,18 @@ module Zold
     end
 
     def cycle(host, port, strength, threads)
-      s = @pipeline.pop
+      s = []
+      loop do
+        return unless @alive
+        begin
+          s << @pipeline.pop(true)
+        rescue ThreadError => _
+          sleep 0.25
+        end
+        s.compact!
+        break unless s.empty?
+      end
+      s = s[0]
       return unless s.valid?
       return unless s.host == host
       return unless s.port == port
