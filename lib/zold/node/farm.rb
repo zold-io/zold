@@ -42,7 +42,7 @@ module Zold
       end
     end
 
-    def initialize(invoice, cache, log: Log::Quiet.new)
+    def initialize(invoice, cache = File.join(Dir.pwd, 'farm'), log: Log::Quiet.new)
       @log = log
       @cache = cache
       @invoice = invoice
@@ -92,8 +92,15 @@ module Zold
       @cleanup = Thread.new do
         Thread.current.abort_on_exception = true
         Thread.current.name = 'cleanup'
-        while @alive
-          sleep(60) unless strength == 1 # which will only happen in tests
+        loop do
+          a = [0..600].take_while do
+            sleep 0.1
+            @alive
+          end
+          unless a.count == 600
+            @log.info("It's time to stop the cleanup thread...")
+            break
+          end
           VerboseThread.new(@log).run do
             cleanup(host, port, strength, threads)
           end
@@ -106,24 +113,30 @@ module Zold
       ensure
         @log.info("Terminating the farm with #{@threads.count} threads...")
         start = Time.now
-        @alive = false
-        if strength == 1
-          @cleanup.join
-          @log.info("Cleanup thread finished in #{(Time.now - start).round(2)}s")
-        else
-          @cleanup.exit
-          @log.info("Cleanup thread killed in #{(Time.now - start).round(2)}s")
-        end
-        @threads.each do |t|
-          tstart = Time.now
-          t.join(0.1)
-          @log.info("Thread #{t.name} finished in #{(Time.now - tstart).round(2)}s")
-        end
+        finish(@cleanup)
+        @threads.each { |t| finish(t) }
         @log.info("Farm stopped in #{(Time.now - start).round(2)}s")
       end
     end
 
     private
+
+    def finish(thread)
+      start = Time.now
+      @alive = false
+      @log.info("Attempting to terminate the thread \"#{thread.name}\"...")
+      loop do
+        delay = (Time.now - start).round(2)
+        if thread.join(0.1)
+          @log.info("Thread \"#{thread.name}\" finished in #{delay}s")
+          break
+        end
+        if delay > 2
+          thread.exit
+          @log.info("Thread \"#{thread.name}\" forcefully terminated after #{delay}s (it's a bug!)")
+        end
+      end
+    end
 
     def cleanup(host, port, strength, threads)
       scores = load
@@ -157,7 +170,7 @@ module Zold
             begin
               buffer << stdout.read_nonblock(1024)
             rescue IO::WaitReadable => e
-              @log.debug("Still waiting for the data from the score provider: #{e.message}")
+              @log.debug("Still waiting for the data from the process ##{thr.pid}: #{e.message}")
             end
             if buffer.end_with?("\n") && thr.value.to_i.zero?
               score = Score.parse(buffer.strip)
@@ -166,12 +179,12 @@ module Zold
               cleanup(host, port, strength, threads)
               break
             end
-            if stdout.eof?
+            if stdout.closed?
               raise "Failed to calculate the score (##{thr.value}): #{buffer}" unless thr.value.to_i.zero?
               break
             end
             break unless @alive
-            sleep 0.1
+            sleep 0.25
           end
         rescue StandardError => e
           @log.error(Backtrace.new(e).to_s)

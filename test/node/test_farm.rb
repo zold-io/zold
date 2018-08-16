@@ -143,4 +143,10 @@ class FarmTest < Minitest::Test
       end
     end
   end
+
+  def test_terminates_farm_entirely
+    Zold::Farm.new('NOPREFIX4@ffffffffffffffff', log: test_log).start('localhost', 4096, threads: 1, strength: 10) do
+      sleep 1
+    end
+  end
 end
