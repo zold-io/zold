@@ -32,6 +32,23 @@ require_relative '../../lib/zold/json_page'
 require_relative '../../lib/zold/score'
 
 class FrontTest < Minitest::Test
+  def test_renders_front_json
+    FakeNode.new(log: test_log).run(['--no-metronome', '--network=foo', '--threads=0']) do |port|
+      res = Zold::Http.new(uri: "http://localhost:#{port}/", network: 'foo', score: nil).get
+      json = JSON.parse(res.body)
+      assert_equal(Zold::VERSION, json['version'])
+      assert_equal(Zold::PROTOCOL, json['protocol'])
+      assert_equal('foo', json['network'])
+      assert(json['pid'].positive?)
+      assert(json['cpus'].positive?)
+      assert(json['memory'].positive?)
+      assert(json['load'].positive?)
+      assert(json['wallets'].positive?)
+      assert(json['remotes'].zero?)
+      assert(json['nscore'].zero?)
+    end
+  end
+
   def test_renders_public_pages
     FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
       {
@@ -219,13 +236,7 @@ class FrontTest < Minitest::Test
           '*',
           response.header['Access-Control-Allow-Origin']
         )
-        score = Zold::Score.new(
-          time: Time.now, host: 'localhost', port: port, invoice: 'NOPREFIX@ffffffffffffffff', strength: 2
-        )
-        assert_equal(
-          score.to_s,
-          response.header[Zold::Http::SCORE_HEADER]
-        )
+        assert(!response.header[Zold::Http::SCORE_HEADER].nil?)
       end
     end
   end

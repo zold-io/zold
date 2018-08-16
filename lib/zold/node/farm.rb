@@ -148,7 +148,7 @@ module Zold
       return unless s.strength >= strength
       Thread.current.name = s.to_mnemo
       bin = File.expand_path(File.join(File.dirname(__FILE__), '../../../bin/zold'))
-      Open3.popen2e("ruby #{bin} next \"#{s}\"") do |stdin, stdout, thr|
+      Open3.popen2e("ruby #{bin} --skip-upgrades next \"#{s}\"") do |stdin, stdout, thr|
         @log.debug("Score counting started in process ##{thr.pid}")
         begin
           stdin.close
@@ -157,16 +157,19 @@ module Zold
             begin
               buffer << stdout.read_nonblock(1024)
             rescue IO::WaitReadable => e
-              @log.debug("Still waiting for data from the score provider: #{e.message}")
+              @log.debug("Still waiting for the data from the score provider: #{e.message}")
             end
-            if buffer.end_with?("\n")
+            if buffer.end_with?("\n") && thr.value.to_i.zero?
               score = Score.parse(buffer.strip)
               @log.debug("New score discovered: #{score}")
               save(threads, [score])
               cleanup(host, port, strength, threads)
               break
             end
-            break if stdout.eof?
+            if stdout.eof?
+              raise "Failed to calculate the score (##{thr.value}): #{buffer}" unless thr.value.to_i.zero?
+              break
+            end
             break unless @alive
             sleep 0.1
           end

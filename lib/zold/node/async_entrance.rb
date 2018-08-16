@@ -69,7 +69,7 @@ module Zold
         )
         AsyncEntrance::THREADS.times do |t|
           @pool.post do
-            Thread.current.name = "async-#{t}"
+            Thread.current.name = "async-e##{t}"
             loop do
               VerboseThread.new(@log).run(true) { take }
               break if @pool.shuttingdown?

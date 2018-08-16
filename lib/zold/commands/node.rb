@@ -302,14 +302,17 @@ module Zold
 
     def metronome(farm, opts)
       metronome = Metronome.new(@log)
-      return metronome if opts['no-metronome']
+      if opts['no-metronome']
+        @log.info('Metronome hasn\'t been started because of --no-metronome')
+        return metronome
+      end
       require_relative 'routines/spread'
       metronome.add(Routines::Spread.new(opts, @wallets, @remotes, log: @log))
       unless opts['standalone']
         require_relative 'routines/reconnect'
         metronome.add(Routines::Reconnect.new(opts, @remotes, farm, network: opts['network'], log: @log))
       end
-      @log.info('Metronome created')
+      @log.info('Metronome started (use --no-metronome to disable it)')
       metronome
     end
 

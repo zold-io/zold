@@ -51,4 +51,28 @@ class TestHttp < Minitest::Test
     res = Zold::Http.new(uri: 'http://good-host/', score: nil).get
     assert_equal('200', res.code)
   end
+
+  def test_sends_valid_network_header
+    stub_request(:get, 'http://some-host-1/')
+      .with(headers: { 'X-Zold-Network' => 'xyz' })
+      .to_return(status: 200)
+    res = Zold::Http.new(uri: 'http://some-host-1/', score: nil, network: 'xyz').get
+    assert_equal('200', res.code)
+  end
+
+  def test_sends_valid_protocol_header
+    stub_request(:get, 'http://some-host-2/')
+      .with(headers: { 'X-Zold-Protocol' => Zold::PROTOCOL })
+      .to_return(status: 200)
+    res = Zold::Http.new(uri: 'http://some-host-2/', score: nil).get
+    assert_equal('200', res.code)
+  end
+
+  def test_sends_valid_version_header
+    stub_request(:get, 'http://some-host-3/')
+      .with(headers: { 'X-Zold-Version' => Zold::VERSION })
+      .to_return(status: 200)
+    res = Zold::Http.new(uri: 'http://some-host-3/', score: nil).get
+    assert_equal('200', res.code)
+  end
 end

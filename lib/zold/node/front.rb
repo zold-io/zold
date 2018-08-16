@@ -27,6 +27,7 @@ require 'sinatra/base'
 require 'webrick'
 require 'get_process_mem'
 require 'diffy'
+require 'usagewatch_ext'
 require 'concurrent'
 require_relative '../backtrace'
 require_relative '../version'
@@ -66,7 +67,7 @@ module Zold
       set :farm, nil? # to be injected at node.rb
       set :metronome, nil? # to be injected at node.rb
       set :entrance, nil? # to be injected at node.rb
-      set :network, nil? # to be injected at node.rb
+      set :network, 'test' # to be injected at node.rb
       set :wallets, nil? # to be injected at node.rb
       set :remotes, nil? # to be injected at node.rb
       set :copies, nil? # to be injected at node.rb
@@ -162,13 +163,14 @@ while #{settings.address} is in '#{settings.network}'"
         score: score.to_h,
         pid: Process.pid,
         cpus: Concurrent.processor_count,
-        memory: GetProcessMem.new.bytes,
+        memory: GetProcessMem.new.bytes.to_i,
         platform: RUBY_PLATFORM,
+        load: Usagewatch.uw_load.to_f,
         uptime: `uptime`.strip,
         threads: "#{Thread.list.select { |t| t.status == 'run' }.count}/#{Thread.list.count}",
         wallets: settings.wallets.all.count,
         remotes: settings.remotes.all.count,
-        nscore: settings.remotes.all.map { |r| r[:score] }.inject(&:+),
+        nscore: settings.remotes.all.map { |r| r[:score] }.inject(&:+) || 0,
         farm: settings.farm.to_json,
         entrance: settings.entrance.to_json,
         date: Time.now.utc.iso8601,
