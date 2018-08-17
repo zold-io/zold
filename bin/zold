@@ -35,6 +35,7 @@ require_relative '../lib/zold'
 require_relative '../lib/zold/version'
 require_relative '../lib/zold/wallet'
 require_relative '../lib/zold/wallets'
+require_relative '../lib/zold/tree_wallets'
 require_relative '../lib/zold/sync_wallets'
 require_relative '../lib/zold/log'
 require_relative '../lib/zold/key'
@@ -160,7 +161,10 @@ Available options:"
     Zold::RenameForeignWallets.new(Dir.pwd, opts['network'], log).exec
   end
 
-  wallets = Zold::SyncWallets.new(Zold::Wallets.new('.'), File.join(zoldata, 'locks'), log: log)
+  wallets = Zold::SyncWallets.new(
+    command == 'node' ? Zold::TreeWallets.new('.') : Zold::Wallets.new('.'),
+    File.join(zoldata, 'locks'), log: log
+  )
   remotes = Zold::Remotes.new(file: File.join(zoldata, 'remotes'), network: opts['network'])
   copies = File.join(zoldata, 'copies')
 
