@@ -96,6 +96,9 @@ module Zold
         o.string '--nohup-log',
           'The file to log output into (default: zold.log)',
           default: 'zold.log'
+        o.integer '--nohup-log-truncate',
+          'The maximum amount of bytes to keep in the file, and truncate it in half if it grows bigger',
+          default: 1024 * 1024
         o.string '--halt-code',
           'The value of HTTP query parameter "halt," which will cause the front-end immediate termination',
           default: ''
@@ -265,7 +268,7 @@ module Zold
 
     def nohup(opts)
       pid = fork do
-        nohup_log = NohupLog.new(opts['nohup-log'])
+        nohup_log = NohupLog.new(opts['nohup-log'], opts['nohup-log-truncate'])
         Signal.trap('HUP') do
           nohup_log.print("Received HUP, ignoring...\n")
         end
@@ -327,12 +330,37 @@ module Zold
 
     # Log facility for nohup
     class NohupLog
-      def initialize(file)
+      def initialize(file, max)
         @file = file
+        raise "Truncation size is too small (#{max}), should be over 10Kb" if max < 10 * 1024
+        @max = max
       end
 
       def print(data)
         File.open(@file, 'a') { |f| f.print(data) }
+        return if File.size(@file) < @max
+        temp = Tempfile.new
+        total = copy(@file, temp)
+        unit = File.size(@file) / total
+        tail = total - @max / (2 * unit)
+        copy(temp, @file, tail)
+        File.delete(temp)
+        File.open(@file, 'a') do |f|
+          f.print("The file was truncated, because it was over the quota of #{@max} bytes, \
+#{tail} lines left out of #{total}, average line length was #{unit} bytes\n\n")
+        end
+      end
+
+      def copy(source, target, start = 0)
+        total = 0
+        File.open(target, 'w') do |t|
+          File.open(source, 'r').each do |line|
+            next unless total >= start
+            t.print(line)
+            total += 1
+          end
+        end
+        total
       end
     end
 

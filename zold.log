@@ -1,35 +1,12 @@
-Started process #13564 from process #13563: /Volumes/ssd2/code/zold/zold/bin/zold node --host localhost --invoice testmenow@1111555566667777
-Mac version is under development
-Home directory: /Volumes/ssd2/code/zold/zold
-Ruby version: 2.3.3
-Zold gem version: 0.0.0
-Zold protocol version: 2
-Network ID: zold
-Node location: localhost:4096
-Local address: http://localhost:4096/
-Remote nodes (21): b2.zold.io:4096, 138.197.140.42:4096, 159.203.19.189:4096, 151.236.63.245:4096, 91.152.97.250:4096, 138.68.95.144:4096, 178.128.41.66:4096, 159.65.37.22:4096, 159.203.63.90:4096, z.oltdaniel.tk:4096, 138.201.231.23:4096, 167.99.77.100:4096, 45.77.55.65:4096, 185.209.160.6:4096, 185.130.104.232:4096, b1.zold.io:80, 185.159.82.118:4096, 185.159.82.119:4096, 185.130.104.240:4096, 185.130.104.246:4096, 185.130.104.228:4096
-Wallets at: /Volumes/ssd2/code/zold/zold
-1 scores pre-loaded, the best is: 0/6: 2018-08-17T13:42:29Z localhost 4096 testmenow@1111555566667777
-Farm started with 2 threads at localhost:4096, strength is 6
-Added Zold::Routines::Spread to the metronome
-Score counting started in process #13566
-Still waiting for the data from the process #13566: Resource temporarily unavailable - read would block
-Added Zold::Routines::Reconnect to the metronome
-Metronome started (use --no-metronome to disable it)
-Starting up the web front at http://localhost:4096...
-WEBrick 1.3.1
-ruby 2.3.3 (2016-11-21) [x86_64-darwin16]
-WEBrick::HTTPServer#start: pid=13564 port=4096
-It's time to stop the cleanup thread...
-Still waiting for the data from the process #13566: Resource temporarily unavailable - read would block
-Still waiting for the data from the process #13566: Resource temporarily unavailable - read would block
-Still waiting for the data from the process #13566: Resource temporarily unavailable - read would block
-Still waiting for the data from the process #13566: Resource temporarily unavailable - read would block
-Still waiting for the data from the process #13566: Resource temporarily unavailable - read would block
-Still waiting for the data from the process #13566: Resource temporarily unavailable - read would block
-Still waiting for the data from the process #13566: Resource temporarily unavailable - read would block
-Still waiting for the data from the process #13566: Resource temporarily unavailable - read would block
-Still waiting for the data from the process #13566: Resource temporarily unavailable - read would block
-Still waiting for the data from the process #13566: Resource temporarily unavailable - read would block
-Still waiting for the data from the process #13566: Resource temporarily unavailable - read would block
-Still waiting for the data from the process #13566: Resource temporarily unavailable - read would block
+The file was truncated, because it was over the quota of 1024 bytes, 9 lines left out of 16, average line length was 66 bytes
+
+94.103.80.24:4096 found at 109.234.37.76:4096/0 and added
+178.128.41.66:4096 added to the list, 21 total
+178.128.41.66:4096 found at 109.234.37.76:4096/0 and added
+109.234.37.76:4096: The node 62.113.238.234:4096 is not responding (code is 599) in 27s
+RuntimeError: The node 62.113.238.234:4096 is not responding (code is 599)
+	/Volumes/ssd2/code/zold/zold/lib/zold/commands/remote.rb:170:in `add'
+	/Volumes/ssd2/code/zold/zold/lib/zold/commands/remote.rb:237:in `block (2 levels) in update'
+	/Volumes/ssd2/code/zold/zold/lib/zold/commands/remote.rb:236:in `each'
+	/Volumes/ssd2/code/zold/zold/lib/zold/commands/remote.rb:236:in `block in update'
+	/Volumes/ssd2/code/zold/zold/lib/zold/remotes.rb:193:in `block (2 levels) in iterate'

@@ -77,6 +77,7 @@ module Zold
       @log.info('Zero-threads farm won\'t score anything!') if threads.zero?
       cleanup(host, port, strength, threads)
       @log.info("#{@pipeline.size} scores pre-loaded, the best is: #{best[0]}")
+      @alive = true
       @threads = (1..threads).map do |t|
         Thread.new do
           Thread.current.abort_on_exception = true
@@ -89,17 +90,17 @@ module Zold
           end
         end
       end
-      @alive = true
       @cleanup = Thread.new do
         Thread.current.abort_on_exception = true
         Thread.current.name = 'cleanup'
         loop do
-          a = [0..600].take_while do
+          max = 600
+          a = (0..max).take_while do
             sleep 0.1
             @alive
           end
-          unless a.count == 600
-            @log.info("It's time to stop the cleanup thread...")
+          unless a.count == max
+            @log.info("It's time to stop the cleanup thread (#{a.count} != #{max}, alive=#{@alive})...")
             break
           end
           VerboseThread.new(@log).run do
@@ -181,8 +182,10 @@ module Zold
           loop do
             begin
               buffer << stdout.read_nonblock(1024)
-            rescue IO::WaitReadable => e
-              @log.debug("Still waiting for the data from the process ##{thr.pid}: #{e.message}")
+              # rubocop:disable Lint/HandleExceptions
+            rescue IO::WaitReadable => _
+              # rubocop:enable Lint/HandleExceptions
+              # nothing to do here
             end
             if buffer.end_with?("\n") && thr.value.to_i.zero?
               score = Score.parse(buffer.strip)
