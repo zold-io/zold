@@ -25,6 +25,7 @@ STDOUT.sync = true
 require 'json'
 require 'sinatra/base'
 require 'webrick'
+require 'cachy'
 require 'get_process_mem'
 require 'diffy'
 require 'usagewatch_ext'
@@ -166,9 +167,8 @@ while #{settings.address} is in '#{settings.network}'"
         memory: GetProcessMem.new.bytes.to_i,
         platform: RUBY_PLATFORM,
         load: Usagewatch.uw_load.to_f,
-        uptime: `uptime`.strip,
         threads: "#{Thread.list.select { |t| t.status == 'run' }.count}/#{Thread.list.count}",
-        wallets: settings.wallets.all.count,
+        wallets: Cachy.cache(:a_key, expires_in: 5 * 60) { settings.wallets.all.count },
         remotes: settings.remotes.all.count,
         nscore: settings.remotes.all.map { |r| r[:score] }.inject(&:+) || 0,
         farm: settings.farm.to_json,

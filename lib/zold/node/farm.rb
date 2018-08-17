@@ -57,7 +57,8 @@ module Zold
 
     def to_text
       @threads.map do |t|
-        "#{t.name}: status=#{t.status}; alive=#{t.alive?};\n  #{t.backtrace.join("\n  ")}"
+        trace = t.backtrace || []
+        "#{t.name}: status=#{t.status}; alive=#{t.alive?};\n  #{trace.join("\n  ")}"
       end.join("\n")
     end
 

@@ -51,7 +51,3 @@ if [ ! $(echo ${json} | jq -r '.entrance.history_size') == "1" ]; then
   echo "The history doesn't have a wallet, it's a bug"
   exit -1
 fi
-if [ ! $(echo ${json} | jq -r '.wallets') == "1" ]; then
-  echo "The wallet is not there for some reason, it's a bug"
-  exit -1
-fi

@@ -31,6 +31,8 @@ end
 
 require 'slop'
 require 'rainbow'
+require 'cachy'
+require 'moneta'
 require_relative '../lib/zold'
 require_relative '../lib/zold/version'
 require_relative '../lib/zold/wallet'
@@ -46,6 +48,8 @@ require_relative '../lib/zold/upgrades'
 require_relative '../lib/zold/version_file'
 
 Thread.current.name = 'main'
+
+Cachy.cache_store = Moneta.new(:Memory)
 
 Encoding.default_external = Encoding::UTF_8
 Encoding.default_internal = Encoding::UTF_8
