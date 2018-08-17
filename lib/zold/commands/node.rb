@@ -138,7 +138,7 @@ module Zold
         return
       end
       raise '--invoice is mandatory' unless opts['invoice']
-      if opts[:nohup]
+      if opts['nohup']
         pid = nohup(opts)
         File.write(opts['save-pid'], pid) if opts['save-pid']
         @log.debug("Process ID #{pid} saved into \"#{opts['save-pid']}\"")
@@ -148,6 +148,7 @@ module Zold
       @log = Trace.new(@log, opts['trace-length'])
       Front.set(:log, @log)
       Front.set(:trace, @log)
+      Front.set(:nohup_log, opts['nohup-log']) if opts['nohup-log']
       Front.set(:version, opts['expose-version'])
       Front.set(:protocol, Zold::PROTOCOL)
       Front.set(:logging, @log.debug?)
@@ -273,7 +274,7 @@ module Zold
           exit(-1)
         end
         myself = File.expand_path($PROGRAM_NAME)
-        args = ARGV.delete_if { |a| a.start_with?('--nohup', '--home') }
+        args = ARGV.delete_if { |a| a.start_with?('--home') || a == '--nohup' }
         cycle = 0
         loop do
           begin

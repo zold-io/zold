@@ -62,6 +62,7 @@ module Zold
       set :protocol, PROTOCOL # to be injected at node.rb
       set :ignore_score_weakness, false # to be injected at node.rb
       set :reboot, false # to be injected at node.rb
+      set :nohup_log, false # to be injected at node.rb
       set :home, nil? # to be injected at node.rb
       set :logging, true # to be injected at node.rb
       set :address, nil? # to be injected at node.rb
@@ -142,6 +143,14 @@ while #{settings.address} is in '#{settings.network}'"
     get '/trace' do
       content_type 'text/plain'
       settings.trace.to_s
+    end
+
+    get '/nohup_log' do
+      raise 'Run it with --nohup in order to see this log' if settings.nohup_log.nil?
+      raise "Log not found at #{settings.nohup_log}" unless File.exist?(settings.nohup_log)
+      response.headers['Content-Type'] = 'text/plain'
+      response.headers['Content-Disposition'] = "attachment; filename='#{File.basename(settings.nohup_log)}'"
+      File.read(settings.nohup_log)
     end
 
     get '/favicon.ico' do
