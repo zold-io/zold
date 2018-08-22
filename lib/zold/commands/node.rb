@@ -157,6 +157,7 @@ module Zold
       Front.set(:logging, @log.debug?)
       Front.set(:halt, opts['halt-code'])
       Front.set(:home, Dir.pwd)
+      @log.info("Time: #{Time.now.utc.iso8601}")
       @log.info("Home directory: #{Dir.pwd}")
       @log.info("Ruby version: #{RUBY_VERSION}")
       @log.info("Zold gem version: #{Zold::VERSION}")
