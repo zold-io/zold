@@ -80,6 +80,7 @@ class FrontTest < Minitest::Test
   end
 
   def test_updates_list_of_remotes
+    skip
     FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
       score = Zold::Score.new(
         time: Time.now, host: 'localhost', port: port, invoice: 'NOPREFIX@ffffffffffffffff', strength: 1
