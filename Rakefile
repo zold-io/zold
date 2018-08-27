@@ -33,7 +33,7 @@ def version
   Gem::Specification.load(Dir['*.gemspec'].first).version
 end
 
-task default: %i[clean test features rubocop xcop copyright]
+task default: %i[clean compile test features rubocop xcop copyright]
 
 require 'rake/testtask'
 desc 'Run all unit tests'
@@ -85,4 +85,8 @@ task :copyright do
     --include '*.txt' \
     --include 'Rakefile' \
     ."
+end
+
+task :compile do
+  `clang -o ext/score.so -shared -fPIC -lssl -lcrypto ext/score.c`
 end
