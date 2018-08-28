@@ -218,7 +218,7 @@ in #{(Time.now - start).round}s")
       raise 'Host can\'t be nil' if host.nil?
       raise 'Port can\'t be nil' if port.nil?
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
-      if_present(host, port) { |r| r[:errors] -= 1 if r[:errors].positive? }
+      if_present(host, port) { |r| r[:errors] -= 1 }
     end
 
     def rescore(host, port, score)
@@ -242,6 +242,7 @@ in #{(Time.now - start).round}s")
         remote = list.find { |r| r[:host] == host.downcase && r[:port] == port }
         return unless remote
         yield remote
+        remote[:errors] = 0 if remote[:errors].negative?
         list
       end
     end
