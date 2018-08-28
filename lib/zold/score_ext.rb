@@ -38,28 +38,23 @@ module Zold
     def self.calculate_nonce_multi_core(cores, data, strength)
       reader, writer = IO.pipe
       workers = cores.times.map do |c|
+        # @task #475:20min `Process#fork` is not supported by windows. This
+        #  needs to be replaced.
         fork do
-          begin
-            reader.close
-            per_core = (2**64 / cores)
-            nonce = self.calculate_nonce_extended(
-              per_core * c,
-              per_core * (c + 1) - 1,
-              data,
-              strength
-            )
-            writer.puts "#{nonce}" if !nonce.zero?
-          rescue
-          end
+          reader.close
+          nonce = self.calculate_nonce_extended(
+            (2**64 / cores) * c,
+            (2**64 / cores) * (c + 1) - 1,
+            data,
+            strength
+          )
+          writer.puts "#{nonce}" if !nonce.zero?
         end
       end
       writer.close
       nonce = reader.gets
       workers.each do |w|
-        begin
-          Process.kill "KILL", w
-        rescue
-        end
+        Process.kill "KILL", w
       end
       return nonce.to_i
     end

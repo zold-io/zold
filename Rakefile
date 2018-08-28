@@ -88,5 +88,8 @@ task :copyright do
 end
 
 task :compile do
+  # @task #475:20min Implement a windows supported command in order to compile
+  #  the C extension. Affected file: lib/zold/score_ext.rb
+  raise 'Zold Score C extension not supported on windows' if Gem.win_platform?
   `clang -o ext/score.so -shared -fPIC -lssl -lcrypto ext/score.c`
 end
