@@ -67,15 +67,11 @@ if [ $(echo ${json} | jq -r '.entrance.history_size') == "0" ]; then
   echo "The history doesn't have a wallet, it's a bug"
   exit 6
 fi
-if [ ! $(echo ${json} | jq -r '.wallets') == "1" ]; then
-  echo "The wallet is not there for some reason, it's a bug"
-  exit 7
-fi
 
 # Now, we remove the wallet from the second node and expect the first
 # one to "spread" it again, almost immediately. The second node should
 # have the wallet very soon.
-rm -f ${second}/0000000000000000.z
+rm -f ${second}/**/*.z
 i=0
 until zold fetch 0000000000000000 --ignore-score-weakness; do
   echo 'Failed to fetch, let us try again'

@@ -68,11 +68,13 @@ class FakeNode
           end
         end
         uri = "http://localhost:#{port}/"
-        while Zold::Http.new(uri: uri, score: nil).get.code == '599' && node.alive?
-          @log.debug("Waiting for #{uri}...")
-          sleep 1
+        loop do
+          ping = Zold::Http.new(uri: uri, score: nil, network: Zold::Front.network).get
+          break unless ping.code == '599' && node.alive?
+          @log.debug("Waiting for #{uri}: ##{ping.code}...")
+          sleep 0.5
         end
-        raise 'The node is dead' unless node.alive?
+        raise "The node is dead at #{uri}" unless node.alive?
         begin
           yield port
         ensure

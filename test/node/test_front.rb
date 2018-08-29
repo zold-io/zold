@@ -32,6 +32,23 @@ require_relative '../../lib/zold/json_page'
 require_relative '../../lib/zold/score'
 
 class FrontTest < Minitest::Test
+  def test_renders_front_json
+    FakeNode.new(log: test_log).run(['--no-metronome', '--network=foo', '--threads=0']) do |port|
+      res = Zold::Http.new(uri: "http://localhost:#{port}/", network: 'foo', score: nil).get
+      json = JSON.parse(res.body)
+      assert_equal(Zold::VERSION, json['version'])
+      assert_equal(Zold::PROTOCOL, json['protocol'])
+      assert_equal('foo', json['network'])
+      assert(json['pid'].positive?)
+      assert(json['cpus'].positive?)
+      assert(json['memory'].positive?)
+      assert(json['load'].positive?)
+      assert(json['wallets'].positive?)
+      assert(json['remotes'].zero?)
+      assert(json['nscore'].zero?)
+    end
+  end
+
   def test_renders_public_pages
     FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
       {
@@ -121,26 +138,11 @@ class FrontTest < Minitest::Test
     FakeNode.new(log: test_log).run do |port|
       base = "http://localhost:#{port}"
       FakeHome.new.run do |home|
-        threads = 20
-        done = Concurrent::AtomicFixnum.new
-        pool = Concurrent::FixedThreadPool.new(threads)
-        latch = Concurrent::CountDownLatch.new(1)
-        threads.times do |i|
-          pool.post do
-            Thread.current.name = "thread-#{i}"
-            Zold::VerboseThread.new(test_log).run(true) do
-              latch.wait(10)
-              wallet = home.create_wallet
-              Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).put(File.read(wallet.path))
-              assert_equal_wait('200') { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).get.code }
-              done.increment
-            end
-          end
+        assert_in_threads(threads: 20) do
+          wallet = home.create_wallet
+          Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).put(File.read(wallet.path))
+          assert_equal_wait('200') { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).get.code }
         end
-        latch.count_down
-        pool.shutdown
-        pool.wait_for_termination
-        assert_equal(threads, done.value)
       end
     end
   end
@@ -234,13 +236,7 @@ class FrontTest < Minitest::Test
           '*',
           response.header['Access-Control-Allow-Origin']
         )
-        score = Zold::Score.new(
-          time: Time.now, host: 'localhost', port: port, invoice: 'NOPREFIX@ffffffffffffffff', strength: 2
-        )
-        assert_equal(
-          score.to_s,
-          response.header[Zold::Http::SCORE_HEADER]
-        )
+        assert(!response.header[Zold::Http::SCORE_HEADER].nil?)
       end
     end
   end

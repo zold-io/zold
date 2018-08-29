@@ -37,7 +37,7 @@ module Zold
         ': ',
         @error.message,
         "\n\t",
-        @error.backtrace.select { |t| t.include?('zold/') }.join("\n\t")
+        @error.backtrace.reverse.drop_while { |t| !t.include?('zold/') }.reverse.join("\n\t")
       ].join
     end
   end

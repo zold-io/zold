@@ -51,7 +51,7 @@ Available options:"
     private
 
     def calculate(opts)
-      @log.info(Score.parse(opts.arguments[1]).next.to_s)
+      @log.info(Score.parse(opts.arguments.drop_while { |a| a.start_with?('--') }[1]).next.to_s)
     end
   end
 end

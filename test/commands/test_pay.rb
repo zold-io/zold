@@ -49,6 +49,22 @@ class TestPay < Minitest::Test
     end
   end
 
+  def test_pay_in_many_threads
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      amount = Zold::Amount.new(zld: 2.0)
+      assert_in_threads(threads: 10) do
+        Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: test_log).run(
+          [
+            'pay', '--force', '--private-key=fixtures/id_rsa',
+            wallet.id.to_s, 'NOPREFIX@dddd0000dddd0000', amount.to_zld, '-'
+          ]
+        )
+      end
+      assert_equal(amount * -10, wallet.balance)
+    end
+  end
+
   def test_sends_from_root_wallet
     FakeHome.new.run do |home|
       source = home.create_wallet(Zold::Id::ROOT)

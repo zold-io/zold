@@ -32,8 +32,10 @@ require_relative '../prefixes'
 module Zold
   # Generate invoice
   class Invoice
-    def initialize(wallets:, log: Log::Quiet.new)
+    def initialize(wallets:, remotes:, copies:, log: Log::Quiet.new)
       @wallets = wallets
+      @remotes = remotes
+      @copies = copies
       @log = log
     end
 
@@ -46,23 +48,31 @@ Available options:"
         o.integer '--length',
           'The length of the invoice prefix (default: 8)',
           default: 8
+        o.string '--network',
+          'The name of the network we work in',
+          default: 'test'
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
       raise 'Receiver wallet ID is required' if mine[0].nil?
       id = Zold::Id.new(mine[0])
-      @wallets.find(id) do |wallet|
-        raise "Wallet #{id} doesn\'t exist in #{@wallets}, do 'zold pull' first" unless wallet.exists?
-        invoice(wallet, opts)
-      end
+      invoice(id, opts)
     end
 
     private
 
-    def invoice(wallet, opts)
-      invoice = "#{Prefixes.new(wallet).create(opts[:length])}@#{wallet.id}"
-      @log.info(invoice)
-      invoice
+    def invoice(id, opts)
+      unless @wallets.find(id, &:exists?)
+        require_relative 'pull'
+        Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
+          ['pull', id.to_s, "--network=#{opts['network']}"]
+        )
+      end
+      inv = @wallets.find(id) do |wallet|
+        "#{Prefixes.new(wallet).create(opts[:length])}@#{wallet.id}"
+      end
+      @log.info(inv)
+      inv
     end
   end
 end

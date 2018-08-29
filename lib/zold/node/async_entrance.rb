@@ -35,6 +35,9 @@ module Zold
     # How many threads to use for processing
     THREADS = Concurrent.processor_count * 8
 
+    # Queue length
+    MAX_QUEUE = Concurrent.processor_count * 64
+
     # Max items in the queue. If there will be more, push() requests
     # will be rejected.
     MAX_QUEUE = 128
@@ -65,11 +68,11 @@ module Zold
       @entrance.start do
         FileUtils.mkdir_p(@dir)
         @pool = Concurrent::FixedThreadPool.new(
-          AsyncEntrance::THREADS, max_queue: AsyncEntrance::THREADS, fallback_policy: :abort
+          AsyncEntrance::THREADS, max_queue: AsyncEntrance::MAX_QUEUE, fallback_policy: :abort
         )
         AsyncEntrance::THREADS.times do |t|
           @pool.post do
-            Thread.current.name = "async-#{t}"
+            Thread.current.name = "async-e##{t}"
             loop do
               VerboseThread.new(@log).run(true) { take }
               break if @pool.shuttingdown?

@@ -40,7 +40,7 @@ class FarmTest < Minitest::Test
   def test_renders_in_json
     Dir.mktmpdir do |dir|
       farm = Zold::Farm.new('NOPREFIX6@ffffffffffffffff', File.join(dir, 'f'), log: test_log)
-      farm.start('localhost', 80, threads: 4, strength: 2) do
+      farm.start('localhost', 80, threads: 2, strength: 2) do
         assert_wait { !farm.best.empty? && !farm.best[0].value.zero? }
         count = 0
         100.times { count += farm.to_json[:best].length }
@@ -61,7 +61,7 @@ class FarmTest < Minitest::Test
   def test_makes_best_score_in_background
     Dir.mktmpdir do |dir|
       farm = Zold::Farm.new('NOPREFIX1@ffffffffffffffff', File.join(dir, 'f'), log: test_log)
-      farm.start('localhost', 80, threads: 4, strength: 3) do
+      farm.start('localhost', 80, threads: 1, strength: 3) do
         assert_wait { !farm.best.empty? && farm.best[0].value >= 3 }
         score = farm.best[0]
         assert(!score.expired?)
@@ -141,6 +141,12 @@ class FarmTest < Minitest::Test
         assert_equal(1, farm.best.count)
         assert(log.msg.include?('Invalid score'))
       end
+    end
+  end
+
+  def test_terminates_farm_entirely
+    Zold::Farm.new('NOPREFIX4@ffffffffffffffff', log: test_log).start('localhost', 4096, threads: 1, strength: 10) do
+      sleep 1
     end
   end
 end
