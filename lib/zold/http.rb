@@ -66,12 +66,8 @@ module Zold
     #  that is already taken care of in another issue. I am leaving a todo
     #  to check that rubocop doesn't complain anymore, otherwise find another
     #  solution
-    attribute :uri, (Types::Class.constructor do |value|
-      value.is_a?(URI) ? value : URI(value)
-    end)
-    attribute :score, (Types::Class.constructor do |value|
-      value.nil? ? Score::ZERO : value
-    end)
+    attribute :uri, (Types::Class.constructor { |v| v.is_a?(URI) ? v : URI(v) })
+    attribute :score, (Types::Class.constructor { |v| v.nil? ? Score::ZERO : v })
     attribute :network, Types::Strict::String.optional.default('test')
 
     def get
@@ -120,6 +116,10 @@ module Zold
 
       def message
         @ex.message
+      end
+
+      def header
+        {}
       end
     end
 

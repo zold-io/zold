@@ -1,0 +1,12 @@
+The file was truncated, because it was over the quota of 1024 bytes, 9 lines left out of 16, average line length was 66 bytes
+
+94.103.80.24:4096 found at 109.234.37.76:4096/0 and added
+178.128.41.66:4096 added to the list, 21 total
+178.128.41.66:4096 found at 109.234.37.76:4096/0 and added
+109.234.37.76:4096: The node 62.113.238.234:4096 is not responding (code is 599) in 27s
+RuntimeError: The node 62.113.238.234:4096 is not responding (code is 599)
+	/Volumes/ssd2/code/zold/zold/lib/zold/commands/remote.rb:170:in `add'
+	/Volumes/ssd2/code/zold/zold/lib/zold/commands/remote.rb:237:in `block (2 levels) in update'
+	/Volumes/ssd2/code/zold/zold/lib/zold/commands/remote.rb:236:in `each'
+	/Volumes/ssd2/code/zold/zold/lib/zold/commands/remote.rb:236:in `block in update'
+	/Volumes/ssd2/code/zold/zold/lib/zold/remotes.rb:193:in `block (2 levels) in iterate'

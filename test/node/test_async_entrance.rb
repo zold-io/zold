@@ -49,7 +49,7 @@ class TestAsyncEntrance < Minitest::Test
       basic = CountingEntrance.new
       Zold::AsyncEntrance.new(basic, File.join(home.dir, 'a/b/c'), log: test_log).start do |e|
         5.times { e.push(wallet.id, File.read(wallet.path)) }
-        sleep 0.1 while basic.count.zero?
+        assert_equal_wait(false) { basic.count.zero? }
         assert(!basic.count.zero?)
       end
     end

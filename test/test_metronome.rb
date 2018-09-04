@@ -34,8 +34,7 @@ class TestMetronome < Minitest::Test
     list = []
     metronome.add(FakeRoutine.new(list))
     metronome.start do
-      sleep 0.1 while list.empty?
-      assert_equal(1, list.count)
+      assert_wait { !list.empty? }
     end
   end
 
@@ -52,7 +51,7 @@ class TestMetronome < Minitest::Test
     routine = BrokenRoutine.new
     metronome.add(routine)
     metronome.start do
-      sleep 0.1 while routine.count < 2
+      assert_wait { routine.count >= 2 }
       assert(routine.count > 1)
     end
   end

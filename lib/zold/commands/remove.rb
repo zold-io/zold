@@ -20,33 +20,39 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Atomic file.
+require 'slop'
+require 'rainbow'
+require_relative 'args'
+require_relative '../log'
+
+# REMOVe command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # Atomic file
-  class AtomicFile
-    def initialize(file)
-      raise 'File can\'t be nil' if file.nil?
-      @file = file
-      @mutex = Mutex.new
+  # REMOVE command
+  class Remove
+    def initialize(wallets:, log: Log::Quiet.new)
+      @wallets = wallets
+      @log = log
     end
 
-    def read
-      @mutex.synchronize do
-        File.open(@file, 'rb', &:read)
+    def run(args = [])
+      opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
+        o.banner = "Usage: zold remove [ID...] [options]
+Available options:"
+        o.bool '--help', 'Print instructions'
+      end
+      mine = Args.new(opts, @log).take || return
+      mine = @wallets.all if mine.empty?
+      mine.map { |i| Id.new(i) }.each do |id|
+        remove(id, opts)
       end
     end
 
-    def write(content)
-      raise 'Content can\'t be nil' if content.nil?
-      FileUtils.mkdir_p(File.dirname(@file))
-      @mutex.synchronize do
-        File.open(@file, 'wb') do |f|
-          f.write(content)
-        end
-      end
+    def remove(id, _)
+      @wallets.find(id) { |w| File.delete(w.path) }
+      @log.info("Wallet #{id} removed")
     end
   end
 end

@@ -73,10 +73,10 @@ class TestCopies < Minitest::Test
       copies = Zold::Copies.new(dir, log: test_log)
       copies.add(content('h1'), 'zold.io', 4096, 10, Time.now - 25 * 60 * 60)
       copies.add(content('h1'), 'zold.io', 4097, 20, Time.now - 26 * 60 * 60)
-      assert(File.exist?(File.join(dir, "1#{Zold::Wallet::EXTENSION}")))
+      assert(File.exist?(File.join(dir, "1#{Zold::Copies::EXT}")))
       copies.clean
       assert(copies.all.empty?, "#{copies.all.count} is not empty")
-      assert(!File.exist?(File.join(dir, "1#{Zold::Wallet::EXTENSION}")))
+      assert(!File.exist?(File.join(dir, "1#{Zold::Copies::EXT}")))
     end
   end
 
@@ -125,7 +125,7 @@ class TestCopies < Minitest::Test
       wallet = home.create_wallet(id)
       amount = Zold::Amount.new(zld: 1.99)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
-      wallet.sub(amount, "NOPREFIX@#{id}", key, text, time: Time.parse('2018-01-01T01:01:01Z'))
+      wallet.sub(amount, 'NOPREFIX@0000111122223333', key, text, time: Time.parse('2018-01-01T01:01:01Z'))
       File.read(wallet.path)
     end
   end

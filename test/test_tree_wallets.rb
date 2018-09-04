@@ -20,32 +20,26 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Atomic file.
+require 'minitest/autorun'
+require 'tmpdir'
+require_relative '../lib/zold/key'
+require_relative '../lib/zold/id'
+require_relative '../lib/zold/tree_wallets'
+
+# TreeWallets test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # Atomic file
-  class AtomicFile
-    def initialize(file)
-      raise 'File can\'t be nil' if file.nil?
-      @file = file
-      @mutex = Mutex.new
-    end
-
-    def read
-      @mutex.synchronize do
-        File.open(@file, 'rb', &:read)
-      end
-    end
-
-    def write(content)
-      raise 'Content can\'t be nil' if content.nil?
-      FileUtils.mkdir_p(File.dirname(@file))
-      @mutex.synchronize do
-        File.open(@file, 'wb') do |f|
-          f.write(content)
-        end
+class TestTreeWallets < Minitest::Test
+  def test_adds_wallet
+    Dir.mktmpdir do |dir|
+      wallets = Zold::TreeWallets.new(dir)
+      id = Zold::Id.new('abcd0123abcd0123')
+      wallets.find(id) do |wallet|
+        wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+        assert_equal(1, wallets.all.count)
+        assert_equal(id.to_s, wallets.all[0])
+        assert(wallet.path.end_with?('/a/b/c/d/abcd0123abcd0123.z'), wallet.path)
       end
     end
   end

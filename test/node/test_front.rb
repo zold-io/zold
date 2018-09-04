@@ -32,6 +32,23 @@ require_relative '../../lib/zold/json_page'
 require_relative '../../lib/zold/score'
 
 class FrontTest < Minitest::Test
+  def test_renders_front_json
+    FakeNode.new(log: test_log).run(['--no-metronome', '--network=foo', '--threads=0']) do |port|
+      res = Zold::Http.new(uri: "http://localhost:#{port}/", network: 'foo', score: nil).get
+      json = JSON.parse(res.body)
+      assert_equal(Zold::VERSION, json['version'])
+      assert_equal(Zold::PROTOCOL, json['protocol'])
+      assert_equal('foo', json['network'])
+      assert(json['pid'].positive?)
+      assert(json['cpus'].positive?)
+      assert(json['memory'].positive?)
+      assert(json['load'].positive?)
+      assert(json['wallets'].positive?)
+      assert(json['remotes'].zero?)
+      assert(json['nscore'].zero?)
+    end
+  end
+
   def test_renders_public_pages
     FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
       {
@@ -42,7 +59,8 @@ class FrontTest < Minitest::Test
           '/version',
           '/farm',
           '/metronome',
-          '/score'
+          '/score',
+          '/trace'
         ],
         '404' => [
           '/this-is-absent',
@@ -81,12 +99,11 @@ class FrontTest < Minitest::Test
     FakeHome.new.run do |home|
       FakeNode.new(log: test_log).run(['--ignore-score-weakness', '--standalone']) do |port|
         wallet = home.create_wallet
-        test_log.debug("Wallet created: #{wallet.id}")
-        home = "http://localhost:#{port}"
-        response = Zold::Http.new(uri: "#{home}/wallet/#{wallet.id}?sync=true", score: nil)
+        base = "http://localhost:#{port}"
+        response = Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil)
           .put(File.read(wallet.path))
         assert_equal('200', response.code, response.body)
-        sleep 0.1 until Zold::Http.new(uri: "#{home}/wallet/#{wallet.id}", score: nil).get.code == '200'
+        assert_equal_wait('200') { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).get.code }
         [
           "/wallet/#{wallet.id}.txt",
           "/wallet/#{wallet.id}.json",
@@ -97,29 +114,39 @@ class FrontTest < Minitest::Test
           "/wallet/#{wallet.id}.bin",
           "/wallet/#{wallet.id}/copies"
         ].each do |u|
-          res = Zold::Http.new(uri: "#{home}#{u}", score: nil).get
-          assert_equal('200', res.code, res.body)
+          assert_equal_wait('200') { Zold::Http.new(uri: "#{base}#{u}", score: nil).get.code }
         end
       end
     end
   end
 
-  # @todo #239:30min This tests is skipped since it crashes sporadically.
-  #  Let's investigate and make it stable. I don't really know what's going
-  #  on, but suspect some collision between threads:
-  #  http://www.rultor.com/t/14940-397702802
   def test_pushes_twice
-    skip
     FakeNode.new(log: test_log).run do |port|
       FakeHome.new.run do |home|
         wallet = home.create_wallet
-        response = Zold::Http.new(uri: "http://localhost:#{port}/wallet/#{wallet.id}?sync=true", score: nil)
-          .put(File.read(wallet.path))
-        assert_equal('200', response.code, response.body)
+        base = "http://localhost:#{port}"
+        assert_equal(
+          '200',
+          Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).put(File.read(wallet.path)).code
+        )
+        assert_equal_wait('200') { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).get.code }
         3.times do
-          r = Zold::Http.new(uri: "http://localhost:#{port}/wallet/#{wallet.id}?sync=true", score: nil)
+          r = Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil)
             .put(File.read(wallet.path))
           assert_equal('304', r.code, r.body)
+        end
+      end
+    end
+  end
+
+  def test_pushes_many_wallets
+    FakeNode.new(log: test_log).run do |port|
+      base = "http://localhost:#{port}"
+      FakeHome.new.run do |home|
+        assert_in_threads(threads: 20) do
+          wallet = home.create_wallet
+          Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).put(File.read(wallet.path))
+          assert_equal_wait('200') { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).get.code }
         end
       end
     end
@@ -214,13 +241,7 @@ class FrontTest < Minitest::Test
           '*',
           response.header['Access-Control-Allow-Origin']
         )
-        score = Zold::Score.new(
-          time: Time.now, host: 'localhost', port: port, invoice: 'NOPREFIX@ffffffffffffffff', strength: 2
-        )
-        assert_equal(
-          score.to_s,
-          response.header[Zold::Http::SCORE_HEADER]
-        )
+        assert(!response.header[Zold::Http::SCORE_HEADER].nil?)
       end
     end
   end
@@ -262,6 +283,27 @@ class FrontTest < Minitest::Test
         Zold::Http.new(uri: uri, score: nil).get
       end
     end
-    assert_equal('--alias should be a 4 to 16 char long alphanumeric string', exception.message)
+    assert(exception.message.include?('should be a 4 to 16 char long alphanumeric string'))
+  end
+
+  def test_push_fetch_in_multiple_threads
+    key = Zold::Key.new(text: File.read('fixtures/id_rsa'))
+    FakeNode.new(log: test_log).run do |port|
+      FakeHome.new.run do |home|
+        wallet = home.create_wallet(Zold::Id::ROOT)
+        base = "http://localhost:#{port}"
+        Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).put(File.read(wallet.path))
+        assert_equal_wait('200') { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).get.code }
+        cycles = 50
+        cycles.times do
+          wallet.sub(Zold::Amount.new(coins: 10), "NOPREFIX@#{Zold::Id.new}", key)
+          Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).put(File.read(wallet.path))
+          assert_equal('200', Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).get.code)
+        end
+        assert_equal_wait(-10 * cycles) do
+          Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}/balance", score: nil).get.body.to_i
+        end
+      end
+    end
   end
 end

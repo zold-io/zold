@@ -20,32 +20,21 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Atomic file.
+require 'minitest/autorun'
+require_relative '../fake_home'
+require_relative '../test__helper'
+require_relative '../../lib/zold/node/sync_entrance'
+require_relative 'fake_entrance'
+
+# SyncEntrance test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # Atomic file
-  class AtomicFile
-    def initialize(file)
-      raise 'File can\'t be nil' if file.nil?
-      @file = file
-      @mutex = Mutex.new
-    end
-
-    def read
-      @mutex.synchronize do
-        File.open(@file, 'rb', &:read)
-      end
-    end
-
-    def write(content)
-      raise 'Content can\'t be nil' if content.nil?
-      FileUtils.mkdir_p(File.dirname(@file))
-      @mutex.synchronize do
-        File.open(@file, 'wb') do |f|
-          f.write(content)
-        end
+class TestSyncEntrance < Minitest::Test
+  def test_renders_json
+    FakeHome.new.run do
+      Zold::SyncEntrance.new(FakeEntrance.new, log: test_log).start do |e|
+        assert(!e.to_json.nil?)
       end
     end
   end

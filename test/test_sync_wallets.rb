@@ -20,33 +20,38 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Atomic file.
+require 'minitest/autorun'
+require 'concurrent'
+require_relative 'test__helper'
+require_relative 'fake_home'
+require_relative '../lib/zold/key'
+require_relative '../lib/zold/id'
+require_relative '../lib/zold/wallets'
+require_relative '../lib/zold/sync_wallets'
+require_relative '../lib/zold/amount'
+
+# SyncWallets test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # Atomic file
-  class AtomicFile
-    def initialize(file)
-      raise 'File can\'t be nil' if file.nil?
-      @file = file
-      @mutex = Mutex.new
-    end
-
-    def read
-      @mutex.synchronize do
-        File.open(@file, 'rb', &:read)
-      end
-    end
-
-    def write(content)
-      raise 'Content can\'t be nil' if content.nil?
-      FileUtils.mkdir_p(File.dirname(@file))
-      @mutex.synchronize do
-        File.open(@file, 'wb') do |f|
-          f.write(content)
+class TestSyncWallets < Minitest::Test
+  def test_adds_wallet
+    FakeHome.new.run do |home|
+      wallets = home.wallets
+      id = Zold::Id.new
+      home.create_wallet(id)
+      key = Zold::Key.new(file: 'fixtures/id_rsa')
+      amount = Zold::Amount.new(zld: 5.0)
+      assert_in_threads(threads: 5) do
+        wallets.find(id) do |wallet|
+          wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
+          wallet.refurbish
         end
       end
+      assert_equal_wait(amount * -5, max: 4) do
+        wallets.find(id, &:balance)
+      end
+      assert_equal(5, Dir.new(wallets.path).count)
     end
   end
 end

@@ -25,8 +25,10 @@ STDOUT.sync = true
 require 'json'
 require 'sinatra/base'
 require 'webrick'
+require 'cachy'
 require 'get_process_mem'
 require 'diffy'
+require 'usagewatch_ext'
 require 'concurrent'
 require_relative '../backtrace'
 require_relative '../version'
@@ -45,26 +47,29 @@ module Zold
   # Web front
   class Front < Sinatra::Base
     configure do
+      Thread.current.name = 'sinatra'
       set :bind, '0.0.0.0'
       set :suppress_messages, true
       set :start, Time.now
       set :lock, false
       set :show_exceptions, false
       set :server, 'webrick'
+      set :log, nil? # to be injected at node.rb
+      set :trace, nil? # to be injected at node.rb
       set :halt, '' # to be injected at node.rb
       set :dump_errors, false # to be injected at node.rb
       set :version, VERSION # to be injected at node.rb
       set :protocol, PROTOCOL # to be injected at node.rb
       set :ignore_score_weakness, false # to be injected at node.rb
       set :reboot, false # to be injected at node.rb
+      set :nohup_log, false # to be injected at node.rb
       set :home, nil? # to be injected at node.rb
       set :logging, true # to be injected at node.rb
-      set :log, nil? # to be injected at node.rb
       set :address, nil? # to be injected at node.rb
       set :farm, nil? # to be injected at node.rb
       set :metronome, nil? # to be injected at node.rb
       set :entrance, nil? # to be injected at node.rb
-      set :network, nil? # to be injected at node.rb
+      set :network, 'test' # to be injected at node.rb
       set :wallets, nil? # to be injected at node.rb
       set :remotes, nil? # to be injected at node.rb
       set :copies, nil? # to be injected at node.rb
@@ -95,15 +100,12 @@ while #{settings.address} is in '#{settings.network}'"
         s = Score.parse_text(header)
         error(400, 'The score is invalid') unless s.valid?
         error(400, 'The score is weak') if s.strength < Score::STRENGTH && !settings.ignore_score_weakness
-        if s.value > 3
-          require_relative '../commands/remote'
-          cmd = Remote.new(remotes: settings.remotes, log: settings.log)
-          cmd.run(['remote', 'add', s.host, s.port.to_s, '--force', "--network=#{settings.network}"])
-          cmd.run(%w[remote trim])
-          cmd.run(%w[remote select])
-        else
-          settings.log.debug("#{request.url}: the score is too weak: #{s}")
+        if settings.address == "#{s.host}:#{s.port}" && !settings.ignore_score_weakness
+          error(400, 'Self-requests are prohibited')
         end
+        require_relative '../commands/remote'
+        cmd = Remote.new(remotes: settings.remotes, log: settings.log)
+        cmd.run(['remote', 'add', s.host, s.port.to_s, "--network=#{settings.network}"])
       end
     end
 
@@ -138,6 +140,19 @@ while #{settings.address} is in '#{settings.network}'"
       score.to_s
     end
 
+    get '/trace' do
+      content_type 'text/plain'
+      settings.trace.to_s
+    end
+
+    get '/nohup_log' do
+      raise 'Run it with --nohup in order to see this log' if settings.nohup_log.nil?
+      raise "Log not found at #{settings.nohup_log}" unless File.exist?(settings.nohup_log)
+      response.headers['Content-Type'] = 'text/plain'
+      response.headers['Content-Disposition'] = "attachment; filename='#{File.basename(settings.nohup_log)}'"
+      File.read(settings.nohup_log)
+    end
+
     get '/favicon.ico' do
       if score.value >= 16
         redirect 'https://www.zold.io/images/logo-green.png'
@@ -158,13 +173,13 @@ while #{settings.address} is in '#{settings.network}'"
         score: score.to_h,
         pid: Process.pid,
         cpus: Concurrent.processor_count,
-        memory: GetProcessMem.new.bytes,
+        memory: GetProcessMem.new.bytes.to_i,
         platform: RUBY_PLATFORM,
-        uptime: `uptime`.strip,
+        load: Usagewatch.uw_load.to_f,
         threads: "#{Thread.list.select { |t| t.status == 'run' }.count}/#{Thread.list.count}",
-        wallets: settings.wallets.all.count,
+        wallets: Cachy.cache(:a_key, expires_in: 5 * 60) { settings.wallets.all.count },
         remotes: settings.remotes.all.count,
-        nscore: settings.remotes.all.map { |r| r[:score] }.inject(&:+),
+        nscore: settings.remotes.all.map { |r| r[:score] }.inject(&:+) || 0,
         farm: settings.farm.to_json,
         entrance: settings.entrance.to_json,
         date: Time.now.utc.iso8601,
@@ -175,116 +190,143 @@ while #{settings.address} is in '#{settings.network}'"
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})} do
       id = Id.new(params[:id])
-      wallet = settings.wallets.find(id)
-      error 404 unless wallet.exists?
-      content_type 'application/json'
-      {
-        version: settings.version,
-        alias: settings.node_alias,
-        protocol: settings.protocol,
-        id: wallet.id.to_s,
-        score: score.to_h,
-        wallets: settings.wallets.all.count,
-        mtime: wallet.mtime.utc.iso8601,
-        size: File.size(wallet.path),
-        digest: wallet.digest,
-        balance: wallet.balance.to_i,
-        body: AtomicFile.new(wallet.path).read
-      }.to_json
+      settings.wallets.find(id) do |wallet|
+        error 404 unless wallet.exists?
+        content_type 'application/json'
+        {
+          version: settings.version,
+          alias: settings.node_alias,
+          protocol: settings.protocol,
+          id: wallet.id.to_s,
+          score: score.to_h,
+          wallets: settings.wallets.all.count,
+          mtime: wallet.mtime.utc.iso8601,
+          size: File.size(wallet.path),
+          digest: wallet.digest,
+          copies: Copies.new(File.join(settings.copies, id)).all.count,
+          balance: wallet.balance.to_i,
+          body: AtomicFile.new(wallet.path).read
+        }.to_json
+      end
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16}).json} do
       id = Id.new(params[:id])
-      wallet = settings.wallets.find(id)
-      error 404 unless wallet.exists?
-      content_type 'application/json'
-      {
-        version: settings.version,
-        alias: settings.node_alias,
-        protocol: settings.protocol,
-        id: wallet.id.to_s,
-        score: score.to_h,
-        wallets: settings.wallets.all.count,
-        key: wallet.key.to_pub,
-        mtime: wallet.mtime.utc.iso8601,
-        digest: wallet.digest,
-        balance: wallet.balance.to_i,
-        txns: wallet.txns.count
-      }.to_json
+      settings.wallets.find(id) do |wallet|
+        error 404 unless wallet.exists?
+        content_type 'application/json'
+        {
+          version: settings.version,
+          alias: settings.node_alias,
+          protocol: settings.protocol,
+          id: wallet.id.to_s,
+          score: score.to_h,
+          wallets: settings.wallets.all.count,
+          key: wallet.key.to_pub,
+          mtime: wallet.mtime.utc.iso8601,
+          digest: wallet.digest,
+          balance: wallet.balance.to_i,
+          txns: wallet.txns.count
+        }.to_json
+      end
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/balance} do
       id = Id.new(params[:id])
-      wallet = settings.wallets.find(id)
-      error 404 unless wallet.exists?
-      content_type 'text/plain'
-      wallet.balance.to_i.to_s
+      settings.wallets.find(id) do |wallet|
+        error 404 unless wallet.exists?
+        content_type 'text/plain'
+        wallet.balance.to_i.to_s
+      end
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/key} do
       id = Id.new(params[:id])
-      wallet = settings.wallets.find(id)
-      error 404 unless wallet.exists?
-      content_type 'text/plain'
-      wallet.key.to_pub
+      settings.wallets.find(id) do |wallet|
+        error 404 unless wallet.exists?
+        content_type 'text/plain'
+        wallet.key.to_pub
+      end
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/mtime} do
       id = Id.new(params[:id])
-      wallet = settings.wallets.find(id)
-      error 404 unless wallet.exists?
-      content_type 'text/plain'
-      wallet.mtime.utc.iso8601.to_s
+      settings.wallets.find(id) do |wallet|
+        error 404 unless wallet.exists?
+        content_type 'text/plain'
+        wallet.mtime.utc.iso8601.to_s
+      end
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/digest} do
       id = Id.new(params[:id])
-      wallet = settings.wallets.find(id)
-      error 404 unless wallet.exists?
-      content_type 'text/plain'
-      wallet.digest
+      settings.wallets.find(id) do |wallet|
+        error 404 unless wallet.exists?
+        content_type 'text/plain'
+        wallet.digest
+      end
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.txt} do
       id = Id.new(params[:id])
-      wallet = settings.wallets.find(id)
-      error 404 unless wallet.exists?
-      content_type 'text/plain'
-      [
-        wallet.network,
-        wallet.protocol,
-        wallet.id.to_s,
-        wallet.key.to_pub,
-        '',
-        wallet.txns.map(&:to_text).join("\n"),
-        '',
-        '--',
-        "Balance: #{wallet.balance.to_zld}",
-        "Transactions: #{wallet.txns.count}",
-        "Wallet size: #{File.size(wallet.path)} bytes",
-        "Modified: #{wallet.mtime.utc.iso8601}",
-        "Digest: #{wallet.digest}"
-      ].join("\n")
+      settings.wallets.find(id) do |wallet|
+        error 404 unless wallet.exists?
+        content_type 'text/plain'
+        [
+          wallet.network,
+          wallet.protocol,
+          wallet.id.to_s,
+          wallet.key.to_pub,
+          '',
+          wallet.txns.map(&:to_text).join("\n"),
+          '',
+          '--',
+          "Balance: #{wallet.balance.to_zld} ZLD (#{wallet.balance.to_i} zents)",
+          "Transactions: #{wallet.txns.count}",
+          "File size: #{File.size(wallet.path)} bytes (#{Copies.new(File.join(settings.copies, id)).all.count} copies)",
+          "Modified: #{wallet.mtime.utc.iso8601}",
+          "Digest: #{wallet.digest}"
+        ].join("\n")
+      end
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.bin} do
       id = Id.new(params[:id])
-      wallet = settings.wallets.find(id)
-      error 404 unless wallet.exists?
-      content_type 'text/plain'
-      AtomicFile.new(wallet.path).read
+      settings.wallets.find(id) do |wallet|
+        error 404 unless wallet.exists?
+        content_type 'text/plain'
+        AtomicFile.new(wallet.path).read
+      end
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/copies} do
       id = Id.new(params[:id])
-      wallet = settings.wallets.find(id)
-      error 404 unless wallet.exists?
-      content_type 'text/plain'
-      Copies.new(File.join(settings.copies, id)).all.map do |c|
-        wallet = Wallet.new(c[:path])
-        "#{c[:name]}: #{c[:score]} #{wallet.balance}/#{wallet.txns.count}t/\
-#{wallet.digest[0, 6]}/#{File.size(c[:path])}b/#{Age.new(File.mtime(c[:path]))}"
-      end.join("\n")
+      settings.wallets.find(id) do |wallet|
+        error 404 unless wallet.exists?
+        content_type 'text/plain'
+        copies = Copies.new(File.join(settings.copies, id))
+        copies.load.map do |c|
+          "#{c[:name]}: #{c[:host]}:#{c[:port]} #{c[:score]} #{c[:time].utc.iso8601}"
+        end.join("\n") +
+        "\n\n" +
+        copies.all.map do |c|
+          w = Wallet.new(c[:path])
+          "#{c[:name]}: #{c[:score]} #{w.balance}/#{w.txns.count}t/\
+#{w.digest[0, 6]}/#{File.size(c[:path])}b/#{Age.new(File.mtime(c[:path]))}"
+        end.join("\n")
+      end
+    end
+
+    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/copy/(?<name>[0-9]+)} do
+      id = Id.new(params[:id])
+      name = params[:name]
+      settings.wallets.find(id) do |wallet|
+        error 404 unless wallet.exists?
+        copy = Copies.new(File.join(settings.copies, id)).all.find { |c| c[:name] == name }
+        error 404 if copy.nil?
+        content_type 'text/plain'
+        File.read(copy[:path])
+      end
     end
 
     put %r{/wallet/(?<id>[A-Fa-f0-9]{16})/?} do
@@ -332,13 +374,14 @@ while #{settings.address} is in '#{settings.network}'"
     error 400 do
       status 400
       content_type 'text/plain'
-      env['sinatra.error'].message
+      env['sinatra.error'] ? env['sinatra.error'].message : 'Invalid request'
     end
 
     error do
       status 503
       e = env['sinatra.error']
       content_type 'text/plain'
+      headers['X-Zold-Error'] = e.message
       Backtrace.new(e).to_s
     end
 

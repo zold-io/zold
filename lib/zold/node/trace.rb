@@ -20,32 +20,55 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Atomic file.
+# The web front of the node.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # Atomic file
-  class AtomicFile
-    def initialize(file)
-      raise 'File can\'t be nil' if file.nil?
-      @file = file
+  # Log that traces everything
+  class Trace
+    def initialize(log, limit = 4096)
+      @log = log
+      @buffer = []
       @mutex = Mutex.new
+      @limit = limit
     end
 
-    def read
+    def to_s
       @mutex.synchronize do
-        File.open(@file, 'rb', &:read)
+        @buffer.join("\n")
       end
     end
 
-    def write(content)
-      raise 'Content can\'t be nil' if content.nil?
-      FileUtils.mkdir_p(File.dirname(@file))
+    def debug(msg)
+      @log.debug(msg)
+      append('DBG', msg) if debug?
+    end
+
+    def debug?
+      @log.debug?
+    end
+
+    def info(msg)
+      @log.info(msg)
+      append('INF', msg) if info?
+    end
+
+    def info?
+      @log.info?
+    end
+
+    def error(msg)
+      @log.error(msg)
+      append('ERR', msg)
+    end
+
+    private
+
+    def append(level, msg)
       @mutex.synchronize do
-        File.open(@file, 'wb') do |f|
-          f.write(content)
-        end
+        @buffer << "#{level}: #{msg}"
+        @buffer.shift if @buffer.size > @limit
       end
     end
   end

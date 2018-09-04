@@ -20,33 +20,17 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Atomic file.
-# Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
-# License:: MIT
-module Zold
-  # Atomic file
-  class AtomicFile
-    def initialize(file)
-      raise 'File can\'t be nil' if file.nil?
-      @file = file
-      @mutex = Mutex.new
-    end
+require 'minitest/autorun'
+require_relative '../test__helper'
+require_relative '../../lib/zold/node/trace'
 
-    def read
-      @mutex.synchronize do
-        File.open(@file, 'rb', &:read)
-      end
-    end
-
-    def write(content)
-      raise 'Content can\'t be nil' if content.nil?
-      FileUtils.mkdir_p(File.dirname(@file))
-      @mutex.synchronize do
-        File.open(@file, 'wb') do |f|
-          f.write(content)
-        end
-      end
-    end
+class TraceTest < Minitest::Test
+  def test_records_log_lines
+    trace = Zold::Trace.new(test_log, 2)
+    trace.error('This should not be visible')
+    trace.error('How are you, друг?')
+    trace.error('Works?')
+    assert(!trace.to_s.include?('visible'))
+    assert(trace.to_s.include?('друг'))
   end
 end

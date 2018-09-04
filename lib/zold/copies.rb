@@ -34,6 +34,9 @@ require_relative 'backtrace'
 module Zold
   # All copies
   class Copies
+    # Extension for copy files
+    EXT = '.zc'
+
     def initialize(dir, log: Log::Quiet.new)
       raise 'Dir can\'t be nil' if dir.nil?
       @dir = dir
@@ -57,7 +60,7 @@ module Zold
         save(list)
         deleted = 0
         files.each do |f|
-          next unless list.find { |s| s[:name] == File.basename(f, Wallet::EXTENSION) }.nil?
+          next unless list.find { |s| s[:name] == File.basename(f, Copies::EXT) }.nil?
           file = File.join(@dir, f)
           size = File.size(file)
           File.delete(file)
@@ -99,17 +102,17 @@ module Zold
         FileUtils.mkdir_p(@dir)
         list = load
         target = list.find do |s|
-          f = File.join(@dir, "#{s[:name]}#{Wallet::EXTENSION}")
+          f = File.join(@dir, "#{s[:name]}#{Copies::EXT}")
           File.exist?(f) && AtomicFile.new(f).read == content
         end
         if target.nil?
           max = Dir.new(@dir)
-            .select { |f| File.basename(f, Wallet::EXTENSION) =~ /^[0-9]+$/ }
+            .select { |f| File.basename(f, Copies::EXT) =~ /^[0-9]+$/ }
             .map(&:to_i)
             .max
           max = 0 if max.nil?
           name = (max + 1).to_s
-          AtomicFile.new(File.join(@dir, "#{name}#{Wallet::EXTENSION}")).write(content)
+          AtomicFile.new(File.join(@dir, "#{name}#{Copies::EXT}")).write(content)
         else
           name = target[:name]
         end
@@ -131,7 +134,7 @@ module Zold
         load.group_by { |s| s[:name] }.map do |name, scores|
           {
             name: name,
-            path: File.join(@dir, "#{name}#{Wallet::EXTENSION}"),
+            path: File.join(@dir, "#{name}#{Copies::EXT}"),
             score: scores.select { |s| s[:time] > Time.now - 24 * 60 * 60 }
               .map { |s| s[:score] }
               .inject(&:+) || 0
@@ -139,8 +142,6 @@ module Zold
         end.select { |c| File.exist?(c[:path]) }.sort_by { |c| c[:score] }.reverse
       end
     end
-
-    private
 
     def load
       FileUtils.mkdir_p(File.dirname(file))
@@ -156,6 +157,8 @@ module Zold
       end
     end
 
+    private
+
     def save(list)
       AtomicFile.new(file).write(
         list.map do |r|
@@ -169,11 +172,11 @@ module Zold
     end
 
     def files
-      Dir.new(@dir).select { |f| File.basename(f, Wallet::EXTENSION) =~ /^[0-9]+$/ }
+      Dir.new(@dir).select { |f| File.basename(f, Copies::EXT) =~ /^[0-9]+$/ }
     end
 
     def file
-      File.join(@dir, "scores#{Wallet::EXTENSION}")
+      File.join(@dir, "scores#{Copies::EXT}")
     end
   end
 end

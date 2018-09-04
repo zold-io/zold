@@ -97,8 +97,9 @@ module Zold
       @mutex.synchronize do
         @history.shift if @history.length >= 16
         @speed.shift if @speed.length >= 64
-        wallet = @wallets.find(id)
-        @history << "#{id}/#{sec}/#{modified.count}/#{wallet.balance.to_zld}/#{wallet.txns.count}t"
+        @wallets.find(id) do |wallet|
+          @history << "#{id}/#{sec}/#{modified.count}/#{wallet.balance.to_zld}/#{wallet.txns.count}t"
+        end
         @speed << sec
       end
       modified

@@ -20,32 +20,26 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Atomic file.
-# Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
-# License:: MIT
+require 'fileutils'
+require_relative '../lib/zold/version'
+require_relative '../lib/zold/wallet'
+
 module Zold
-  # Atomic file
-  class AtomicFile
-    def initialize(file)
-      raise 'File can\'t be nil' if file.nil?
-      @file = file
-      @mutex = Mutex.new
+  # Move wallets into tree
+  class MoveWalletsIntoTree
+    def initialize(home, log)
+      @home = home
+      @log = log
     end
 
-    def read
-      @mutex.synchronize do
-        File.open(@file, 'rb', &:read)
-      end
-    end
-
-    def write(content)
-      raise 'Content can\'t be nil' if content.nil?
-      FileUtils.mkdir_p(File.dirname(@file))
-      @mutex.synchronize do
-        File.open(@file, 'wb') do |f|
-          f.write(content)
-        end
+    def exec
+      Dir.new(@home).each do |path|
+        next unless path =~ /^[a-f0-9]{16}#{Wallet::EXTENSION}$/
+        f = File.join(@home, path)
+        target = File.join(@home, (path.split('', 5).take(4) + [path]).join('/'))
+        FileUtils.mkdir_p(File.dirname(target))
+        FileUtils.mv(f, target)
+        @log.info("Wallet #{path} moved to #{target}")
       end
     end
   end

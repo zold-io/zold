@@ -34,8 +34,9 @@ class TestProtocolUp < Minitest::Test
     FakeHome.new.run do |home|
       id = home.create_wallet.id
       Zold::ProtocolUp.new(home.dir, test_log).exec
-      wallet = home.wallets.find(id)
-      assert_equal(Zold::PROTOCOL, wallet.protocol)
+      home.wallets.find(id) do |wallet|
+        assert_equal(Zold::PROTOCOL, wallet.protocol)
+      end
     end
   end
 end

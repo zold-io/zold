@@ -51,7 +51,7 @@ class TestZold < Minitest::Test
               out << line
             end
             code = thr.value.to_i
-            assert_equal(0, code, f + out.join)
+            assert_equal(0, code, "#{f}\n#{out.join}")
           end
         end
       end

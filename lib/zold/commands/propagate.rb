@@ -51,7 +51,7 @@ Available options:"
       mine = @wallets.all if mine.empty?
       modified = []
       mine.map { |i| Id.new(i) }.each do |id|
-        modified += propagate(@wallets.find(id), opts)
+        modified += propagate(id, opts)
       end
       modified
     end
@@ -59,30 +59,33 @@ Available options:"
     private
 
     # Returns list of Wallet IDs which were affected
-    def propagate(wallet, _)
-      me = wallet.id
+    def propagate(id, _)
       modified = []
-      wallet.txns.select { |t| t.amount.negative? }.each do |t|
-        target = @wallets.find(t.bnf)
-        unless target.exists?
-          @log.debug("#{t.amount * -1} to #{t.bnf}: wallet is absent")
-          next
+      @wallets.find(id) do |wallet|
+        wallet.txns.select { |t| t.amount.negative? }.each do |t|
+          next if t.bnf == id
+          @wallets.find(t.bnf) do |target|
+            unless target.exists?
+              @log.debug("#{t.amount * -1} to #{t.bnf}: wallet is absent")
+              next
+            end
+            unless target.network == wallet.network
+              @log.error("#{t.amount * -1} to #{t.bnf}: network mismatch, '#{target.network}'!='#{wallet.network}'")
+              next
+            end
+            next if target.has?(t.id, id)
+            unless target.prefix?(t.prefix)
+              @log.error("#{t.amount * -1} to #{t.bnf}: wrong prefix")
+              next
+            end
+            target.add(t.inverse(id))
+            @log.info("#{t.amount * -1} arrived to #{t.bnf}: #{t.details}")
+            modified << t.bnf
+          end
         end
-        unless target.network == wallet.network
-          @log.error("#{t.amount * -1} to #{t.bnf}: network mismatch, '#{target.network}'!='#{wallet.network}'")
-          next
-        end
-        next if target.has?(t.id, me)
-        unless target.prefix?(t.prefix)
-          @log.error("#{t.amount * -1} to #{t.bnf}: wrong prefix")
-          next
-        end
-        target.add(t.inverse(me))
-        @log.info("#{t.amount * -1} arrived to #{t.bnf}: #{t.details}")
-        modified << t.bnf
       end
       modified.uniq!
-      @log.debug("Wallet #{me} propagated successfully, #{modified.count} wallets affected")
+      @log.debug("Wallet #{id} propagated successfully, #{modified.count} wallets affected")
       modified
     end
   end

@@ -67,30 +67,39 @@ Available options:"
       mine = Args.new(opts, @log).take || return
       raise 'Payer wallet ID is required as the first argument' if mine[0].nil?
       id = Id.new(mine[0])
-      from = @wallets.find(id)
-      raise "Wallet #{id} doesn't exist, do 'zold pull' first" unless from.exists?
       raise 'Recepient\'s invoice or wallet ID is required as the second argument' if mine[1].nil?
       invoice = mine[1]
       unless invoice.include?('@')
         require_relative 'invoice'
-        invoice = Invoice.new(wallets: @wallets, log: @log).run(['invoice', invoice])
+        invoice = Invoice.new(
+          wallets: @wallets, remotes: @remotes, copies: @copies, log: @log
+        ).run(['invoice', invoice])
       end
       raise 'Amount is required (in ZLD) as the third argument' if mine[2].nil?
       amount = Amount.new(zld: mine[2].to_f)
       details = mine[3] || '-'
-      if Tax.new(from).in_debt? && !opts['dont-pay-taxes']
-        require_relative 'taxes'
-        Taxes.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-          ['taxes', 'pay', "--private-key=#{opts['private-key']}", id.to_s]
-        )
+      taxes(id)
+      @wallets.find(id) do |from|
+        pay(from, invoice, amount, details, opts)
       end
-      pay(from, invoice, amount, details, opts)
       return if opts['skip-propagate']
       require_relative 'propagate'
-      Propagate.new(wallets: @wallets, log: @log).run(['propagate', from.id.to_s])
+      Propagate.new(wallets: @wallets, log: @log).run(['propagate', id.to_s])
     end
 
     private
+
+    def taxes(id)
+      debt = @wallets.find(id) do |wallet|
+        raise "Wallet #{id} doesn't exist, do 'zold pull' first" unless wallet.exists?
+        Tax.new(wallet).in_debt? && !opts['dont-pay-taxes']
+      end
+      return unless debt
+      require_relative 'taxes'
+      Taxes.new(wallets: @wallets, remotes: @remotes, log: @log).run(
+        ['taxes', 'pay', "--private-key=#{opts['private-key']}", id.to_s]
+      )
+    end
 
     def pay(from, invoice, amount, details, opts)
       unless opts.force?
