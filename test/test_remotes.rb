@@ -173,6 +173,27 @@ class TestRemotes < Minitest::Test
     end
   end
 
+  def test_mtime
+    Dir.mktmpdir 'test' do |dir|
+      file = File.join(dir, 'remotes')
+      FileUtils.touch(file)
+      File.stub :mtime, Time.mktime(2018, 1, 1) do
+        remotes = Zold::Remotes.new(file: file)
+        remotes.add('127.0.0.1')
+        assert_equal(Time.mktime(2018, 1, 1), remotes.mtime)
+      end
+    end
+  end
+
+  def test_read_mtime_from_file
+    Dir.mktmpdir 'test' do |dir|
+      file = File.join(dir, 'remotes')
+      remotes = Zold::Remotes.new(file: file)
+      remotes.all
+      assert_equal(File.mtime(file).to_i, remotes.mtime.to_i)
+    end
+  end
+
   def test_adds_from_many_threads
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'xx.csv'))
@@ -202,8 +223,11 @@ class TestRemotes < Minitest::Test
   end
 
   def test_empty_remotes
-    remotes = Zold::Remotes::Empty.new(file: '/tmp/empty')
-    assert(remotes.is_a?(Zold::Remotes))
+    Time.stub :now, Time.mktime(2018, 1, 1) do
+      remotes = Zold::Remotes::Empty.new(file: '/tmp/empty')
+      assert_equal(Time.mktime(2018, 1, 1), remotes.mtime)
+      assert(remotes.is_a?(Zold::Remotes))
+    end
   end
 
   def test_reports_zold_error_header

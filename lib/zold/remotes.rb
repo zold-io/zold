@@ -39,7 +39,7 @@ require_relative 'type'
 # License:: MIT
 module Zold
   # All remotes
-  class Remotes
+  class Remotes < Dry::Struct
     # The default TCP port all nodes are supposed to use.
     PORT = 4096
 
@@ -48,6 +48,13 @@ module Zold
 
     # Default number of nodes to fetch.
     MAX_NODES = 16
+
+    # Mutex object
+    MUTEX = Mutex.new
+
+    attribute :file, Types::Strict::String
+    attribute :network, Types::Strict::String.optional.default('test')
+    attribute :timeout, Types::Strict::Integer.optional.default(16)
 
     # Empty, for standalone mode
     class Empty < Remotes
@@ -58,13 +65,17 @@ module Zold
       def iterate(_)
         # Nothing to do here
       end
+
+      def mtime
+        Time.now
+      end
     end
 
     # One remote.
     class Remote < Dry::Struct
       attribute :host, Types::Strict::String
       attribute :port, Types::Strict::Integer.constrained(gteq: 0, lt: 65_535)
-      attribute :score, Object
+      attribute :score, Score
       attribute :idx, Types::Strict::Integer
       attribute :network, Types::Strict::String.optional.default('test')
       attribute :log, (Types::Class.constructor do |value|
@@ -106,24 +117,15 @@ module Zold
       end
     end
 
-    def initialize(file:, network: 'test', mutex: Mutex.new, timeout: 16)
-      @file = file
-      @network = network
-      @mutex = mutex
-      @timeout = timeout
-    end
-
     def all
-      @mutex.synchronize do
-        list = load
-        max_score = list.map { |r| r[:score] }.max || 0
-        max_score = 1 if max_score.zero?
-        max_errors = list.map { |r| r[:errors] }.max || 0
-        max_errors = 1 if max_errors.zero?
-        list.sort_by do |r|
-          (1 - r[:errors] / max_errors) * 5 + (r[:score] / max_score)
-        end.reverse
-      end
+      list = load
+      max_score = list.map { |r| r[:score] }.max || 0
+      max_score = 1 if max_score.zero?
+      max_errors = list.map { |r| r[:errors] }.max || 0
+      max_errors = 1 if max_errors.zero?
+      list.sort_by do |r|
+        (1 - r[:errors] / max_errors) * 5 + (r[:score] / max_score)
+      end.reverse
     end
 
     def clean
@@ -131,10 +133,10 @@ module Zold
     end
 
     def reset
-      FileUtils.mkdir_p(File.dirname(@file))
+      FileUtils.mkdir_p(File.dirname(file))
       FileUtils.copy(
         File.join(File.dirname(__FILE__), '../../resources/remotes'),
-        @file
+        file
       )
     end
 
@@ -154,7 +156,7 @@ module Zold
       raise 'Port can\'t be negative' if port.negative?
       raise 'Port can\'t be over 65536' if port > 0xffff
       modify do |list|
-        list + [{ host: host.downcase, port: port, score: 0 }]
+        list + [{ host: host.downcase, port: port, score: 0, errors: 0 }]
       end
     end
 
@@ -192,7 +194,7 @@ module Zold
               network: @network
             )
             idx += 1
-            raise 'Took too long to execute' if (Time.now - start).round > @timeout
+            raise 'Took too long to execute' if (Time.now - start).round > timeout
           rescue StandardError => e
             error(r[:host], r[:port])
             log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message} \
@@ -221,10 +223,14 @@ in #{(Time.now - start).round}s")
       if_present(host, port) { |r| r[:score] = score }
     end
 
+    def mtime
+      File.mtime(file)
+    end
+
     private
 
     def modify
-      @mutex.synchronize do
+      Remotes::MUTEX.synchronize do
         save(yield(load))
       end
     end
@@ -239,13 +245,13 @@ in #{(Time.now - start).round}s")
     end
 
     def load
-      reset unless File.exist?(@file)
-      raw = CSV.read(@file).map do |r|
+      reset unless File.exist?(file)
+      raw = CSV.read(file).map do |row|
         {
-          host: r[0],
-          port: r[1].to_i,
-          score: r[2].to_i,
-          errors: r[3].to_i
+          host: row[0],
+          port: row[1].to_i,
+          score: row[2].to_i,
+          errors: row[3].to_i
         }
       end
       raw.reject { |r| !r[:host] || r[:port].zero? }.map do |r|
@@ -255,7 +261,7 @@ in #{(Time.now - start).round}s")
     end
 
     def save(list)
-      AtomicFile.new(@file).write(
+      AtomicFile.new(file).write(
         list.uniq { |r| "#{r[:host]}:#{r[:port]}" }.map do |r|
           [
             r[:host],
