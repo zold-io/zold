@@ -30,12 +30,15 @@ module Zold
   module ScoreExt
     extend FFI::Library
 
+    # Default number of cores used for score calculation
+    CORES = 2
+
     ffi_lib "#{File.dirname(__FILE__)}/../../ext/score.so"
     attach_function :calculate_nonce_extended,
                     [:uint64, :uint64, :string, :uint8],
                     :uint64
 
-    def self.calculate_nonce_multi_core(cores, data, strength)
+    def self.calculate_nonce(data, strength, cores = CORES)
       reader, writer = IO.pipe
       workers = cores.times.map do |c|
         # @task #475:20min `Process#fork` is not supported by windows. This

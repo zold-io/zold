@@ -36,9 +36,6 @@ module Zold
     # Default strength for the entire system, in production mode.
     STRENGTH = 6
 
-    # Default number of cores used for score calculation
-    CORES = 2
-
     attribute :time, Types::Strict::Time
     attribute :host, Types::Strict::String.constrained(
       format: /^[a-z0-9\.-]+$/
@@ -165,8 +162,8 @@ module Zold
         time: Time.now, host: host, port: port, invoice: invoice,
         suffixes: [], strength: strength
       ) if expired?
-      idx = ScoreExt.calculate_nonce_multi_core(
-        CORES, "#{(suffixes.empty?) ? prefix : hash} ", strength
+      idx = ScoreExt.calculate_nonce(
+        "#{(suffixes.empty?) ? prefix : hash} ", strength
       )
       suffix = idx.to_s(16)
       return Score.new(
