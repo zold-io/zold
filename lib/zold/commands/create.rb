@@ -41,8 +41,10 @@ module Zold
 
     def run(args = [])
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
-        o.banner = "Usage: zold create [options]
-Available options:"
+        o.banner = <<~HELP.chomp
+          Usage: zold create [options]
+          Available options:
+        HELP
         o.string '--public-key',
           'The location of RSA public key (default: ~/.ssh/id_rsa.pub)',
           require: true,

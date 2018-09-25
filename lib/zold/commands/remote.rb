@@ -51,27 +51,29 @@ module Zold
 
     def run(args = [])
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
-        o.banner = "Usage: zold remote <command> [options]
-Available commands:
-    #{Rainbow('remote show').green}
-      Show all registered remote nodes
-    #{Rainbow('remote clean').green}
-      Remove all registered remote nodes
-    #{Rainbow('remote reset').green}
-      Restore it back to the default list of nodes
-    #{Rainbow('remote add').green} host [port]
-      Add a new remote node
-    #{Rainbow('remote remove').green} host [port]
-      Remove the remote node
-    #{Rainbow('remote elect').green}
-      Pick a random remote node as a target for a bonus awarding
-    #{Rainbow('remote trim').green}
-      Remove the least reliable nodes
-    #{Rainbow('remote select [options]').green}
-      Select the strongest n nodes.
-    #{Rainbow('remote update').green}
-      Check each registered remote node for availability
-Available options:"
+        o.banner = <<~HELP.chomp
+          Usage: zold remote <command> [options]
+          Available commands:
+              #{Rainbow('remote show').green}
+                Show all registered remote nodes
+              #{Rainbow('remote clean').green}
+                Remove all registered remote nodes
+              #{Rainbow('remote reset').green}
+                Restore it back to the default list of nodes
+              #{Rainbow('remote add').green} host [port]
+                Add a new remote node
+              #{Rainbow('remote remove').green} host [port]
+                Remove the remote node
+              #{Rainbow('remote elect').green}
+                Pick a random remote node as a target for a bonus awarding
+              #{Rainbow('remote trim').green}
+                Remove the least reliable nodes
+              #{Rainbow('remote select [options]').green}
+                Select the strongest n nodes.
+              #{Rainbow('remote update').green}
+                Check each registered remote node for availability
+          Available options:
+        HELP
         o.integer '--tolerate',
           'Maximum level of errors we are able to tolerate',
           default: Remotes::TOLERANCE

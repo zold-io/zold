@@ -41,10 +41,12 @@ module Zold
 
     def run(args = [])
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
-        o.banner = "Usage: zold invoice ID [options]
-Where:
-    'ID' is the wallet ID of the money receiver
-Available options:"
+        o.banner = <<~HELP.chomp
+          Usage: zold invoice ID [options]
+          Where:
+              'ID' is the wallet ID of the money receiver
+          Available options:
+        HELP
         o.integer '--length',
           'The length of the invoice prefix (default: 8)',
           default: 8
