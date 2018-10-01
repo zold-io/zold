@@ -34,6 +34,7 @@ require_relative '../http'
 require_relative '../remotes'
 require_relative '../score'
 require_relative '../wallet'
+require_relative '../gem'
 
 # REMOTE command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -223,7 +224,9 @@ Available options:"
         r.assert_score_ownership(score)
         r.assert_score_strength(score) unless opts['ignore-score-weakness']
         @remotes.rescore(score.host, score.port, score.value)
-        if Semantic::Version.new(VERSION) < Semantic::Version.new(json['version'])
+        gem = Zold::Gem.new
+        if Semantic::Version.new(VERSION) < Semantic::Version.new(json['version']) ||
+           Semantic::Version.new(VERSION) < Semantic::Version.new(gem.last_version)
           if opts['reboot']
             @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, reboot! \
 (use --never-reboot to avoid this from happening)")

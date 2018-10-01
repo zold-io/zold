@@ -350,7 +350,8 @@ while #{settings.address} is in '#{settings.network}'"
         version: settings.version,
         alias: settings.node_alias,
         score: score.to_h,
-        all: settings.remotes.all
+        all: settings.remotes.all,
+        mtime: settings.remotes.mtime.utc.iso8601
       )
     end
 

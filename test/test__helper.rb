@@ -91,5 +91,18 @@ module Minitest
       @test_log = Zold::Log::Quiet.new if ENV['TEST_QUIET_LOG']
       Zold::Log::Sync.new(@test_log)
     end
+
+    class TestLogger
+      attr_accessor :msg
+      def initialize
+        @msg = []
+      end
+
+      def info(msg)
+        @msg << msg
+      end
+
+      def debug(msg); end
+    end
   end
 end

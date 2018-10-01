@@ -61,6 +61,10 @@ class TestRemote < Minitest::Test
       stub_request(:get, 'http://localhost:999/remotes').to_return(
         status: 404
       )
+      stub_request(:get, 'http://rubygems.org/api/v1/versions/zold/latest.json').to_return(
+        status: 200,
+        body: '{"version": "0.0.0"}'
+      )
       cmd = Zold::Remote.new(remotes: remotes, log: test_log)
       cmd.run(%w[remote clean])
       assert(remotes.all.empty?)
@@ -69,6 +73,40 @@ class TestRemote < Minitest::Test
       assert_equal(2, remotes.all.count)
       cmd.run(['remote', 'update', '--ignore-score-weakness', '--skip-ping'])
       assert_equal(4, remotes.all.count)
+    end
+  end
+
+  def test_new_version_rubygems
+    Dir.mktmpdir do |dir|
+      remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.txt'))
+      zero = Zold::Score::ZERO
+      stub_request(:get, "http://#{zero.host}:#{zero.port}/remotes").to_return(
+        status: 200,
+        body: {
+          version: Zold::VERSION,
+          score: zero.to_h,
+          all: [
+            { host: zero.host, port: zero.port }
+          ]
+        }.to_json
+      )
+      stub_request(:get, 'http://rubygems.org/api/v1/versions/zold/latest.json').to_return(
+        status: 200,
+        body: '{"version": "9.9.9"}'
+      )
+      log = Minitest::Test::TestLogger.new
+      cmd = Zold::Remote.new(remotes: remotes, log: log)
+      cmd.run(%w[remote clean])
+      cmd.run(['remote', 'add', zero.host, zero.port.to_s, '--skip-ping'])
+      cmd.run(['remote', 'update', '--ignore-score-weakness', '--skip-ping', '--reboot'])
+      assert(log.msg.to_s.include?(', reboot!'))
+      log.msg = []
+      stub_request(:get, 'http://rubygems.org/api/v1/versions/zold/latest.json').to_return(
+        status: 200,
+        body: "{\"version\": \"#{Zold::VERSION}\"}"
+      )
+      cmd.run(['remote', 'update', '--ignore-score-weakness', '--skip-ping', '--reboot'])
+      assert(!log.msg.to_s.include?(', reboot!'))
     end
   end
 
@@ -110,6 +148,10 @@ class TestRemote < Minitest::Test
             { host: 'localhost', port: 8883 }
           ]
         }.to_json
+      )
+      stub_request(:get, 'http://rubygems.org/api/v1/versions/zold/latest.json').to_return(
+        status: 200,
+        body: '{"version": "0.0.0"}'
       )
       stub_request(:get, 'http://localhost:8883/remotes').to_return(status: 404)
       cmd = Zold::Remote.new(remotes: remotes, log: test_log)

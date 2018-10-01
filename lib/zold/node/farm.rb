@@ -69,7 +69,8 @@ module Zold
         end.join(', '),
         cleanup: @cleanup.status,
         pipeline: @pipeline.size,
-        best: best.map(&:to_mnemo).join(', ')
+        best: best.map(&:to_mnemo).join(', '),
+        alive: @alive
       }
     end
 
@@ -103,7 +104,7 @@ module Zold
             @log.info("It's time to stop the cleanup thread (#{a.count} != #{max}, alive=#{@alive})...")
             break
           end
-          VerboseThread.new(@log).run do
+          VerboseThread.new(@log).run(true) do
             cleanup(host, port, strength, threads)
           end
         end
