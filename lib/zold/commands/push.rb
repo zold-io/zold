@@ -91,7 +91,8 @@ total score for #{id} is #{total}")
         raise "The wallet #{id} is absent" unless wallet.exists?
         AtomicFile.new(wallet.path).read
       end
-      response = r.http("/wallet/#{id}#{opts['sync'] ? '?sync=true' : ''}").put(content)
+      uri = "/wallet/#{id}"
+      response = r.http(uri).put(content)
       @wallets.find(id) do |wallet|
         if response.code == '304'
           @log.info("#{r}: same version #{content.length}b/#{wallet.txns.count}t \
@@ -99,7 +100,7 @@ of #{wallet.id} there, in #{(Time.now - start).round(2)}s")
           return 0
         end
         r.assert_code(200, response)
-        json = JsonPage.new(response.body).to_hash
+        json = JsonPage.new(response.body, uri).to_hash
         score = Score.parse_json(json['score'])
         r.assert_valid_score(score)
         r.assert_score_ownership(score)

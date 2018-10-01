@@ -193,7 +193,7 @@ while #{settings.address} is in '#{settings.network}'"
       settings.wallets.find(id) do |wallet|
         error 404 unless wallet.exists?
         content_type 'application/json'
-        {
+        JSON.pretty_generate(
           version: settings.version,
           alias: settings.node_alias,
           protocol: settings.protocol,
@@ -206,7 +206,7 @@ while #{settings.address} is in '#{settings.network}'"
           copies: Copies.new(File.join(settings.copies, id)).all.count,
           balance: wallet.balance.to_i,
           body: AtomicFile.new(wallet.path).read
-        }.to_json
+        )
       end
     end
 
@@ -215,7 +215,7 @@ while #{settings.address} is in '#{settings.network}'"
       settings.wallets.find(id) do |wallet|
         error 404 unless wallet.exists?
         content_type 'application/json'
-        {
+        JSON.pretty_generate(
           version: settings.version,
           alias: settings.node_alias,
           protocol: settings.protocol,
@@ -227,7 +227,7 @@ while #{settings.address} is in '#{settings.network}'"
           digest: wallet.digest,
           balance: wallet.balance.to_i,
           txns: wallet.txns.count
-        }.to_json
+        )
       end
     end
 

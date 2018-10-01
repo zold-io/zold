@@ -104,10 +104,11 @@ Available options:"
         @log.debug("#{r} ignored because of --ignore-node")
         return 0
       end
-      res = r.http("/wallet/#{id}").get
+      uri = "/wallet/#{id}"
+      res = r.http(uri).get
       raise "Wallet #{id} not found" if res.code == '404'
       r.assert_code(200, res)
-      json = JsonPage.new(res.body).to_hash
+      json = JsonPage.new(res.body, uri).to_hash
       score = Score.parse_json(json['score'])
       r.assert_valid_score(score)
       r.assert_score_ownership(score)

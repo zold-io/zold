@@ -139,9 +139,10 @@ Available options:"
     def top_scores
       best = []
       @remotes.iterate(@log) do |r|
-        res = r.http.get
+        uri = '/'
+        res = r.http(uri).get
         r.assert_code(200, res)
-        json = JsonPage.new(res.body).to_hash
+        json = JsonPage.new(res.body, uri).to_hash
         score = Score.parse_json(json['score'])
         r.assert_valid_score(score)
         r.assert_score_strength(score)

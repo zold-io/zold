@@ -183,9 +183,10 @@ Available options:"
     def elect(opts)
       scores = []
       @remotes.iterate(@log, farm: @farm) do |r|
-        res = r.http('/').get
+        uri = '/'
+        res = r.http(uri).get
         r.assert_code(200, res)
-        json = JsonPage.new(res.body).to_hash
+        json = JsonPage.new(res.body, uri).to_hash
         score = Score.parse_json(json['score'])
         r.assert_valid_score(score)
         r.assert_score_ownership(score)
@@ -216,9 +217,10 @@ Available options:"
       capacity = []
       @remotes.iterate(@log, farm: @farm) do |r|
         start = Time.now
-        res = r.http('/remotes').get
+        uri = '/remotes'
+        res = r.http(uri).get
         r.assert_code(200, res)
-        json = JsonPage.new(res.body).to_hash
+        json = JsonPage.new(res.body, uri).to_hash
         score = Score.parse_json(json['score'])
         r.assert_valid_score(score)
         r.assert_score_ownership(score)

@@ -40,7 +40,7 @@ module Zold
       path = uri.path
       path += '?' + uri.query if uri.query
       res = http.request_get(path)
-      JsonPage.new(res.body).to_hash['version']
+      JsonPage.new(res.body, path).to_hash['version']
     end
   end
 end
