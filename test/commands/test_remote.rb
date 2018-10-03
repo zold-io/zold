@@ -61,7 +61,7 @@ class TestRemote < Minitest::Test
       stub_request(:get, 'http://localhost:999/remotes').to_return(
         status: 404
       )
-      stub_request(:get, 'http://rubygems.org/api/v1/versions/zold/latest.json').to_return(
+      stub_request(:get, 'https://rubygems.org/api/v1/versions/zold/latest.json').to_return(
         status: 200,
         body: '{"version": "0.0.0"}'
       )
@@ -90,7 +90,7 @@ class TestRemote < Minitest::Test
           ]
         }.to_json
       )
-      stub_request(:get, 'http://rubygems.org/api/v1/versions/zold/latest.json').to_return(
+      stub_request(:get, 'https://rubygems.org/api/v1/versions/zold/latest.json').to_return(
         status: 200,
         body: '{"version": "9.9.9"}'
       )
@@ -101,7 +101,7 @@ class TestRemote < Minitest::Test
       cmd.run(['remote', 'update', '--ignore-score-weakness', '--skip-ping', '--reboot'])
       assert(log.msg.to_s.include?(', reboot!'))
       log.msg = []
-      stub_request(:get, 'http://rubygems.org/api/v1/versions/zold/latest.json').to_return(
+      stub_request(:get, 'https://rubygems.org/api/v1/versions/zold/latest.json').to_return(
         status: 200,
         body: "{\"version\": \"#{Zold::VERSION}\"}"
       )
@@ -149,7 +149,7 @@ class TestRemote < Minitest::Test
           ]
         }.to_json
       )
-      stub_request(:get, 'http://rubygems.org/api/v1/versions/zold/latest.json').to_return(
+      stub_request(:get, 'https://rubygems.org/api/v1/versions/zold/latest.json').to_return(
         status: 200,
         body: '{"version": "0.0.0"}'
       )

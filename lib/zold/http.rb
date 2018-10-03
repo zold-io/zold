@@ -25,7 +25,6 @@ require 'uri'
 require 'net/http'
 require_relative 'backtrace'
 require_relative 'version'
-require_relative 'score'
 require_relative 'type'
 
 # HTTP page.
@@ -72,6 +71,7 @@ module Zold
 
     def get
       http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = uri.scheme == 'https'
       http.read_timeout = Http::READ_TIMEOUT
       http.open_timeout = Http::CONNECT_TIMEOUT
       path = uri.path
@@ -83,6 +83,7 @@ module Zold
 
     def put(body)
       http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = uri.scheme == 'https'
       http.read_timeout = Http::READ_TIMEOUT
       http.open_timeout = Http::CONNECT_TIMEOUT
       path = uri.path
@@ -104,6 +105,10 @@ module Zold
     class Error
       def initialize(ex)
         @ex = ex
+      end
+
+      def to_s
+        "#{code}: #{message}\n#{body}"
       end
 
       def body

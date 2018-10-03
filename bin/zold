@@ -176,6 +176,8 @@ Available options:"
   remotes = Zold::Remotes.new(file: File.join(zoldata, 'remotes'), network: opts['network'])
   copies = File.join(zoldata, 'copies')
 
+  log.debug("Network: #{opts['network']}")
+
   case command
   when 'node'
     require_relative '../lib/zold/commands/node'

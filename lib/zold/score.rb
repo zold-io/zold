@@ -22,7 +22,6 @@
 
 require 'openssl'
 require 'time'
-require_relative 'remotes'
 require_relative 'type'
 
 # The score.

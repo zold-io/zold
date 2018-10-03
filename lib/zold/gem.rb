@@ -21,8 +21,9 @@
 # SOFTWARE.
 
 require 'uri'
-require 'net/http'
 require_relative 'json_page'
+require_relative 'http'
+require_relative 'score'
 
 # Class representing the Zold gem on Rubygems
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -31,16 +32,10 @@ require_relative 'json_page'
 module Zold
   # Gem
   class Gem
-    BASE_URI = 'rubygems.org'
-    API_VERSION = '/api/v1/'
-
     def last_version
-      uri = URI(API_VERSION + 'versions/zold/latest.json')
-      http = Net::HTTP.new(BASE_URI)
-      path = uri.path
-      path += '?' + uri.query if uri.query
-      res = http.request_get(path)
-      JsonPage.new(res.body, path).to_hash['version']
+      JsonPage.new(
+        Http.new(uri: 'https://rubygems.org/api/v1/versions/zold/latest.json', score: Score::ZERO).get.body
+      ).to_hash['version']
     end
   end
 end
