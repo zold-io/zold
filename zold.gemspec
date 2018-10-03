@@ -56,7 +56,6 @@ and suggests a different architecture for digital wallet maintenance.'
   s.extra_rdoc_files = ['README.md', 'LICENSE.txt']
   s.add_runtime_dependency 'cachy', '0.4.2'
   s.add_runtime_dependency 'concurrent-ruby', '~>1.0'
-  s.add_runtime_dependency 'cucumber', '~>3.1' # has to stay here for Heroku
   s.add_runtime_dependency 'diffy', '~>3.2'
   s.add_runtime_dependency 'dry-struct', '~>0.5.0'
   s.add_runtime_dependency 'dry-types', '~>0.13.2'
@@ -65,9 +64,6 @@ and suggests a different architecture for digital wallet maintenance.'
   s.add_runtime_dependency 'moneta', '1.0.0'
   s.add_runtime_dependency 'openssl', '~>2.1'
   s.add_runtime_dependency 'rainbow', '~>3.0'
-  s.add_runtime_dependency 'rake', '~>12.3' # has to stay here for Heroku
-  s.add_runtime_dependency 'rubocop', '0.58.1' # has to stay here for Heroku
-  s.add_runtime_dependency 'rubocop-rspec', '1.27.0' # has to stay here for Heroku
   s.add_runtime_dependency 'semantic', '~>1.6'
   s.add_runtime_dependency 'sigdump', '~>0.2'
   s.add_runtime_dependency 'sinatra', '~>2.0'
@@ -76,8 +72,12 @@ and suggests a different architecture for digital wallet maintenance.'
   s.add_runtime_dependency 'usagewatch_ext', '0.2.0'
   s.add_runtime_dependency 'xcop', '~>0.5'
   s.add_development_dependency 'codecov', '0.1.10'
+  s.add_development_dependency 'cucumber', '~>3.1'
   s.add_development_dependency 'minitest', '5.11.3'
+  s.add_development_dependency 'rake', '~>12.3'
   s.add_development_dependency 'rdoc', '4.2.0'
   s.add_development_dependency 'rspec-rails', '3.1.0'
+  s.add_development_dependency 'rubocop', '0.58.1'
+  s.add_development_dependency 'rubocop-rspec', '1.27.0'
   s.add_development_dependency 'webmock', '3.4.2'
 end
