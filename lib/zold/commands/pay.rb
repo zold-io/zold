@@ -78,7 +78,7 @@ Available options:"
       raise 'Amount is required (in ZLD) as the third argument' if mine[2].nil?
       amount = Amount.new(zld: mine[2].to_f)
       details = mine[3] || '-'
-      taxes(id)
+      taxes(id, opts)
       @wallets.find(id) do |from|
         pay(from, invoice, amount, details, opts)
       end
@@ -89,7 +89,7 @@ Available options:"
 
     private
 
-    def taxes(id)
+    def taxes(id, opts)
       debt = @wallets.find(id) do |wallet|
         raise "Wallet #{id} doesn't exist, do 'zold pull' first" unless wallet.exists?
         Tax.new(wallet).in_debt? && !opts['dont-pay-taxes']

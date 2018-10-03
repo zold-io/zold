@@ -246,4 +246,17 @@ class TestRemotes < Minitest::Test
       end
     end
   end
+
+  def test_manifests_correct_network_name
+    Dir.mktmpdir do |dir|
+      remotes = Zold::Remotes.new(file: File.join(dir, 'uu-083.csv'), network: 'x13')
+      remotes.clean
+      remotes.add('r5-example.org', 8080)
+      stub_request(:get, 'http://r5-example.org:8080/').to_return(status: 200)
+      remotes.iterate(test_log) do |r|
+        r.http.get
+      end
+      assert_requested(:get, 'http://r5-example.org:8080/', headers: { 'X-Zold-Network' => 'x13' })
+    end
+  end
 end

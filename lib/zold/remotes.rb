@@ -191,7 +191,7 @@ module Zold
               score: score,
               idx: idx,
               log: log,
-              network: @network
+              network: network
             )
             idx += 1
             raise 'Took too long to execute' if (Time.now - start).round > timeout
