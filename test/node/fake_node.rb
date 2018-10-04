@@ -40,48 +40,43 @@ class FakeNode
 
   def run(args = ['--standalone'])
     WebMock.allow_net_connect!
-    start = Dir.pwd
-    begin
-      FakeHome.new.run do |home|
-        RandomPort::Pool::SINGLETON.acquire do |port|
-          node = Thread.new do
-            Zold::VerboseThread.new(@log).run do
-              Thread.current.abort_on_exception = true
-              Dir.chdir(home.dir)
-              require_relative '../../lib/zold/commands/node'
-              Zold::Node.new(wallets: home.wallets, remotes: home.remotes, copies: home.copies.root, log: @log).run(
-                [
-                  '--network=test',
-                  '--port', port.to_s,
-                  '--host=localhost',
-                  '--bind-port', port.to_s,
-                  '--threads=1',
-                  '--dump-errors',
-                  '--strength=2',
-                  '--routine-immediately',
-                  '--invoice=NOPREFIX@ffffffffffffffff'
-                ] + args
-              )
-            end
-          end
-          uri = "http://localhost:#{port}/"
-          loop do
-            ping = Zold::Http.new(uri: uri, score: nil, network: Zold::Front.network).get
-            break unless ping.code == '599' && node.alive?
-            @log.debug("Waiting for #{uri}: ##{ping.code}...")
-            sleep 0.5
-          end
-          raise "The node is dead at #{uri}" unless node.alive?
-          begin
-            yield port
-          ensure
-            Zold::Front.stop!
-            node.join
+    FakeHome.new.run do |home|
+      RandomPort::Pool::SINGLETON.acquire do |port|
+        node = Thread.new do
+          Zold::VerboseThread.new(@log).run do
+            Thread.current.abort_on_exception = true
+            require_relative '../../lib/zold/commands/node'
+            Zold::Node.new(wallets: home.wallets, remotes: home.remotes, copies: home.copies.root, log: @log).run(
+              [
+                '--home', home.dir,
+                '--network=test',
+                '--port', port.to_s,
+                '--host=localhost',
+                '--bind-port', port.to_s,
+                '--threads=1',
+                '--dump-errors',
+                '--strength=2',
+                '--routine-immediately',
+                '--invoice=NOPREFIX@ffffffffffffffff'
+              ] + args
+            )
           end
         end
+        uri = "http://localhost:#{port}/"
+        loop do
+          ping = Zold::Http.new(uri: uri, score: nil, network: Zold::Front.network).get
+          break unless ping.code == '599' && node.alive?
+          @log.debug("Waiting for #{uri}: ##{ping.code}...")
+          sleep 0.5
+        end
+        raise "The node is dead at #{uri}" unless node.alive?
+        begin
+          yield port
+        ensure
+          Zold::Front.stop!
+          node.join
+        end
       end
-    ensure
-      Dir.chdir(start)
     end
   end
 end
