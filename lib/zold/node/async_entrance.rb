@@ -38,10 +38,6 @@ module Zold
     # Queue length
     MAX_QUEUE = Concurrent.processor_count * 64
 
-    # Max items in the queue. If there will be more, push() requests
-    # will be rejected.
-    MAX_QUEUE = 128
-
     def initialize(entrance, dir, log: Log::Quiet.new)
       raise 'Entrance can\'t be nil' if entrance.nil?
       @entrance = entrance

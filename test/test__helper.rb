@@ -24,7 +24,6 @@ gem 'openssl'
 require 'openssl'
 require 'minitest/autorun'
 require 'concurrent'
-require 'cachy'
 require 'moneta'
 
 STDOUT.sync = true
@@ -37,8 +36,6 @@ if ENV['CI'] == 'true'
   require 'codecov'
   SimpleCov.formatter = SimpleCov::Formatter::Codecov
 end
-
-Cachy.cache_store = Moneta.new(:Memory)
 
 module Minitest
   class Test

@@ -26,6 +26,7 @@ require 'json'
 require 'sinatra/base'
 require 'webrick'
 require 'cachy'
+require 'moneta'
 require 'get_process_mem'
 require 'diffy'
 require 'usagewatch_ext'
@@ -48,6 +49,7 @@ module Zold
   class Front < Sinatra::Base
     configure do
       Thread.current.name = 'sinatra'
+      Cachy.cache_store = Moneta.new(:Memory)
       set :bind, '0.0.0.0'
       set :suppress_messages, true
       set :start, Time.now
