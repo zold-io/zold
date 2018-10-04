@@ -127,6 +127,9 @@ module Zold
           'Maximum amount of nohup re-starts (-1 by default, which means forever)',
           require: true,
           default: -1
+        o.string '--home',
+          "Home directory (default: #{Dir.pwd})",
+          default: Dir.pwd
         o.bool '--no-metronome',
           'Don\'t run the metronome',
           required: true,
@@ -156,9 +159,9 @@ module Zold
       Front.set(:protocol, Zold::PROTOCOL)
       Front.set(:logging, @log.debug?)
       Front.set(:halt, opts['halt-code'])
-      Front.set(:home, Dir.pwd)
+      Front.set(:home, opts['home'])
       @log.info("Time: #{Time.now.utc.iso8601}")
-      @log.info("Home directory: #{Dir.pwd}")
+      @log.info("Home directory: #{opts['home']}")
       @log.info("Ruby version: #{RUBY_VERSION}")
       @log.info("Zold gem version: #{Zold::VERSION}")
       @log.info("Zold protocol version: #{Zold::PROTOCOL}")
@@ -189,7 +192,7 @@ module Zold
       Front.set(:remotes, @remotes)
       Front.set(:copies, @copies)
       Front.set(:address, address)
-      Front.set(:root, Dir.pwd)
+      Front.set(:root, opts['home'])
       Front.set(:dump_errors, opts['dump-errors'])
       Front.set(:port, opts['bind-port'])
       Front.set(:reboot, !opts['never-reboot'])
@@ -215,21 +218,21 @@ module Zold
                   @remotes, @copies, address,
                   log: @log, network: opts['network']
                 ),
-                File.join(Dir.pwd, '.zoldata/entrance'),
+                File.join(opts['home'], '.zoldata/entrance'),
                 log: @log
               ),
               @wallets, @remotes, address,
               log: @log,
               ignore_score_weakeness: opts['ignore-score-weakness']
             ),
-            File.join(Dir.pwd, '.zoldata/entrance'), log: @log
+            File.join(opts['home'], '.zoldata/entrance'), log: @log
           ),
           @wallets
         ),
         network: opts['network']
       ).start do |entrance|
         Front.set(:entrance, entrance)
-        Farm.new(invoice, File.join(Dir.pwd, 'farm'), log: @log)
+        Farm.new(invoice, File.join(opts['home'], 'farm'), log: @log)
           .start(host, opts[:port], threads: opts[:threads], strength: opts[:strength]) do |farm|
           Front.set(:farm, farm)
           metronome(farm, opts).start do |metronome|
