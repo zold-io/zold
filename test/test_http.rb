@@ -25,6 +25,7 @@ require 'tmpdir'
 require 'uri'
 require 'webmock/minitest'
 require_relative '../lib/zold/http'
+require_relative '../lib/zold/score'
 
 # Http test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -66,6 +67,15 @@ class TestHttp < Minitest::Test
       .to_return(status: 200)
     res = Zold::Http.new(uri: 'http://some-host-2/', score: nil).get
     assert_equal('200', res.code)
+  end
+
+  def test_terminates_on_timeout
+    stub_request(:get, 'http://the-fake-host-99/').to_return do
+      sleep 100
+      { body: 'This should never be returned!' }
+    end
+    res = Zold::Http.new(uri: 'http://the-fake-host-99/', score: nil).get
+    assert_equal('599', res.code)
   end
 
   def test_sends_valid_version_header

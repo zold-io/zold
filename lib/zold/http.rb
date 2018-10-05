@@ -22,6 +22,7 @@
 
 require 'rainbow'
 require 'uri'
+require 'timeout'
 require 'net/http'
 require_relative 'backtrace'
 require_relative 'version'
@@ -54,10 +55,10 @@ module Zold
     PROTOCOL_HEADER = 'X-Zold-Protocol'
 
     # Read timeout in seconds
-    READ_TIMEOUT = 32
+    READ_TIMEOUT = 4
 
     # Connect timeout in seconds
-    CONNECT_TIMEOUT = 8
+    CONNECT_TIMEOUT = 4
 
     # @todo #98:30m/DEV The following two statements are seen as issues by rubocop
     #  raising a Lint/AmbiguousBlockAssociation offense. It is somthing
@@ -76,7 +77,9 @@ module Zold
       http.open_timeout = Http::CONNECT_TIMEOUT
       path = uri.path
       path += '?' + uri.query if uri.query
-      http.request_get(path, headers)
+      Timeout.timeout(Http::READ_TIMEOUT + Http::CONNECT_TIMEOUT) do
+        http.request_get(path, headers)
+      end
     rescue StandardError => e
       Error.new(e)
     end
@@ -88,13 +91,15 @@ module Zold
       http.open_timeout = Http::CONNECT_TIMEOUT
       path = uri.path
       path += '?' + uri.query if uri.query
-      http.request_put(
-        path, body,
-        headers.merge(
-          'Content-Type': 'text/plain',
-          'Content-Length': body.length.to_s
+      Timeout.timeout(Http::READ_TIMEOUT + Http::CONNECT_TIMEOUT) do
+        http.request_put(
+          path, body,
+          headers.merge(
+            'Content-Type': 'text/plain',
+            'Content-Length': body.length.to_s
+          )
         )
-      )
+      end
     rescue StandardError => e
       Error.new(e)
     end
