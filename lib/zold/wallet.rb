@@ -31,6 +31,8 @@ require_relative 'amount'
 require_relative 'hexnum'
 require_relative 'signature'
 require_relative 'atomic_file'
+require_relative 'txns'
+require_relative 'head'
 
 # The wallet.
 #
@@ -52,8 +54,9 @@ module Zold
     EXTENSION = '.z'
 
     def initialize(file)
-      @file = file
-      @file = "#{file}#{EXTENSION}" if File.extname(file).empty?
+      @file = File.extname(file).empty? ? "#{file}#{EXTENSION}" : file
+      @txns = Txns::Cached.new(Txns.new(@file))
+      @head = Head::Cached.new(Head.new(@file))
     end
 
     def ==(other)
@@ -65,13 +68,13 @@ module Zold
     end
 
     def network
-      n = lines[0].strip
+      n = @head.fetch[0].strip
       raise "Invalid network name '#{n}'" unless n =~ /^[a-z]{4,16}$/
       n
     end
 
     def protocol
-      v = lines[1].strip
+      v = @head.fetch[1].strip
       raise "Invalid protocol version name '#{v}'" unless v =~ /^[0-9]+$/
       v.to_i
     end
@@ -88,6 +91,8 @@ module Zold
       raise "File '#{@file}' already exists" if File.exist?(@file) && !overwrite
       raise "Invalid network name '#{network}'" unless network =~ /^[a-z]{4,16}$/
       AtomicFile.new(@file).write("#{network}\n#{PROTOCOL}\n#{id}\n#{pubkey.to_pub}\n\n")
+      @txns.flush
+      @head.flush
     end
 
     def root?
@@ -95,7 +100,7 @@ module Zold
     end
 
     def id
-      Id.new(lines[2].strip)
+      Id.new(@head.fetch[2].strip)
     end
 
     def balance
@@ -130,6 +135,7 @@ module Zold
       raise "The transaction with the same ID and BNF already exists: #{dup}" unless dup.nil?
       raise "The tax payment already exists: #{txn}" if Tax.new(self).exists?(txn)
       File.open(@file, 'a') { |f| f.print "#{txn}\n" }
+      @txns.flush
     end
 
     def has?(id, bnf)
@@ -143,7 +149,7 @@ module Zold
     end
 
     def key
-      Key.new(text: lines[3].strip)
+      Key.new(text: @head.fetch[3].strip)
     end
 
     def income
@@ -167,16 +173,14 @@ module Zold
     end
 
     def txns
-      lines.drop(5)
-        .each_with_index
-        .map { |line, i| Txn.parse(line, i + 6) }
-        .sort
+      @txns.fetch
     end
 
     def refurbish
       AtomicFile.new(@file).write(
         "#{network}\n#{protocol}\n#{id}\n#{key.to_pub}\n\n#{txns.map { |t| t.to_s + "\n" }.join}"
       )
+      @txns.flush
     end
 
     private
@@ -184,13 +188,6 @@ module Zold
     def max
       negative = txns.select { |t| t.amount.negative? }
       negative.empty? ? 0 : negative.max_by(&:id).id
-    end
-
-    def lines
-      raise "Wallet file '#{@file}' is absent" unless File.exist?(@file)
-      lines = AtomicFile.new(@file).read.split(/\n/)
-      raise "Not enough lines in #{@file}, just #{lines.count}" if lines.count < 4
-      lines
     end
   end
 end

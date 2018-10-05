@@ -42,6 +42,19 @@ class TestWallet < Minitest::Test
     end
   end
 
+  def test_reads_large_wallet
+    key = Zold::Key.new(file: 'fixtures/id_rsa')
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet('448b451bc62e8e16.z')
+      FileUtils.cp('fixtures/448b451bc62e8e16.z', wallet.path)
+      start = Time.now
+      wallet.txns
+      wallet.sub(Zold::Amount.new(zld: 39.99), "NOPREFIX@#{Zold::Id.new}", key)
+      time = Time.now - start
+      assert(time < 0.5, "Too slow: #{time.round(2)} seconds")
+    end
+  end
+
   def test_adds_transaction
     FakeHome.new.run do |home|
       wallet = home.create_wallet
