@@ -14,7 +14,7 @@ release:
     rm -rf *.gem
     sed -i "s/0\.0\.0/${tag}/g" lib/zold/version.rb
     bundle install --no-color
-    rake
+    rake --quiet
     git add lib/zold/version.rb
     git commit -m "version set to ${tag}"
     gem build zold.gemspec
