@@ -56,6 +56,8 @@ class TestEntrance < Minitest::Test
       e = Zold::Entrance.new(home.wallets, home.remotes, home.copies(source).root, 'x', log: test_log)
       modified = e.push(source.id, body)
       assert_equal(2, modified.count)
+      assert(modified.include?(sid))
+      assert(modified.include?(tid))
     end
   end
 

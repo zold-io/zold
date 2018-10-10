@@ -23,47 +23,40 @@ require 'pathname'
 require_relative 'id'
 require_relative 'wallet'
 
-# The local collection of wallets.
+# Cached collection of wallets.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
   # Collection of local wallets
-  class Wallets
-    def initialize(dir)
-      @dir = dir
+  class CachedWallets
+    def initialize(wallets)
+      @wallets = wallets
+      @cache = {}
+      @mutex = Mutex.new
     end
 
-    # @todo #70:30min Let's make it smarter. Instead of returning
-    #  the full path let's substract the prefix from it if it's equal
-    #  to the current directory in Dir.pwd.
     def to_s
-      mine = Pathname.new(File.expand_path(@dir))
-      home = Pathname.new(File.expand_path(Dir.pwd))
-      mine.relative_path_from(home).to_s
+      @wallets.to_s
     end
 
     def path
-      FileUtils.mkdir_p(@dir)
-      File.expand_path(@dir)
+      @wallets.path
     end
 
-    # Returns the list of their IDs (as plain text)
     def all
-      Dir.new(path).select do |f|
-        file = File.join(@dir, f)
-        basename = File.basename(f, Wallet::EXTENSION)
-        File.file?(file) &&
-          !File.directory?(file) &&
-          basename =~ /^[0-9a-fA-F]{16}$/ &&
-          Id.new(basename).to_s == basename
-      end.map { |w| File.basename(w, Wallet::EXTENSION) }
+      @wallets.all
     end
 
     def find(id)
-      raise 'Id can\'t be nil' if id.nil?
-      raise "Id must be of type Id, #{id.class.name} instead" unless id.is_a?(Id)
-      yield Zold::Wallet.new(File.join(path, id.to_s))
+      @wallets.find(id) do |wallet|
+        yield(
+          @mutex.synchronize do
+            @cache[id] = wallet unless @cache[id]
+            @cache[id]
+          end
+        )
+      end
     end
   end
 end

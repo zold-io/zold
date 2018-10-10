@@ -19,51 +19,34 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-require 'pathname'
-require_relative 'id'
-require_relative 'wallet'
 
-# The local collection of wallets.
+require 'minitest/autorun'
+require 'tmpdir'
+require_relative 'fake_home'
+require_relative '../lib/zold/key'
+require_relative '../lib/zold/id'
+require_relative '../lib/zold/wallets'
+require_relative '../lib/zold/cached_wallets'
+require_relative '../lib/zold/amount'
+
+# CachedWallets test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # Collection of local wallets
-  class Wallets
-    def initialize(dir)
-      @dir = dir
-    end
-
-    # @todo #70:30min Let's make it smarter. Instead of returning
-    #  the full path let's substract the prefix from it if it's equal
-    #  to the current directory in Dir.pwd.
-    def to_s
-      mine = Pathname.new(File.expand_path(@dir))
-      home = Pathname.new(File.expand_path(Dir.pwd))
-      mine.relative_path_from(home).to_s
-    end
-
-    def path
-      FileUtils.mkdir_p(@dir)
-      File.expand_path(@dir)
-    end
-
-    # Returns the list of their IDs (as plain text)
-    def all
-      Dir.new(path).select do |f|
-        file = File.join(@dir, f)
-        basename = File.basename(f, Wallet::EXTENSION)
-        File.file?(file) &&
-          !File.directory?(file) &&
-          basename =~ /^[0-9a-fA-F]{16}$/ &&
-          Id.new(basename).to_s == basename
-      end.map { |w| File.basename(w, Wallet::EXTENSION) }
-    end
-
-    def find(id)
-      raise 'Id can\'t be nil' if id.nil?
-      raise "Id must be of type Id, #{id.class.name} instead" unless id.is_a?(Id)
-      yield Zold::Wallet.new(File.join(path, id.to_s))
+class TestCachedWallets < Minitest::Test
+  def test_adds_wallet
+    FakeHome.new.run do |home|
+      wallets = Zold::CachedWallets.new(home.wallets)
+      id = Zold::Id.new
+      first = nil
+      wallets.find(id) do |wallet|
+        wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+        assert_equal(1, wallets.all.count)
+        first = wallet
+      end
+      wallets.find(id) do |wallet|
+        assert_equal(first, wallet)
+      end
     end
   end
 end

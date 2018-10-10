@@ -37,6 +37,7 @@ require_relative '../lib/zold/wallet'
 require_relative '../lib/zold/wallets'
 require_relative '../lib/zold/tree_wallets'
 require_relative '../lib/zold/sync_wallets'
+require_relative '../lib/zold/cached_wallets'
 require_relative '../lib/zold/log'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/amount'
@@ -166,7 +167,9 @@ Available options:"
   end
 
   wallets = Zold::SyncWallets.new(
-    command == 'node' ? Zold::TreeWallets.new('.') : Zold::Wallets.new('.'),
+    Zold::CachedWallets.new(
+      command == 'node' ? Zold::TreeWallets.new('.') : Zold::Wallets.new('.')
+    ),
     File.join(zoldata, 'locks'), log: log
   )
   remotes = Zold::Remotes.new(file: File.join(zoldata, 'remotes'), network: opts['network'])

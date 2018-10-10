@@ -52,9 +52,12 @@ class FakeHome
   end
 
   def create_wallet(id = Zold::Id.new, dir = @dir)
-    wallet = Zold::Wallet.new(File.join(dir, id.to_s))
-    wallet.init(id, Zold::Key.new(file: File.join(__dir__, '../fixtures/id_rsa.pub')))
-    wallet
+    target = Zold::Wallet.new(File.join(dir, id.to_s))
+    wallets.find(id) do |w|
+      w.init(id, Zold::Key.new(file: File.join(__dir__, '../fixtures/id_rsa.pub')))
+      File.write(target.path, File.read(w.path))
+    end
+    target
   end
 
   def create_wallet_json(id = Zold::Id.new)

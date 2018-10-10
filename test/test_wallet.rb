@@ -45,7 +45,7 @@ class TestWallet < Minitest::Test
   def test_reads_large_wallet
     key = Zold::Key.new(file: 'fixtures/id_rsa')
     FakeHome.new.run do |home|
-      wallet = home.create_wallet('448b451bc62e8e16.z')
+      wallet = home.create_wallet(Zold::Id.new('448b451bc62e8e16'))
       FileUtils.cp('fixtures/448b451bc62e8e16.z', wallet.path)
       start = Time.now
       wallet.txns
