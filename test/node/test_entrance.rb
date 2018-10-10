@@ -67,7 +67,7 @@ class TestEntrance < Minitest::Test
       e = Zold::Entrance.new(home.wallets, home.remotes, home.copies.root, 'x', log: test_log)
       e.push(wallet.id, File.read(wallet.path))
       assert(e.to_json[:history].include?(wallet.id.to_s))
-      assert(e.to_json[:speed].positive?)
+      assert(!e.to_json[:speed].negative?)
     end
   end
 end
