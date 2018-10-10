@@ -53,6 +53,8 @@ module Zold
     # Text prefix for taxes details
     PREFIX = 'TAXES'
 
+    attr_reader :wallet
+
     def initialize(wallet)
       @wallet = wallet
     end

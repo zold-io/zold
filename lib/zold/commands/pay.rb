@@ -26,6 +26,7 @@ require_relative 'args'
 require_relative '../id'
 require_relative '../amount'
 require_relative '../log'
+require_relative '../notify'
 
 # PAY command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -118,13 +119,9 @@ Available options:"
       txn
     end
 
-    # @todo #79:40min Extract message cretion into a separate method for easier
-    #  testing. Add tests for when in debt and not. Extract to a
-    #  module, possibly Notify.
     def notify_of_tax_debt(wallet)
       tax = Tax.new(wallet)
-      message = "The tax debt of #{wallet} is #{tax.debt}"
-      message += ' (still acceptable)' unless tax.in_debt?
+      message = Zold::Notify.tax_debt(tax)
       @log.info(message)
     end
   end
