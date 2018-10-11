@@ -123,7 +123,11 @@ among #{payer.txns.count} transactions: #{txn.to_text}")
       before = AtomicFile.new(file).read if File.exist?(file)
       wallet = Wallet.new(file)
       wallet.init(@id, @key, overwrite: overwrite, network: @network)
-      @txns.each { |t| wallet.add(t) }
+      File.open(file, 'a') do |f|
+        @txns.each do |txn|
+          f.print "#{txn}\n"
+        end
+      end
       wallet.refurbish
       after = AtomicFile.new(file).read
       before != after

@@ -23,6 +23,7 @@
 require 'open3'
 require 'slop'
 require_relative '../version'
+require_relative '../age'
 require_relative '../score'
 require_relative '../backtrace'
 require_relative '../metronome'
@@ -264,8 +265,7 @@ module Zold
         end
         nohup_log.print("Nothing else left to read from ##{thr.pid}\n")
         code = thr.value.to_i
-        nohup_log.print("Exit code of process ##{thr.pid} is #{code}, was alive for \
-#{((Time.now - start) / 60).round} min: #{cmd}\n")
+        nohup_log.print("Exit code of process ##{thr.pid} is #{code}, was alive for #{Age.new(start)}: #{cmd}\n")
         code
       end
     end

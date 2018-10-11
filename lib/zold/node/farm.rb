@@ -24,6 +24,7 @@ require 'time'
 require 'open3'
 require_relative '../log'
 require_relative '../score'
+require_relative '../age'
 require_relative '../verbose_thread'
 require_relative '../backtrace'
 require_relative '../atomic_file'
@@ -118,7 +119,7 @@ module Zold
         start = Time.now
         finish(@cleanup)
         @threads.each { |t| finish(t) }
-        @log.info("Farm stopped in #{(Time.now - start).round(2)}s")
+        @log.info("Farm stopped in #{Age.new(start)}")
       end
     end
 
@@ -129,14 +130,14 @@ module Zold
       @alive = false
       @log.info("Attempting to terminate the thread \"#{thread.name}\"...")
       loop do
-        delay = (Time.now - start).round(2)
+        delay = Time.now - start
         if thread.join(0.1)
-          @log.info("Thread \"#{thread.name}\" finished in #{delay}s")
+          @log.info("Thread \"#{thread.name}\" finished in #{Age.new(start)}")
           break
         end
         if delay > 10
           thread.exit
-          @log.error("Thread \"#{thread.name}\" forcefully terminated after #{delay}s")
+          @log.error("Thread \"#{thread.name}\" forcefully terminated after #{Age.new(start)}")
         end
       end
     end

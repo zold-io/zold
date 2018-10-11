@@ -27,6 +27,7 @@ require 'net/http'
 require 'time'
 require 'fileutils'
 require_relative 'backtrace'
+require_relative 'age'
 require_relative 'score'
 require_relative 'http'
 require_relative 'node/farm'
@@ -100,7 +101,7 @@ module Zold
 
       def assert_valid_score(score)
         raise "Invalid score #{score}" unless score.valid?
-        raise "Expired score #{score}" if score.expired?
+        raise "Expired score (#{Age.new(score.time)}) #{score}" if score.expired?
       end
 
       def assert_score_ownership(score)
@@ -197,8 +198,7 @@ module Zold
             raise 'Took too long to execute' if (Time.now - start).round > timeout
           rescue StandardError => e
             error(r[:host], r[:port])
-            log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message} \
-in #{(Time.now - start).round}s")
+            log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message} in #{Age.new(start)}")
             log.debug(Backtrace.new(e).to_s)
             remove(r[:host], r[:port]) if errors > Remotes::TOLERANCE
           end

@@ -29,6 +29,7 @@ require 'time'
 require_relative 'args'
 require_relative '../node/farm'
 require_relative '../log'
+require_relative '../age'
 require_relative '../json_page'
 require_relative '../http'
 require_relative '../remotes'
@@ -244,8 +245,7 @@ it's recommended to reboot, but I don't do it because of --never-reboot")
           end
         end
         capacity << { host: score.host, port: score.port, count: json['all'].count }
-        @log.info("#{r}: the score is #{Rainbow(score.value).green} (#{json['version']}) \
-in #{(Time.now - start).round(2)}s")
+        @log.info("#{r}: the score is #{Rainbow(score.value).green} (#{json['version']}) in #{Age.new(start)}")
       end
       max_capacity = capacity.map { |c| c[:count] }.max || 0
       capacity.each do |c|

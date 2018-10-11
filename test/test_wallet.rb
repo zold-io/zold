@@ -23,6 +23,7 @@
 require 'minitest/autorun'
 require_relative 'fake_home'
 require_relative '../lib/zold/key'
+require_relative '../lib/zold/age'
 require_relative '../lib/zold/id'
 require_relative '../lib/zold/wallet'
 require_relative '../lib/zold/txn'
@@ -51,7 +52,7 @@ class TestWallet < Minitest::Test
       wallet.txns
       wallet.sub(Zold::Amount.new(zld: 39.99), "NOPREFIX@#{Zold::Id.new}", key)
       time = Time.now - start
-      assert(time < 0.5, "Too slow: #{time.round(2)} seconds")
+      assert(time < 0.5, "Too slow: #{Zold::Age.new(start)} seconds")
     end
   end
 

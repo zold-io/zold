@@ -24,6 +24,7 @@ require 'slop'
 require 'rainbow'
 require_relative 'args'
 require_relative '../log'
+require_relative '../age'
 require_relative '../wallet'
 require_relative '../wallets'
 require_relative '../prefixes'
@@ -60,6 +61,7 @@ Available options:"
 
     # Returns list of Wallet IDs which were affected
     def propagate(id, _)
+      start = Time.now
       modified = []
       @wallets.find(id) do |wallet|
         wallet.txns.select { |t| t.amount.negative? }.each do |t|
@@ -85,7 +87,7 @@ Available options:"
         end
       end
       modified.uniq!
-      @log.debug("Wallet #{id} propagated successfully, #{modified.count} wallets affected")
+      @log.debug("Wallet #{id} propagated successfully in #{Age.new(start)}, #{modified.count} wallets affected")
       modified
     end
   end

@@ -54,7 +54,7 @@ module Zold
     EXTENSION = '.z'
 
     def initialize(file)
-      @file = File.extname(file).empty? ? "#{file}#{EXTENSION}" : file
+      @file = File.absolute_path(File.extname(file).empty? ? "#{file}#{EXTENSION}" : file)
       @txns = Txns::Cached.new(Txns.new(@file))
       @head = Head::Cached.new(Head.new(@file))
     end

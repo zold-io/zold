@@ -25,6 +25,7 @@ require 'slop'
 require 'json'
 require 'net/http'
 require_relative 'args'
+require_relative '../age'
 require_relative '../log'
 require_relative '../id'
 require_relative '../http'
@@ -77,7 +78,7 @@ Available options:"
       end
       raise "There are no remote nodes, run 'zold remote reset'" if nodes.zero?
       raise "No nodes out of #{nodes} accepted the wallet #{id}" if done.zero?
-      @log.info("Push finished to #{done} nodes out of #{nodes} in #{(Time.now - start).round}s, \
+      @log.info("Push finished to #{done} nodes out of #{nodes} in #{Age.new(start)}, \
 total score for #{id} is #{total}")
     end
 
@@ -96,7 +97,7 @@ total score for #{id} is #{total}")
       @wallets.find(id) do |wallet|
         if response.code == '304'
           @log.info("#{r}: same version #{content.length}b/#{wallet.txns.count}t \
-of #{wallet.id} there, in #{(Time.now - start).round(2)}s")
+of #{wallet.id} there, in #{Age.new(start)}")
           return 0
         end
         r.assert_code(200, response)
@@ -106,7 +107,7 @@ of #{wallet.id} there, in #{(Time.now - start).round(2)}s")
         r.assert_score_ownership(score)
         r.assert_score_strength(score) unless opts['ignore-score-weakness']
         @log.info("#{r} accepted #{content.length}b/#{wallet.digest[0, 6]}/#{wallet.txns.count}t of #{wallet.id} \
-in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green} (#{json['version']})")
+in #{Age.new(start)}: #{Rainbow(score.value).green} (#{json['version']})")
         score.value
       end
     end

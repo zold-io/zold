@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require_relative 'log'
+require_relative 'age'
 require_relative 'verbose_thread'
 require_relative 'backtrace'
 
@@ -60,10 +61,10 @@ module Zold
             start = Time.now
             begin
               r.exec(step)
-              @log.info("Routine #{r.class.name} ##{step} done in #{(Time.now - start).round(2)}s")
+              @log.info("Routine #{r.class.name} ##{step} done in #{Age.new(start)}")
             rescue StandardError => e
               @failures[r.class.name] = Backtrace.new(e).to_s
-              @log.error("Routine #{r.class.name} ##{step} failed in #{(Time.now - start).round(2)}s")
+              @log.error("Routine #{r.class.name} ##{step} failed in #{Age.new(start)}")
               @log.error(Backtrace.new(e).to_s)
             end
             step += 1
@@ -80,13 +81,13 @@ module Zold
         @threads.each do |t|
           tstart = Time.now
           if t.join(60)
-            @log.info("Thread #{t.name} finished in #{(Time.now - tstart).round(2)}s")
+            @log.info("Thread #{t.name} finished in #{Age.new(tstart)}")
           else
             t.exit
-            @log.info("Thread #{t.name} killed in #{(Time.now - tstart).round(2)}s")
+            @log.info("Thread #{t.name} killed in #{Age.new(tstart)}")
           end
         end
-        @log.info("Metronome stopped in #{(Time.now - start).round(2)}s, #{@failures.count} failures")
+        @log.info("Metronome stopped in #{Age.new(start)}, #{@failures.count} failures")
       end
     end
   end

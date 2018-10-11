@@ -53,7 +53,7 @@ module Minitest
         end
         sleep 1
         sec = Time.now - start
-        raise "'#{actual}' is not equal to '#{expected}' even after #{sec.round}s of waiting" if sec > max
+        raise "'#{actual}' is not equal to '#{expected}' even after #{Age.new(start)} of waiting" if sec > max
       end
     end
 

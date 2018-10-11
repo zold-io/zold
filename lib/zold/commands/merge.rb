@@ -24,6 +24,7 @@ require 'slop'
 require 'rainbow'
 require_relative 'args'
 require_relative '../backtrace'
+require_relative '../age'
 require_relative '../log'
 require_relative '../id'
 require_relative '../wallet'
@@ -72,20 +73,22 @@ Available options:"
       score = 0
       cps.each_with_index do |c, idx|
         wallet = Wallet.new(c[:path])
-        merge_one(opts, patch, wallet, "#{c[:name]}/#{idx}/#{c[:score]}")
+        name = "#{c[:name]}/#{idx}/#{c[:score]}"
+        merge_one(opts, patch, wallet, name)
         score += c[:score]
       end
       @wallets.find(id) do |wallet|
+        start = Time.now
         if wallet.exists?
           merge_one(opts, patch, wallet, 'localhost')
-          @log.debug("Local copy of #{id} merged: #{patch}")
+          @log.debug("Local copy of #{id} merged in #{Age.new(start)}: #{patch}")
         else
           @log.debug("Local copy of #{id} is absent, nothing to merge")
         end
         modified = patch.save(wallet.path, overwrite: true)
         if modified
           @log.info("#{cps.count} copies with the total score of #{score} successfully merged \
-into #{wallet.id}/#{wallet.balance}/#{wallet.txns.count}t")
+into #{wallet.id}/#{wallet.balance}/#{wallet.txns.count}t in #{Age.new(start)}")
         else
           @log.info("Nothing changed in #{wallet.id} after merge of #{cps.count} copies")
         end
@@ -94,9 +97,10 @@ into #{wallet.id}/#{wallet.balance}/#{wallet.txns.count}t")
     end
 
     def merge_one(opts, patch, wallet, name)
+      start = Time.now
       @log.debug("Building a patch for #{wallet.id} from remote copy #{name}...")
       patch.join(wallet, !opts['no-baseline'])
-      @log.debug("Copy #{name} of #{wallet.id} merged: #{patch}")
+      @log.debug("Copy #{name} of #{wallet.id} merged in #{Age.new(start)}: #{patch}")
     rescue StandardError => e
       @log.error("Can't merge copy #{name}: #{e.message}")
       @log.debug(Backtrace.new(e).to_s)

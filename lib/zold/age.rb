@@ -37,7 +37,9 @@ module Zold
     def to_s
       return '?' if @time.nil?
       sec = Time.now - @time
-      if sec < 60
+      if sec < 1
+        "#{(sec * 1000).round}ms"
+      elsif sec < 60
         "#{sec.round(2)}s"
       elsif sec < 60 * 60
         "#{(sec / 60).round}m"

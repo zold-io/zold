@@ -25,6 +25,7 @@ require 'tmpdir'
 require 'webmock/minitest'
 require_relative 'test__helper'
 require_relative '../lib/zold/log'
+require_relative '../lib/zold/age'
 require_relative '../lib/zold/remotes'
 require_relative '../lib/zold/verbose_thread'
 
@@ -218,7 +219,7 @@ class TestRemotes < Minitest::Test
         remotes.iterate(test_log) { remotes.all }
         remotes.remove('127.0.0.1', 8080 + t)
       end
-      test_log.info("Total time: #{Time.now - start}")
+      test_log.info("Total time: #{Zold::Age.new(start)}")
     end
   end
 

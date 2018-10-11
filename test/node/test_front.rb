@@ -28,6 +28,7 @@ require_relative '../test__helper'
 require_relative 'fake_node'
 require_relative '../fake_home'
 require_relative '../../lib/zold/http'
+require_relative '../../lib/zold/age'
 require_relative '../../lib/zold/json_page'
 require_relative '../../lib/zold/score'
 
@@ -209,8 +210,7 @@ class FrontTest < Minitest::Test
         Zold::Http.new(uri: URI("http://localhost:#{port}/"), score: nil).get
       end
     end
-    sec = (Time.now - start) / total
-    test_log.info("Average response time is #{sec.round(2)}s")
+    test_log.info("Average response time is #{Zold::Age.new(start)}")
   end
 
   def app
