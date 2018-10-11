@@ -75,6 +75,9 @@ Available options:"
         o.bool '--ignore-score-weakness',
           'Don\'t complain when their score is too weak',
           default: false
+        o.bool '--ignore-nodes-absence',
+          'Don\'t complain if there are not enough nodes in the network to pay taxes',
+          default: false
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
@@ -112,20 +115,28 @@ Available options:"
       raise 'The wallet is absent' unless wallet.exists?
       tax = Tax.new(wallet)
       debt = tax.debt
-      @log.debug("The current debt is #{debt} (#{debt.to_i} zents)")
+      @log.info("The current debt is #{debt} (#{debt.to_i} zents)")
       unless tax.in_debt?
         @log.debug("No need to pay taxes yet, until the debt is less than #{Tax::TRIAL} (#{Tax::TRIAL.to_i} zents)")
         return
       end
       top = top_scores(opts)
       while debt > Tax::TRIAL
-        raise 'No acceptable remote nodes, try later' if top.empty?
+        if top.empty?
+          raise 'No acceptable remote nodes, try later' unless opts['ignore-nodes-absence']
+          @log.info('Not enough strong nodes in the network, try later')
+          break
+        end
         best = top.shift
+        if tax.exists?(tax.details(best))
+          @log.debug("The score has already been taxed: #{best}")
+          next
+        end
         txn = tax.pay(Zold::Key.new(file: opts['private-key']), best)
         debt += txn.amount
         @log.info("#{txn.amount} of taxes paid to #{txn.bnf}, #{debt} left to pay")
       end
-      @log.info('The wallet is in good standing, all taxes paid')
+      @log.info('The wallet is in good standing, all taxes paid') unless tax.in_debt?
     end
 
     def debt(wallet, _)

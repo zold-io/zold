@@ -58,8 +58,8 @@ module Zold
     end
 
     # Check whether this tax payment already exists in the wallet.
-    def exists?(txn)
-      !@wallet.txns.find { |t| t.details.start_with?("#{Tax::PREFIX} ") && t.details == txn.details }.nil?
+    def exists?(details)
+      !@wallet.txns.find { |t| t.details.start_with?("#{Tax::PREFIX} ") && t.details == details }.nil?
     end
 
     def details(best)

@@ -63,6 +63,21 @@ class TestTaxes < Minitest::Test
         ['taxes', '--private-key=fixtures/id_rsa', '--ignore-score-weakness', 'pay', wallet.id.to_s]
       )
       assert_equal(Zold::Amount.new(coins: 81_561_428_951), wallet.balance)
+      wallet.add(
+        Zold::Txn.new(
+          2,
+          Time.now - 24 * 60 * 60 * 365 * 300,
+          Zold::Amount.new(zld: 19.99),
+          'NOPREFIX', Zold::Id.new, '-'
+        )
+      )
+      Zold::Taxes.new(wallets: wallets, remotes: remotes, log: test_log).run(
+        [
+          'taxes', '--private-key=fixtures/id_rsa', '--ignore-score-weakness',
+          '--ignore-nodes-absence', 'pay', wallet.id.to_s
+        ]
+      )
+      assert_equal(Zold::Amount.new(coins: 167_417_825_198), wallet.balance)
     end
   end
 end

@@ -133,7 +133,7 @@ module Zold
       dup = txns.find { |t| t.bnf == txn.bnf && t.id == txn.id }
       raise "Wallet #{id} can't pay itself: #{txn}" if txn.bnf == id
       raise "The transaction with the same ID and BNF already exists in #{id}: #{dup}" unless dup.nil?
-      raise "The tax payment already exists in #{id}: #{txn}" if Tax.new(self).exists?(txn)
+      raise "The tax payment already exists in #{id}: #{txn}" if Tax.new(self).exists?(txn.details)
       File.open(@file, 'a') { |f| f.print "#{txn}\n" }
       @txns.flush
     end
