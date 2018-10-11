@@ -44,24 +44,25 @@ class TestTaxes < Minitest::Test
       wallet.add(
         Zold::Txn.new(
           1,
-          Time.now - 24 * 60 * 60 * 365 * 20,
+          Time.now - 24 * 60 * 60 * 365 * 300,
           Zold::Amount.new(zld: 19.99),
           'NOPREFIX', Zold::Id.new, '-'
         )
       )
       remotes = home.remotes
-      zero = Zold::Score::ZERO
-      remotes.add(zero.host, zero.port)
-      stub_request(:get, "http://#{zero.host}:#{zero.port}/").to_return(
+      score = Zold::Score.new(host: 'localhost', port: 80, strength: 1, invoice: 'NOPREFIX@0000000000000000')
+      Zold::Tax::EXACT_SCORE.times { score = score.next }
+      remotes.add(score.host, score.port)
+      stub_request(:get, "http://#{score.host}:#{score.port}/").to_return(
         status: 200,
         body: {
-          score: zero.to_h
+          score: score.to_h
         }.to_json
       )
-      Zold::Taxes.new(
-        wallets: wallets, remotes: remotes, log: test_log
-      ).run(['taxes', '--private-key=fixtures/id_rsa', wallet.id.to_s])
-      assert_equal(Zold::Amount.new(coins: 85_856_396_247), wallet.balance)
+      Zold::Taxes.new(wallets: wallets, remotes: remotes, log: test_log).run(
+        ['taxes', '--private-key=fixtures/id_rsa', '--ignore-score-weakness', 'pay', wallet.id.to_s]
+      )
+      assert_equal(Zold::Amount.new(coins: 81_561_428_951), wallet.balance)
     end
   end
 end

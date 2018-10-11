@@ -67,8 +67,7 @@ module Zold
     end
 
     def pay(pvt, best)
-      fee = Tax::FEE_TXN_HOUR * @wallet.txns.count * Tax::DAYS_INCREMENT * 24
-      @wallet.sub(fee, best.invoice, pvt, details(best))
+      @wallet.sub(Tax::MAX_PAYMENT, best.invoice, pvt, details(best))
     end
 
     def in_debt?

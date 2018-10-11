@@ -78,7 +78,7 @@ class TestTax < Minitest::Test
       )
       tax = Zold::Tax.new(wallet)
       txn = tax.pay(Zold::Key.new(file: 'fixtures/id_rsa'), score)
-      assert_equal(-88_243_200, txn.amount.to_i)
+      assert_equal(Zold::Tax::MAX_PAYMENT * -1, txn.amount)
     end
   end
 

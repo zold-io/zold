@@ -69,7 +69,7 @@ module Zold
     end
 
     def ==(other)
-      raise '== may only work with Amount' unless other.is_a?(Amount)
+      raise "== may only work with Amount: #{other}" unless other.is_a?(Amount)
       @coins == other.to_i
     end
 

@@ -22,6 +22,7 @@
 
 require 'tempfile'
 require_relative '../log'
+require_relative '../size'
 require_relative '../wallet'
 require_relative '../atomic_file'
 
@@ -63,10 +64,14 @@ module Zold
           w.exists? ? AtomicFile.new(w.path).read.to_s : ''
         end
         if before == after
-          @log.info("Duplicate of #{id}/#{wallet.digest[0, 6]}/#{after.length}b/#{wallet.txns.count}t ignored")
+          @log.info(
+            "Duplicate of #{id}/#{wallet.digest[0, 6]}/#{Size.new(after.length)}/#{wallet.txns.count}t ignored"
+          )
           return []
         end
-        @log.info("New content for #{id} arrived, #{before.length}b before and #{after.length}b after")
+        @log.info(
+          "New content for #{id} arrived, #{Size.new(before.length)} before and #{Size.new(after.length)} after"
+        )
         @entrance.push(id, body)
       end
     end

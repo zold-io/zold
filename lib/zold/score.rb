@@ -34,7 +34,7 @@ module Zold
     # Default strength for the entire system, in production mode.
     STRENGTH = 6
 
-    attribute :time, Types::Strict::Time
+    attribute :time, Types::Strict::Time.optional.default(Time.now)
     attribute :host, Types::Strict::String.constrained(
       format: /^[a-z0-9\.-]+$/
     )

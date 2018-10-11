@@ -22,28 +22,27 @@
 
 require 'time'
 
-# Age in seconds.
+# Size in bytes.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # Age
-  class Age
-    def initialize(time)
-      @time = time.nil? || time.is_a?(Time) ? time : Time.parse(time)
+  # Size
+  class Size
+    def initialize(bytes)
+      @bytes = bytes
     end
 
     def to_s
-      return '?' if @time.nil?
-      sec = Time.now - @time
-      if sec < 1
-        "#{(sec * 1000).round}ms"
-      elsif sec < 60
-        "#{sec.round(2)}s"
-      elsif sec < 60 * 60
-        "#{(sec / 60).round}m"
+      return '?' if @bytes.nil?
+      if @bytes < 1024
+        "#{@bytes}b"
+      elsif @bytes < 1024 * 1024
+        "#{(@bytes / 1024).round}Kb"
+      elsif @bytes < 1024 * 1024 * 1024
+        "#{(@bytes / (1024 * 1024)).round}Mb"
       else
-        "#{(sec / 3600).round}h"
+        "#{(@bytes / (1024 * 1024 * 1024)).round}Gb"
       end
     end
   end

@@ -20,31 +20,19 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'time'
+require 'minitest/autorun'
+require_relative '../lib/zold/size'
 
-# Age in seconds.
+# Size test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # Age
-  class Age
-    def initialize(time)
-      @time = time.nil? || time.is_a?(Time) ? time : Time.parse(time)
-    end
-
-    def to_s
-      return '?' if @time.nil?
-      sec = Time.now - @time
-      if sec < 1
-        "#{(sec * 1000).round}ms"
-      elsif sec < 60
-        "#{sec.round(2)}s"
-      elsif sec < 60 * 60
-        "#{(sec / 60).round}m"
-      else
-        "#{(sec / 3600).round}h"
-      end
-    end
+class TestSize < Minitest::Test
+  def test_prints_size
+    assert_equal('?', Zold::Size.new(nil).to_s)
+    assert_equal('10b', Zold::Size.new(10).to_s)
+    assert_equal('2Kb', Zold::Size.new(2 * 1024).to_s)
+    assert_equal('9Mb', Zold::Size.new(9 * 1024 * 1024).to_s)
+    assert_equal('7Gb', Zold::Size.new(7 * 1024 * 1024 * 1024).to_s)
   end
 end

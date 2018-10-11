@@ -24,6 +24,7 @@ require 'time'
 require 'csv'
 require_relative 'atomic_file'
 require_relative 'log'
+require_relative 'size'
 require_relative 'wallet'
 require_relative 'backtrace'
 
@@ -64,7 +65,7 @@ module Zold
           file = File.join(@dir, f)
           size = File.size(file)
           File.delete(file)
-          @log.debug("Copy at #{f} deleted: #{size}b")
+          @log.debug("Copy at #{f} deleted: #{Size.new(size)}")
           deleted += 1
         end
         files.each do |f|

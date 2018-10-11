@@ -20,31 +20,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'time'
+require 'minitest/autorun'
+require_relative '../lib/zold/age'
 
-# Age in seconds.
+# Age test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # Age
-  class Age
-    def initialize(time)
-      @time = time.nil? || time.is_a?(Time) ? time : Time.parse(time)
-    end
-
-    def to_s
-      return '?' if @time.nil?
-      sec = Time.now - @time
-      if sec < 1
-        "#{(sec * 1000).round}ms"
-      elsif sec < 60
-        "#{sec.round(2)}s"
-      elsif sec < 60 * 60
-        "#{(sec / 60).round}m"
-      else
-        "#{(sec / 3600).round}h"
-      end
-    end
+class TestAge < Minitest::Test
+  def test_prints_age
+    assert_equal('10m', Zold::Age.new(Time.now - 10 * 60).to_s)
+    assert_equal('5.5s', Zold::Age.new(Time.now - 5.5).to_s)
+    assert_equal('?', Zold::Age.new(nil).to_s)
+    assert(!Zold::Age.new(Time.now.utc.iso8601).to_s.nil?)
   end
 end

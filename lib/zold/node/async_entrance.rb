@@ -23,6 +23,7 @@
 require 'concurrent'
 require_relative '../log'
 require_relative '../age'
+require_relative '../size'
 require_relative '../id'
 require_relative '../verbose_thread'
 
@@ -118,7 +119,7 @@ module Zold
       return if id.empty? || body.empty?
       start = Time.now
       @entrance.push(Id.new(id), body)
-      @log.debug("Pushed #{id}/#{body.length}b to #{@entrance.class.name} in #{Age.new(start)}")
+      @log.debug("Pushed #{id}/#{Size.new(body.length)} to #{@entrance.class.name} in #{Age.new(start)}")
     end
 
     def queue

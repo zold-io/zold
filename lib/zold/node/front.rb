@@ -33,6 +33,7 @@ require 'usagewatch_ext'
 require 'concurrent'
 require_relative '../backtrace'
 require_relative '../version'
+require_relative '../size'
 require_relative '../wallet'
 require_relative '../copies'
 require_relative '../log'
@@ -314,7 +315,7 @@ while #{settings.address} is in '#{settings.network}'"
         copies.all.map do |c|
           w = Wallet.new(c[:path])
           "#{c[:name]}: #{c[:score]} #{w.balance}/#{w.txns.count}t/\
-#{w.digest[0, 6]}/#{File.size(c[:path])}b/#{Age.new(File.mtime(c[:path]))}"
+#{w.digest[0, 6]}/#{Size.new(File.size(c[:path]))}/#{Age.new(File.mtime(c[:path]))}"
         end.join("\n")
       end
     end

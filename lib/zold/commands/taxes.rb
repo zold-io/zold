@@ -72,6 +72,9 @@ Available options:"
           'The location of RSA private key (default: ~/.ssh/id_rsa)',
           require: true,
           default: '~/.ssh/id_rsa'
+        o.bool '--ignore-score-weakness',
+          'Don\'t complain when their score is too weak',
+          default: false
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
@@ -114,13 +117,12 @@ Available options:"
         @log.debug("No need to pay taxes yet, until the debt is less than #{Tax::TRIAL} (#{Tax::TRIAL.to_i} zents)")
         return
       end
-      top = top_scores
-      while debt > Amount::ZERO
+      top = top_scores(opts)
+      while debt > Tax::TRIAL
         raise 'No acceptable remote nodes, try later' if top.empty?
         best = top.shift
         txn = tax.pay(Zold::Key.new(file: opts['private-key']), best)
-        wallet.add(txn)
-        debt -= txn.amount
+        debt += txn.amount
         @log.info("#{txn.amount} of taxes paid to #{txn.bnf}, #{debt} left to pay")
       end
       @log.info('The wallet is in good standing, all taxes paid')
@@ -136,7 +138,7 @@ Available options:"
       raise 'Not implemented yet'
     end
 
-    def top_scores
+    def top_scores(opts)
       best = []
       @remotes.iterate(@log) do |r|
         uri = '/'
@@ -145,7 +147,7 @@ Available options:"
         json = JsonPage.new(res.body, uri).to_hash
         score = Score.parse_json(json['score'])
         r.assert_valid_score(score)
-        r.assert_score_strength(score)
+        r.assert_score_strength(score) unless opts['ignore-score-weakness']
         r.assert_score_value(score, Tax::EXACT_SCORE)
         @log.info("#{r}: #{Rainbow(score.value).green}")
         best << score

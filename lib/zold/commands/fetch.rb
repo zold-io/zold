@@ -31,6 +31,7 @@ require_relative 'args'
 require_relative '../log'
 require_relative '../age'
 require_relative '../http'
+require_relative '../size'
 require_relative '../score'
 require_relative '../json_page'
 require_relative '../copies'
@@ -94,7 +95,7 @@ Available options:"
       cps.all.each do |c|
         wallet = Wallet.new(c[:path])
         @log.debug("  #{c[:name]}: #{c[:score]} #{wallet.balance}/#{wallet.txns.count}t/\
-#{wallet.digest[0, 6]}/#{File.size(c[:path])}b/#{Age.new(File.mtime(c[:path]))}")
+#{wallet.digest[0, 6]}/#{Size.new(File.size(c[:path]))}/#{Age.new(File.mtime(c[:path]))}")
       end
     end
 
@@ -128,7 +129,7 @@ Available options:"
           raise "The balance of #{id} is #{wallet.balance} and it's not a root wallet"
         end
         copy = cps.add(File.read(f), score.host, score.port, score.value)
-        @log.info("#{r} returned #{body.length}b/#{wallet.balance}/#{wallet.txns.count}t/\
+        @log.info("#{r} returned #{Size.new(body.length)}/#{wallet.balance}/#{wallet.txns.count}t/\
 #{digest(json)}/#{Age.new(json['mtime'])}/#{json['copies']}c \
 as copy #{copy} of #{id} in #{Age.new(start)}: #{Rainbow(score.value).green} (#{json['version']})")
       end

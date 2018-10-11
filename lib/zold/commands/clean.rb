@@ -27,6 +27,7 @@ require 'slop'
 require 'rainbow'
 require_relative 'args'
 require_relative '../age'
+require_relative '../size'
 require_relative '../log'
 require_relative '../http'
 require_relative '../score'
@@ -64,7 +65,7 @@ Available options:"
       cps.all.each do |c|
         wallet = Wallet.new(c[:path])
         @log.debug("  #{c[:name]}: #{c[:score]} #{wallet.balance}/#{wallet.txns.count}t/\
-#{wallet.digest[0, 6]}/#{File.size(c[:path])}b/#{Age.new(File.mtime(c[:path]))}")
+#{wallet.digest[0, 6]}/#{Size.new(File.size(c[:path]))}/#{Age.new(File.mtime(c[:path]))}")
       end
     end
   end
