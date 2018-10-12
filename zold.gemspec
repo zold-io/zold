@@ -54,6 +54,7 @@ and suggests a different architecture for digital wallet maintenance.'
   s.test_files = s.files.grep(%r{^(test|features)/})
   s.rdoc_options = ['--charset=UTF-8']
   s.extra_rdoc_files = ['README.md', 'LICENSE.txt']
+  s.add_runtime_dependency 'backtrace', '0.1.0'
   s.add_runtime_dependency 'cachy', '0.4.2'
   s.add_runtime_dependency 'concurrent-ruby', '~>1.0'
   s.add_runtime_dependency 'cucumber', '~>3.1' # has to stay here for Heroku

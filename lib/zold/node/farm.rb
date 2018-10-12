@@ -22,11 +22,11 @@
 
 require 'time'
 require 'open3'
+require 'backtrace'
 require_relative '../log'
 require_relative '../score'
 require_relative '../age'
 require_relative '../verbose_thread'
-require_relative '../backtrace'
 require_relative '../atomic_file'
 
 # The farm of scores.

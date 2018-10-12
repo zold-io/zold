@@ -22,8 +22,8 @@
 
 require 'slop'
 require 'rainbow'
+require 'backtrace'
 require_relative 'args'
-require_relative '../backtrace'
 require_relative '../age'
 require_relative '../log'
 require_relative '../id'

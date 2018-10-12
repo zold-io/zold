@@ -22,10 +22,10 @@
 
 require 'open3'
 require 'slop'
+require 'backtrace'
 require_relative '../version'
 require_relative '../age'
 require_relative '../score'
-require_relative '../backtrace'
 require_relative '../metronome'
 require_relative '../wallet'
 require_relative '../wallets'

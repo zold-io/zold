@@ -24,7 +24,7 @@ require 'rainbow'
 require 'uri'
 require 'timeout'
 require 'net/http'
-require_relative 'backtrace'
+require 'backtrace'
 require_relative 'version'
 require_relative 'type'
 

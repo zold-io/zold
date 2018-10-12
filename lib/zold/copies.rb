@@ -22,11 +22,11 @@
 
 require 'time'
 require 'csv'
+require 'backtrace'
 require_relative 'atomic_file'
 require_relative 'log'
 require_relative 'size'
 require_relative 'wallet'
-require_relative 'backtrace'
 
 # The list of copies.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

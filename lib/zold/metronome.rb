@@ -20,10 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'backtrace'
 require_relative 'log'
 require_relative 'age'
 require_relative 'verbose_thread'
-require_relative 'backtrace'
 
 # Background routines.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

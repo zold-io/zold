@@ -26,7 +26,7 @@ require 'uri'
 require 'net/http'
 require 'time'
 require 'fileutils'
-require_relative 'backtrace'
+require 'backtrace'
 require_relative 'age'
 require_relative 'score'
 require_relative 'http'
@@ -114,7 +114,7 @@ module Zold
       end
 
       def assert_score_value(score, min)
-        raise "Score is too small (<#{min}): #{score}" if score.value < min
+        raise "Score #{score.value} is too small (<#{min}): #{score}" if score.value < min
       end
     end
 
