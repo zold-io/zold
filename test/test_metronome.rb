@@ -46,6 +46,13 @@ class TestMetronome < Minitest::Test
     end
   end
 
+  def test_prints_empty_to_text
+    metronome = Zold::Metronome.new(test_log)
+    metronome.start do |m|
+      assert(!m.to_text.nil?)
+    end
+  end
+
   def test_continues_even_after_error
     metronome = Zold::Metronome.new(test_log)
     routine = BrokenRoutine.new
