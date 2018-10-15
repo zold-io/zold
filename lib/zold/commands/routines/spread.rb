@@ -49,7 +49,7 @@ module Zold
         end
         ids = @wallets.all.sample(10)
         Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-          ['push', "--network=#{@opts['network']}"] + ids
+          ['push', "--network=#{@opts['network']}"] + ids.map(&:to_s)
         )
         if ids.empty?
           @log.info("Spread didn't push any wallets, we are empty")

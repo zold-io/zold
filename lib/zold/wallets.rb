@@ -57,7 +57,7 @@ module Zold
           !File.directory?(file) &&
           basename =~ /^[0-9a-fA-F]{16}$/ &&
           Id.new(basename).to_s == basename
-      end.map { |w| File.basename(w, Wallet::EXTENSION) }
+      end.map { |w| Id.new(File.basename(w, Wallet::EXTENSION)) }
     end
 
     def find(id)

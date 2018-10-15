@@ -38,7 +38,7 @@ class TestTreeWallets < Minitest::Test
       wallets.find(id) do |wallet|
         wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
         assert_equal(1, wallets.all.count)
-        assert_equal(id.to_s, wallets.all[0])
+        assert_equal(id, wallets.all[0])
         assert(wallet.path.end_with?('/a/b/c/d/abcd0123abcd0123.z'), wallet.path)
       end
     end
