@@ -117,7 +117,7 @@ Available options:"
       debt = tax.debt
       @log.info("The current debt of #{wallet.id}/#{wallet.txns.count}t is #{debt} (#{debt.to_i} zents)")
       unless tax.in_debt?
-        @log.debug("No need to pay taxes yet, until the debt is less than #{Tax::TRIAL} (#{Tax::TRIAL.to_i} zents)")
+        @log.debug("No need to pay taxes yet, while the debt is less than #{Tax::TRIAL} (#{Tax::TRIAL.to_i} zents)")
         return
       end
       top = top_scores(opts)

@@ -36,18 +36,23 @@ module Zold
       @log = log
       @routines = []
       @threads = []
+      @starts = {}
       @failures = {}
     end
 
     def to_text
-      @threads.map do |t|
-        [
-          "#{t.name}:",
-          " status=#{t.status};",
-          " alive=#{t.alive?};\n",
-          t.backtrace.nil? ? '---' : "  #{t.backtrace.join("\n  ")}"
-        ].join
-      end.join("\n\n") + "\n\n" + @failures.map { |r, f| "#{r}\n#{f}\n" }.join("\n")
+      [
+        'Current threads:',
+        @threads.map do |t|
+          [
+            "#{t.name}: status=#{t.status}; alive=#{t.alive?}",
+            "Most recent start: #{Age.new(@starts[t])} ago",
+            t.backtrace.nil? ? '---' : "  #{t.backtrace.join("\n  ")}"
+          ].join("\n")
+        end,
+        'Failures:',
+        @failures.map { |r, f| "#{r}\n#{f}\n" }
+      ].flatten.join("\n\n")
     end
 
     def add(routine)
@@ -57,19 +62,19 @@ module Zold
 
     def start
       alive = true
-      @routines.each do |r|
+      @routines.each_with_index do |r, idx|
         @threads << Thread.start do
           Thread.current.abort_on_exception = true
-          Thread.current.name = r.class.name
+          Thread.current.name = "#{r.class.name}-#{idx}"
           step = 0
           while alive
-            start = Time.now
+            @starts[Thread.current] = Time.now
             begin
               r.exec(step)
-              @log.info("Routine #{r.class.name} ##{step} done in #{Age.new(start)}")
+              @log.info("Routine #{r.class.name} ##{step} done in #{Age.new(@starts[Thread.current])}")
             rescue StandardError => e
               @failures[r.class.name] = Backtrace.new(e).to_s
-              @log.error("Routine #{r.class.name} ##{step} failed in #{Age.new(start)}")
+              @log.error("Routine #{r.class.name} ##{step} failed in #{Age.new(@starts[Thread.current])}")
               @log.error(Backtrace.new(e).to_s)
             end
             step += 1
