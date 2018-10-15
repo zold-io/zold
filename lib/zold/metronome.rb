@@ -42,12 +42,13 @@ module Zold
 
     def to_text
       [
+        Time.now.utc.iso8601,
         'Current threads:',
         @threads.map do |t|
           [
             "#{t.name}: status=#{t.status}; alive=#{t.alive?}",
             "Most recent start: #{Age.new(@starts[t])} ago",
-            t.backtrace.nil? ? '---' : "  #{t.backtrace.join("\n  ")}"
+            t.backtrace.nil? ? 'NO BACKTRACE' : "  #{t.backtrace.join("\n  ")}"
           ].join("\n")
         end,
         'Failures:',
@@ -73,7 +74,7 @@ module Zold
               r.exec(step)
               @log.info("Routine #{r.class.name} ##{step} done in #{Age.new(@starts[Thread.current])}")
             rescue StandardError => e
-              @failures[r.class.name] = Backtrace.new(e).to_s
+              @failures[r.class.name] = Time.now.utc.iso8601 + "\n" + Backtrace.new(e).to_s
               @log.error("Routine #{r.class.name} ##{step} failed in #{Age.new(@starts[Thread.current])}")
               @log.error(Backtrace.new(e).to_s)
             end
