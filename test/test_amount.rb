@@ -65,4 +65,14 @@ class TestAmount < Minitest::Test
       "#{amount} is not greater than zero"
     )
   end
+
+  def test_multiplies
+    amount = Zold::Amount.new(zld: 1.2)
+    assert(Zold::Amount.new(zld: 2.4), amount * 2)
+  end
+
+  def test_divides
+    amount = Zold::Amount.new(zld: 8.2)
+    assert(Zold::Amount.new(zld: 4.1), amount / 2)
+  end
 end

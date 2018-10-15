@@ -112,9 +112,15 @@ module Zold
     end
 
     def *(other)
+      raise '* may only work with a number' unless other.is_a?(Integer) || other.is_a?(Float)
       c = (@coins * other).to_i
       raise "Overflow, can't multiply #{@coins} by #{m}" if c > Amount::MAX
       Amount.new(coins: c)
+    end
+
+    def /(other)
+      raise '/ may only work with a number' unless other.is_a?(Integer) || other.is_a?(Float)
+      Amount.new(coins: (@coins / other).to_i)
     end
   end
 end
