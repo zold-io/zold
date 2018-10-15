@@ -43,11 +43,11 @@ module Zold
       @threads.map do |t|
         [
           "#{t.name}:",
-          "status=#{t.status};",
-          "alive=#{t.alive?};\n",
+          " status=#{t.status};",
+          " alive=#{t.alive?};\n",
           t.backtrace.nil? ? '---' : "  #{t.backtrace.join("\n  ")}"
-        ].join(' ')
-      end.join("\n") + "\n\n" + @failures.map { |r, f| "#{r}\n#{f}\n" }.join("\n")
+        ].join
+      end.join("\n\n") + "\n\n" + @failures.map { |r, f| "#{r}\n#{f}\n" }.join("\n")
     end
 
     def add(routine)

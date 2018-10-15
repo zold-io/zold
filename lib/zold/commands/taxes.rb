@@ -115,7 +115,7 @@ Available options:"
       raise 'The wallet is absent' unless wallet.exists?
       tax = Tax.new(wallet)
       debt = tax.debt
-      @log.info("The current debt is #{debt} (#{debt.to_i} zents)")
+      @log.info("The current debt of #{wallet.id}/#{wallet.txns.count}t is #{debt} (#{debt.to_i} zents)")
       unless tax.in_debt?
         @log.debug("No need to pay taxes yet, until the debt is less than #{Tax::TRIAL} (#{Tax::TRIAL.to_i} zents)")
         return

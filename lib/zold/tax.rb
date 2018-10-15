@@ -22,6 +22,7 @@
 
 require_relative 'key'
 require_relative 'id'
+require_relative 'wallet'
 require_relative 'amount'
 
 # Tax transaction.
@@ -54,6 +55,7 @@ module Zold
     PREFIX = 'TAXES'
 
     def initialize(wallet)
+      raise "The wallet must be of type Wallet: #{wallet.class.name}" unless wallet.is_a?(Wallet)
       @wallet = wallet
     end
 
