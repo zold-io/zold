@@ -63,9 +63,14 @@ Available options:"
     def propagate(id, _)
       start = Time.now
       modified = []
+      total = 0
       @wallets.find(id) do |wallet|
         wallet.txns.select { |t| t.amount.negative? }.each do |t|
-          next if t.bnf == id
+          total += 1
+          if t.bnf == id
+            @log.error("Paying itself in #{id}? #{t}")
+            next
+          end
           @wallets.find(t.bnf) do |target|
             unless target.exists?
               @log.debug("#{t.amount * -1} to #{t.bnf}: wallet is absent")
@@ -75,7 +80,7 @@ Available options:"
               @log.error("#{t.amount * -1} to #{t.bnf}: network mismatch, '#{target.network}'!='#{wallet.network}'")
               next
             end
-            next if target.has?(t.id, id)
+            next if target.includes_positive?(t.id, id)
             unless target.prefix?(t.prefix)
               @log.error("#{t.amount * -1} to #{t.bnf}: wrong prefix")
               next
@@ -87,7 +92,8 @@ Available options:"
         end
       end
       modified.uniq!
-      @log.debug("Wallet #{id} propagated successfully in #{Age.new(start)}, #{modified.count} wallets affected")
+      @log.debug("Wallet #{id} propagated successfully, #{total} txns in #{Age.new(start)}, \
+#{modified.count} wallets affected")
       modified
     end
   end

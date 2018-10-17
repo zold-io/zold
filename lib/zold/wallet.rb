@@ -132,19 +132,26 @@ module Zold
       raise 'The txn has to be of type Txn' unless txn.is_a?(Txn)
       raise "Wallet #{id} can't pay itself: #{txn}" if txn.bnf == id
       raise "The amount can't be zero in #{id}: #{txn}" if txn.amount.zero?
-      dup = txns.find { |t| t.id == txn.id && t.amount.negative? && txn.amount.negative? }
-      raise "Negative transaction with the same ID already exists in #{id}: #{dup}" unless dup.nil?
-      dup = txns.find { |t| t.bnf == txn.bnf && t.id == txn.id && !t.amount.negative? && !txn.amount.negative? }
-      raise "Positive transaction with the same ID and BNF already exists in #{id}: #{dup}" unless dup.nil?
+      if txn.amount.negative? && includes_negative?(txn.id)
+        raise "Negative transaction with the same ID #{txn.id} already exists in #{id}"
+      end
+      if txn.amount.positive? && includes_positive?(txn.id, txn.bnf)
+        raise "Positive transaction with the same ID #{txn.id} and BNF #{txn.bnf} already exists in #{id}"
+      end
       raise "The tax payment already exists in #{id}: #{txn}" if Tax.new(self).exists?(txn.details)
       File.open(@file, 'a') { |f| f.print "#{txn}\n" }
       @txns.flush
     end
 
-    def has?(id, bnf)
+    def includes_negative?(id, bnf = nil)
+      raise 'The txn ID has to be of type Integer' unless id.is_a?(Integer)
+      !txns.find { |t| t.id == id && (bnf.nil? || t.bnf == bnf) && t.amount.negative? }.nil?
+    end
+
+    def includes_positive?(id, bnf)
       raise 'The txn ID has to be of type Integer' unless id.is_a?(Integer)
       raise 'The bnf has to be of type Id' unless bnf.is_a?(Id)
-      !txns.find { |t| t.id == id && t.bnf == bnf }.nil?
+      !txns.find { |t| t.id == id && t.bnf == bnf && !t.amount.negative? }.nil?
     end
 
     def prefix?(prefix)

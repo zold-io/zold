@@ -89,6 +89,19 @@ class TestWallet < Minitest::Test
     end
   end
 
+  def test_checks_similar_transaction
+    FakeHome.new.run do |home|
+      wallet = home.create_wallet
+      amount = Zold::Amount.new(zld: 39.99)
+      key = Zold::Key.new(file: 'fixtures/id_rsa')
+      id = Zold::Id.new
+      wallet.sub(amount, "NOPREFIX@#{id}", key)
+      wallet.add(Zold::Txn.new(1, Time.now, amount, 'NOPREFIX', id, '-'))
+      assert(wallet.includes_negative?(1))
+      assert(wallet.includes_positive?(1, id))
+    end
+  end
+
   def test_refurbishes_wallet
     FakeHome.new.run do |home|
       wallet = home.create_wallet
