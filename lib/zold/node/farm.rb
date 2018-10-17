@@ -176,7 +176,7 @@ module Zold
       return unless s.strength >= strength
       Thread.current.name = s.to_mnemo
       bin = File.expand_path(File.join(File.dirname(__FILE__), '../../../bin/zold'))
-      Open3.popen2e("ruby #{bin} --skip-upgrades next \"#{s}\"") do |stdin, stdout, thr|
+      Open3.popen2e("ruby #{bin} --skip-upgrades --low-priority next \"#{s}\"") do |stdin, stdout, thr|
         @log.debug("Score counting started in process ##{thr.pid}")
         begin
           stdin.close
