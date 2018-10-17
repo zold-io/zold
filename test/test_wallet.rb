@@ -79,6 +79,12 @@ class TestWallet < Minitest::Test
       id = Zold::Id.new
       wallet.sub(amount, "NOPREFIX@#{id}", key)
       wallet.add(Zold::Txn.new(1, Time.now, amount, 'NOPREFIX', id, '-'))
+      assert_raises do
+        wallet.add(Zold::Txn.new(1, Time.now, amount, 'NOPREFIX', id, '-'))
+      end
+      assert_raises do
+        wallet.add(Zold::Txn.new(1, Time.now, amount * -1, 'NOPREFIX', id, '-'))
+      end
       assert(wallet.balance.zero?)
     end
   end
