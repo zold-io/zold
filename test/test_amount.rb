@@ -47,6 +47,8 @@ class TestAmount < Minitest::Test
   def test_compares_with_zero
     amount = Zold::Amount.new(zld: 0.00001)
     assert(!amount.zero?)
+    assert(amount.positive?)
+    assert(!amount.negative?)
     assert(amount != Zold::Amount::ZERO)
   end
 

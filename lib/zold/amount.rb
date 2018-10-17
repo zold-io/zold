@@ -111,6 +111,10 @@ module Zold
       @coins.negative?
     end
 
+    def positive?
+      @coins.positive?
+    end
+
     def *(other)
       raise '* may only work with a number' unless other.is_a?(Integer) || other.is_a?(Float)
       c = (@coins * other).to_i
