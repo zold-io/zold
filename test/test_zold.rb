@@ -34,7 +34,7 @@ require_relative '../lib/zold/version'
 class TestZold < Minitest::Test
   def test_all_scripts
     Dir.new('fixtures/scripts').select { |f| f =~ /\.sh$/ && !f.start_with?('_') }.each do |f|
-      # next unless f == 'redeploy-on-upgrade.sh'
+      next unless f == 'deadlocks.sh'
       Dir.mktmpdir do |dir|
         FileUtils.cp('fixtures/id_rsa.pub', dir)
         FileUtils.cp('fixtures/id_rsa', dir)

@@ -61,7 +61,8 @@ class FrontTest < Minitest::Test
           '/farm',
           '/metronome',
           '/score',
-          '/trace'
+          '/trace',
+          '/threads'
         ],
         '404' => [
           '/this-is-absent',
@@ -116,6 +117,20 @@ class FrontTest < Minitest::Test
           "/wallet/#{wallet.id}/copies"
         ].each do |u|
           assert_equal_wait('200') { Zold::Http.new(uri: "#{base}#{u}", score: nil).get.code }
+        end
+      end
+    end
+  end
+
+  def test_fetch_in_multiple_threads
+    FakeNode.new(log: test_log).run do |port|
+      FakeHome.new.run do |home|
+        wallet = home.create_wallet
+        base = "http://localhost:#{port}"
+        Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).put(File.read(wallet.path))
+        assert_equal_wait('200') { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).get.code }
+        assert_in_threads(loops: 100) do
+          assert_equal_wait('200') { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).get.code }
         end
       end
     end

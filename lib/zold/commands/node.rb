@@ -135,6 +135,12 @@ module Zold
           'Don\'t run the metronome',
           required: true,
           default: false
+        o.bool '--disable-push',
+          'Prohibit all PUSH requests',
+          default: false
+        o.bool '--disable-fetch',
+          'Prohibit all FETCH requests',
+          default: false
         o.string '--alias',
           'The alias of the node (default: host:port)',
           require: false
@@ -160,6 +166,8 @@ module Zold
       Front.set(:protocol, Zold::PROTOCOL)
       Front.set(:logging, @log.debug?)
       Front.set(:halt, opts['halt-code'])
+      Front.set(:disable_push, opts['disable-push'])
+      Front.set(:disable_fetch, opts['disable-fetch'])
       Front.set(:home, opts['home'])
       @log.info("Time: #{Time.now.utc.iso8601}")
       @log.info("Home directory: #{opts['home']}")

@@ -56,7 +56,7 @@ module Zold
       set :start, Time.now
       set :lock, false
       set :show_exceptions, false
-      set :server, 'webrick'
+      set :server, :puma
       set :log, nil? # to be injected at node.rb
       set :trace, nil? # to be injected at node.rb
       set :halt, '' # to be injected at node.rb
@@ -116,7 +116,6 @@ while #{settings.address} is in '#{settings.network}'"
     #  Currently there are no tests at all that would verify the headers.
     after do
       headers['Cache-Control'] = 'no-cache'
-      headers['Connection'] = 'close'
       headers['X-Zold-Version'] = settings.version
       headers[Http::PROTOCOL_HEADER] = settings.protocol.to_s
       headers['Access-Control-Allow-Origin'] = '*'
@@ -192,6 +191,7 @@ while #{settings.address} is in '#{settings.network}'"
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})} do
+      error 404 if settings.disable_fetch
       id = Id.new(params[:id])
       settings.wallets.find(id) do |wallet|
         error 404 unless wallet.exists?
@@ -214,6 +214,7 @@ while #{settings.address} is in '#{settings.network}'"
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16}).json} do
+      error 404 if settings.disable_fetch
       id = Id.new(params[:id])
       settings.wallets.find(id) do |wallet|
         error 404 unless wallet.exists?
@@ -235,6 +236,7 @@ while #{settings.address} is in '#{settings.network}'"
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/balance} do
+      error 404 if settings.disable_fetch
       id = Id.new(params[:id])
       settings.wallets.find(id) do |wallet|
         error 404 unless wallet.exists?
@@ -244,6 +246,7 @@ while #{settings.address} is in '#{settings.network}'"
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/key} do
+      error 404 if settings.disable_fetch
       id = Id.new(params[:id])
       settings.wallets.find(id) do |wallet|
         error 404 unless wallet.exists?
@@ -253,6 +256,7 @@ while #{settings.address} is in '#{settings.network}'"
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/mtime} do
+      error 404 if settings.disable_fetch
       id = Id.new(params[:id])
       settings.wallets.find(id) do |wallet|
         error 404 unless wallet.exists?
@@ -262,6 +266,7 @@ while #{settings.address} is in '#{settings.network}'"
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/digest} do
+      error 404 if settings.disable_fetch
       id = Id.new(params[:id])
       settings.wallets.find(id) do |wallet|
         error 404 unless wallet.exists?
@@ -271,6 +276,7 @@ while #{settings.address} is in '#{settings.network}'"
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.txt} do
+      error 404 if settings.disable_fetch
       id = Id.new(params[:id])
       settings.wallets.find(id) do |wallet|
         error 404 unless wallet.exists?
@@ -294,6 +300,7 @@ while #{settings.address} is in '#{settings.network}'"
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.bin} do
+      error 404 if settings.disable_fetch
       id = Id.new(params[:id])
       settings.wallets.find(id) do |wallet|
         error 404 unless wallet.exists?
@@ -303,6 +310,7 @@ while #{settings.address} is in '#{settings.network}'"
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/copies} do
+      error 404 if settings.disable_fetch
       id = Id.new(params[:id])
       settings.wallets.find(id) do |wallet|
         error 404 unless wallet.exists?
@@ -321,6 +329,7 @@ while #{settings.address} is in '#{settings.network}'"
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/copy/(?<name>[0-9]+)} do
+      error 404 if settings.disable_fetch
       id = Id.new(params[:id])
       name = params[:name]
       settings.wallets.find(id) do |wallet|
@@ -333,6 +342,7 @@ while #{settings.address} is in '#{settings.network}'"
     end
 
     put %r{/wallet/(?<id>[A-Fa-f0-9]{16})/?} do
+      error 404 if settings.disable_push
       request.body.rewind
       modified = settings.entrance.push(Id.new(params[:id]), request.body.read.to_s)
       if modified.empty?
@@ -366,6 +376,16 @@ while #{settings.address} is in '#{settings.network}'"
     get '/metronome' do
       content_type 'text/plain'
       settings.metronome.to_text
+    end
+
+    get '/threads' do
+      content_type 'text/plain'
+      Thread.list.map do |t|
+        [
+          "#{t.name}: status=#{t.status}; alive=#{t.alive?}",
+          t.backtrace.nil? ? 'NO BACKTRACE' : "  #{t.backtrace.join("\n  ")}"
+        ].join("\n")
+      end.join("\n\n")
     end
 
     not_found do
