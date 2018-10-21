@@ -236,26 +236,12 @@ class FrontTest < Minitest::Test
     Time.stub :now, Time.at(0) do
       FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
         response = Zold::Http.new(uri: URI("http://localhost:#{port}/"), score: nil).get
-        assert_equal(
-          'no-cache',
-          response.header['Cache-Control']
-        )
-        assert_equal(
-          'close',
-          response.header['Connection']
-        )
-        assert_equal(
-          app.settings.version,
-          response.header['X-Zold-Version']
-        )
-        assert_equal(
-          app.settings.protocol.to_s,
-          response.header[Zold::Http::PROTOCOL_HEADER]
-        )
-        assert_equal(
-          '*',
-          response.header['Access-Control-Allow-Origin']
-        )
+        assert_equal('no-cache', response.header['Cache-Control'])
+        assert_equal('close', response.header['Connection'])
+        assert_equal(app.settings.version, response.header['X-Zold-Version'])
+        assert_equal(app.settings.protocol.to_s, response.header[Zold::Http::PROTOCOL_HEADER])
+        assert_equal('*', response.header['Access-Control-Allow-Origin'])
+        assert(response.header['X-Zold-Milliseconds'])
         assert(!response.header[Zold::Http::SCORE_HEADER].nil?)
       end
     end

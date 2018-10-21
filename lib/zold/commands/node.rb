@@ -206,7 +206,7 @@ module Zold
       Front.set(:port, opts['bind-port'])
       Front.set(:reboot, !opts['never-reboot'])
       node_alias = opts[:alias] || address
-      unless node_alias.eql?(address) || node_alias =~ /^[a-z0-9]{4,16}$/
+      unless node_alias.eql?(address) || node_alias =~ /^[A-Za-z0-9]{4,16}$/
         raise "Alias should be a 4 to 16 char long alphanumeric string: #{node_alias}"
       end
       Front.set(:node_alias, node_alias)

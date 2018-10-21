@@ -35,6 +35,7 @@ require 'backtrace'
 require_relative '../version'
 require_relative '../size'
 require_relative '../wallet'
+require_relative '../age'
 require_relative '../copies'
 require_relative '../log'
 require_relative '../id'
@@ -110,6 +111,7 @@ while #{settings.address} is in '#{settings.network}'"
         cmd = Remote.new(remotes: settings.remotes, log: settings.log)
         cmd.run(['remote', 'add', s.host, s.port.to_s, "--network=#{settings.network}"])
       end
+      @locals[:start] = Time.now
     end
 
     # @todo #357:30min Test that the headers are being set correctly.
@@ -120,6 +122,7 @@ while #{settings.address} is in '#{settings.network}'"
       headers[Http::PROTOCOL_HEADER] = settings.protocol.to_s
       headers['Access-Control-Allow-Origin'] = '*'
       headers[Http::SCORE_HEADER] = score.reduced(16).to_s
+      headers['X-Zold-Milliseconds'] = ((Time.now - @locals[:start]) * 1000).round.to_s
     end
 
     get '/robots.txt' do
@@ -290,10 +293,10 @@ while #{settings.address} is in '#{settings.network}'"
           wallet.txns.map(&:to_text).join("\n"),
           '',
           '--',
-          "Balance: #{wallet.balance.to_zld} ZLD (#{wallet.balance.to_i} zents)",
+          "Balance: #{wallet.balance.to_zld(8)} ZLD (#{wallet.balance.to_i} zents)",
           "Transactions: #{wallet.txns.count}",
           "File size: #{File.size(wallet.path)} bytes (#{Copies.new(File.join(settings.copies, id)).all.count} copies)",
-          "Modified: #{wallet.mtime.utc.iso8601}",
+          "Modified: #{wallet.mtime.utc.iso8601} (#{Age.new(wallet.mtime.utc.iso8601)} ago)",
           "Digest: #{wallet.digest}"
         ].join("\n")
       end
