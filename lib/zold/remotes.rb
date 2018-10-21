@@ -50,12 +50,10 @@ module Zold
     # Default number of nodes to fetch.
     MAX_NODES = 16
 
-    # Mutex object
-    MUTEX = Mutex.new
-
     attribute :file, Types::Strict::String
     attribute :network, Types::Strict::String.optional.default('test')
     attribute :timeout, Types::Strict::Integer.optional.default(16)
+    attribute :mutex, Types::Object.optional.default(Mutex.new)
 
     # Empty, for standalone mode
     class Empty < Remotes
@@ -183,7 +181,7 @@ module Zold
       list.each do |r|
         pool.post do
           Thread.current.abort_on_exception = true
-          Thread.current.name = "remotes@#{r[:host]}:#{r[:port]}"
+          Thread.current.name = "remotes-#{idx}@#{r[:host]}:#{r[:port]}"
           start = Time.now
           begin
             yield Remotes::Remote.new(
@@ -194,7 +192,6 @@ module Zold
               log: log,
               network: network
             )
-            idx += 1
             raise 'Took too long to execute' if (Time.now - start).round > timeout
           rescue StandardError => e
             error(r[:host], r[:port])
@@ -203,6 +200,7 @@ module Zold
             remove(r[:host], r[:port]) if errors > Remotes::TOLERANCE
           end
         end
+        idx += 1
       end
       pool.shutdown
       pool.kill unless pool.wait_for_termination(5 * 60)
@@ -230,7 +228,7 @@ module Zold
     private
 
     def modify
-      Remotes::MUTEX.synchronize do
+      mutex.synchronize do
         save(yield(load))
       end
     end
