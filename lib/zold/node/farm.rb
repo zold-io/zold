@@ -221,7 +221,8 @@ module Zold
       scores = load + list
       period = 24 * 60 * 60 / [threads, 1].max
       @mutex.synchronize do
-        AtomicFile.new(@cache).write(
+        File.write(
+          @cache,
           scores.select(&:valid?)
             .reject(&:expired?)
             .sort_by(&:value)

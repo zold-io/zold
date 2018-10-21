@@ -383,7 +383,7 @@ module Zold
       end
 
       def info(msg)
-        @log.debug(msg)
+        @log.debug('WEBRICK ' + msg)
       end
 
       def debug(msg)
@@ -391,11 +391,11 @@ module Zold
       end
 
       def error(msg)
-        @log.error(msg)
+        @log.error('WEBRICK ' + msg)
       end
 
       def fatal(msg)
-        @log.error(msg)
+        @log.error('WEBRICK ' + msg)
       end
 
       def debug?
