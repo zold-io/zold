@@ -60,6 +60,8 @@ Available commands:
       Remove all registered remote nodes
     #{Rainbow('remote reset').green}
       Restore it back to the default list of nodes
+    #{Rainbow('remote defaults').green}
+      Add all default nodes to the list
     #{Rainbow('remote add').green} host [port]
       Add a new remote node
     #{Rainbow('remote remove').green} host [port]
@@ -125,6 +127,8 @@ Available options:"
         clean
       when 'reset'
         reset
+      when 'defaults'
+        defaults
       when 'add'
         add(mine[1], mine[2] ? mine[2].to_i : Remotes::PORT, opts)
       when 'remove'
@@ -158,8 +162,13 @@ Available options:"
     end
 
     def reset
-      @remotes.reset
-      @log.debug("Remote nodes set back to default, #{@remotes.all.count} total")
+      clean
+      defaults
+    end
+
+    def defaults
+      @remotes.defaults
+      @log.debug("Default remote nodes were added to the list, #{@remotes.all.count} total")
     end
 
     def add(host, port, opts)

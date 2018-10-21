@@ -176,6 +176,7 @@ class TestRemote < Minitest::Test
   def test_select_respects_max_nodes_option
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.txt'))
+      remotes.defaults
       zero = Zold::Score::ZERO
       cmd = Zold::Remote.new(remotes: remotes, log: test_log)
       (5000..5010).each do |port|

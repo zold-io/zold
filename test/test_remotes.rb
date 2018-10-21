@@ -132,8 +132,8 @@ class TestRemotes < Minitest::Test
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes'))
       remotes.clean
-      remotes.reset
-      remotes.reset
+      remotes.defaults
+      remotes.defaults
       assert(!remotes.all.empty?)
     end
   end
@@ -188,9 +188,9 @@ class TestRemotes < Minitest::Test
 
   def test_read_mtime_from_file
     Dir.mktmpdir 'test' do |dir|
-      file = File.join(dir, 'remotes')
+      file = File.join(dir, 'a/b/c/remotes')
       remotes = Zold::Remotes.new(file: file)
-      remotes.all
+      remotes.clean
       assert_equal(File.mtime(file).to_i, remotes.mtime.to_i)
     end
   end

@@ -130,12 +130,11 @@ module Zold
       modify { [] }
     end
 
-    def reset
-      FileUtils.mkdir_p(File.dirname(file))
-      FileUtils.copy(
-        File.join(File.dirname(__FILE__), '../../resources/remotes'),
-        file
-      )
+    def defaults
+      other = Remotes.new(file: File.join(File.dirname(__FILE__), '../../resources/remotes'))
+      other.all.each do |r|
+        add(r[:host], r[:port])
+      end
     end
 
     def exists?(host, port = Remotes::PORT)
@@ -242,22 +241,26 @@ module Zold
     end
 
     def load
-      reset unless File.exist?(file)
-      raw = CSV.read(file).map do |row|
-        {
-          host: row[0],
-          port: row[1].to_i,
-          score: row[2].to_i,
-          errors: row[3].to_i
-        }
-      end
-      raw.reject { |r| !r[:host] || r[:port].zero? }.map do |r|
-        r[:home] = URI("http://#{r[:host]}:#{r[:port]}/")
-        r
+      if File.exist?(file)
+        raw = CSV.read(file).map do |row|
+          {
+            host: row[0],
+            port: row[1].to_i,
+            score: row[2].to_i,
+            errors: row[3].to_i
+          }
+        end
+        raw.reject { |r| !r[:host] || r[:port].zero? }.map do |r|
+          r[:home] = URI("http://#{r[:host]}:#{r[:port]}/")
+          r
+        end
+      else
+        []
       end
     end
 
     def save(list)
+      FileUtils.mkdir_p(File.dirname(file))
       File.write(
         file,
         list.uniq { |r| "#{r[:host]}:#{r[:port]}" }.map do |r|
