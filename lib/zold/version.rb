@@ -25,6 +25,6 @@
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  VERSION = '0.0.0'
+  VERSION = '0.14.53'
   PROTOCOL = 2
 end
