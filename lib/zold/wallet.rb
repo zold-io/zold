@@ -89,6 +89,7 @@ module Zold
     def init(id, pubkey, overwrite: false, network: 'test')
       raise "File '#{@file}' already exists" if File.exist?(@file) && !overwrite
       raise "Invalid network name '#{network}'" unless network =~ /^[a-z]{4,16}$/
+      FileUtils.mkdir_p(File.dirname(@file))
       File.write(@file, "#{network}\n#{PROTOCOL}\n#{id}\n#{pubkey.to_pub}\n\n")
       @txns.flush
       @head.flush
