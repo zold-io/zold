@@ -58,8 +58,7 @@ Available options:"
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
-      mine = @wallets.all if mine.empty?
-      mine.map { |i| Id.new(i) }.each do |id|
+      (mine.empty? ? @wallets.all : mine.map { |i| Id.new(i) }).each do |id|
         push(id, opts)
       end
     end
