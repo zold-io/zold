@@ -27,7 +27,6 @@ require_relative '../log'
 require_relative '../score'
 require_relative '../age'
 require_relative '../verbose_thread'
-require_relative '../atomic_file'
 
 # The farm of scores.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -239,7 +238,7 @@ module Zold
     def load
       @mutex.synchronize do
         if File.exist?(@cache)
-          AtomicFile.new(@cache).read.split(/\n/)
+          File.read(@cache).split(/\n/)
             .map { |t| parse_score_line(t) }
             .reject(&:zero?)
         else

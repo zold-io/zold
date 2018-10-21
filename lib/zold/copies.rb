@@ -23,7 +23,6 @@
 require 'time'
 require 'csv'
 require 'backtrace'
-require_relative 'atomic_file'
 require_relative 'log'
 require_relative 'size'
 require_relative 'wallet'
@@ -104,7 +103,7 @@ module Zold
         list = load
         target = list.find do |s|
           f = File.join(@dir, "#{s[:name]}#{Copies::EXT}")
-          File.exist?(f) && AtomicFile.new(f).read == content
+          File.exist?(f) && File.read(f) == content
         end
         if target.nil?
           max = Dir.new(@dir)
@@ -113,7 +112,7 @@ module Zold
             .max
           max = 0 if max.nil?
           name = (max + 1).to_s
-          AtomicFile.new(File.join(@dir, "#{name}#{Copies::EXT}")).write(content)
+          File.write(File.join(@dir, "#{name}#{Copies::EXT}"), content)
         else
           name = target[:name]
         end
@@ -161,7 +160,8 @@ module Zold
     private
 
     def save(list)
-      AtomicFile.new(file).write(
+      File.write(
+        file,
         list.map do |r|
           [
             r[:name], r[:host],

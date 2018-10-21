@@ -31,7 +31,6 @@ require_relative 'age'
 require_relative 'score'
 require_relative 'http'
 require_relative 'node/farm'
-require_relative 'atomic_file'
 require_relative 'type'
 
 # The list of remotes.
@@ -259,7 +258,8 @@ module Zold
     end
 
     def save(list)
-      AtomicFile.new(file).write(
+      File.write(
+        file,
         list.uniq { |r| "#{r[:host]}:#{r[:port]}" }.map do |r|
           [
             r[:host],

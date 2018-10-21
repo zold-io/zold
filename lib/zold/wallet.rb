@@ -30,7 +30,6 @@ require_relative 'tax'
 require_relative 'amount'
 require_relative 'hexnum'
 require_relative 'signature'
-require_relative 'atomic_file'
 require_relative 'txns'
 require_relative 'head'
 
@@ -90,7 +89,7 @@ module Zold
     def init(id, pubkey, overwrite: false, network: 'test')
       raise "File '#{@file}' already exists" if File.exist?(@file) && !overwrite
       raise "Invalid network name '#{network}'" unless network =~ /^[a-z]{4,16}$/
-      AtomicFile.new(@file).write("#{network}\n#{PROTOCOL}\n#{id}\n#{pubkey.to_pub}\n\n")
+      File.write(@file, "#{network}\n#{PROTOCOL}\n#{id}\n#{pubkey.to_pub}\n\n")
       @txns.flush
       @head.flush
     end
@@ -187,7 +186,8 @@ module Zold
     end
 
     def refurbish
-      AtomicFile.new(@file).write(
+      File.write(
+        @file,
         "#{network}\n#{protocol}\n#{id}\n#{key.to_pub}\n\n#{txns.map { |t| t.to_s + "\n" }.join}"
       )
       @txns.flush

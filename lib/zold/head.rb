@@ -39,7 +39,7 @@ module Zold
 
     def fetch
       raise "Wallet file '#{@file}' is absent" unless File.exist?(@file)
-      lines = AtomicFile.new(@file).read.split(/\n/)
+      lines = File.read(@file).split(/\n/)
       raise "Not enough lines in #{@file}, just #{lines.count}" if lines.count < 4
       lines.take(4)
     end

@@ -31,7 +31,6 @@ require_relative '../log'
 require_relative '../id'
 require_relative '../http'
 require_relative '../json_page'
-require_relative '../atomic_file'
 
 # PUSH command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -91,7 +90,7 @@ total score for #{id} is #{total}")
       start = Time.now
       content = @wallets.find(id) do |wallet|
         raise "The wallet #{id} is absent" unless wallet.exists?
-        AtomicFile.new(wallet.path).read
+        File.read(wallet.path)
       end
       uri = "/wallet/#{id}"
       response = r.http(uri).put(content)

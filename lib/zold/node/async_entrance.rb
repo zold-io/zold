@@ -97,7 +97,7 @@ module Zold
     def push(id, body)
       raise "Queue is too long (#{queue.count} wallets), try again later" if queue.count > AsyncEntrance::MAX_QUEUE
       @mutex.synchronize do
-        AtomicFile.new(File.join(@dir, id.to_s)).write(body)
+        File.write(File.join(@dir, id.to_s), body)
       end
       [id]
     end

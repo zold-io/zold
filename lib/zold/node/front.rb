@@ -40,7 +40,6 @@ require_relative '../copies'
 require_relative '../log'
 require_relative '../id'
 require_relative '../http'
-require_relative '../atomic_file'
 
 # The web front of the node.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -308,7 +307,7 @@ while #{settings.address} is in '#{settings.network}'"
       settings.wallets.find(id) do |wallet|
         error 404 unless wallet.exists?
         content_type 'text/plain'
-        AtomicFile.new(wallet.path).read
+        File.read(wallet.path)
       end
     end
 

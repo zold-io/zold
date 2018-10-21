@@ -24,7 +24,6 @@ require 'tempfile'
 require_relative '../log'
 require_relative '../size'
 require_relative '../wallet'
-require_relative '../atomic_file'
 
 # The entrance that ignores duplicates.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -61,7 +60,7 @@ module Zold
         wallet.refurbish
         after = File.read(wallet.path)
         before = @wallets.find(id) do |w|
-          w.exists? ? AtomicFile.new(w.path).read.to_s : ''
+          w.exists? ? File.read(w.path).to_s : ''
         end
         if before == after
           @log.info(

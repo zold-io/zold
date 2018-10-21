@@ -28,7 +28,6 @@ require_relative '../lib/zold/sync_wallets'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/version'
 require_relative '../lib/zold/remotes'
-require_relative '../lib/zold/atomic_file'
 
 # Fake home dir.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -74,7 +73,7 @@ class FakeHome
         mtime: wallet.mtime.utc.iso8601,
         digest: wallet.digest,
         balance: wallet.balance.to_i,
-        body: Zold::AtomicFile.new(wallet.path).read
+        body: File.read(wallet.path)
       }.to_json
     end
   end

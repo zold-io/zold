@@ -21,7 +21,6 @@
 # SOFTWARE.
 
 require_relative 'txn'
-require_relative 'atomic_file'
 
 # Transactions in a wallet.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -40,7 +39,7 @@ module Zold
 
     def fetch
       raise "Wallet file '#{@file}' is absent" unless File.exist?(@file)
-      lines = AtomicFile.new(@file).read.split(/\n/)
+      lines = File.read(@file).split(/\n/)
       raise "Not enough lines in #{@file}, just #{lines.count}" if lines.count < 4
       lines.drop(5)
         .each_with_index

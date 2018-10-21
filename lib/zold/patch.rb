@@ -23,7 +23,6 @@
 require_relative 'log'
 require_relative 'wallet'
 require_relative 'signature'
-require_relative 'atomic_file'
 
 # Patch.
 #
@@ -120,7 +119,7 @@ among #{payer.txns.count} transactions: #{txn.to_text}")
     def save(file, overwrite: false)
       raise 'You have to join at least one wallet in' if @id.nil?
       before = ''
-      before = AtomicFile.new(file).read if File.exist?(file)
+      before = File.read(file) if File.exist?(file)
       wallet = Wallet.new(file)
       wallet.init(@id, @key, overwrite: overwrite, network: @network)
       File.open(file, 'a') do |f|
@@ -129,7 +128,7 @@ among #{payer.txns.count} transactions: #{txn.to_text}")
         end
       end
       wallet.refurbish
-      after = AtomicFile.new(file).read
+      after = File.read(file)
       before != after
     end
   end
