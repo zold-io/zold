@@ -224,9 +224,7 @@ module Zold
     end
 
     def mtime
-      mutex.synchronize do
-        File.exist?(file) ? File.mtime(file) : Time.now
-      end
+      File.exist?(file) ? File.mtime(file) : Time.now
     end
 
     private
