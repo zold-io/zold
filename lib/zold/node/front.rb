@@ -57,6 +57,7 @@ module Zold
       set :lock, false
       set :show_exceptions, false
       set :server, :puma
+      set :server_settings, log_requests: true, debug: true
       set :log, nil? # to be injected at node.rb
       set :trace, nil? # to be injected at node.rb
       set :halt, '' # to be injected at node.rb
@@ -383,12 +384,15 @@ while #{settings.address} is in '#{settings.network}'"
 
     get '/threads' do
       content_type 'text/plain'
-      Thread.list.map do |t|
-        [
-          "#{t.name}: status=#{t.status}; alive=#{t.alive?}",
-          t.backtrace.nil? ? 'NO BACKTRACE' : "  #{t.backtrace.join("\n  ")}"
-        ].join("\n")
-      end.join("\n\n")
+      [
+        "Total threads: #{Thread.list.count}",
+        Thread.list.map do |t|
+          [
+            "#{t.name}: status=#{t.status}; alive=#{t.alive?}",
+            t.backtrace.nil? ? 'NO BACKTRACE' : "  #{t.backtrace.join("\n  ")}"
+          ].join("\n")
+        end
+      ].flatten.join("\n\n")
     end
 
     not_found do

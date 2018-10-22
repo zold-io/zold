@@ -168,9 +168,10 @@ module Zold
       Front.set(:halt, opts['halt-code'])
       Front.set(:disable_push, opts['disable-push'])
       Front.set(:disable_fetch, opts['disable-fetch'])
-      Front.set(:home, opts['home'])
+      home = File.expand_path(opts['home'])
+      Front.set(:home, home)
       @log.info("Time: #{Time.now.utc.iso8601}")
-      @log.info("Home directory: #{opts['home']}")
+      @log.info("Home directory: #{home}")
       @log.info("Ruby version: #{RUBY_VERSION}")
       @log.info("Zold gem version: #{Zold::VERSION}")
       @log.info("Zold protocol version: #{Zold::PROTOCOL}")
@@ -189,7 +190,7 @@ module Zold
         AccessLog: []
       )
       if opts['standalone']
-        @remotes = Zold::Remotes::Empty.new(file: '/tmp/standalone')
+        @remotes = Zold::Remotes::Empty.new
         @log.info('Running in standalone mode! (will never talk to other remotes)')
       elsif @remotes.exists?(host, port)
         Zold::Remote.new(remotes: @remotes).run(['remote', 'remove', host, port.to_s])
@@ -201,7 +202,7 @@ module Zold
       Front.set(:remotes, @remotes)
       Front.set(:copies, @copies)
       Front.set(:address, address)
-      Front.set(:root, opts['home'])
+      Front.set(:root, home)
       Front.set(:dump_errors, opts['dump-errors'])
       Front.set(:port, opts['bind-port'])
       Front.set(:reboot, !opts['never-reboot'])
@@ -227,21 +228,21 @@ module Zold
                   @remotes, @copies, address,
                   log: @log, network: opts['network']
                 ),
-                File.join(opts['home'], '.zoldata/entrance'),
+                File.join(home, '.zoldata/entrance'),
                 log: @log
               ),
               @wallets, @remotes, address,
               log: @log,
               ignore_score_weakeness: opts['ignore-score-weakness']
             ),
-            File.join(opts['home'], '.zoldata/entrance'), log: @log
+            File.join(home, '.zoldata/entrance'), log: @log
           ),
           @wallets
         ),
         network: opts['network']
       ).start do |entrance|
         Front.set(:entrance, entrance)
-        Farm.new(invoice, File.join(opts['home'], 'farm'), log: @log)
+        Farm.new(invoice, File.join(home, 'farm'), log: @log)
           .start(host, opts[:port], threads: opts[:threads], strength: opts[:strength]) do |farm|
           Front.set(:farm, farm)
           metronome(farm, opts).start do |metronome|

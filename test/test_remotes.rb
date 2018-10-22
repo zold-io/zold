@@ -225,9 +225,14 @@ class TestRemotes < Minitest::Test
 
   def test_empty_remotes
     Time.stub :now, Time.mktime(2018, 1, 1) do
-      remotes = Zold::Remotes::Empty.new(file: '/tmp/empty')
+      remotes = Zold::Remotes::Empty.new
       assert_equal(Time.mktime(2018, 1, 1), remotes.mtime)
-      assert(remotes.is_a?(Zold::Remotes))
+    end
+  end
+
+  def test_reads_mtime_from_empty_file
+    Dir.mktmpdir do |dir|
+      assert(!Zold::Remotes.new(file: File.join(dir, 'file/is/absent')).mtime.nil?)
     end
   end
 

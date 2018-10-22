@@ -55,7 +55,11 @@ module Zold
     attribute :mutex, Types::Object.optional.default(Mutex.new)
 
     # Empty, for standalone mode
-    class Empty < Remotes
+    class Empty
+      def initialize
+        # Nothing to init here
+      end
+
       def all
         []
       end
@@ -220,7 +224,9 @@ module Zold
     end
 
     def mtime
-      File.mtime(file)
+      mutex.synchronize do
+        File.exist?(file) ? File.mtime(file) : Time.now
+      end
     end
 
     private

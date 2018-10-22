@@ -38,19 +38,11 @@ module Zold
   # The entrance
   class Entrance
     def initialize(wallets, remotes, copies, address, log: Log::Quiet.new, network: 'test')
-      raise 'Wallets can\'t be nil' if wallets.nil?
-      raise 'Wallets must implement the contract of Wallets: method #find is required' unless wallets.respond_to?(:find)
       @wallets = wallets
-      raise 'Remotes can\'t be nil' if remotes.nil?
-      raise "Remotes must be of type Remotes: #{remotes.class.name}" unless remotes.is_a?(Remotes)
       @remotes = remotes
-      raise 'Copies can\'t be nil' if copies.nil?
       @copies = copies
-      raise 'Address can\'t be nil' if address.nil?
       @address = address
-      raise 'Log can\'t be nil' if log.nil?
       @log = log
-      raise 'Network can\'t be nil' if network.nil?
       @network = network
       @history = []
       @speed = []

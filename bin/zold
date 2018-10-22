@@ -144,10 +144,11 @@ Available options:"
   args << '--help' if opts.help?
   args << "--network=#{opts['network']}"
 
-  FileUtils.mkdir_p(opts[:home])
-  Dir.chdir(opts[:home])
+  home = File.expand_path(opts[:home])
+  FileUtils.mkdir_p(home)
+  Dir.chdir(home)
 
-  zoldata = File.expand_path(File.join(Dir.pwd, '.zoldata'))
+  zoldata = File.join(home, '.zoldata')
 
   unless opts['skip-upgrades']
     Zold::Upgrades.new(Zold::VersionFile.new(File.join(zoldata, 'version')), 'upgrades').run
@@ -172,7 +173,9 @@ Available options:"
     ),
     File.join(zoldata, 'locks'), log: log
   )
-  remotes = Zold::Remotes.new(file: File.join(zoldata, 'remotes'), network: opts['network'])
+  fremotes = File.join(zoldata, 'remotes')
+  remotes = Zold::Remotes.new(file: fremotes, network: opts['network'])
+  remotes.defaults unless File.exist?(fremotes)
   copies = File.join(zoldata, 'copies')
 
   log.debug("Network: #{opts['network']}")

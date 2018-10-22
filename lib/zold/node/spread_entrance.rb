@@ -40,17 +40,10 @@ module Zold
   # The entrance
   class SpreadEntrance
     def initialize(entrance, wallets, remotes, address, log: Log::Quiet.new, ignore_score_weakeness: false)
-      raise 'Entrance can\'t be nil' if entrance.nil?
       @entrance = entrance
-      raise 'Wallets can\'t be nil' if wallets.nil?
-      raise 'Wallets must implement the contract of Wallets: method #find is required' unless wallets.respond_to?(:find)
       @wallets = wallets
-      raise 'Remotes can\'t be nil' if remotes.nil?
-      raise 'Remotes must be of type Remotes' unless remotes.is_a?(Remotes)
       @remotes = remotes
-      raise 'Address can\'t be nil' if address.nil?
       @address = address
-      raise 'Log can\'t be nil' if log.nil?
       @log = log
       @ignore_score_weakeness = ignore_score_weakeness
     end

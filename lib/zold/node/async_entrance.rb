@@ -35,7 +35,7 @@ module Zold
   # The entrance
   class AsyncEntrance
     # How many threads to use for processing
-    THREADS = Concurrent.processor_count * 8
+    THREADS = [Concurrent.processor_count, 4].max
 
     # Queue length
     MAX_QUEUE = Concurrent.processor_count * 64
@@ -66,7 +66,9 @@ module Zold
       @entrance.start do
         FileUtils.mkdir_p(@dir)
         @pool = Concurrent::FixedThreadPool.new(
-          AsyncEntrance::THREADS, max_queue: AsyncEntrance::MAX_QUEUE, fallback_policy: :abort
+          AsyncEntrance::THREADS,
+          max_queue: AsyncEntrance::MAX_QUEUE,
+          fallback_policy: :abort
         )
         AsyncEntrance::THREADS.times do |t|
           @pool.post do
