@@ -183,7 +183,7 @@ while #{settings.address} is in '#{settings.network}'"
         platform: RUBY_PLATFORM,
         load: Usagewatch.uw_load.to_f,
         threads: "#{Thread.list.select { |t| t.status == 'run' }.count}/#{Thread.list.count}",
-        wallets: Cachy.cache(:a_key, expires_in: 5 * 60) { settings.wallets.all.count },
+        wallets: Cachy.cache(:a_wallets, expires_in: 5 * 60) { settings.wallets.all.count },
         remotes: settings.remotes.all.count,
         nscore: settings.remotes.all.map { |r| r[:score] }.inject(&:+) || 0,
         farm: settings.farm.to_json,
@@ -425,7 +425,7 @@ while #{settings.address} is in '#{settings.network}'"
     end
 
     def score
-      best = settings.farm.best
+      best = Cachy.cache(:a_score, expires_in: 60) { settings.farm.best }
       raise 'Score is empty, there is something wrong with the Farm!' if best.empty?
       best[0]
     end
