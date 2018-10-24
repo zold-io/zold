@@ -54,7 +54,7 @@ module Zold
     end
 
     def run(args = [])
-      opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
+      opts = Slop.parse(args, help: false, suppress_errors: true) do |o|
         o.banner = "Usage: zold remote <command> [options]
 Available commands:
     #{Rainbow('remote show').green}
@@ -67,68 +67,59 @@ Available commands:
       Add all default nodes to the list
     #{Rainbow('remote add').green} host [port]
       Add a new remote node
+      Available options:
+        #{o.array '--ignore-node',
+          'Ignore this node and never add it to the list',
+          default: []}
+        #{o.bool '--skip-ping',
+          'Don\'t ping back the node when adding it (not recommended)',
+          default: false}
+        #{o.string '--network',
+          "The name of the network we work in (default: #{Wallet::MAINET}",
+          required: true,
+          default: Wallet::MAINET}
+        #{o.bool '--ignore-if-exists',
+          'Ignore the node while adding if it already exists in the list',
+          default: false}
     #{Rainbow('remote remove').green} host [port]
       Remove the remote node
     #{Rainbow('remote elect').green}
       Pick a random remote node as a target for a bonus awarding
+      Available options:
+        #{o.bool '--ignore-score-weakness',
+            'Don\'t complain when their score is too weak',
+            default: false}
+        #{o.bool '--ignore-score-value',
+            'Don\'t complain when their score is too small',
+            default: false}
+        #{o.integer '--min-score',
+          "The minimum score required for winning the election (default: #{Tax::EXACT_SCORE})",
+          default: Tax::EXACT_SCORE}
+        #{o.integer '--max-winners',
+          'The maximum amount of election winners the election (default: 1)',
+          default: 1}
     #{Rainbow('remote trim').green}
       Remove the least reliable nodes
+      Available options:
+        #{o.integer '--tolerate',
+          'Maximum level of errors we are able to tolerate',
+          default: Remotes::TOLERANCE}
     #{Rainbow('remote select [options]').green}
       Select the strongest n nodes.
+      Available options:
+        #{o.integer '--max-nodes',
+            "Number of nodes to limit to. Defaults to #{Remotes::MAX_NODES}.",
+            default: Remotes::MAX_NODES}
     #{Rainbow('remote update').green}
       Check each registered remote node for availability
-Available options:"
-        o.integer '--tolerate',
-          'Maximum level of errors we are able to tolerate',
-          default: Remotes::TOLERANCE
-        o.bool '--ignore-score-weakness',
-          'Don\'t complain when their score is too weak',
-          default: false
-        o.bool '--ignore-score-value',
-          'Don\'t complain when their score is too small',
-          default: false
-        o.array '--ignore-node',
-          'Ignore this node and never add it to the list',
-          default: []
-        o.bool '--ignore-if-exists',
-          'Ignore the node while adding if it already exists in the list',
-          default: false
-        o.integer '--min-score',
-          "The minimum score required for winning the election (default: #{Tax::EXACT_SCORE})",
-          default: Tax::EXACT_SCORE
-        o.integer '--max-winners',
-          'The maximum amount of election winners the election (default: 1)',
-          default: 1
-        o.bool '--skip-ping',
-          'Don\'t ping back the node when adding it (not recommended)',
-          default: false
-        o.bool '--ignore-ping',
-          'Don\'t fail if ping fails, just report the problem in the log',
-          default: false
-        o.integer '--depth',
-          'The amount of update cycles to run, in order to fetch as many nodes as possible (default: 2)',
-          default: 2
-        o.string '--network',
-          "The name of the network we work in (default: #{Wallet::MAINET}",
-          required: true,
-          default: Wallet::MAINET
-        o.bool '--reboot',
+      Available options:
+        --ignore-score-weakness Don't complain when their score is too weak
+        #{o.bool '--reboot',
           'Exit if any node reports version higher than we have',
-          default: false
-        # @todo #292:30min Group options by subcommands
-        #  Having all the options in one place _rather than grouping them by subcommands_
-        #  makes the help totally misleading and hard to read.
-        #  Not all the options are valid for every command - that's the key here.
-        #  The option below (`--max-nodes`) is an example.
-        #  **Next actions:**
-        #  - Implement the suggestion above.
-        #  - Remove note from the --max-nodes option saying that it applies to the select
-        #  subcommand only.
-        o.integer '--max-nodes',
-          "This applies only to the select subcommand. Number of nodes to limit to. Defaults to #{Remotes::MAX_NODES}.",
-          default: Remotes::MAX_NODES
-        o.bool '--help', 'Print instructions'
+          default: false}
+    #{o.bool '--help', 'Print instructions'}"
       end
+
       mine = Args.new(opts, @log).take || return
       command = mine[0]
       raise "A command is required, try 'zold remote --help'" unless command
