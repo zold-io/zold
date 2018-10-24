@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'concurrent'
+require 'concurrent/set'
 require 'tempfile'
 require_relative 'emission'
 require_relative '../log'
@@ -57,7 +58,7 @@ module Zold
 
     def start
       @entrance.start do
-        @seen = Set.new
+        @seen = Concurrent::Set.new
         @modified = Queue.new
         @push = Thread.start do
           Thread.current.abort_on_exception = true
@@ -88,13 +89,14 @@ module Zold
       end
     end
 
+    # This method is thread-safe
     def push(id, body)
       mods = @entrance.push(id, body)
       (mods + [id]).each do |m|
         next if @seen.include?(m)
         @seen << m
         @modified.push(m)
-        @log.debug("Push scheduled for #{m}, queue size is #{@modified.size}")
+        @log.debug("Spread-push scheduled for #{m}, queue size is #{@modified.size}")
       end
       mods
     end

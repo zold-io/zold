@@ -38,9 +38,7 @@ module Zold
     EXT = '.zc'
 
     def initialize(dir, log: Log::Quiet.new)
-      raise 'Dir can\'t be nil' if dir.nil?
       @dir = dir
-      raise 'Log can\'t be nil' if log.nil?
       @log = log
       @mutex = Mutex.new
     end

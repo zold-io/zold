@@ -229,14 +229,14 @@ module Zold
                   @remotes, @copies, address,
                   log: @log, network: opts['network']
                 ),
-                File.join(home, '.zoldata/entrance'),
+                File.join(home, '.zoldata/sync-entrance'),
                 log: @log
               ),
               @wallets, @remotes, address,
               log: @log,
               ignore_score_weakeness: opts['ignore-score-weakness']
             ),
-            File.join(home, '.zoldata/entrance'), log: @log
+            File.join(home, '.zoldata/async-entrance'), log: @log
           ),
           @wallets
         ),

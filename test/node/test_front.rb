@@ -163,7 +163,7 @@ class FrontTest < Minitest::Test
   end
 
   def test_pushes_many_wallets
-    FakeNode.new(log: test_log).run do |port|
+    FakeNode.new(log: test_log).run(['--no-metronome', '--threads=0', '--standalone']) do |port|
       base = "http://localhost:#{port}"
       FakeHome.new.run do |home|
         assert_in_threads(threads: 20) do

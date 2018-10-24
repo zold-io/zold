@@ -33,12 +33,9 @@ module Zold
   # The entrance that makes sure only one thread works with a wallet
   class SyncEntrance
     def initialize(entrance, dir, timeout: 30, log: Log::Quiet.new)
-      raise 'Entrance can\'t be nil' if entrance.nil?
       @entrance = entrance
-      raise 'Dir can\'t be nil' if dir.nil?
       @dir = dir
       @timeout = timeout
-      raise 'Log can\'t be nil' if log.nil?
       @log = log
     end
 
@@ -56,7 +53,7 @@ module Zold
     def push(id, body)
       f = File.join(@dir, "#{id}.lock")
       FileUtils.mkdir_p(File.dirname(f))
-      File.open(f, File::RDWR | File::CREAT) do |lock|
+      mods = File.open(f, File::RDWR | File::CREAT) do |lock|
         start = Time.now
         cycles = 0
         loop do
@@ -76,6 +73,8 @@ exclusive access to #{id}/e, #{delay.round}s already")
         File.write(lock, "##{Process.pid}/#{Thread.current.name}/#{Time.now.utc.iso8601}")
         @entrance.push(id, body)
       end
+      FileUtils.rm_rf(f)
+      mods
     end
   end
 end
