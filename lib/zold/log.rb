@@ -54,6 +54,7 @@ module Zold
       end
 
       def debug(msg)
+        return unless debug?
         @mutex.synchronize do
           @log.debug(msg)
         end
@@ -64,6 +65,7 @@ module Zold
       end
 
       def info(msg)
+        return unless info?
         @mutex.synchronize do
           @log.info(msg)
         end

@@ -69,6 +69,7 @@ module Zold
       set :nohup_log, false # to be injected at node.rb
       set :home, nil? # to be injected at node.rb
       set :logging, true # to be injected at node.rb
+      set :logger, nil? # to be injected at node.rb
       set :address, nil? # to be injected at node.rb
       set :farm, nil? # to be injected at node.rb
       set :metronome, nil? # to be injected at node.rb

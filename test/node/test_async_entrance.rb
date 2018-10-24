@@ -40,7 +40,7 @@ class TestAsyncEntrance < Minitest::Test
     end
   end
 
-  def test_sends_through
+  def test_sends_through_once
     FakeHome.new.run do |home|
       wallet = home.create_wallet
       amount = Zold::Amount.new(zld: 39.99)
@@ -48,10 +48,25 @@ class TestAsyncEntrance < Minitest::Test
       wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
       basic = CountingEntrance.new
       Zold::AsyncEntrance.new(basic, File.join(home.dir, 'a/b/c'), log: test_log).start do |e|
-        5.times { e.push(wallet.id, File.read(wallet.path)) }
-        assert_equal_wait(false) { basic.count.zero? }
-        assert(!basic.count.zero?)
+        e.push(wallet.id, File.read(wallet.path))
+        assert_equal_wait(1) { basic.count }
       end
+    end
+  end
+
+  def test_sends_through
+    FakeHome.new.run do |home|
+      basic = CountingEntrance.new
+      Zold::AsyncEntrance.new(basic, File.join(home.dir, 'a/b/c'), log: test_log).start do |e|
+        assert_in_threads(threads: 20) do
+          wallet = home.create_wallet
+          amount = Zold::Amount.new(zld: 39.99)
+          key = Zold::Key.new(file: 'fixtures/id_rsa')
+          wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
+          5.times { e.push(wallet.id, File.read(wallet.path)) }
+        end
+      end
+      assert_equal_wait(true) { basic.count >= 20 }
     end
   end
 

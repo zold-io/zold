@@ -160,6 +160,7 @@ module Zold
       end
       @log = Trace.new(@log, opts['trace-length'])
       Front.set(:log, @log)
+      Front.set(:logger, @log)
       Front.set(:trace, @log)
       Front.set(:nohup_log, opts['nohup-log']) if opts['nohup-log']
       Front.set(:version, opts['expose-version'])

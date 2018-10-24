@@ -127,7 +127,7 @@ module Zold
     def finish(thread)
       start = Time.now
       @alive = false
-      @log.info("Attempting to terminate the thread \"#{thread.name}\"...")
+      @log.info("Attempting to terminate the thread \"#{thread.name}\" of the farm...")
       loop do
         delay = Time.now - start
         if thread.join(0.1)

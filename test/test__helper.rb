@@ -53,7 +53,8 @@ module Minitest
         end
         sleep 1
         sec = Time.now - start
-        raise "'#{actual}' is not equal to '#{expected}' even after #{Age.new(start)} of waiting" if sec > max
+        require_relative '../lib/zold/age'
+        raise "'#{actual}' is not equal to '#{expected}' even after #{Zold::Age.new(start)} of waiting" if sec > max
       end
     end
 
@@ -78,15 +79,13 @@ module Minitest
       end
       latch.count_down
       pool.shutdown
-      pool.kill unless pool.wait_for_termination(10)
+      raise "Can't stop the pool" unless pool.wait_for_termination(10)
       assert_equal(threads, done.value)
     end
 
     def test_log
       require_relative '../lib/zold/log'
-      @test_log = Zold::Log::Verbose.new
-      @test_log = Zold::Log::Quiet.new if ENV['TEST_QUIET_LOG']
-      Zold::Log::Sync.new(@test_log)
+      @test_log ||= Zold::Log::Sync.new(ENV['TEST_QUIET_LOG'] ? Zold::Log::Quiet.new : Zold::Log::Verbose.new)
     end
 
     class TestLogger

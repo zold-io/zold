@@ -38,7 +38,7 @@ class FakeNode
     @log = log
   end
 
-  def run(args = ['--standalone'])
+  def run(args = ['--standalone', '--no-metronome'])
     WebMock.allow_net_connect!
     FakeHome.new.run do |home|
       RandomPort::Pool::SINGLETON.acquire do |port|
