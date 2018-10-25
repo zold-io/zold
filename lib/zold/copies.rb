@@ -23,6 +23,7 @@
 require 'time'
 require 'csv'
 require 'backtrace'
+require 'pry-byebug'
 require_relative 'log'
 require_relative 'size'
 require_relative 'wallet'
@@ -177,17 +178,7 @@ module Zold
       )
       @log.info("COPIES: saved; #{((Time.now - start) * 1000).round}ms")
       start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-      require 'ruby-prof'
-      result = RubyProf.profile do
-        IO.write('/tmp/kill-me.csv', 'test')
-      end
-      if Process.clock_gettime(Process::CLOCK_MONOTONIC) - start > 0.2
-        printer = RubyProf::GraphPrinter.new(result)
-        File.open('/tmp/result.txt', 'w+') do |f|
-          printer.print(f, {})
-        end
-        exit
-      end
+      IO.write('/tmp/kill-me.csv', 'test')
       puts("\nCOPIES: saved2; #{((Process.clock_gettime(Process::CLOCK_MONOTONIC) - start) * 1000).round}ms\n")
     end
 

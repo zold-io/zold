@@ -121,7 +121,7 @@ class TestCopies < Minitest::Test
   def test_intensive_write_in_threads
     Dir.mktmpdir do |dir|
       file = File.join(dir, 'hey.txt')
-      assert_in_threads(threads: 20) do
+      assert_in_threads(threads: 100) do
         start = Time.now
         File.open(file, 'w+') do |f|
           f.write('test')
