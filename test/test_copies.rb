@@ -124,6 +124,7 @@ class TestCopies < Minitest::Test
       Thread.start do
         loop do
           Dir.new(dir).select { |f| true }
+          sleep 0.1
         end
       end
       assert_in_threads(threads: 100) do
