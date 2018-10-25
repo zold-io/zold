@@ -56,7 +56,7 @@ module Zold
       set :start, Time.now
       set :lock, false
       set :show_exceptions, false
-      set :server, :webrick
+      set :server, :puma
       set :server_settings, log_requests: true, debug: true
       set :log, nil? # to be injected at node.rb
       set :trace, nil? # to be injected at node.rb

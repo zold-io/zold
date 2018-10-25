@@ -28,6 +28,7 @@ require_relative 'test__helper'
 require_relative '../lib/zold/id'
 require_relative '../lib/zold/age'
 require_relative '../lib/zold/copies'
+require_relative '../lib/zold/dir_items'
 require_relative '../lib/zold/wallet'
 
 # Copies test.
@@ -115,26 +116,6 @@ class TestCopies < Minitest::Test
       copies = Zold::Copies.new(dir, log: test_log)
       copies.add(content('h1'), 'zold.io', 50, 80, Time.now - 1000 * 60 * 60)
       assert_equal(0, copies.all[0][:score])
-    end
-  end
-
-  def test_intensive_write_in_threads
-    Dir.mktmpdir do |dir|
-      file = File.join(dir, 'hey.txt')
-      Thread.start do
-        loop do
-          Dir.new(dir).select { |f| true }
-          sleep 0.1
-        end
-      end
-      assert_in_threads(threads: 100) do
-        start = Time.now
-        File.open(file, 'w+') do |f|
-          f.write('test')
-          sleep 1
-        end
-        test_log.debug("Saved in #{Zold::Age.new(start)}")
-      end
     end
   end
 

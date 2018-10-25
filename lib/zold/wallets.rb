@@ -22,6 +22,7 @@
 require 'pathname'
 require_relative 'id'
 require_relative 'wallet'
+require_relative 'dir_items'
 
 # The local collection of wallets.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -50,7 +51,7 @@ module Zold
 
     # Returns the list of their IDs (as plain text)
     def all
-      Dir.new(path).select do |f|
+      DirItems.new(path).fetch.select do |f|
         file = File.join(@dir, f)
         basename = File.basename(f, Wallet::EXTENSION)
         File.file?(file) &&

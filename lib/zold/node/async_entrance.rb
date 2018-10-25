@@ -27,6 +27,7 @@ require_relative '../size'
 require_relative '../id'
 require_relative '../verbose_thread'
 require_relative '../sync_file'
+require_relative '../dir_items'
 
 # The async entrance of the web front.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -71,7 +72,7 @@ module Zold
           @pool.post do
             Thread.current.name = "async-e##{t}"
             loop do
-              # VerboseThread.new(@log).run(true) { take }
+              VerboseThread.new(@log).run(true) { take }
               break if @pool.shuttingdown?
               sleep Random.rand(100) / 100
             end
@@ -131,9 +132,7 @@ in #{Age.new(start, limit: 0.1)} (#{queue.count} still in the queue)")
     end
 
     def queue
-      Dir.new(@dir)
-        .select { |f| f =~ /^[0-9a-f]{16}$/ }
-        .sort_by { |f| File.mtime(File.join(@dir, f)) }
+      DirItems.new(@dir).fetch.select { |f| f =~ /^[0-9a-f]{16}$/ }
     end
 
     def file(id)

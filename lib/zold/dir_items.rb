@@ -20,48 +20,25 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative 'log'
-
-# Synchronized file.
+# Items in a directory.
+#
+# We need this class because Dir.new() from Ruby is blocking. It doesn't
+# allow to write and read to any files in a directory, while listing it.
+# More: https://stackoverflow.com/questions/52987672/
+#
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # Synchronized file
-  class SyncFile
-    def initialize(path, timeout: 30, log: Log::Regular.new)
-      @path = path
-      @timeout = timeout
-      @log = log
+  # Items in a dir
+  class DirItems
+    def initialize(dir)
+      @dir = dir
     end
 
-    def open
-      FileUtils.mkdir_p(File.dirname(@path))
-      lock = @path + '.lock'
-      res = File.open(lock, File::RDWR | File::CREAT) do |f|
-        start = Time.now
-        acq = nil
-        cycles = 0
-        loop do
-          break if f.flock(File::LOCK_EX | File::LOCK_NB)
-          sleep 0.001
-          cycles += 1
-          delay = (Time.now - start).round(2)
-          if delay > @timeout
-            raise "##{Process.pid}/#{Thread.current.name} can't get exclusive access to the file #{@path} \
-because of the lock at #{f.path}, after #{delay}s of waiting: #{f.read}"
-          end
-          if (cycles % 1000).zero? && delay > 10
-            @log.info("##{Process.pid}/#{Thread.current.name} still waiting for \
-exclusive access to #{@path}, #{delay.round}s already: #{f.read}")
-          end
-        end
-        acq = Time.now
-        f.write("##{Process.pid}/#{Thread.current.name}")
-        yield @path
-      end
-      FileUtils.rm_rf(lock)
-      res
+    def fetch
+      txt = `ls #{@dir}/`
+      txt.nil? ? [] : txt.strip.split(' ')
     end
   end
 end

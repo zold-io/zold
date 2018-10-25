@@ -20,48 +20,33 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative 'log'
+require 'minitest/autorun'
+require 'tmpdir'
+require_relative 'test__helper'
+require_relative '../lib/zold/age'
+require_relative '../lib/zold/dir_items'
 
-# Synchronized file.
+# DirItems test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # Synchronized file
-  class SyncFile
-    def initialize(path, timeout: 30, log: Log::Regular.new)
-      @path = path
-      @timeout = timeout
-      @log = log
-    end
-
-    def open
-      FileUtils.mkdir_p(File.dirname(@path))
-      lock = @path + '.lock'
-      res = File.open(lock, File::RDWR | File::CREAT) do |f|
-        start = Time.now
-        acq = nil
-        cycles = 0
+class TestDirItems < Minitest::Test
+  def test_intensive_write_in_threads
+    Dir.mktmpdir do |dir|
+      file = File.join(dir, 'hey.txt')
+      Thread.start do
         loop do
-          break if f.flock(File::LOCK_EX | File::LOCK_NB)
-          sleep 0.001
-          cycles += 1
-          delay = (Time.now - start).round(2)
-          if delay > @timeout
-            raise "##{Process.pid}/#{Thread.current.name} can't get exclusive access to the file #{@path} \
-because of the lock at #{f.path}, after #{delay}s of waiting: #{f.read}"
-          end
-          if (cycles % 1000).zero? && delay > 10
-            @log.info("##{Process.pid}/#{Thread.current.name} still waiting for \
-exclusive access to #{@path}, #{delay.round}s already: #{f.read}")
-          end
+          Zold::DirItems.new(dir).fetch
         end
-        acq = Time.now
-        f.write("##{Process.pid}/#{Thread.current.name}")
-        yield @path
       end
-      FileUtils.rm_rf(lock)
-      res
+      assert_in_threads(threads: 100) do
+        start = Time.now
+        File.open(file, 'w+') do |f|
+          f.write('test')
+        end
+        test_log.debug("Saved in #{Zold::Age.new(start)}")
+        sleep 1
+      end
     end
   end
 end

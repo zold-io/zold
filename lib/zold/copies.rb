@@ -27,6 +27,7 @@ require 'pry-byebug'
 require_relative 'log'
 require_relative 'size'
 require_relative 'wallet'
+require_relative 'dir_items'
 require_relative 'sync_file'
 
 # The list of copies.
@@ -57,7 +58,6 @@ module Zold
         start = Time.now
         list = load
         list.reject! { |s| s[:time] < Time.now - 24 * 60 * 60 }
-        # @log.info("COPIES: loaded; #{((Time.now - start) * 1000).round}ms")
         save(list)
         start = Time.now
         deleted = 0
@@ -69,7 +69,6 @@ module Zold
           @log.debug("Copy at #{f} deleted: #{Size.new(size)}")
           deleted += 1
         end
-        # @log.info("COPIES: counted; #{((Time.now - start) * 1000).round}ms")
         start = Time.now
         files.each do |f|
           file = File.join(@dir, f)
@@ -83,7 +82,6 @@ module Zold
             deleted += 1
           end
         end
-        # @log.info("COPIES: each; #{((Time.now - start) * 1000).round}ms")
         deleted
       end
     end
@@ -111,7 +109,7 @@ module Zold
           File.exist?(f) && IO.read(f) == content
         end
         if target.nil?
-          max = Dir.new(@dir)
+          max = DirItems.new(@dir).fetch
             .select { |f| File.basename(f, Copies::EXT) =~ /^[0-9]+$/ }
             .map(&:to_i)
             .max
@@ -165,7 +163,6 @@ module Zold
     private
 
     def save(list)
-      start = Time.now
       IO.write(
         file,
         list.map do |r|
@@ -176,14 +173,10 @@ module Zold
           ].join(',')
         end.join("\n")
       )
-      @log.info("COPIES: saved; #{((Time.now - start) * 1000).round}ms")
-      start = Time.now
-      IO.write('/tmp/kill-me.csv', 'test')
-      puts("\nCOPIES: saved2; #{((Time.now - start) * 1000).round}ms\n")
     end
 
     def files
-      Dir.new(@dir).select { |f| File.basename(f, Copies::EXT) =~ /^[0-9]+$/ }
+      DirItems.new(@dir).fetch.select { |f| File.basename(f, Copies::EXT) =~ /^[0-9]+$/ }
     end
 
     def file
