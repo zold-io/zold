@@ -24,6 +24,7 @@ require 'minitest/autorun'
 require 'json'
 require 'time'
 require 'securerandom'
+require 'threads'
 require_relative '../test__helper'
 require_relative 'fake_node'
 require_relative '../fake_home'
@@ -131,7 +132,7 @@ class FrontTest < Minitest::Test
         assert_equal_wait('200') { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).get.code }
         threads = []
         mutex = Mutex.new
-        assert_in_threads(loops: 100) do
+        Threads.new(100).assert do
           assert_equal_wait('200') do
             res = Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).get
             mutex.synchronize { threads << res.header['X-Zold-Thread'] }
@@ -166,7 +167,7 @@ class FrontTest < Minitest::Test
     FakeNode.new(log: test_log).run(['--no-metronome', '--threads=0', '--standalone']) do |port|
       base = "http://localhost:#{port}"
       FakeHome.new.run do |home|
-        assert_in_threads(threads: 20) do
+        Threads.new(20).assert do
           wallet = home.create_wallet
           Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).put(IO.read(wallet.path))
           assert_equal_wait('200') { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).get.code }

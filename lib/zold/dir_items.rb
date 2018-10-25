@@ -37,7 +37,7 @@ module Zold
     end
 
     def fetch
-      txt = `ls #{@dir}/`
+      txt = `find #{@dir} -type f -print 2>/dev/null`
       txt.nil? ? [] : txt.strip.split(' ')
     end
   end

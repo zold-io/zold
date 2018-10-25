@@ -54,8 +54,6 @@ and suggests a different architecture for digital wallet maintenance.'
   s.test_files = s.files.grep(%r{^(test|features)/})
   s.rdoc_options = ['--charset=UTF-8']
   s.extra_rdoc_files = ['README.md', 'LICENSE.txt']
-  s.add_runtime_dependency 'ruby-prof'
-  s.add_runtime_dependency 'pry-byebug'
   s.add_runtime_dependency 'backtrace', '~>0'
   s.add_runtime_dependency 'cachy', '~>0'
   s.add_runtime_dependency 'concurrent-ruby', '1.1.0.pre2'
@@ -77,6 +75,7 @@ and suggests a different architecture for digital wallet maintenance.'
   s.add_runtime_dependency 'sinatra', '~>2'
   s.add_runtime_dependency 'slop', '~>4'
   s.add_runtime_dependency 'sys-proctable', '~>1'
+  s.add_runtime_dependency 'threads', '~>0'
   s.add_runtime_dependency 'usagewatch_ext', '~>0'
   s.add_runtime_dependency 'xcop', '~>0'
   s.add_development_dependency 'codecov', '~>0'

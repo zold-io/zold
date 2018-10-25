@@ -23,6 +23,7 @@
 require 'minitest/autorun'
 require 'tmpdir'
 require 'concurrent'
+require 'threads'
 require_relative 'test__helper'
 require_relative '../lib/zold/sync_file'
 
@@ -36,7 +37,7 @@ class TestSyncFile < Minitest::Test
     threads = 20
     Dir.mktmpdir do |dir|
       path = File.join(dir, 'a/b/c/file.txt')
-      assert_in_threads(threads: threads) do
+      Threads.new(threads).assert do
         Zold::SyncFile.new(path, log: test_log).open do |f|
           idx.increment
           IO.write(f, "op no.#{idx.value}")

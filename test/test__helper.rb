@@ -58,34 +58,6 @@ module Minitest
       end
     end
 
-    def assert_in_threads(threads: Concurrent.processor_count * 8, loops: 0)
-      done = Concurrent::AtomicFixnum.new
-      cycles = Concurrent::AtomicFixnum.new
-      pool = Concurrent::FixedThreadPool.new(threads)
-      latch = Concurrent::CountDownLatch.new(1)
-      threads.times do |t|
-        pool.post do
-          Thread.current.name = "assert-thread-#{t}"
-          latch.wait(10)
-          loop do
-            begin
-              yield t
-            rescue StandardError => e
-              test_log.error(Backtrace.new(e))
-              raise e
-            end
-            cycles.increment
-            break if cycles.value > loops
-          end
-          done.increment
-        end
-      end
-      latch.count_down
-      pool.shutdown
-      raise "Can't stop the pool" unless pool.wait_for_termination(30)
-      assert_equal(threads, done.value)
-    end
-
     def test_log
       require_relative '../lib/zold/log'
       @test_log ||= Zold::Log::Sync.new(ENV['TEST_QUIET_LOG'] ? Zold::Log::Quiet.new : Zold::Log::Verbose.new)

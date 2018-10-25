@@ -23,7 +23,6 @@
 require 'time'
 require 'csv'
 require 'backtrace'
-require 'pry-byebug'
 require_relative 'log'
 require_relative 'size'
 require_relative 'wallet'

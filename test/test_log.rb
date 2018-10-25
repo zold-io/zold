@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
+require 'threads'
 require_relative 'test__helper'
 require_relative '../lib/zold/log'
 
@@ -30,7 +31,7 @@ require_relative '../lib/zold/log'
 # License:: MIT
 class TestLog < Minitest::Test
   def test_prints_from_many_threads
-    assert_in_threads(threads: 20) do
+    Threads.new(20).assert do
       test_log.debug('How are you?')
     end
   end

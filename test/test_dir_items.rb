@@ -22,6 +22,7 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
+require 'threads'
 require_relative 'test__helper'
 require_relative '../lib/zold/age'
 require_relative '../lib/zold/dir_items'
@@ -39,7 +40,7 @@ class TestDirItems < Minitest::Test
           Zold::DirItems.new(dir).fetch
         end
       end
-      assert_in_threads(threads: 100) do
+      Threads.new(100).assert do
         start = Time.now
         File.open(file, 'w+') do |f|
           f.write('test')
@@ -47,6 +48,24 @@ class TestDirItems < Minitest::Test
         test_log.debug("Saved in #{Zold::Age.new(start)}")
         sleep 1
       end
+    end
+  end
+
+  def test_lists_empty_dir
+    Dir.mktmpdir do |dir|
+      assert_equal(0, Zold::DirItems.new(File.join(dir, 'a/b/c')).fetch.count)
+    end
+  end
+
+  def test_lists_recursively
+    Dir.mktmpdir do |dir|
+      files = ['a/b/c/text', 'd/e/f/text', 'a/b/c/zz/text']
+      files.each do |f|
+        path = File.join(dir, f)
+        FileUtils.mkdir_p(File.dirname(path))
+        FileUtils.touch(path)
+      end
+      assert_equal(files.count, Zold::DirItems.new(dir).fetch.count)
     end
   end
 end

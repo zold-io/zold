@@ -23,6 +23,7 @@
 require 'minitest/autorun'
 require 'tmpdir'
 require 'webmock/minitest'
+require 'threads'
 require_relative 'test__helper'
 require_relative '../lib/zold/log'
 require_relative '../lib/zold/age'
@@ -167,7 +168,7 @@ class TestRemotes < Minitest::Test
       remotes.clean
       host = '192.168.0.1'
       remotes.add(host)
-      assert_in_threads(threads: 5) do
+      Threads.new(5).assert do
         remotes.error(host)
       end
       assert_equal(0, remotes.all.reject { |r| r[:host] == host }.size)
@@ -199,7 +200,7 @@ class TestRemotes < Minitest::Test
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'xx.csv'))
       remotes.clean
-      assert_in_threads(threads: 5) do |t|
+      Threads.new(5).assert do |t|
         remotes.add('127.0.0.1', 8080 + t)
       end
       assert_equal(5, remotes.all.count)
@@ -212,7 +213,7 @@ class TestRemotes < Minitest::Test
       remotes.clean
       start = Time.now
       100.times { |i| remotes.add('192.168.0.1', 8080 + i) }
-      assert_in_threads(threads: 4, loops: 10) do |t|
+      Threads.new(4).assert(10) do |t|
         remotes.add('127.0.0.1', 8080 + t)
         remotes.error('127.0.0.1', 8080 + t)
         remotes.all

@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
+require 'threads'
 require_relative '../fake_home'
 require_relative '../test__helper'
 require_relative '../../lib/zold/id'
@@ -58,7 +59,7 @@ class TestAsyncEntrance < Minitest::Test
     FakeHome.new.run do |home|
       basic = CountingEntrance.new
       Zold::AsyncEntrance.new(basic, File.join(home.dir, 'a/b/c'), log: test_log).start do |e|
-        assert_in_threads(threads: 20) do
+        Threads.new(20).assert do
           wallet = home.create_wallet
           amount = Zold::Amount.new(zld: 39.99)
           key = Zold::Key.new(file: 'fixtures/id_rsa')
