@@ -56,7 +56,7 @@ module Zold
       set :start, Time.now
       set :lock, false
       set :show_exceptions, false
-      set :server, :puma
+      set :server, :webrick
       set :server_settings, log_requests: true, debug: true
       set :log, nil? # to be injected at node.rb
       set :trace, nil? # to be injected at node.rb
@@ -157,7 +157,7 @@ while #{settings.address} is in '#{settings.network}'"
       raise "Log not found at #{settings.nohup_log}" unless File.exist?(settings.nohup_log)
       response.headers['Content-Type'] = 'text/plain'
       response.headers['Content-Disposition'] = "attachment; filename='#{File.basename(settings.nohup_log)}'"
-      File.read(settings.nohup_log)
+      IO.read(settings.nohup_log)
     end
 
     get '/favicon.ico' do
@@ -310,7 +310,7 @@ while #{settings.address} is in '#{settings.network}'"
       settings.wallets.find(id) do |wallet|
         error 404 unless wallet.exists?
         content_type 'text/plain'
-        File.read(wallet.path)
+        IO.read(wallet.path)
       end
     end
 
@@ -342,7 +342,7 @@ while #{settings.address} is in '#{settings.network}'"
         copy = Copies.new(File.join(settings.copies, id)).all.find { |c| c[:name] == name }
         error 404 if copy.nil?
         content_type 'text/plain'
-        File.read(copy[:path])
+        IO.read(copy[:path])
       end
     end
 

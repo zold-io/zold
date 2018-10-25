@@ -10,7 +10,7 @@ Feature: Gem Package
     require 'rubygems'
     spec = Gem::Specification::load('./spec.rb')
     if spec.executables.empty?
-      fail 'no executables: ' + File.read('./spec.rb')
+      fail 'no executables: ' + IO.read('./spec.rb')
     end
     """
     When I run bash with:

@@ -68,8 +68,11 @@ module Minitest
           Thread.current.name = "assert-thread-#{t}"
           latch.wait(10)
           loop do
-            Zold::VerboseThread.new(test_log).run(true) do
+            begin
               yield t
+            rescue StandardError => e
+              test_log.error(Backtrace.new(e))
+              raise e
             end
             cycles.increment
             break if cycles.value > loops
@@ -79,7 +82,7 @@ module Minitest
       end
       latch.count_down
       pool.shutdown
-      raise "Can't stop the pool" unless pool.wait_for_termination(10)
+      raise "Can't stop the pool" unless pool.wait_for_termination(30)
       assert_equal(threads, done.value)
     end
 

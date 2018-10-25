@@ -51,6 +51,6 @@ class TestAlias < Minitest::Test
   private
 
   def read_alias_file(home)
-    File.read(File.join(home.dir, 'aliases')).split(' ')
+    IO.read(File.join(home.dir, 'aliases')).split(' ')
   end
 end

@@ -21,37 +21,28 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
-require 'time'
-require_relative '../fake_home'
-require_relative '../test__helper'
-require_relative '../../lib/zold/copies'
-require_relative '../../lib/zold/commands/clean'
+require 'tmpdir'
+require 'concurrent'
+require_relative 'test__helper'
+require_relative '../lib/zold/sync_file'
 
-# CLEAN test.
+# SyncFile test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestClean < Minitest::Test
-  def test_cleans_copies
-    FakeHome.new.run do |home|
-      wallet = home.create_wallet
-      copies = home.copies(wallet)
-      copies.add('a1', 'host-1', 80, 1, Time.now - 26 * 60 * 60)
-      copies.add('a2', 'host-2', 80, 2, Time.now - 26 * 60 * 60)
-      Zold::Clean.new(wallets: home.wallets, copies: copies.root, log: test_log).run(['clean', wallet.id.to_s])
-      assert(copies.all.empty?)
-    end
-  end
-
-  def test_cleans_copies_in_threads
-    FakeHome.new.run do |home|
-      wallet = home.create_wallet
-      copies = home.copies(wallet)
-      copies.add(IO.read(wallet.path), 'host-2', 80, 2, Time.now)
-      assert_in_threads(threads: 20) do
-        Zold::Clean.new(wallets: home.wallets, copies: copies.root, log: test_log).run(['clean'])
+class TestSyncFile < Minitest::Test
+  def test_syncs_access_to_file
+    idx = Concurrent::AtomicFixnum.new
+    threads = 20
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, 'a/b/c/file.txt')
+      assert_in_threads(threads: threads) do
+        Zold::SyncFile.new(path, log: test_log).open do |f|
+          idx.increment
+          IO.write(f, "op no.#{idx.value}")
+        end
       end
-      assert_equal(1, copies.all.count)
+      assert_equal("op no.#{threads}", IO.read(path))
     end
   end
 end

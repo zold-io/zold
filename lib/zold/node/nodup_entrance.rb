@@ -55,12 +55,12 @@ module Zold
       raise 'Id must be of type Id' unless id.is_a?(Id)
       raise 'Body can\'t be nil' if body.nil?
       Tempfile.open(['', Wallet::EXTENSION]) do |f|
-        File.write(f, body)
+        IO.write(f, body)
         wallet = Wallet.new(f.path)
         wallet.refurbish
-        after = File.read(wallet.path)
+        after = IO.read(wallet.path)
         before = @wallets.find(id) do |w|
-          w.exists? ? File.read(w.path).to_s : ''
+          w.exists? ? IO.read(w.path).to_s : ''
         end
         if before == after
           @log.info(

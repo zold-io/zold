@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'time'
+require 'rainbow'
 
 # Age in seconds.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -29,14 +30,15 @@ require 'time'
 module Zold
   # Age
   class Age
-    def initialize(time)
+    def initialize(time, limit: nil)
       @time = time.nil? || time.is_a?(Time) ? time : Time.parse(time)
+      @limit = limit
     end
 
     def to_s
       return '?' if @time.nil?
       sec = Time.now - @time
-      if sec < 1
+      text = if sec < 1
         "#{(sec * 1000).round}ms"
       elsif sec < 60
         "#{sec.round(2)}s"
@@ -44,6 +46,11 @@ module Zold
         "#{(sec / 60).round}m"
       else
         "#{(sec / 3600).round}h"
+      end
+      if !@limit.nil? && sec > @limit
+        Rainbow(text).red
+      else
+        text
       end
     end
   end

@@ -90,7 +90,7 @@ module Zold
       raise "File '#{@file}' already exists" if File.exist?(@file) && !overwrite
       raise "Invalid network name '#{network}'" unless network =~ /^[a-z]{4,16}$/
       FileUtils.mkdir_p(File.dirname(@file))
-      File.write(@file, "#{network}\n#{PROTOCOL}\n#{id}\n#{pubkey.to_pub}\n\n")
+      IO.write(@file, "#{network}\n#{PROTOCOL}\n#{id}\n#{pubkey.to_pub}\n\n")
       @txns.flush
       @head.flush
     end
@@ -173,7 +173,7 @@ module Zold
     end
 
     def digest
-      OpenSSL::Digest::SHA256.new(File.read(@file)).hexdigest
+      OpenSSL::Digest::SHA256.new(IO.read(@file)).hexdigest
     end
 
     # Age of wallet in hours
@@ -187,7 +187,7 @@ module Zold
     end
 
     def refurbish
-      File.write(
+      IO.write(
         @file,
         "#{network}\n#{protocol}\n#{id}\n#{key.to_pub}\n\n#{txns.map { |t| t.to_s + "\n" }.join}"
       )

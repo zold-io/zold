@@ -57,7 +57,7 @@ args = []
 unless ENV['RACK_ENV'] == 'test' || ARGV.find { |a| a == '--ignore-global-config' }
   config = File.expand_path('~/.zold')
   if File.exist?(config)
-    body = File.read(config)
+    body = IO.read(config)
     extra = body.split(/[\r\n]+/).map(&:strip)
     args += extra
     log.debug("Found #{body.split(/\n/).length} lines in #{config}")
@@ -171,7 +171,7 @@ Available options:"
     Zold::CachedWallets.new(
       command == 'node' ? Zold::TreeWallets.new('.') : Zold::Wallets.new('.')
     ),
-    File.join(zoldata, 'locks'), log: log
+    File.join(zoldata, 'wallet-locks'), log: log
   )
   fremotes = File.join(zoldata, 'remotes')
   remotes = Zold::Remotes.new(file: fremotes, network: opts['network'])

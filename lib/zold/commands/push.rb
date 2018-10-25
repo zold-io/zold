@@ -89,14 +89,14 @@ total score for #{id} is #{total}")
       start = Time.now
       content = @wallets.find(id) do |wallet|
         raise "The wallet #{id} is absent" unless wallet.exists?
-        File.read(wallet.path)
+        IO.read(wallet.path)
       end
       uri = "/wallet/#{id}"
       response = r.http(uri).put(content)
       @wallets.find(id) do |wallet|
         if response.code == '304'
           @log.info("#{r}: same version #{Size.new(content.length)}/#{wallet.txns.count}t \
-of #{wallet.id} there, in #{Age.new(start)}")
+of #{wallet.id} there, in #{Age.new(start, limit: 0.5)}")
           return 0
         end
         r.assert_code(200, response)
@@ -106,7 +106,7 @@ of #{wallet.id} there, in #{Age.new(start)}")
         r.assert_score_ownership(score)
         r.assert_score_strength(score) unless opts['ignore-score-weakness']
         @log.info("#{r} accepted #{Size.new(content.length)}/#{wallet.digest[0, 6]}/#{wallet.txns.count}t \
-of #{wallet.id} in #{Age.new(start)}: #{Rainbow(score.value).green} (#{json['version']})")
+of #{wallet.id} in #{Age.new(start, limit: 4)}: #{Rainbow(score.value).green} (#{json['version']})")
         score.value
       end
     end

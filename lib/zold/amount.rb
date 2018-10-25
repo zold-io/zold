@@ -61,10 +61,12 @@ module Zold
 
     def to_s
       text = "#{to_zld}ZLD"
-      if negative?
+      if positive?
+        Rainbow(text).green
+      elsif negative?
         Rainbow(text).red
       else
-        Rainbow(text).green
+        text
       end
     end
 

@@ -50,12 +50,11 @@ module Zold
 
     def find(id)
       @wallets.find(id) do |wallet|
-        yield(
-          @mutex.synchronize do
-            @cache[id] = wallet unless @cache[id]
-            @cache[id]
-          end
-        )
+        w = @mutex.synchronize do
+          @cache[id] = wallet unless @cache[id]
+          @cache[id]
+        end
+        yield w
       end
     end
   end

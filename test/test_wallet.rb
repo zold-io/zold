@@ -109,21 +109,21 @@ class TestWallet < Minitest::Test
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
       wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
-      before = File.read(wallet.path)
-      File.write(wallet.path, File.read(wallet.path) + "\n\n\n")
+      before = IO.read(wallet.path)
+      IO.write(wallet.path, IO.read(wallet.path) + "\n\n\n")
       wallet.refurbish
       assert_equal(amount * -2, wallet.balance)
-      assert_equal(before, File.read(wallet.path))
+      assert_equal(before, IO.read(wallet.path))
     end
   end
 
   def test_refurbishes_empty_wallet
     FakeHome.new.run do |home|
       wallet = home.create_wallet
-      before = File.read(wallet.path)
-      File.write(wallet.path, File.read(wallet.path) + "\n\n\n")
+      before = IO.read(wallet.path)
+      IO.write(wallet.path, IO.read(wallet.path) + "\n\n\n")
       wallet.refurbish
-      assert_equal(before, File.read(wallet.path))
+      assert_equal(before, IO.read(wallet.path))
     end
   end
 
@@ -238,18 +238,18 @@ class TestWallet < Minitest::Test
         )
       end
       wallet = home.create_wallet
-      empty = File.read(wallet.path)
+      empty = IO.read(wallet.path)
       text = ''
       10.times do
-        File.write(wallet.path, empty)
+        IO.write(wallet.path, empty)
         txns.shuffle!
         txns.each { |t| wallet.add(t) }
         wallet.refurbish
         if text.empty?
-          text = File.read(wallet.path)
+          text = IO.read(wallet.path)
           next
         end
-        assert_equal(text, File.read(wallet.path))
+        assert_equal(text, IO.read(wallet.path))
       end
     end
   end

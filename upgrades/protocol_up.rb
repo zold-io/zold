@@ -35,10 +35,10 @@ module Zold
       Dir.new(@home).each do |path|
         next unless path =~ /^[a-f0-9]{16}#{Wallet::EXTENSION}$/
         f = File.join(@home, path)
-        lines = File.read(f).split("\n")
+        lines = IO.read(f).split("\n")
         next if lines[1].to_i == Zold::PROTOCOL
         lines[1] = Zold::PROTOCOL
-        File.write(f, lines.join("\n"))
+        IO.write(f, lines.join("\n"))
         @log.info("Protocol set to #{Zold::PROTOCOL} in #{f}")
       end
     end

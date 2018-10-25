@@ -37,7 +37,7 @@ module Zold
         unless file.nil?
           path = File.expand_path(file)
           raise "Can't find RSA key at #{file} (#{path})" unless File.exist?(path)
-          return File.read(path)
+          return IO.read(path)
         end
         unless text.nil?
           return text if text.start_with?('-----')
@@ -77,7 +77,7 @@ module Zold
       text = @body.call.strip
       unless text.start_with?('-----BEGIN')
         Tempfile.open do |f|
-          File.write(f.path, text)
+          IO.write(f.path, text)
           text = `ssh-keygen -f #{f.path} -e -m pem`
         end
       end

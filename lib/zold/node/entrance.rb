@@ -25,6 +25,7 @@ require_relative '../log'
 require_relative '../remotes'
 require_relative '../copies'
 require_relative '../tax'
+require_relative '../age'
 require_relative '../commands/clean'
 require_relative '../commands/merge'
 require_relative '../commands/fetch'
@@ -80,12 +81,12 @@ module Zold
       ).run(['merge', id.to_s])
       Clean.new(wallets: @wallets, copies: copies.root, log: @log).run(['clean', id.to_s])
       copies.remove(localhost, Remotes::PORT)
-      sec = (Time.now - start).round(2)
       if modified.empty?
-        @log.info("Accepted #{id} in #{sec}s and not modified anything")
+        @log.info("Accepted #{id} in #{Age.new(start, limit: 1)} and not modified anything")
       else
-        @log.info("Accepted #{id} in #{sec}s and modified #{modified.join(', ')}")
+        @log.info("Accepted #{id} in #{Age.new(start, limit: 1)} and modified #{modified.join(', ')}")
       end
+      sec = (Time.now - start).round(2)
       @mutex.synchronize do
         @history.shift if @history.length >= 16
         @speed.shift if @speed.length >= 64

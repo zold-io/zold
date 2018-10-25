@@ -26,6 +26,7 @@ require 'backtrace'
 require_relative 'log'
 require_relative 'size'
 require_relative 'wallet'
+require_relative 'sync_file'
 
 # The list of copies.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -40,11 +41,10 @@ module Zold
     def initialize(dir, log: Log::Quiet.new)
       @dir = dir
       @log = log
-      @mutex = Mutex.new
     end
 
     def root
-      File.join(@dir, '..')
+      File.expand_path(File.join(@dir, '..'))
     end
 
     def to_s
@@ -52,10 +52,13 @@ module Zold
     end
 
     def clean
-      @mutex.synchronize do
+      SyncFile.new(file, log: @log).open do
+        start = Time.now
         list = load
         list.reject! { |s| s[:time] < Time.now - 24 * 60 * 60 }
+        # @log.info("COPIES: loaded; #{((Time.now - start) * 1000).round}ms")
         save(list)
+        start = Time.now
         deleted = 0
         files.each do |f|
           next unless list.find { |s| s[:name] == File.basename(f, Copies::EXT) }.nil?
@@ -65,6 +68,8 @@ module Zold
           @log.debug("Copy at #{f} deleted: #{Size.new(size)}")
           deleted += 1
         end
+        # @log.info("COPIES: counted; #{((Time.now - start) * 1000).round}ms")
+        start = Time.now
         files.each do |f|
           file = File.join(@dir, f)
           wallet = Wallet.new(file)
@@ -77,12 +82,13 @@ module Zold
             deleted += 1
           end
         end
+        # @log.info("COPIES: each; #{((Time.now - start) * 1000).round}ms")
         deleted
       end
     end
 
     def remove(host, port)
-      @mutex.synchronize do
+      SyncFile.new(file, log: @log).open do
         save(load.reject { |s| s[:host] == host && s[:port] == port })
       end
     end
@@ -96,12 +102,12 @@ module Zold
       raise "Time must be in the past: #{time}" if time > Time.now
       raise 'Score must be Integer' unless score.is_a?(Integer)
       raise "Score can't be negative: #{score}" if score.negative?
-      @mutex.synchronize do
+      SyncFile.new(file, log: @log).open do
         FileUtils.mkdir_p(@dir)
         list = load
         target = list.find do |s|
           f = File.join(@dir, "#{s[:name]}#{Copies::EXT}")
-          File.exist?(f) && File.read(f) == content
+          File.exist?(f) && IO.read(f) == content
         end
         if target.nil?
           max = Dir.new(@dir)
@@ -110,7 +116,7 @@ module Zold
             .max
           max = 0 if max.nil?
           name = (max + 1).to_s
-          File.write(File.join(@dir, "#{name}#{Copies::EXT}"), content)
+          IO.write(File.join(@dir, "#{name}#{Copies::EXT}"), content)
         else
           name = target[:name]
         end
@@ -128,7 +134,7 @@ module Zold
     end
 
     def all
-      @mutex.synchronize do
+      SyncFile.new(file, log: @log).open do
         load.group_by { |s| s[:name] }.map do |name, scores|
           {
             name: name,
@@ -158,7 +164,8 @@ module Zold
     private
 
     def save(list)
-      File.write(
+      start = Time.now
+      IO.write(
         file,
         list.map do |r|
           [
@@ -168,6 +175,20 @@ module Zold
           ].join(',')
         end.join("\n")
       )
+      @log.info("COPIES: saved; #{((Time.now - start) * 1000).round}ms")
+      start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      require 'ruby-prof'
+      result = RubyProf.profile do
+        IO.write('/tmp/kill-me.csv', 'test')
+      end
+      if Process.clock_gettime(Process::CLOCK_MONOTONIC) - start > 0.2
+        printer = RubyProf::GraphPrinter.new(result)
+        File.open('/tmp/result.txt', 'w+') do |f|
+          printer.print(f, {})
+        end
+        exit
+      end
+      puts("\nCOPIES: saved2; #{((Process.clock_gettime(Process::CLOCK_MONOTONIC) - start) * 1000).round}ms\n")
     end
 
     def files

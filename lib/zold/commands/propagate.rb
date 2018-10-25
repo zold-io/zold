@@ -91,8 +91,8 @@ Available options:"
         end
       end
       modified.uniq!
-      @log.debug("Wallet #{id} propagated successfully, #{total} txns in #{Age.new(start)}, \
-#{modified.count} wallets affected")
+      @log.debug("Wallet #{id} propagated successfully, #{total} txns \
+in #{Age.new(start, limit: 20 + total * 0.005)}, #{modified.count} wallets affected")
       modified
     end
   end

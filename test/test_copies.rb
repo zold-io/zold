@@ -26,6 +26,7 @@ require 'time'
 require_relative 'fake_home'
 require_relative 'test__helper'
 require_relative '../lib/zold/id'
+require_relative '../lib/zold/age'
 require_relative '../lib/zold/copies'
 require_relative '../lib/zold/wallet'
 
@@ -117,6 +118,20 @@ class TestCopies < Minitest::Test
     end
   end
 
+  def test_intensive_write_in_threads
+    Dir.mktmpdir do |dir|
+      file = File.join(dir, 'hey.txt')
+      assert_in_threads(threads: 20) do
+        start = Time.now
+        File.open(file, 'w+') do |f|
+          f.write('test')
+          sleep 1
+        end
+        test_log.debug("Saved in #{Zold::Age.new(start)}")
+      end
+    end
+  end
+
   private
 
   def content(text)
@@ -126,7 +141,7 @@ class TestCopies < Minitest::Test
       amount = Zold::Amount.new(zld: 1.99)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       wallet.sub(amount, 'NOPREFIX@0000111122223333', key, text, time: Time.parse('2018-01-01T01:01:01Z'))
-      File.read(wallet.path)
+      IO.read(wallet.path)
     end
   end
 end

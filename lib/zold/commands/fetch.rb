@@ -115,7 +115,7 @@ Available options:"
       r.assert_score_strength(score) unless opts['ignore-score-weakness']
       Tempfile.open(['', Wallet::EXTENSION]) do |f|
         body = json['body']
-        File.write(f, body)
+        IO.write(f, body)
         wallet = Wallet.new(f.path)
         wallet.refurbish
         if wallet.protocol != Zold::PROTOCOL
@@ -127,10 +127,10 @@ Available options:"
         if wallet.balance.negative? && !wallet.root?
           raise "The balance of #{id} is #{wallet.balance} and it's not a root wallet"
         end
-        copy = cps.add(File.read(f), score.host, score.port, score.value)
+        copy = cps.add(IO.read(f), score.host, score.port, score.value)
         @log.info("#{r} returned #{Size.new(body.length)}/#{wallet.balance}/#{wallet.txns.count}t/\
 #{digest(json)}/#{Age.new(json['mtime'])}/#{json['copies']}c \
-as copy #{copy} of #{id} in #{Age.new(start)}: #{Rainbow(score.value).green} (#{json['version']})")
+as copy #{copy} of #{id} in #{Age.new(start, limit: 4)}: #{Rainbow(score.value).green} (#{json['version']})")
       end
       score.value
     end

@@ -32,6 +32,7 @@ require_relative 'score'
 require_relative 'http'
 require_relative 'node/farm'
 require_relative 'type'
+require_relative 'sync_file'
 
 # The list of remotes.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -52,7 +53,6 @@ module Zold
     attribute :file, Types::Strict::String
     attribute :network, Types::Strict::String.optional.default('test')
     attribute :timeout, Types::Strict::Integer.optional.default(16)
-    attribute :mutex, Types::Object.optional.default(Mutex.new)
 
     # Empty, for standalone mode
     class Empty
@@ -135,7 +135,7 @@ module Zold
     end
 
     def defaults
-      other = Remotes.new(file: File.join(File.dirname(__FILE__), '../../resources/remotes'))
+      other = Remotes.new(file: File.expand_path(File.join(File.dirname(__FILE__), '../../resources/remotes')))
       other.all.each do |r|
         add(r[:host], r[:port])
       end
@@ -230,7 +230,7 @@ module Zold
     private
 
     def modify
-      mutex.synchronize do
+      SyncFile.new(file).open do
         save(yield(load))
       end
     end
@@ -265,7 +265,7 @@ module Zold
 
     def save(list)
       FileUtils.mkdir_p(File.dirname(file))
-      File.write(
+      IO.write(
         file,
         list.uniq { |r| "#{r[:host]}:#{r[:port]}" }.map do |r|
           [

@@ -26,6 +26,7 @@ require_relative '../age'
 require_relative '../size'
 require_relative '../id'
 require_relative '../verbose_thread'
+require_relative '../sync_file'
 
 # The async entrance of the web front.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -41,23 +42,19 @@ module Zold
     MAX_QUEUE = Concurrent.processor_count * 64
 
     def initialize(entrance, dir, log: Log::Quiet.new)
-      raise 'Entrance can\'t be nil' if entrance.nil?
       @entrance = entrance
-      raise 'Directory can\'t be nil' if dir.nil?
-      raise 'Directory must be of type String' unless dir.is_a?(String)
       @dir = dir
-      raise 'Log can\'t be nil' if log.nil?
       @log = log
       @mutex = Mutex.new
     end
 
     def to_json
+      opts = queue
       json = {
-        'queue': queue.count,
+        'queue': opts.count,
         'pool.length': @pool.length,
         'pool.running': @pool.running?
       }
-      opts = queue
       json['queue_age'] = opts.empty? ? 0 : Time.now - File.mtime(File.join(@dir, opts[0]))
       @entrance.to_json.merge(json)
     end
@@ -82,14 +79,21 @@ module Zold
         end
         begin
           yield(self)
+          cycle = 0
+          while !queue.empty?
+            @log.info("Stopping async entrance, #{queue.count} still in the queue (cycle=#{cycle})...")
+            cycle += 1
+            raise "Can't wait for async entrance to stop for so long" if cycle > 10
+            sleep 1
+          end
         ensure
           @log.info("Stopping async entrance, pool length is #{@pool.length}, queue length is #{@pool.queue_length}")
           @pool.shutdown
           if @pool.wait_for_termination(10)
-            @log.info('Async entrance terminated peacefully')
+            @log.info("Async entrance terminated peacefully with #{queue.count} wallets left in the queue")
           else
             @pool.kill
-            @log.info('Async entrance was killed')
+            @log.info("Async entrance was killed, #{queue.count} wallets left in the queue")
           end
         end
       end
@@ -98,36 +102,41 @@ module Zold
     # Always returns an array with a single ID of the pushed wallet
     def push(id, body)
       raise "Queue is too long (#{queue.count} wallets), try again later" if queue.count > AsyncEntrance::MAX_QUEUE
-      @mutex.synchronize do
-        File.write(File.join(@dir, id.to_s), body)
+      start = Time.now
+      SyncFile.new(file(id), log: @log).open do |f|
+        IO.write(f, body)
       end
+      @log.debug("Added #{id}/#{Size.new(body.length)} to the queue at pos.#{queue.count} \
+in #{Age.new(start, limit: 0.05)}")
       [id]
     end
 
     private
 
     def take
-      id = ''
-      body = ''
-      @mutex.synchronize do
-        opts = queue
-        unless opts.empty?
-          file = File.join(@dir, opts[0])
-          id = opts[0]
-          body = File.read(file)
-          File.delete(file)
-        end
-      end
-      return if id.empty? || body.empty?
       start = Time.now
+      opts = queue
+      return if opts.empty?
+      id = opts[0]
+      body = SyncFile.new(file(id), log: @log).open do |f|
+        b = File.exist?(f) ? IO.read(f) : ''
+        FileUtils.rm_f(f)
+        b
+      end
+      return if body.empty?
       @entrance.push(Id.new(id), body)
-      @log.debug("Pushed #{id}/#{Size.new(body.length)} to #{@entrance.class.name} in #{Age.new(start)}")
+      @log.debug("Pushed #{id}/#{Size.new(body.length)} to #{@entrance.class.name} \
+in #{Age.new(start, limit: 0.1)} (#{queue.count} still in the queue)")
     end
 
     def queue
       Dir.new(@dir)
         .select { |f| f =~ /^[0-9a-f]{16}$/ }
         .sort_by { |f| File.mtime(File.join(@dir, f)) }
+    end
+
+    def file(id)
+      File.join(@dir, id.to_s)
     end
   end
 end

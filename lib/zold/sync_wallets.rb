@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require_relative 'log'
+require_relative 'sync_file'
 
 # Sync collection of wallets.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -50,26 +51,7 @@ module Zold
 
     def find(id)
       @wallets.find(id) do |wallet|
-        f = File.join(@dir, id)
-        FileUtils.mkdir_p(File.dirname(f))
-        File.open(f, File::RDWR | File::CREAT) do |lock|
-          start = Time.now
-          cycles = 0
-          loop do
-            break if lock.flock(File::LOCK_EX | File::LOCK_NB)
-            sleep 0.1
-            cycles += 1
-            delay = (Time.now - start).round(2)
-            if delay > @timeout
-              raise "##{Process.pid}/#{Thread.current.name} can't get exclusive access to the wallet #{id} \
-because of the lock at #{lock.path}, after #{delay}s of waiting: #{File.read(lock)}"
-            end
-            if (cycles % 20).zero? && delay > 10
-              @log.info("##{Process.pid}/#{Thread.current.name} still waiting for \
-exclusive access to #{id}, #{delay.round}s already: #{File.read(lock)}")
-            end
-          end
-          File.write(lock, "##{Process.pid}/#{Thread.current.name}")
+        SyncFile.new(File.join(@dir, id), log: @log).open do |f|
           yield wallet
         end
       end

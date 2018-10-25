@@ -48,7 +48,7 @@ class TestEntrance < Minitest::Test
           source.id.to_s, target.id.to_s, '19.99', 'testing'
         ]
       )
-      File.read(source.path)
+      IO.read(source.path)
     end
     FakeHome.new.run do |home|
       source = home.create_wallet(sid)
@@ -65,7 +65,7 @@ class TestEntrance < Minitest::Test
     FakeHome.new.run do |home|
       wallet = home.create_wallet
       e = Zold::Entrance.new(home.wallets, home.remotes, home.copies.root, 'x', log: test_log)
-      e.push(wallet.id, File.read(wallet.path))
+      e.push(wallet.id, IO.read(wallet.path))
       assert(e.to_json[:history].include?(wallet.id.to_s))
       assert(!e.to_json[:speed].negative?)
     end

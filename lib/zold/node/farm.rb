@@ -27,6 +27,7 @@ require_relative '../log'
 require_relative '../score'
 require_relative '../age'
 require_relative '../verbose_thread'
+require_relative '../sync_file'
 
 # The farm of scores.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -48,7 +49,6 @@ module Zold
       @invoice = invoice
       @pipeline = Queue.new
       @threads = []
-      @mutex = Mutex.new
     end
 
     def best
@@ -220,9 +220,9 @@ module Zold
     def save(threads, list = [])
       scores = load + list
       period = 24 * 60 * 60 / [threads, 1].max
-      @mutex.synchronize do
-        File.write(
-          @cache,
+      SyncFile.new(@cache, log: @log).open do |f|
+        IO.write(
+          f,
           scores.select(&:valid?)
             .reject(&:expired?)
             .sort_by(&:value)
@@ -237,9 +237,9 @@ module Zold
     end
 
     def load
-      @mutex.synchronize do
-        if File.exist?(@cache)
-          File.read(@cache).split(/\n/)
+      SyncFile.new(@cache, log: @log).open do |f|
+        if File.exist?(f)
+          IO.read(f).split(/\n/)
             .map { |t| parse_score_line(t) }
             .reject(&:zero?)
         else

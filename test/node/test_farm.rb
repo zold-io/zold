@@ -106,7 +106,7 @@ class FarmTest < Minitest::Test
         suffixes: %w[13f7f01 b2b32b 4ade7e],
         strength: 6
       )
-      File.write(cache, score.to_s)
+      IO.write(cache, score.to_s)
       farm = Zold::Farm.new('NOPREFIX4@ffffffffffffffff', cache, log: test_log)
       farm.start(score.host, score.port, threads: 1, strength: score.strength) do
         100.times do

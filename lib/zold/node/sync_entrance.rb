@@ -24,6 +24,7 @@ require 'concurrent'
 require_relative '../log'
 require_relative '../id'
 require_relative '../verbose_thread'
+require_relative '../sync_file'
 
 # The sync entrance of the web front.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -51,30 +52,9 @@ module Zold
 
     # Always returns an array with a single ID of the pushed wallet
     def push(id, body)
-      f = File.join(@dir, "#{id}.lock")
-      FileUtils.mkdir_p(File.dirname(f))
-      mods = File.open(f, File::RDWR | File::CREAT) do |lock|
-        start = Time.now
-        cycles = 0
-        loop do
-          break if lock.flock(File::LOCK_EX | File::LOCK_NB)
-          sleep 0.1
-          cycles += 1
-          delay = Time.now - start
-          if delay > @timeout
-            raise "##{Process.pid}/#{Thread.current.name} can't get exclusive access to the wallet #{id}/e \
-because of the lock at #{lock.path}: #{File.read(lock)}"
-          end
-          if (cycles % 20).zero? && delay > 10
-            @log.info("##{Process.pid}/#{Thread.current.name} still waiting for \
-exclusive access to #{id}/e, #{delay.round}s already")
-          end
-        end
-        File.write(lock, "##{Process.pid}/#{Thread.current.name}/#{Time.now.utc.iso8601}")
+      SyncFile.new(File.join(@dir, id), log: @log).open do |f|
         @entrance.push(id, body)
       end
-      FileUtils.rm_rf(f)
-      mods
     end
   end
 end

@@ -153,7 +153,7 @@ module Zold
       raise '--invoice is mandatory' unless opts['invoice']
       if opts['nohup']
         pid = nohup(opts)
-        File.write(opts['save-pid'], pid) if opts['save-pid']
+        IO.write(opts['save-pid'], pid) if opts['save-pid']
         @log.debug("Process ID #{pid} saved into \"#{opts['save-pid']}\"")
         @log.info(pid)
         return
