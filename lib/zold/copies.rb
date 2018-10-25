@@ -177,9 +177,9 @@ module Zold
         end.join("\n")
       )
       @log.info("COPIES: saved; #{((Time.now - start) * 1000).round}ms")
-      start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      start = Time.now
       IO.write('/tmp/kill-me.csv', 'test')
-      puts("\nCOPIES: saved2; #{((Process.clock_gettime(Process::CLOCK_MONOTONIC) - start) * 1000).round}ms\n")
+      puts("\nCOPIES: saved2; #{((Time.now - start) * 1000).round}ms\n")
     end
 
     def files

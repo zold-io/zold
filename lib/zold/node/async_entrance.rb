@@ -71,7 +71,7 @@ module Zold
           @pool.post do
             Thread.current.name = "async-e##{t}"
             loop do
-              VerboseThread.new(@log).run(true) { take }
+              # VerboseThread.new(@log).run(true) { take }
               break if @pool.shuttingdown?
               sleep Random.rand(100) / 100
             end
@@ -101,6 +101,7 @@ module Zold
 
     # Always returns an array with a single ID of the pushed wallet
     def push(id, body)
+      @entrance.push(id, body)
       raise "Queue is too long (#{queue.count} wallets), try again later" if queue.count > AsyncEntrance::MAX_QUEUE
       start = Time.now
       SyncFile.new(file(id), log: @log).open do |f|
