@@ -38,7 +38,7 @@ module Zold
 
     def fetch
       txt = `find #{@dir} -type f -print 2>/dev/null`
-      txt.nil? ? [] : txt.strip.split(' ')
+      txt.nil? ? [] : txt.strip.split(' ').map { |f| f[(@dir.length + 1)..-1] }
     end
   end
 end

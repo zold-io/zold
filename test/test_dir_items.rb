@@ -59,13 +59,17 @@ class TestDirItems < Minitest::Test
 
   def test_lists_recursively
     Dir.mktmpdir do |dir|
-      files = ['a/b/c/text', 'd/e/f/text', 'a/b/c/zz/text']
+      files = ['test1.txt', 'a/b/c/text', 'd/e/f/text', 'a/b/c/zz/text.1.2.3']
       files.each do |f|
         path = File.join(dir, f)
         FileUtils.mkdir_p(File.dirname(path))
         FileUtils.touch(path)
       end
-      assert_equal(files.count, Zold::DirItems.new(dir).fetch.count)
+      found = Zold::DirItems.new(dir).fetch
+      assert_equal(files.count, found.count)
+      files.each do |f|
+        assert(found.include?(f), f)
+      end
     end
   end
 end

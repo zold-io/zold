@@ -76,7 +76,7 @@ module Zold
             wallet.refurbish
             raise "Invalid protocol #{wallet.protocol} in #{file}" unless wallet.protocol == Zold::PROTOCOL
           rescue StandardError => e
-            File.delete(file)
+            FileUtils.rm_rf(file)
             @log.debug("Copy at #{f} deleted: #{Backtrace.new(e)}")
             deleted += 1
           end
