@@ -34,7 +34,7 @@ require_relative '../../lib/zold/commands/pull'
 # License:: MIT
 class TestPull < Minitest::Test
   def test_pull_wallet
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       remotes = home.remotes
       remotes.add('localhost', 80)
       json = home.create_wallet_json

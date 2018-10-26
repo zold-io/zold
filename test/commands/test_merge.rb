@@ -42,7 +42,7 @@ require_relative '../../lib/zold/commands/pay'
 # License:: MIT
 class TestMerge < Minitest::Test
   def test_merges_wallet
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       first = home.create_wallet
       IO.write(first.path, IO.read(wallet.path))
@@ -63,7 +63,7 @@ class TestMerge < Minitest::Test
   end
 
   def test_merges_into_empty_wallet
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       first = home.create_wallet
       IO.write(first.path, IO.read(wallet.path))
@@ -84,7 +84,7 @@ class TestMerge < Minitest::Test
   end
 
   def test_merges_with_a_broken_copy
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       copies = home.copies(wallet)
       copies.add(IO.read(wallet.path), 'good-host', 80, 5)
@@ -97,7 +97,7 @@ class TestMerge < Minitest::Test
   end
 
   def test_merges_a_copy_on_top
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet(Zold::Id::ROOT)
       copies = home.copies(wallet)
       copies.add(IO.read(wallet.path), 'good-host', 80, 5)
@@ -111,7 +111,7 @@ class TestMerge < Minitest::Test
   end
 
   def test_rejects_fake_positives_in_new_wallet
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       main = home.create_wallet
       remote = home.create_wallet
       IO.write(remote.path, IO.read(main.path))
@@ -126,7 +126,7 @@ class TestMerge < Minitest::Test
   end
 
   def test_removes_negative_fakes
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       wallet.sub(Zold::Amount.new(zld: 9.99), "NOPREFIX@#{Zold::Id.new}", key)

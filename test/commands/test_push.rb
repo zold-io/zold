@@ -37,7 +37,7 @@ require_relative '../../lib/zold/commands/push'
 # License:: MIT
 class TestPush < Minitest::Test
   def test_pushes_wallet
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       remotes = home.remotes
       remotes.add('localhost', 80)

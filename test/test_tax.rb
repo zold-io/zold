@@ -43,7 +43,7 @@ class TestTax < Minitest::Test
   end
 
   def test_calculates_tax_for_one_year
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       wallet.add(
         Zold::Txn.new(
@@ -60,7 +60,7 @@ class TestTax < Minitest::Test
   end
 
   def test_calculates_debt
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       (1..30).each do |i|
         wallet.add(
@@ -83,7 +83,7 @@ class TestTax < Minitest::Test
   end
 
   def test_takes_tax_payment_into_account
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       wallet.add(
         Zold::Txn.new(
@@ -101,7 +101,7 @@ class TestTax < Minitest::Test
   end
 
   def test_checks_existence_of_duplicates
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       wallet.add(
         Zold::Txn.new(

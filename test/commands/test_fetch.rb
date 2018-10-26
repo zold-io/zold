@@ -42,7 +42,7 @@ require_relative '../../lib/zold/commands/fetch'
 # License:: MIT
 class TestFetch < Minitest::Test
   def test_fetches_wallet
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       stub_request(:get, "http://localhost:80/wallet/#{wallet.id}").to_return(
         status: 200,

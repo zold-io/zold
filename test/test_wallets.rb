@@ -34,7 +34,7 @@ require_relative '../lib/zold/amount'
 # License:: MIT
 class TestWallets < Minitest::Test
   def test_adds_wallet
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallets = home.wallets
       id = Zold::Id.new
       wallets.find(id) do |wallet|
@@ -45,7 +45,7 @@ class TestWallets < Minitest::Test
   end
 
   def test_lists_wallets_and_ignores_garbage
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallets = home.wallets
       FileUtils.touch(File.join(home.dir, '0xaaaaaaaaaaaaaaaaaaahello'))
       id = Zold::Id.new

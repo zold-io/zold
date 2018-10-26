@@ -40,7 +40,7 @@ require_relative '../../lib/zold/commands/diff'
 # License:: MIT
 class TestDiff < Minitest::Test
   def test_diff_with_copies
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       first = home.create_wallet
       IO.write(first.path, IO.read(wallet.path))

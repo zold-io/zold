@@ -35,7 +35,7 @@ require_relative 'fake_entrance'
 # License:: MIT
 class TestSpreadEntrance < Minitest::Test
   def test_renders_json
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet(Zold::Id.new)
       Zold::SpreadEntrance.new(
         Zold::Entrance.new(home.wallets, home.remotes, home.copies(wallet).root, 'x', log: test_log),
@@ -47,7 +47,7 @@ class TestSpreadEntrance < Minitest::Test
   end
 
   def test_ignores_duplicates
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
         wallet = home.create_wallet
         remotes = home.remotes

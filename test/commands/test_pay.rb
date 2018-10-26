@@ -35,7 +35,7 @@ require_relative '../../lib/zold/commands/pay'
 # License:: MIT
 class TestPay < Minitest::Test
   def test_sends_from_wallet_to_wallet
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       source = home.create_wallet
       target = home.create_wallet
       amount = Zold::Amount.new(zld: 14.95)
@@ -50,7 +50,7 @@ class TestPay < Minitest::Test
   end
 
   def test_pay_in_many_threads
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       amount = Zold::Amount.new(zld: 2.0)
       assert_in_threads(threads: 10) do
@@ -66,7 +66,7 @@ class TestPay < Minitest::Test
   end
 
   def test_sends_from_root_wallet
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       source = home.create_wallet(Zold::Id::ROOT)
       target = home.create_wallet
       amount = Zold::Amount.new(zld: 14.95)
@@ -81,7 +81,7 @@ class TestPay < Minitest::Test
   end
 
   def test_sends_from_normal_wallet
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       source = home.create_wallet
       target = home.create_wallet
       amount = Zold::Amount.new(zld: 14.95)
@@ -102,7 +102,7 @@ class TestPay < Minitest::Test
   end
 
   def test_notifies_about_tax_status
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       source = home.create_wallet
       target = home.create_wallet
       amount = Zold::Amount.new(zld: 14.95)

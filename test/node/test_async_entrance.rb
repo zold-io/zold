@@ -34,7 +34,7 @@ require_relative 'fake_entrance'
 # License:: MIT
 class TestAsyncEntrance < Minitest::Test
   def test_renders_json
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       Zold::AsyncEntrance.new(FakeEntrance.new, home.dir, log: test_log).start do |e|
         assert_equal(true, e.to_json[:'pool.running'])
       end
@@ -42,7 +42,7 @@ class TestAsyncEntrance < Minitest::Test
   end
 
   def test_sends_through_once
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       amount = Zold::Amount.new(zld: 39.99)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
@@ -56,7 +56,7 @@ class TestAsyncEntrance < Minitest::Test
   end
 
   def test_sends_through
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       basic = CountingEntrance.new
       Zold::AsyncEntrance.new(basic, File.join(home.dir, 'a/b/c'), log: test_log).start do |e|
         Threads.new(20).assert do
@@ -72,7 +72,7 @@ class TestAsyncEntrance < Minitest::Test
   end
 
   def test_handles_broken_entrance_gracefully
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       Zold::AsyncEntrance.new(BrokenEntrance.new, home.dir, log: test_log).start do |e|
         e.push(wallet.id, IO.read(wallet.path))

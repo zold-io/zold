@@ -35,7 +35,7 @@ require_relative '../lib/zold/amount'
 # License:: MIT
 class TestCachedWallets < Minitest::Test
   def test_adds_wallet
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallets = Zold::CachedWallets.new(home.wallets)
       id = Zold::Id.new
       first = nil

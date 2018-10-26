@@ -38,7 +38,7 @@ require_relative '../../lib/zold/commands/taxes'
 # License:: MIT
 class TestTaxes < Minitest::Test
   def test_pays_taxes
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallets = home.wallets
       wallet = home.create_wallet
       wallet.add(

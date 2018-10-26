@@ -30,9 +30,8 @@ require_relative 'sync_file'
 module Zold
   # Synchronized collection of wallets
   class SyncWallets
-    def initialize(wallets, dir = Dir.tmpdir, timeout: 30, log: Log::Quiet.new)
+    def initialize(wallets, timeout: 30, log: Log::Quiet.new)
       @wallets = wallets
-      @dir = dir
       @log = log
       @timeout = timeout
     end
@@ -51,7 +50,7 @@ module Zold
 
     def find(id)
       @wallets.find(id) do |wallet|
-        SyncFile.new(File.join(@dir, id), log: @log).open do |f|
+        SyncFile.new(wallet.path, log: @log).open do |f|
           yield wallet
         end
       end

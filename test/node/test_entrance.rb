@@ -39,7 +39,7 @@ class TestEntrance < Minitest::Test
   def test_pushes_wallet
     sid = Zold::Id::ROOT
     tid = Zold::Id.new
-    body = FakeHome.new.run do |home|
+    body = FakeHome.new(log: test_log).run do |home|
       source = home.create_wallet(sid)
       target = home.create_wallet(tid)
       Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: test_log).run(
@@ -50,7 +50,7 @@ class TestEntrance < Minitest::Test
       )
       IO.read(source.path)
     end
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       source = home.create_wallet(sid)
       home.create_wallet(tid)
       e = Zold::Entrance.new(home.wallets, home.remotes, home.copies(source).root, 'x', log: test_log)
@@ -62,7 +62,7 @@ class TestEntrance < Minitest::Test
   end
 
   def test_renders_json
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       e = Zold::Entrance.new(home.wallets, home.remotes, home.copies.root, 'x', log: test_log)
       e.push(wallet.id, IO.read(wallet.path))

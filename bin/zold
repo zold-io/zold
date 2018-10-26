@@ -171,7 +171,7 @@ Available options:"
     Zold::CachedWallets.new(
       command == 'node' ? Zold::TreeWallets.new('.') : Zold::Wallets.new('.')
     ),
-    File.join(zoldata, 'wallet-locks'), log: log
+    log: log
   )
   fremotes = File.join(zoldata, 'remotes')
   remotes = Zold::Remotes.new(file: fremotes, network: opts['network'])

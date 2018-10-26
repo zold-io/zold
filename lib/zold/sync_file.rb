@@ -30,7 +30,7 @@ module Zold
   # Synchronized file
   class SyncFile
     def initialize(path, timeout: 30, log: Log::Regular.new)
-      @path = path
+      @path = File.expand_path(path)
       @timeout = timeout
       @log = log
     end
@@ -57,8 +57,11 @@ exclusive access to #{@path}, #{delay.round}s already: #{f.read}")
           end
         end
         acq = Time.now
+        @log.debug("File locked in #{Age.new(start)}: #{@path}")
         f.write("##{Process.pid}/#{Thread.current.name}")
-        yield @path
+        r = yield @path
+        @log.debug("File unlocked in #{Age.new(acq)}: #{@path}")
+        r
       end
       FileUtils.rm_rf(lock)
       res

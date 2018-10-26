@@ -44,7 +44,7 @@ class TestNode < Minitest::Test
   #  are always working
   def test_push_and_fetch
     skip
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       FakeNode.new(log: test_log).run do |port|
         wallets = home.wallets
         wallet = home.create_wallet

@@ -29,7 +29,7 @@ require_relative '../../lib/zold/amount'
 class EmissionTest < Minitest::Test
   def test_emission
     (1..10).each do |year|
-      FakeHome.new.run do |home|
+      FakeHome.new(log: test_log).run do |home|
         wallet = home.create_wallet
         wallet.add(
           Zold::Txn.new(
@@ -45,7 +45,7 @@ Limit: #{Zold::Emission.new(wallet).limit}")
   end
 
   def test_emission_passes
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet(Zold::Id::ROOT)
       wallet.add(
         Zold::Txn.new(

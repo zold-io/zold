@@ -99,7 +99,7 @@ class FrontTest < Minitest::Test
   end
 
   def test_renders_wallet_pages
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       FakeNode.new(log: test_log).run(['--ignore-score-weakness', '--standalone']) do |port|
         wallet = home.create_wallet
         base = "http://localhost:#{port}"
@@ -125,7 +125,7 @@ class FrontTest < Minitest::Test
 
   def test_fetch_in_multiple_threads
     FakeNode.new(log: test_log).run(['--no-metronome']) do |port|
-      FakeHome.new.run do |home|
+      FakeHome.new(log: test_log).run do |home|
         wallet = home.create_wallet
         base = "http://localhost:#{port}"
         Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).put(IO.read(wallet.path))
@@ -146,7 +146,7 @@ class FrontTest < Minitest::Test
 
   def test_pushes_twice
     FakeNode.new(log: test_log).run do |port|
-      FakeHome.new.run do |home|
+      FakeHome.new(log: test_log).run do |home|
         wallet = home.create_wallet
         base = "http://localhost:#{port}"
         assert_equal(
@@ -166,7 +166,7 @@ class FrontTest < Minitest::Test
   def test_pushes_many_wallets
     FakeNode.new(log: test_log).run(['--no-metronome', '--threads=0', '--standalone']) do |port|
       base = "http://localhost:#{port}"
-      FakeHome.new.run do |home|
+      FakeHome.new(log: test_log).run do |home|
         Threads.new(20).assert do
           wallet = home.create_wallet
           Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).put(IO.read(wallet.path))
@@ -298,7 +298,7 @@ class FrontTest < Minitest::Test
   def test_push_fetch_in_multiple_threads
     key = Zold::Key.new(text: IO.read('fixtures/id_rsa'))
     FakeNode.new(log: test_log).run do |port|
-      FakeHome.new.run do |home|
+      FakeHome.new(log: test_log).run do |home|
         wallet = home.create_wallet(Zold::Id::ROOT)
         base = "http://localhost:#{port}"
         Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).put(IO.read(wallet.path))

@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'tmpdir'
+require_relative '../lib/zold/log'
 require_relative '../lib/zold/id'
 require_relative '../lib/zold/wallet'
 require_relative '../lib/zold/wallets'
@@ -35,8 +36,9 @@ require_relative '../lib/zold/remotes'
 # License:: MIT
 class FakeHome
   attr_reader :dir
-  def initialize(dir = __dir__)
+  def initialize(dir = __dir__, log: Zold::Log::Quiet.new)
     @dir = dir
+    @log = log
   end
 
   def run
@@ -47,7 +49,7 @@ class FakeHome
   end
 
   def wallets
-    Zold::SyncWallets.new(Zold::Wallets.new(@dir), File.join(@dir, 'locks'))
+    Zold::SyncWallets.new(Zold::Wallets.new(@dir), log: @log)
   end
 
   def create_wallet(id = Zold::Id.new, dir = @dir)

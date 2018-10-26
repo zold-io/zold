@@ -35,7 +35,7 @@ require_relative '../lib/zold/patch'
 # License:: MIT
 class TestPatch < Minitest::Test
   def test_builds_patch
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       first = home.create_wallet
       second = home.create_wallet
       third = home.create_wallet
@@ -59,7 +59,7 @@ class TestPatch < Minitest::Test
   end
 
   def test_rejects_fake_positives
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       first = home.create_wallet
       second = home.create_wallet
       IO.write(second.path, IO.read(first.path))
@@ -74,7 +74,7 @@ class TestPatch < Minitest::Test
   end
 
   def test_accepts_negative_balance_in_root_wallet
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       first = home.create_wallet(Zold::Id::ROOT)
       second = home.create_wallet
       IO.write(second.path, IO.read(first.path))
@@ -91,7 +91,7 @@ class TestPatch < Minitest::Test
   end
 
   def test_merges_similar_ids_but_different_signs
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       first = home.create_wallet(Zold::Id::ROOT)
       second = home.create_wallet
       IO.write(second.path, IO.read(first.path))
@@ -108,7 +108,7 @@ class TestPatch < Minitest::Test
   end
 
   def test_merges_fragmented_parts
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       first = home.create_wallet(Zold::Id::ROOT)
       second = home.create_wallet
       IO.write(second.path, IO.read(first.path))

@@ -123,7 +123,7 @@ class TestCopies < Minitest::Test
 
   def content(text)
     id = Zold::Id.new('aaaabbbbccccdddd')
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet(id)
       amount = Zold::Amount.new(zld: 1.99)
       key = Zold::Key.new(file: 'fixtures/id_rsa')

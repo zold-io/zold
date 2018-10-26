@@ -36,7 +36,7 @@ require_relative '../lib/zold/commands/pay'
 # License:: MIT
 class TestWallet < Minitest::Test
   def test_reads_empty_wallet
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       assert(wallet.txns.empty?)
       assert_equal(Zold::Amount::ZERO, wallet.balance)
@@ -45,7 +45,7 @@ class TestWallet < Minitest::Test
 
   def test_reads_large_wallet
     key = Zold::Key.new(file: 'fixtures/id_rsa')
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet(Zold::Id.new('448b451bc62e8e16'))
       FileUtils.cp('fixtures/448b451bc62e8e16.z', wallet.path)
       start = Time.now
@@ -57,7 +57,7 @@ class TestWallet < Minitest::Test
   end
 
   def test_adds_transaction
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       amount = Zold::Amount.new(zld: 39.99)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
@@ -72,7 +72,7 @@ class TestWallet < Minitest::Test
   end
 
   def test_adds_similar_transaction
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       amount = Zold::Amount.new(zld: 39.99)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
@@ -90,7 +90,7 @@ class TestWallet < Minitest::Test
   end
 
   def test_checks_similar_transaction
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       amount = Zold::Amount.new(zld: 39.99)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
@@ -103,7 +103,7 @@ class TestWallet < Minitest::Test
   end
 
   def test_refurbishes_wallet
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       amount = Zold::Amount.new(zld: 5.99)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
@@ -118,7 +118,7 @@ class TestWallet < Minitest::Test
   end
 
   def test_refurbishes_empty_wallet
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       before = IO.read(wallet.path)
       IO.write(wallet.path, IO.read(wallet.path) + "\n\n\n")
@@ -128,7 +128,7 @@ class TestWallet < Minitest::Test
   end
 
   def test_positive_transactions_go_first
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       time = Time.now
       key = Zold::Key.new(file: 'fixtures/id_rsa')
@@ -141,7 +141,7 @@ class TestWallet < Minitest::Test
   end
 
   def test_validate_key_on_payment
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       amount = Zold::Amount.new(zld: 39.99)
       key = Zold::Key.new(file: 'fixtures/id_rsa-2')
@@ -152,7 +152,7 @@ class TestWallet < Minitest::Test
   end
 
   def test_adds_transaction_and_reads_back
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       amount = Zold::Amount.new(zld: 39.99)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
@@ -163,7 +163,7 @@ class TestWallet < Minitest::Test
   end
 
   def test_calculates_wallet_age_in_hours
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       hours = 100
       wallet.add(
@@ -179,28 +179,28 @@ class TestWallet < Minitest::Test
   end
 
   def test_returns_modified_time
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       assert(wallet.mtime > Time.now - 60 * 60)
     end
   end
 
   def test_returns_digest
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       assert_equal(64, wallet.digest.length)
     end
   end
 
   def test_returns_protocol
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       assert_equal(Zold::PROTOCOL, wallet.protocol)
     end
   end
 
   def test_iterates_income_transactions
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       wallet.add(
         Zold::Txn.new(
@@ -226,7 +226,7 @@ class TestWallet < Minitest::Test
   end
 
   def test_sorts_them_always_right
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       time = Time.now
       txns = []
       50.times do

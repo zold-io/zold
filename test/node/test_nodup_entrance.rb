@@ -33,7 +33,7 @@ require_relative 'fake_entrance'
 # License:: MIT
 class TestAsyncEntrance < Minitest::Test
   def test_ignores_dup
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       Zold::NoDupEntrance.new(RealEntrance.new, home.wallets, log: test_log).start do |e|
         assert(e.push(wallet.id, IO.read(wallet.path)).empty?)
