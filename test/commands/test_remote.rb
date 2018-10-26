@@ -250,4 +250,15 @@ class TestRemote < Zold::Test
       assert(!remotes.all.empty?)
     end
   end
+
+  def test_remotes_baner
+    stdout, stderr = StringIO.new, StringIO.new
+    $stdout, $stderr = stdout, stderr
+    Zold::Remote.new(remotes: '',  log: Zold::Log::Verbose.new).run(['remote', '--help'])
+    $stdout, $stderr = STDOUT, STDERR
+    assert_equal(
+      "Usage: zold remote <command> [options]\nAvailable commands:\n    \e[32mremote show\e[0m\n      Show all registered remote nodes\n    \e[32mremote clean\e[0m\n      Remove all registered remote nodes\n    \e[32mremote reset\e[0m\n      Restore it back to the default list of nodes\n    \e[32mremote defaults\e[0m\n      Add all default nodes to the list\n    \e[32mremote add\e[0m host [port]\n      Add a new remote node\n      Available options:\n        --ignore-node  Ignore this node and never add it to the list\n        --skip-ping  Don't ping back the node when adding it (not recommended)\n        --network  The name of the network we work in (default: zold\n    \e[32mremote remove\e[0m host [port]\n      Remove the remote node\n    \e[32mremote elect\e[0m\n      Pick a random remote node as a target for a bonus awarding\n      Available options:\n        --ignore-score-weakness  Don't complain when their score is too weak\n        --ignore-score-value  Don't complain when their score is too small\n        --min-score  The minimum score required for winning the election (default: 8)\n        --max-winners  The maximum amount of election winners the election (default: 1)\n    \e[32mremote trim\e[0m\n      Remove the least reliable nodes\n      Available options:\n        --tolerate  Maximum level of errors we are able to tolerate\n    \e[32mremote select [options]\e[0m\n      Select the strongest n nodes.\n      Available options:\n        --max-nodes  Number of nodes to limit to. Defaults to 16.\n    \e[32mremote update\e[0m\n      Check each registered remote node for availability\n      Available options:\n        --ignore-score-weakness Don't complain when their score is too weak\n        --reboot  Exit if any node reports version higher than we have\n\n    --help  Print instructions\n",
+      stdout.string
+    )
+  end
 end
