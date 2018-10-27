@@ -56,7 +56,7 @@ module Zold
       set :start, Time.now
       set :lock, false
       set :show_exceptions, true
-      set :server, :webrick
+      set :server, :puma
       set :log, nil? # to be injected at node.rb
       set :trace, nil? # to be injected at node.rb
       set :halt, '' # to be injected at node.rb
@@ -197,7 +197,7 @@ while #{settings.address} is in '#{settings.network}'"
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})} do
       error 404 if settings.disable_fetch
       id = Id.new(params[:id])
-      settings.wallets.find(id) do |wallet|
+      copy_of(id) do |wallet|
         error 404 unless wallet.exists?
         content_type 'application/json'
         JSON.pretty_generate(
@@ -220,7 +220,7 @@ while #{settings.address} is in '#{settings.network}'"
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16}).json} do
       error 404 if settings.disable_fetch
       id = Id.new(params[:id])
-      settings.wallets.find(id) do |wallet|
+      copy_of(id) do |wallet|
         error 404 unless wallet.exists?
         content_type 'application/json'
         JSON.pretty_generate(
@@ -242,7 +242,7 @@ while #{settings.address} is in '#{settings.network}'"
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/balance} do
       error 404 if settings.disable_fetch
       id = Id.new(params[:id])
-      settings.wallets.find(id) do |wallet|
+      copy_of(id) do |wallet|
         error 404 unless wallet.exists?
         content_type 'text/plain'
         wallet.balance.to_i.to_s
@@ -252,7 +252,7 @@ while #{settings.address} is in '#{settings.network}'"
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/key} do
       error 404 if settings.disable_fetch
       id = Id.new(params[:id])
-      settings.wallets.find(id) do |wallet|
+      copy_of(id) do |wallet|
         error 404 unless wallet.exists?
         content_type 'text/plain'
         wallet.key.to_pub
@@ -262,7 +262,7 @@ while #{settings.address} is in '#{settings.network}'"
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/mtime} do
       error 404 if settings.disable_fetch
       id = Id.new(params[:id])
-      settings.wallets.find(id) do |wallet|
+      copy_of(id) do |wallet|
         error 404 unless wallet.exists?
         content_type 'text/plain'
         wallet.mtime.utc.iso8601.to_s
@@ -272,7 +272,7 @@ while #{settings.address} is in '#{settings.network}'"
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/digest} do
       error 404 if settings.disable_fetch
       id = Id.new(params[:id])
-      settings.wallets.find(id) do |wallet|
+      copy_of(id) do |wallet|
         error 404 unless wallet.exists?
         content_type 'text/plain'
         wallet.digest
@@ -282,7 +282,7 @@ while #{settings.address} is in '#{settings.network}'"
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.txt} do
       error 404 if settings.disable_fetch
       id = Id.new(params[:id])
-      settings.wallets.find(id) do |wallet|
+      copy_of(id) do |wallet|
         error 404 unless wallet.exists?
         content_type 'text/plain'
         [
@@ -306,7 +306,7 @@ while #{settings.address} is in '#{settings.network}'"
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.bin} do
       error 404 if settings.disable_fetch
       id = Id.new(params[:id])
-      settings.wallets.find(id) do |wallet|
+      copy_of(id) do |wallet|
         error 404 unless wallet.exists?
         content_type 'text/plain'
         IO.read(wallet.path)
@@ -316,7 +316,7 @@ while #{settings.address} is in '#{settings.network}'"
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/copies} do
       error 404 if settings.disable_fetch
       id = Id.new(params[:id])
-      settings.wallets.find(id) do |wallet|
+      copy_of(id) do |wallet|
         error 404 unless wallet.exists?
         content_type 'text/plain'
         copies = Copies.new(File.join(settings.copies, id))
@@ -336,7 +336,7 @@ while #{settings.address} is in '#{settings.network}'"
       error 404 if settings.disable_fetch
       id = Id.new(params[:id])
       name = params[:name]
-      settings.wallets.find(id) do |wallet|
+      copy_of(id) do |wallet|
         error 404 unless wallet.exists?
         copy = Copies.new(File.join(settings.copies, id)).all.find { |c| c[:name] == name }
         error 404 if copy.nil?
@@ -428,6 +428,15 @@ while #{settings.address} is in '#{settings.network}'"
       best = Cachy.cache(:a_score, expires_in: 60) { settings.farm.best }
       raise 'Score is empty, there is something wrong with the Farm!' if best.empty?
       best[0]
+    end
+
+    def copy_of(id)
+      Tempfile.open do |f|
+        settings.wallets.find(id) do |wallet|
+          IO.write(f, IO.read(wallet.path)) if File.exist?(wallet.path)
+        end
+        yield Wallet.new(f.path)
+      end
     end
   end
 end
