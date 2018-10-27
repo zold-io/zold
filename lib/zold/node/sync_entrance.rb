@@ -21,10 +21,10 @@
 # SOFTWARE.
 
 require 'concurrent'
+require 'futex'
 require_relative '../log'
 require_relative '../id'
 require_relative '../verbose_thread'
-require_relative '../sync_file'
 
 # The sync entrance of the web front.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -52,7 +52,7 @@ module Zold
 
     # Always returns an array with a single ID of the pushed wallet
     def push(id, body)
-      SyncFile.new(File.join(@dir, id), log: @log).open do |f|
+      Futex.new(File.join(@dir, id), log: @log).open do |f|
         @entrance.push(id, body)
       end
     end

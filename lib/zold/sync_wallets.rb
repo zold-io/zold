@@ -20,8 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'futex'
 require_relative 'log'
-require_relative 'sync_file'
 
 # Sync collection of wallets.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -50,7 +50,7 @@ module Zold
 
     def find(id)
       @wallets.find(id) do |wallet|
-        SyncFile.new(wallet.path, log: @log).open do |f|
+        Futex.new(wallet.path, log: @log).open do |f|
           yield wallet
         end
       end

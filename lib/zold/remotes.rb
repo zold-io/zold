@@ -25,6 +25,7 @@ require 'csv'
 require 'uri'
 require 'net/http'
 require 'time'
+require 'futex'
 require 'fileutils'
 require 'backtrace'
 require_relative 'age'
@@ -32,7 +33,6 @@ require_relative 'score'
 require_relative 'http'
 require_relative 'node/farm'
 require_relative 'type'
-require_relative 'sync_file'
 
 # The list of remotes.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -230,7 +230,7 @@ module Zold
     private
 
     def modify
-      SyncFile.new(file).open do
+      Futex.new(file).open do
         save(yield(load))
       end
     end

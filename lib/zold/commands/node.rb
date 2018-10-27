@@ -392,8 +392,8 @@ module Zold
         # nothing
       end
 
-      def error(msg)
-        @log.error("WEBRICK #{msg}")
+      def error(ex)
+        @log.error("WEBRICK #{Backtrace.new(ex)}")
       end
 
       def fatal(msg)

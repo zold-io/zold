@@ -21,12 +21,12 @@
 # SOFTWARE.
 
 require 'concurrent'
+require 'futex'
 require_relative '../log'
 require_relative '../age'
 require_relative '../size'
 require_relative '../id'
 require_relative '../verbose_thread'
-require_relative '../sync_file'
 require_relative '../dir_items'
 
 # The async entrance of the web front.
@@ -105,7 +105,7 @@ module Zold
       @entrance.push(id, body)
       raise "Queue is too long (#{queue.count} wallets), try again later" if queue.count > AsyncEntrance::MAX_QUEUE
       start = Time.now
-      SyncFile.new(file(id), log: @log).open do |f|
+      Futex.new(file(id), log: @log).open do |f|
         IO.write(f, body)
       end
       @log.debug("Added #{id}/#{Size.new(body.length)} to the queue at pos.#{queue.count} \
@@ -120,7 +120,7 @@ in #{Age.new(start, limit: 0.05)}")
       opts = queue
       return if opts.empty?
       id = opts[0]
-      body = SyncFile.new(file(id), log: @log).open do |f|
+      body = Futex.new(file(id), log: @log).open do |f|
         b = File.exist?(f) ? IO.read(f) : ''
         FileUtils.rm_f(f)
         b

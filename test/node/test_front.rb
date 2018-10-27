@@ -99,7 +99,7 @@ class FrontTest < Minitest::Test
   end
 
   def test_renders_wallet_pages
-    FakeHome.new(log: test_log).run do |home|
+    FakeNode.new(log: test_log).run(['--no-metronome', '--threads=0', '--standalone']) do |port|
       FakeNode.new(log: test_log).run(['--ignore-score-weakness', '--standalone']) do |port|
         wallet = home.create_wallet
         base = "http://localhost:#{port}"
@@ -124,7 +124,7 @@ class FrontTest < Minitest::Test
   end
 
   def test_fetch_in_multiple_threads
-    FakeNode.new(log: test_log).run(['--no-metronome']) do |port|
+    FakeNode.new(log: test_log).run(['--no-metronome', '--threads=0', '--standalone']) do |port|
       FakeHome.new(log: test_log).run do |home|
         wallet = home.create_wallet
         base = "http://localhost:#{port}"
@@ -145,7 +145,7 @@ class FrontTest < Minitest::Test
   end
 
   def test_pushes_twice
-    FakeNode.new(log: test_log).run do |port|
+    FakeNode.new(log: test_log).run(['--no-metronome', '--threads=0', '--standalone']) do |port|
       FakeHome.new(log: test_log).run do |home|
         wallet = home.create_wallet
         base = "http://localhost:#{port}"
@@ -182,7 +182,6 @@ class FrontTest < Minitest::Test
       '4' => 'https://www.zold.io/images/logo-orange.png',
       '16' => 'https://www.zold.io/images/logo-green.png'
     }.each do |num, path|
-      test_log.info("Calculating score #{num}...")
       score = Zold::Score.new(
         time: Time.now, host: 'localhost', port: 999,
         invoice: 'NOPREFIX@ffffffffffffffff',
@@ -191,7 +190,6 @@ class FrontTest < Minitest::Test
       num.to_i.times do
         score = score.next
       end
-      test_log.info("Score #{num} calculated.")
       if score.value >= 16
         assert_equal(
           path, 'https://www.zold.io/images/logo-green.png',
@@ -226,14 +224,17 @@ class FrontTest < Minitest::Test
   end
 
   def test_performance
-    start = Time.now
-    total = 50
+    times = Queue.new
     FakeNode.new(log: test_log).run(['--threads=4', '--strength=6', '--no-metronome']) do |port|
-      total.times do
+      10.times do
+        start = Time.now
         Zold::Http.new(uri: URI("http://localhost:#{port}/"), score: nil).get
+        times << Time.now - start
       end
     end
-    test_log.info("Average response time is #{Zold::Age.new(start)}")
+    all = []
+    all << times.pop(true) until times.empty?
+    test_log.info("Average response time is #{all.inject(&:+) / all.count}")
   end
 
   def app
@@ -242,7 +243,7 @@ class FrontTest < Minitest::Test
 
   def test_headers_are_being_set_correctly
     Time.stub :now, Time.at(0) do
-      FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
+      FakeNode.new(log: test_log).run(['--no-metronome', '--threads=0', '--ignore-score-weakness']) do |port|
         response = Zold::Http.new(uri: URI("http://localhost:#{port}/"), score: nil).get
         assert_equal('no-cache', response.header['Cache-Control'])
         assert_equal('close', response.header['Connection'])
@@ -274,7 +275,7 @@ class FrontTest < Minitest::Test
   end
 
   def test_default_alias_parameter
-    FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
+    FakeNode.new(log: test_log).run(['--ignore-score-weakness', '--no-metronome']) do |port|
       uri = URI("http://localhost:#{port}/")
       response = Zold::Http.new(uri: uri, score: nil).get
       assert_match(
@@ -297,7 +298,7 @@ class FrontTest < Minitest::Test
 
   def test_push_fetch_in_multiple_threads
     key = Zold::Key.new(text: IO.read('fixtures/id_rsa'))
-    FakeNode.new(log: test_log).run do |port|
+    FakeNode.new(log: test_log).run(['--no-metronome', '--threads=0', '--standalone']) do |port|
       FakeHome.new(log: test_log).run do |home|
         wallet = home.create_wallet(Zold::Id::ROOT)
         base = "http://localhost:#{port}"

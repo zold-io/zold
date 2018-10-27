@@ -55,9 +55,8 @@ module Zold
       set :suppress_messages, true
       set :start, Time.now
       set :lock, false
-      set :show_exceptions, false
-      set :server, :puma
-      set :server_settings, log_requests: true, debug: true
+      set :show_exceptions, true
+      set :server, :webrick
       set :log, nil? # to be injected at node.rb
       set :trace, nil? # to be injected at node.rb
       set :halt, '' # to be injected at node.rb
@@ -123,7 +122,7 @@ while #{settings.address} is in '#{settings.network}'"
       headers[Http::PROTOCOL_HEADER] = settings.protocol.to_s
       headers['Access-Control-Allow-Origin'] = '*'
       headers[Http::SCORE_HEADER] = score.reduced(16).to_s
-      headers['X-Zold-Thread'] = Thread.current.name
+      headers['X-Zold-Thread'] = Thread.current.name.to_s
       headers['X-Zold-Milliseconds'] = ((Time.now - @start) * 1000).round.to_s
     end
 
@@ -179,10 +178,10 @@ while #{settings.address} is in '#{settings.network}'"
         protocol: settings.protocol,
         score: score.to_h,
         pid: Process.pid,
-        cpus: Concurrent.processor_count,
+        cpus: Cachy.cache(:a_cpus) { Concurrent.processor_count },
         memory: GetProcessMem.new.bytes.to_i,
         platform: RUBY_PLATFORM,
-        load: Usagewatch.uw_load.to_f,
+        load: Cachy.cache(:a_load, expires_in: 5 * 60) { Usagewatch.uw_load.to_f },
         threads: "#{Thread.list.select { |t| t.status == 'run' }.count}/#{Thread.list.count}",
         wallets: Cachy.cache(:a_wallets, expires_in: 5 * 60) { settings.wallets.all.count },
         remotes: settings.remotes.all.count,

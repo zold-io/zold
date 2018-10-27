@@ -92,6 +92,7 @@ module Zold
     # This method is thread-safe
     def push(id, body)
       mods = @entrance.push(id, body)
+      return mods if @remotes.all.empty?
       (mods + [id]).each do |m|
         next if @seen.include?(m)
         @seen << m

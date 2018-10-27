@@ -23,11 +23,11 @@
 require 'time'
 require 'open3'
 require 'backtrace'
+require 'futex'
 require_relative '../log'
 require_relative '../score'
 require_relative '../age'
 require_relative '../verbose_thread'
-require_relative '../sync_file'
 
 # The farm of scores.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -220,7 +220,7 @@ module Zold
     def save(threads, list = [])
       scores = load + list
       period = 24 * 60 * 60 / [threads, 1].max
-      SyncFile.new(@cache, log: @log).open do |f|
+      Futex.new(@cache, log: @log).open do |f|
         IO.write(
           f,
           scores.select(&:valid?)
@@ -237,7 +237,7 @@ module Zold
     end
 
     def load
-      SyncFile.new(@cache, log: @log).open do |f|
+      Futex.new(@cache, log: @log).open do |f|
         if File.exist?(f)
           IO.read(f).split(/\n/)
             .map { |t| parse_score_line(t) }

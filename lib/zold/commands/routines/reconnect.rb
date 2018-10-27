@@ -47,6 +47,7 @@ module Zold
         score = @farm.best[0]
         args << "--ignore-node=#{score.host}:#{score.port}" if score
         cmd.run(args + ['defaults']) unless @opts['routine-immediately']
+        return if @opts['routine-immediately'] && @remotes.all.empty?
         cmd.run(args + ['trim'])
         cmd.run(args + ['select'])
         cmd.run(args + ['update'] + (@opts['never-reboot'] ? [] : ['--reboot']))

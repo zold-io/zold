@@ -23,11 +23,11 @@
 require 'uri'
 require 'json'
 require 'time'
+require 'futex'
 require 'slop'
 require 'rainbow'
 require_relative 'args'
 require_relative '../age'
-require_relative '../sync_file'
 require_relative '../size'
 require_relative '../log'
 require_relative '../http'
@@ -60,7 +60,7 @@ Available options:"
     end
 
     def clean(id, cps, _)
-      SyncFile.new(File.join(@copies, "#{id}-clean"), log: @log).open do
+      Futex.new(File.join(@copies, "#{id}-clean"), log: @log).open do
         start = Time.now
         deleted = cps.clean
         @log.debug(

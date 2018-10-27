@@ -22,12 +22,12 @@
 
 require 'time'
 require 'csv'
+require 'futex'
 require 'backtrace'
 require_relative 'log'
 require_relative 'size'
 require_relative 'wallet'
 require_relative 'dir_items'
-require_relative 'sync_file'
 
 # The list of copies.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -53,7 +53,7 @@ module Zold
     end
 
     def clean
-      SyncFile.new(file, log: @log).open do
+      Futex.new(file, log: @log).open do
         start = Time.now
         list = load
         list.reject! { |s| s[:time] < Time.now - 24 * 60 * 60 }
@@ -86,7 +86,7 @@ module Zold
     end
 
     def remove(host, port)
-      SyncFile.new(file, log: @log).open do
+      Futex.new(file, log: @log).open do
         save(load.reject { |s| s[:host] == host && s[:port] == port })
       end
     end
@@ -100,7 +100,7 @@ module Zold
       raise "Time must be in the past: #{time}" if time > Time.now
       raise 'Score must be Integer' unless score.is_a?(Integer)
       raise "Score can't be negative: #{score}" if score.negative?
-      SyncFile.new(file, log: @log).open do
+      Futex.new(file, log: @log).open do
         FileUtils.mkdir_p(@dir)
         list = load
         target = list.find do |s|
@@ -132,7 +132,7 @@ module Zold
     end
 
     def all
-      SyncFile.new(file, log: @log).open do
+      Futex.new(file, log: @log).open do
         load.group_by { |s| s[:name] }.map do |name, scores|
           {
             name: name,
