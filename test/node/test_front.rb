@@ -99,7 +99,7 @@ class FrontTest < Minitest::Test
   end
 
   def test_renders_wallet_pages
-    FakeNode.new(log: test_log).run(['--no-metronome', '--threads=0', '--standalone']) do |port|
+    FakeHome.new(log: test_log).run do |home|
       FakeNode.new(log: test_log).run(['--ignore-score-weakness', '--standalone']) do |port|
         wallet = home.create_wallet
         base = "http://localhost:#{port}"
