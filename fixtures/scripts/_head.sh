@@ -66,12 +66,3 @@ function halt_nodes {
     echo "Node at TCP port ${p} stopped!"
   done
 }
-
-function check_old_version_uninstalled {
-  zold_gems=$(gem list zold)
-  if [[ "${zold_gems}" == *"zold"* ]]; then
-     echo "Old versions of Zold gem have not been uninstalled"
-     exit 16
-  fi
-  sleep 5
-}
