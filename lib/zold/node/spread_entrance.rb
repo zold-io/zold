@@ -21,7 +21,6 @@
 # SOFTWARE.
 
 require 'concurrent'
-require 'concurrent/set'
 require 'tempfile'
 require_relative 'emission'
 require_relative '../log'
@@ -47,6 +46,7 @@ module Zold
       @address = address
       @log = log
       @ignore_score_weakeness = ignore_score_weakeness
+      @mutex = Mutex.new
     end
 
     def to_json
@@ -58,7 +58,7 @@ module Zold
 
     def start
       @entrance.start do
-        @seen = Concurrent::Set.new
+        @seen = Set.new
         @modified = Queue.new
         @push = Thread.start do
           Thread.current.abort_on_exception = true
@@ -74,7 +74,7 @@ module Zold
                   (@ignore_score_weakeness ? ['--ignore-score-weakness'] : [])
                 )
               end
-              @seen.delete(id)
+              @mutex.synchronize { @seen.delete(id) }
             end
           end
         end
@@ -95,7 +95,7 @@ module Zold
       return mods if @remotes.all.empty?
       (mods + [id]).each do |m|
         next if @seen.include?(m)
-        @seen << m
+        @mutex.synchronize { @seen << m }
         @modified.push(m)
         @log.debug("Spread-push scheduled for #{m}, queue size is #{@modified.size}")
       end
