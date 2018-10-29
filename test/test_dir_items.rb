@@ -53,7 +53,7 @@ class TestDirItems < Minitest::Test
 
   def test_lists_empty_dir
     Dir.mktmpdir do |dir|
-      assert_equal(0, Zold::DirItems.new(File.join(dir, 'a/b/c')).fetch.count)
+      assert_equal(0, Zold::DirItems.new(File.join(dir, 'a/b/c ff')).fetch.count)
     end
   end
 

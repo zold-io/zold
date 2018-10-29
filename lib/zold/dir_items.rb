@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'shellwords'
+
 # Items in a directory.
 #
 # We need this class because Dir.new() from Ruby is blocking. It doesn't
@@ -37,8 +39,12 @@ module Zold
     end
 
     def fetch(recursive: true)
-      txt = `find #{@dir} #{recursive ? '' : '-maxdepth 1'} -type f -print 2>/dev/null`
-      txt.nil? ? [] : txt.strip.split(' ').map { |f| f[(@dir.length + 1)..-1] }
+      txt = `find #{Shellwords.escape(@dir)} #{recursive ? '' : '-maxdepth 1'} -type f -print 2>/dev/null`
+      return [] if txt.nil?
+      txt.strip
+        .split(' ')
+        .select { |f| f.start_with?(@dir) }
+        .map { |f| f[(@dir.length + 1)..-1] }
     end
   end
 end

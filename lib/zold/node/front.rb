@@ -55,7 +55,7 @@ module Zold
       set :suppress_messages, true
       set :start, Time.now
       set :lock, false
-      set :show_exceptions, true
+      set :show_exceptions, false
       set :server, :puma
       set :log, nil? # to be injected at node.rb
       set :trace, nil? # to be injected at node.rb
