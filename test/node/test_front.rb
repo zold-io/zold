@@ -300,7 +300,7 @@ class FrontTest < Minitest::Test
         Zold::Http.new(uri: uri, score: nil).get
       end
     end
-    assert(exception.message.include?('should be a 4 to 16 char long alphanumeric string'))
+    assert(exception.message.include?('should be a 4 to 16 char long'), exception.message)
   end
 
   def test_push_fetch_in_multiple_threads
