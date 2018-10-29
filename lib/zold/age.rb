@@ -38,20 +38,21 @@ module Zold
     def to_s
       return '?' if @time.nil?
       sec = Time.now - @time
-      text = if sec < 1
-        "#{(sec * 1000).round}ms"
-      elsif sec < 60
-        "#{sec.round(2)}s"
-      elsif sec < 60 * 60
-        "#{(sec / 60).round}m"
-      else
-        "#{(sec / 3600).round}h"
-      end
+      txt = text(sec)
       if !@limit.nil? && sec > @limit
-        Rainbow(text).red
+        Rainbow(txt).red
       else
-        text
+        txt
       end
+    end
+
+    private
+
+    def text(sec)
+      return "#{(sec * 1000).round}ms" if sec < 1
+      return "#{sec.round(2)}s" if sec < 60
+      return "#{(sec / 60).round}m" if sec < 60 * 60
+      "#{(sec / 3600).round}h"
     end
   end
 end

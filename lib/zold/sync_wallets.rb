@@ -50,7 +50,7 @@ module Zold
 
     def find(id)
       @wallets.find(id) do |wallet|
-        Futex.new(wallet.path, log: @log).open do |f|
+        Futex.new(wallet.path, log: @log).open do
           yield wallet
         end
       end

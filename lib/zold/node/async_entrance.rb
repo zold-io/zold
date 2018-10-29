@@ -81,7 +81,7 @@ module Zold
         begin
           yield(self)
           cycle = 0
-          while !queue.empty?
+          until queue.empty?
             @log.info("Stopping async entrance, #{queue.count} still in the queue (cycle=#{cycle})...")
             cycle += 1
             raise "Can't wait for async entrance to stop for so long" if cycle > 10

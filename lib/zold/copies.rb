@@ -54,11 +54,9 @@ module Zold
 
     def clean
       Futex.new(file, log: @log).open do
-        start = Time.now
         list = load
         list.reject! { |s| s[:time] < Time.now - 24 * 60 * 60 }
         save(list)
-        start = Time.now
         deleted = 0
         files.each do |f|
           next unless list.find { |s| s[:name] == File.basename(f, Copies::EXT) }.nil?
@@ -68,7 +66,6 @@ module Zold
           @log.debug("Copy at #{f} deleted: #{Size.new(size)}")
           deleted += 1
         end
-        start = Time.now
         files.each do |f|
           file = File.join(@dir, f)
           wallet = Wallet.new(file)

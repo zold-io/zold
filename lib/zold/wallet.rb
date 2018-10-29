@@ -54,7 +54,7 @@ module Zold
     EXT = '.z'
 
     def initialize(file)
-      unless file.end_with?(Wallet::EXT) || file.end_with?(Copies::EXT)
+      unless file.end_with?(Wallet::EXT, Copies::EXT)
         raise "Wallet file must end with #{Wallet::EXT} or #{Copies::EXT}: #{file}"
       end
       @file = File.absolute_path(file)

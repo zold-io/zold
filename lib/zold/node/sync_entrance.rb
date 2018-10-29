@@ -52,7 +52,7 @@ module Zold
 
     # Always returns an array with a single ID of the pushed wallet
     def push(id, body)
-      Futex.new(File.join(@dir, id), log: @log).open do |f|
+      Futex.new(File.join(@dir, id), log: @log).open do
         @entrance.push(id, body)
       end
     end
