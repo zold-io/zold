@@ -46,20 +46,23 @@ module Zold
 
     # Returns the list of their IDs (as plain text)
     def all
-      DirItems.new(path).select do |f|
-        next unless f.end_with?(Wallet::EXTENSION)
-        basename = File.basename(f, Wallet::EXTENSION)
-        File.file?(f) &&
-          !File.directory?(f) &&
+      DirItems.new(path).fetch.select do |f|
+        next unless f.end_with?(Wallet::EXT)
+        basename = File.basename(f, Wallet::EXT)
+        file = File.join(path, f)
+        File.file?(file) &&
+          !File.directory?(file) &&
           basename =~ /^[0-9a-fA-F]{16}$/ &&
           Id.new(basename).to_s == basename
-      end.map { |w| Id.new(File.basename(w, Wallet::EXTENSION)) }
+      end.map { |w| Id.new(File.basename(w, Wallet::EXT)) }
     end
 
     def find(id)
       raise 'Id can\'t be nil' if id.nil?
       raise 'Id must be of type Id' unless id.is_a?(Id)
-      yield Zold::Wallet.new(File.join(path, (id.to_s.split('', 5).take(4) + [id.to_s]).join('/')))
+      yield Wallet.new(
+        File.join(path, (id.to_s.split('', 5).take(4) + [id.to_s]).join('/') + Wallet::EXT)
+      )
     end
   end
 end

@@ -34,6 +34,10 @@ require_relative '../../lib/zold/json_page'
 require_relative '../../lib/zold/score'
 
 class FrontTest < Minitest::Test
+  def app
+    Zold::Front
+  end
+
   def test_renders_front_json
     FakeNode.new(log: test_log).run(['--no-metronome', '--network=foo', '--threads=0']) do |port|
       res = Zold::Http.new(uri: "http://localhost:#{port}/", network: 'foo', score: nil).get
@@ -52,7 +56,7 @@ class FrontTest < Minitest::Test
   end
 
   def test_renders_public_pages
-    FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
+    FakeNode.new(log: test_log).run(['--ignore-score-weakness', '--no-metronome', '--threads=0']) do |port|
       {
         '200' => [
           '/robots.txt',
@@ -67,7 +71,14 @@ class FrontTest < Minitest::Test
         ],
         '404' => [
           '/this-is-absent',
-          '/wallet/ffffeeeeddddcccc'
+          '/wallet/ffffeeeeddddcccc',
+          '/wallet/ffffeeeeddddcccc.bin',
+          '/wallet/ffffeeeeddddcccc.json',
+          '/wallet/ffffeeeeddddcccc.txt',
+          '/wallet/ffffeeeeddddcccc/balance',
+          '/wallet/ffffeeeeddddcccc/key',
+          '/wallet/ffffeeeeddddcccc/mtime',
+          '/wallet/ffffeeeeddddcccc/digest'
         ]
       }.each do |code, paths|
         paths.each do |p|
@@ -132,7 +143,7 @@ class FrontTest < Minitest::Test
         assert_equal_wait('200') { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).get.code }
         threads = []
         mutex = Mutex.new
-        Threads.new(100).assert do
+        Threads.new(6).assert(100) do
           assert_equal_wait('200') do
             res = Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).get
             mutex.synchronize { threads << res.header['X-Zold-Thread'] }
@@ -167,7 +178,7 @@ class FrontTest < Minitest::Test
     FakeNode.new(log: test_log).run(['--no-metronome', '--threads=0', '--standalone']) do |port|
       base = "http://localhost:#{port}"
       FakeHome.new(log: test_log).run do |home|
-        Threads.new(20).assert do
+        Threads.new(5).assert do
           wallet = home.create_wallet
           Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).put(IO.read(wallet.path))
           assert_equal_wait('200') { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}", score: nil).get.code }
@@ -226,7 +237,7 @@ class FrontTest < Minitest::Test
   def test_performance
     times = Queue.new
     FakeNode.new(log: test_log).run(['--threads=4', '--strength=6', '--no-metronome']) do |port|
-      10.times do
+      Threads.new(10).assert(100) do
         start = Time.now
         Zold::Http.new(uri: URI("http://localhost:#{port}/"), score: nil).get
         times << Time.now - start
@@ -235,10 +246,6 @@ class FrontTest < Minitest::Test
     all = []
     all << times.pop(true) until times.empty?
     test_log.info("Average response time is #{all.inject(&:+) / all.count}")
-  end
-
-  def app
-    Zold::Front
   end
 
   def test_headers_are_being_set_correctly

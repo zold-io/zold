@@ -113,7 +113,7 @@ Available options:"
       r.assert_valid_score(score)
       r.assert_score_ownership(score)
       r.assert_score_strength(score) unless opts['ignore-score-weakness']
-      Tempfile.open(['', Wallet::EXTENSION]) do |f|
+      Tempfile.open(['', Wallet::EXT]) do |f|
         body = json['body']
         IO.write(f, body)
         wallet = Wallet.new(f.path)

@@ -22,6 +22,7 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
+require_relative 'test__helper'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/id'
 require_relative '../lib/zold/tree_wallets'
@@ -37,10 +38,23 @@ class TestTreeWallets < Minitest::Test
       id = Zold::Id.new('abcd0123abcd0123')
       wallets.find(id) do |wallet|
         wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-        assert_equal(1, wallets.all.count)
-        assert_equal(id, wallets.all[0])
         assert(wallet.path.end_with?('/a/b/c/d/abcd0123abcd0123.z'), wallet.path)
       end
+      assert_equal(1, wallets.all.count)
+      assert_equal(id, wallets.all[0])
+    end
+  end
+
+  def test_adds_many_wallets
+    Dir.mktmpdir do |dir|
+      wallets = Zold::TreeWallets.new(dir)
+      10.times do
+        id = Zold::Id.new
+        wallets.find(id) do |wallet|
+          wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+        end
+      end
+      assert_equal(10, wallets.all.count)
     end
   end
 end

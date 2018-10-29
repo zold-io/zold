@@ -70,7 +70,7 @@ Available options:"
         IO.read(wallet.path)
       end
       after = ''
-      Tempfile.open(['', Wallet::EXTENSION]) do |f|
+      Tempfile.open(['', Wallet::EXT]) do |f|
         patch.save(f.path, overwrite: true)
         after = IO.read(f)
       end

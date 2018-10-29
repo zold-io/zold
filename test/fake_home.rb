@@ -26,6 +26,7 @@ require_relative '../lib/zold/id'
 require_relative '../lib/zold/wallet'
 require_relative '../lib/zold/wallets'
 require_relative '../lib/zold/sync_wallets'
+require_relative '../lib/zold/cached_wallets'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/version'
 require_relative '../lib/zold/remotes'
@@ -49,11 +50,11 @@ class FakeHome
   end
 
   def wallets
-    Zold::SyncWallets.new(Zold::Wallets.new(@dir), log: @log)
+    Zold::SyncWallets.new(Zold::CachedWallets.new(Zold::Wallets.new(@dir)), log: @log)
   end
 
   def create_wallet(id = Zold::Id.new, dir = @dir)
-    target = Zold::Wallet.new(File.join(dir, id.to_s))
+    target = Zold::Wallet.new(File.join(dir, id.to_s + Zold::Wallet::EXT))
     wallets.find(id) do |w|
       w.init(id, Zold::Key.new(file: File.expand_path(File.join(__dir__, '../fixtures/id_rsa.pub'))))
       IO.write(target.path, IO.read(w.path))

@@ -20,6 +20,38 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative 'asserts.rb'
-wallet = Zold::Wallet.new('0123456789abcdef.z')
-assert_equal(Zold::Amount.new(zld: 388.0), wallet.balance)
+require 'minitest/autorun'
+require_relative '../fake_home'
+require_relative '../test__helper'
+require_relative '../../lib/zold/commands/remove'
+
+# REMOVE test.
+# Author:: Yegor Bugayenko (yegor256@gmail.com)
+# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# License:: MIT
+class TestRemove < Minitest::Test
+  def test_removes_one_wallet
+    FakeHome.new(log: test_log).run do |home|
+      wallet = home.create_wallet
+      assert_equal(1, home.wallets.all.count)
+      Zold::Remove.new(wallets: home.wallets, log: test_log).run(['remove', wallet.id.to_s])
+      assert(home.wallets.all.empty?)
+    end
+  end
+
+  def test_removes_wallets
+    FakeHome.new(log: test_log).run do |home|
+      home.create_wallet
+      home.create_wallet
+      Zold::Remove.new(wallets: home.wallets, log: test_log).run(['remove'])
+      assert(home.wallets.all.empty?)
+    end
+  end
+
+  def test_removes_no_wallets
+    FakeHome.new(log: test_log).run do |home|
+      Zold::Remove.new(wallets: home.wallets, log: test_log).run(['remove'])
+      assert(home.wallets.all.empty?)
+    end
+  end
+end

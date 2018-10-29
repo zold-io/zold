@@ -48,7 +48,7 @@ class TestSafeEntrance < Minitest::Test
 
   def test_rejects_wallet_with_wrong_network
     FakeHome.new(log: test_log).run do |home|
-      wallet = Zold::Wallet.new(File.join(home.dir, 'wallet'))
+      wallet = Zold::Wallet.new(File.join(home.dir, 'wallet.z'))
       wallet.init(Zold::Id.new, Zold::Key.new(file: 'fixtures/id_rsa.pub'), network: 'someothernetwork')
       assert_raises StandardError do
         Zold::SafeEntrance.new(FakeEntrance.new).push(wallet.id, IO.read(wallet.path))

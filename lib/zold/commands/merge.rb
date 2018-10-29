@@ -85,6 +85,7 @@ Available options:"
           @log.debug("Local copy of #{id} is absent, nothing to merge")
         end
         modified = patch.save(wallet.path, overwrite: true)
+        wallet.flush
         if modified
           @log.info("#{cps.count} copies with the total score of #{score} successfully merged \
 into #{wallet.id}/#{wallet.balance}/#{wallet.txns.count}t in #{Age.new(start, limit: 0.1 + cps.count * 0.01)}")

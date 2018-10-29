@@ -431,11 +431,13 @@ while #{settings.address} is in '#{settings.network}'"
     end
 
     def copy_of(id)
-      Tempfile.open do |f|
+      Tempfile.open([id.to_s, Wallet::EXT]) do |f|
         settings.wallets.find(id) do |wallet|
           IO.write(f, IO.read(wallet.path)) if File.exist?(wallet.path)
         end
-        yield Wallet.new(f.path)
+        path = f.path
+        f.delete if File.size(f.path).zero?
+        yield Wallet.new(path)
       end
     end
   end

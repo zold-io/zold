@@ -72,4 +72,17 @@ class TestDirItems < Minitest::Test
       end
     end
   end
+
+  def test_lists_non_recursively
+    Dir.mktmpdir do |dir|
+      files = ['1.txt', 'a/1.txt', 'a/b/1.txt', 'a/b/c/1.txt']
+      files.each do |f|
+        path = File.join(dir, f)
+        FileUtils.mkdir_p(File.dirname(path))
+        FileUtils.touch(path)
+      end
+      found = Zold::DirItems.new(dir).fetch(recursive: false)
+      assert_equal(1, found.count)
+    end
+  end
 end

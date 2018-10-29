@@ -27,6 +27,7 @@ require_relative 'key'
 require_relative 'id'
 require_relative 'txn'
 require_relative 'tax'
+require_relative 'copies'
 require_relative 'amount'
 require_relative 'hexnum'
 require_relative 'signature'
@@ -50,9 +51,12 @@ module Zold
     MAIN_NETWORK = 'zold'
 
     # The extension of the wallet files
-    EXTENSION = '.z'
+    EXT = '.z'
 
     def initialize(file)
+      unless file.end_with?(Wallet::EXT) || file.end_with?(Copies::EXT)
+        raise "Wallet file must end with #{Wallet::EXT} or #{Copies::EXT}: #{file}"
+      end
       @file = File.absolute_path(file)
       @txns = Txns::Cached.new(Txns.new(@file))
       @head = Head::Cached.new(Head.new(@file))
@@ -191,6 +195,11 @@ module Zold
         @file,
         "#{network}\n#{protocol}\n#{id}\n#{key.to_pub}\n\n#{txns.map { |t| t.to_s + "\n" }.join}"
       )
+      @txns.flush
+    end
+
+    def flush
+      @head.flush
       @txns.flush
     end
 

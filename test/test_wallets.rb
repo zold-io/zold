@@ -22,6 +22,7 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
+require_relative 'test__helper'
 require_relative 'fake_home'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/id'
@@ -48,6 +49,8 @@ class TestWallets < Minitest::Test
     FakeHome.new(log: test_log).run do |home|
       wallets = home.wallets
       FileUtils.touch(File.join(home.dir, '0xaaaaaaaaaaaaaaaaaaahello'))
+      FileUtils.mkdir_p(File.join(home.dir, 'a/b/c'))
+      FileUtils.touch(File.join(home.dir, 'a/b/c/0000111122223333.z'))
       id = Zold::Id.new
       wallets.find(id) do |wallet|
         wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))

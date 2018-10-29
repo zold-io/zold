@@ -44,6 +44,7 @@ class TestPropagate < Minitest::Test
         ['merge', wallet.id.to_s]
       )
       assert(amount, friend.balance)
+      assert(1, friend.txns.count)
       assert('', friend.txns[0].sign)
     end
   end

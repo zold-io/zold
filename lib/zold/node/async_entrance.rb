@@ -102,7 +102,6 @@ module Zold
 
     # Always returns an array with a single ID of the pushed wallet
     def push(id, body)
-      @entrance.push(id, body)
       raise "Queue is too long (#{queue.count} wallets), try again later" if queue.count > AsyncEntrance::MAX_QUEUE
       start = Time.now
       Futex.new(file(id), log: @log).open do |f|

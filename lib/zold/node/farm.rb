@@ -134,7 +134,7 @@ module Zold
           @log.info("Thread \"#{thread.name}\" finished in #{Age.new(start)}")
           break
         end
-        if delay > 10
+        if delay > 1
           thread.exit
           @log.error("Thread \"#{thread.name}\" forcefully terminated after #{Age.new(start)}")
         end

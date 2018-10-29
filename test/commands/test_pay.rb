@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
+require 'threads'
 require_relative '../test__helper'
 require_relative '../fake_home'
 require_relative '../../lib/zold/wallets'
@@ -53,7 +54,7 @@ class TestPay < Minitest::Test
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       amount = Zold::Amount.new(zld: 2.0)
-      assert_in_threads(threads: 10) do
+      Threads.new(10).assert do
         Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: test_log).run(
           [
             'pay', '--force', '--private-key=fixtures/id_rsa',
