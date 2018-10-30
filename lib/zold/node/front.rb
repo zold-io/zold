@@ -82,6 +82,7 @@ module Zold
     use Rack::Deflater
 
     before do
+      @start = Time.now
       if !settings.halt.empty? && params[:halt] && params[:halt] == settings.halt
         settings.log.error('Halt signal received, shutting the front end down...')
         Front.stop!
@@ -115,7 +116,6 @@ while #{settings.address} is in '#{settings.network}'")
           error(400, e.message)
         end
       end
-      @start = Time.now
     end
 
     # @todo #357:30min Test that the headers are being set correctly.
