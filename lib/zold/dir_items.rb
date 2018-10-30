@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'shellwords'
+require 'posix/spawn'
 
 # Items in a directory.
 #
@@ -39,9 +40,13 @@ module Zold
     end
 
     def fetch(recursive: true)
-      txt = `find #{Shellwords.escape(@dir)} #{recursive ? '' : '-maxdepth 1'} -type f -print 2>/dev/null`
-      return [] if txt.nil?
-      txt.strip
+      spawn = POSIX::Spawn::Child.new(
+        'find',
+        *([Shellwords.escape(@dir), '-type', 'f', '-print'] + (recursive ? [] : ['-maxdepth', '1']))
+      )
+      raise spawn.err unless spawn.status.success?
+      spawn.out
+        .strip
         .split(' ')
         .select { |f| f.start_with?(@dir) && f.length > @dir.length }
         .map { |f| f[(@dir.length + 1)..-1] }

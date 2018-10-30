@@ -135,6 +135,7 @@ class FrontTest < Minitest::Test
   end
 
   def test_fetch_in_multiple_threads
+    skip
     FakeNode.new(log: test_log).run(['--no-metronome', '--threads=0', '--standalone']) do |port|
       FakeHome.new(log: test_log).run do |home|
         wallet = home.create_wallet

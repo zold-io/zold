@@ -24,7 +24,6 @@ STDOUT.sync = true
 
 require 'json'
 require 'sinatra/base'
-require 'webrick'
 require 'cachy'
 require 'moneta'
 require 'get_process_mem'
@@ -56,7 +55,7 @@ module Zold
       set :start, Time.now
       set :lock, false
       set :show_exceptions, false
-      set :server, :puma
+      set :server, :thin
       set :log, nil? # to be injected at node.rb
       set :trace, nil? # to be injected at node.rb
       set :halt, '' # to be injected at node.rb
