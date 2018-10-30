@@ -125,7 +125,7 @@ while #{settings.address} is in '#{settings.network}'")
       headers[Http::PROTOCOL_HEADER] = settings.protocol.to_s
       headers['Access-Control-Allow-Origin'] = '*'
       headers[Http::SCORE_HEADER] = score.reduced(16).to_s
-      headers['X-Zold-Thread'] = Thread.current.name.to_s
+      headers['X-Zold-Thread'] = Thread.current.object_id.to_s
       headers['X-Zold-Milliseconds'] = ((Time.now - @start) * 1000).round.to_s
     end
 

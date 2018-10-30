@@ -189,11 +189,6 @@ module Zold
       @log.info("Remote nodes (#{@remotes.all.count}): \
 #{@remotes.all.map { |r| "#{r[:host]}:#{r[:port]}" }.join(', ')}")
       @log.info("Wallets at: #{@wallets.path}")
-      Front.set(
-        :server_settings,
-        Logger: WebrickLog.new(@log),
-        AccessLog: []
-      )
       if opts['standalone']
         @remotes = Zold::Remotes::Empty.new
         @log.info('Running in standalone mode! (will never talk to other remotes)')
