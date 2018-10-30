@@ -126,8 +126,10 @@ while #{settings.address} is in '#{settings.network}'")
       headers['Access-Control-Allow-Origin'] = '*'
       headers[Http::SCORE_HEADER] = score.reduced(16).to_s
       headers['X-Zold-Thread'] = Thread.current.object_id.to_s
-      settings.log.info("Slow response to #{request.url} in #{Age.new(@start, limit: 1)}") if Time.now - @start > 1
-      headers['X-Zold-Milliseconds'] = ((Time.now - @start) * 1000).round.to_s
+      unless @start.nil?
+        settings.log.info("Slow response to #{request.url} in #{Age.new(@start, limit: 1)}") if Time.now - @start > 1
+        headers['X-Zold-Milliseconds'] = ((Time.now - @start) * 1000).round.to_s
+      end
     end
 
     get '/robots.txt' do

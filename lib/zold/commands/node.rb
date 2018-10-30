@@ -377,32 +377,5 @@ module Zold
         total
       end
     end
-
-    # Fake logging facility for Webrick
-    class WebrickLog
-      def initialize(log)
-        @log = log
-      end
-
-      def info(msg)
-        @log.debug("WEBRICK #{msg}")
-      end
-
-      def debug(msg)
-        # nothing
-      end
-
-      def error(ex)
-        @log.error("WEBRICK #{Backtrace.new(ex)}")
-      end
-
-      def fatal(msg)
-        @log.error("WEBRICK #{msg}")
-      end
-
-      def debug?
-        @log.info?
-      end
-    end
   end
 end
