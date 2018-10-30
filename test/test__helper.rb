@@ -64,16 +64,22 @@ module Minitest
     end
 
     class TestLogger
-      attr_accessor :msg
+      attr_accessor :msgs
       def initialize
-        @msg = []
+        @msgs = []
       end
 
       def info(msg)
-        @msg << msg
+        @msgs << msg
       end
 
-      def debug(msg); end
+      def debug(msg)
+        @msgs << msg
+      end
+
+      def error(msg)
+        @msgs << msg
+      end
     end
   end
 end

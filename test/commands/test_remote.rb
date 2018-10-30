@@ -94,19 +94,19 @@ class TestRemote < Minitest::Test
         status: 200,
         body: '{"version": "9.9.9"}'
       )
-      log = Minitest::Test::TestLogger.new
+      log = TestLogger.new
       cmd = Zold::Remote.new(remotes: remotes, log: log)
       cmd.run(%w[remote clean])
       cmd.run(['remote', 'add', zero.host, zero.port.to_s, '--skip-ping'])
       cmd.run(['remote', 'update', '--ignore-score-weakness', '--skip-ping', '--reboot'])
-      assert(log.msg.to_s.include?(', reboot!'))
-      log.msg = []
+      assert(log.msgs.to_s.include?(', reboot!'))
+      log.msgs = []
       stub_request(:get, 'https://rubygems.org/api/v1/versions/zold/latest.json').to_return(
         status: 200,
         body: "{\"version\": \"#{Zold::VERSION}\"}"
       )
       cmd.run(['remote', 'update', '--ignore-score-weakness', '--skip-ping', '--reboot'])
-      assert(!log.msg.to_s.include?(', reboot!'))
+      assert(!log.msgs.to_s.include?(', reboot!'))
     end
   end
 

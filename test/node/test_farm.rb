@@ -28,15 +28,6 @@ require_relative '../../lib/zold/log'
 require_relative '../../lib/zold/node/farm'
 
 class FarmTest < Minitest::Test
-  class SaveLastMessageLogger
-    attr_reader :msg
-    def error(msg)
-      @msg = msg
-    end
-
-    def debug(msg); end
-  end
-
   def test_renders_in_json
     Dir.mktmpdir do |dir|
       farm = Zold::Farm.new('NOPREFIX6@ffffffffffffffff', File.join(dir, 'f'), log: test_log)
@@ -121,7 +112,7 @@ class FarmTest < Minitest::Test
   end
 
   def test_garbage_farm_file
-    log = SaveLastMessageLogger.new
+    log = TestLogger.new
     Dir.mktmpdir do |dir|
       file = File.join(dir, 'corrupted_farm')
       [
@@ -139,7 +130,7 @@ class FarmTest < Minitest::Test
         end
         farm = Zold::Farm.new('NOPREFIX5@ffffffffffffffff', file, log: log)
         assert_equal(1, farm.best.count)
-        assert(log.msg.include?('Invalid score'))
+        assert(log.msgs.find { |m| m.include?('Invalid score') })
       end
     end
   end

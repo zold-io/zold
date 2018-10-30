@@ -31,6 +31,7 @@ require_relative '../wallet'
 require_relative '../wallets'
 require_relative '../remotes'
 require_relative '../verbose_thread'
+require_relative '../node/farmers'
 require_relative '../node/entrance'
 require_relative '../node/safe_entrance'
 require_relative '../node/spread_entrance'
@@ -144,6 +145,9 @@ module Zold
         o.string '--alias',
           'The alias of the node (default: host:port)',
           require: false
+        o.string '--no-spawn',
+          'Don\'t use child processes for the score farm',
+          default: false
         o.bool '--help', 'Print instructions'
       end
       if opts.help?
@@ -243,7 +247,8 @@ module Zold
         network: opts['network']
       ).start do |entrance|
         Front.set(:entrance, entrance)
-        Farm.new(invoice, File.join(home, 'farm'), log: @log)
+        farmer = opts['no-spawn'] ? Farmers::Plain.new : Farmers::Spawn.new(log: @log)
+        Farm.new(invoice, File.join(home, 'farm'), log: @log, farmer: farmer)
           .start(host, opts[:port], threads: opts[:threads], strength: opts[:strength]) do |farm|
           Front.set(:farm, farm)
           metronome(farm, opts).start do |metronome|

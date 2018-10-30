@@ -28,6 +28,7 @@ require_relative '../log'
 require_relative '../score'
 require_relative '../age'
 require_relative '../verbose_thread'
+require_relative 'farmers'
 
 # The farm of scores.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -43,11 +44,13 @@ module Zold
       end
     end
 
-    def initialize(invoice, cache = File.join(Dir.pwd, 'farm'), log: Log::Quiet.new)
+    def initialize(invoice, cache = File.join(Dir.pwd, 'farm'), log: Log::Quiet.new,
+      farmer: Farmers::Plain.new)
       @log = log
       @cache = cache
       @invoice = invoice
       @pipeline = Queue.new
+      @farmer = farmer
       @threads = []
     end
 
@@ -174,47 +177,10 @@ module Zold
       return unless s.port == port
       return unless s.strength >= strength
       Thread.current.name = s.to_mnemo
-      bin = File.expand_path(File.join(File.dirname(__FILE__), '../../../bin/zold'))
-      Open3.popen2e("ruby #{bin} --skip-upgrades --low-priority next \"#{s}\"") do |stdin, stdout, thr|
-        @log.debug("Score counting started in process ##{thr.pid}")
-        begin
-          stdin.close
-          buffer = +''
-          loop do
-            begin
-              buffer << stdout.read_nonblock(1024)
-              # rubocop:disable Lint/HandleExceptions
-            rescue IO::WaitReadable => _
-              # rubocop:enable Lint/HandleExceptions
-              # nothing to do here
-            end
-            if buffer.end_with?("\n") && thr.value.to_i.zero?
-              score = Score.parse(buffer.strip)
-              @log.debug("New score discovered: #{score}")
-              save(threads, [score])
-              cleanup(host, port, strength, threads)
-              break
-            end
-            if stdout.closed?
-              raise "Failed to calculate the score (##{thr.value}): #{buffer}" unless thr.value.to_i.zero?
-              break
-            end
-            break unless @alive
-            sleep 0.25
-          end
-        rescue StandardError => e
-          @log.error(Backtrace.new(e).to_s)
-        ensure
-          kill(thr.pid)
-        end
-      end
-    end
-
-    def kill(pid)
-      Process.kill('TERM', pid)
-      @log.debug("Process ##{pid} killed")
-    rescue StandardError => e
-      @log.debug("No need to kill process ##{pid} since it's dead already: #{e.message}")
+      score = @farmer.up(s)
+      @log.debug("New score discovered: #{score}")
+      save(threads, [score])
+      cleanup(host, port, strength, threads)
     end
 
     def save(threads, list = [])

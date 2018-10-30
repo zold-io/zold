@@ -236,7 +236,7 @@ class FrontTest < Minitest::Test
 
   def test_performance
     times = Queue.new
-    FakeNode.new(log: test_log).run(['--threads=4', '--strength=6', '--no-metronome']) do |port|
+    FakeNode.new(log: test_log).run(['--threads=4', '--strength=6', '--no-metronome', '--farmer=ruby-proc']) do |port|
       Threads.new(10).assert(100) do
         start = Time.now
         Zold::Http.new(uri: URI("http://localhost:#{port}/"), score: nil).get

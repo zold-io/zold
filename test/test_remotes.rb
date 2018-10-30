@@ -35,15 +35,6 @@ require_relative '../lib/zold/verbose_thread'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class TestRemotes < Minitest::Test
-  class TestLogger
-    attr_reader :msg
-    def info(msg)
-      @msg = msg
-    end
-
-    def debug(msg); end
-  end
-
   def test_adds_remotes
     Dir.mktmpdir do |dir|
       file = File.join(dir, 'remotes')
@@ -101,7 +92,7 @@ class TestRemotes < Minitest::Test
       remotes.add('0.0.0.1', 9999)
       log = TestLogger.new
       remotes.iterate(log) { raise 'Intended' }
-      assert(log.msg.include?(' in '))
+      assert(log.msgs.find { |m| m.include?(' in ') })
     end
   end
 
@@ -113,7 +104,7 @@ class TestRemotes < Minitest::Test
       remotes.add('127.0.0.1')
       log = TestLogger.new
       remotes.iterate(log) { sleep(2) }
-      assert(log.msg.include?('Took too long to execute'))
+      assert(log.msgs.find { |m| m.include?('Took too long to execute') })
     end
   end
 
