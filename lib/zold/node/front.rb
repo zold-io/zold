@@ -109,7 +109,11 @@ while #{settings.address} is in '#{settings.network}'")
         end
         require_relative '../commands/remote'
         cmd = Remote.new(remotes: settings.remotes, log: settings.log)
-        cmd.run(['remote', 'add', s.host, s.port.to_s, "--network=#{settings.network}"])
+        begin
+          cmd.run(['remote', 'add', s.host, s.port.to_s, "--network=#{settings.network}"])
+        rescue StandardError => e
+          error(400, e.message)
+        end
       end
       @start = Time.now
     end
