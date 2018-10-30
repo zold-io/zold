@@ -22,6 +22,8 @@
 
 STDOUT.sync = true
 
+require 'eventmachine'
+require 'thin'
 require 'json'
 require 'sinatra/base'
 require 'cachy'
