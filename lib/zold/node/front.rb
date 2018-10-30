@@ -126,7 +126,7 @@ while #{settings.address} is in '#{settings.network}'")
       headers['Access-Control-Allow-Origin'] = '*'
       headers[Http::SCORE_HEADER] = score.reduced(16).to_s
       headers['X-Zold-Thread'] = Thread.current.object_id.to_s
-      settings.log.error("Slow response to #{request.url} in #{Age.new(@start)}") if Time.now - @start > 1
+      settings.log.info("Slow response to #{request.url} in #{Age.new(@start, limit: 1)}") if Time.now - @start > 1
       headers['X-Zold-Milliseconds'] = ((Time.now - @start) * 1000).round.to_s
     end
 
@@ -204,17 +204,17 @@ while #{settings.address} is in '#{settings.network}'")
       copy_of(id) do |wallet|
         content_type('application/json')
         JSON.pretty_generate(
-          version: settings.version,
-          alias: settings.node_alias,
-          protocol: settings.protocol,
-          id: wallet.id.to_s,
-          score: score.to_h,
-          wallets: settings.wallets.all.count,
-          mtime: wallet.mtime.utc.iso8601,
-          size: File.size(wallet.path),
-          digest: wallet.digest,
-          copies: Copies.new(File.join(settings.copies, id)).all.count,
-          balance: wallet.balance.to_i,
+          # version: settings.version,
+          # alias: settings.node_alias,
+          # protocol: settings.protocol,
+          # id: wallet.id.to_s,
+          # score: score.to_h,
+          # wallets: settings.wallets.all.count,
+          # mtime: wallet.mtime.utc.iso8601,
+          # size: File.size(wallet.path),
+          # digest: wallet.digest,
+          # copies: Copies.new(File.join(settings.copies, id)).all.count,
+          # balance: wallet.balance.to_i,
           body: File.new(wallet.path).read
         )
       end
