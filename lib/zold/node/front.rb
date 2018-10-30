@@ -204,17 +204,17 @@ while #{settings.address} is in '#{settings.network}'")
       copy_of(id) do |wallet|
         content_type('application/json')
         JSON.pretty_generate(
-          # version: settings.version,
-          # alias: settings.node_alias,
-          # protocol: settings.protocol,
-          # id: wallet.id.to_s,
-          # score: score.to_h,
-          # wallets: settings.wallets.all.count,
-          # mtime: wallet.mtime.utc.iso8601,
-          # size: File.size(wallet.path),
-          # digest: wallet.digest,
-          # copies: Copies.new(File.join(settings.copies, id)).all.count,
-          # balance: wallet.balance.to_i,
+          version: settings.version,
+          alias: settings.node_alias,
+          protocol: settings.protocol,
+          id: wallet.id.to_s,
+          score: score.to_h,
+          wallets: Cachy.cache(:a_wallets, expires_in: 5 * 60) { settings.wallets.all.count },
+          mtime: wallet.mtime.utc.iso8601,
+          size: File.size(wallet.path),
+          digest: wallet.digest,
+          copies: Copies.new(File.join(settings.copies, id)).all.count,
+          balance: wallet.balance.to_i,
           body: File.new(wallet.path).read
         )
       end
