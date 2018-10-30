@@ -412,6 +412,7 @@ while #{settings.address} is in '#{settings.network}'"
       e = env['sinatra.error']
       content_type 'text/plain'
       headers['X-Zold-Error'] = e.message
+      headers['X-Zold-Path'] = request.url
       settings.log.error(Backtrace.new(e).to_s)
       Backtrace.new(e).to_s
     end

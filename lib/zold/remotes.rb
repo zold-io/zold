@@ -95,7 +95,9 @@ module Zold
       def assert_code(code, response)
         msg = response.message.strip
         return if response.code.to_i == code
-        raise "#{response.code}/#{response.header['X-Zold-Error']}" if response.header['X-Zold-Error']
+        if response.header['X-Zold-Error']
+          raise "#{response.code}/#{response.header['X-Zold-Error']} at #{response.header['X-Zold-Path']}"
+        end
         raise "Unexpected HTTP code #{response.code}, instead of #{code}" if msg.empty?
         raise "#{msg} (HTTP code #{response.code}, instead of #{code})"
       end
