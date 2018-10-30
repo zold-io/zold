@@ -43,7 +43,7 @@ module Zold
       return [] if txt.nil?
       txt.strip
         .split(' ')
-        .select { |f| f.start_with?(@dir) }
+        .select { |f| f.start_with?(@dir) && f.length > @dir.length }
         .map { |f| f[(@dir.length + 1)..-1] }
     end
   end
