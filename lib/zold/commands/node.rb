@@ -324,8 +324,12 @@ module Zold
         @log.info('Metronome hasn\'t been started because of --no-metronome')
         return metronome
       end
-      require_relative 'routines/spread'
-      metronome.add(Routines::Spread.new(opts, @wallets, @remotes, log: @log))
+      # This was a good idea to spread wallets among other nodes,
+      # but with the growing number of wallets it's obvious that this
+      # doesn't make a lot of sense. We better focus of HungryWallets
+      # implementation, where wallets are being pulled if they are missed.
+      # require_relative 'routines/spread'
+      # metronome.add(Routines::Spread.new(opts, @wallets, @remotes, log: @log))
       unless opts['standalone']
         require_relative 'routines/reconnect'
         metronome.add(Routines::Reconnect.new(opts, @remotes, farm, network: opts['network'], log: @log))
