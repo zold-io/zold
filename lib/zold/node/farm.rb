@@ -67,7 +67,7 @@ module Zold
           trace = t.backtrace || []
           [
             "#{t.name}: status=#{t.status}; alive=#{t.alive?}",
-            'Vars: ' + t.thread_variables.map { |v| "#{v}=\"#{t[v]}\"" }.join('; '),
+            'Vars: ' + t.thread_variables.map { |v| "#{v}=\"#{t.thread_variable_get(v)}\"" }.join('; '),
             "  #{trace.join("\n  ")}"
           ].join("\n")
         end
