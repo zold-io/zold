@@ -24,6 +24,7 @@ require 'time'
 require 'open3'
 require 'backtrace'
 require 'futex'
+require 'json'
 require_relative '../log'
 require_relative '../score'
 require_relative '../age'
@@ -59,16 +60,24 @@ module Zold
     end
 
     def to_text
-      @threads.map do |t|
-        trace = t.backtrace || []
-        "#{t.name}: status=#{t.status}; alive=#{t.alive?};\n  #{trace.join("\n  ")}"
-      end.join("\n")
+      [
+        "Current time: #{Time.now.utc.iso8601}",
+        JSON.pretty_generate(to_json),
+        @threads.map do |t|
+          trace = t.backtrace || []
+          [
+            "#{t.name}: status=#{t.status}; alive=#{t.alive?}",
+            t.thread_variables.map { |v| "#{v}=\"#{t[v]}\"" }.join('; '),
+            "  #{trace.join("\n  ")}"
+          ].join("\n")
+        end.join("\n")
+      ].join("\n\n")
     end
 
     def to_json
       {
         threads: @threads.map do |t|
-          "#{t.name}/#{t.status}/#{t.alive? ? 'A' : 'D'}"
+          "#{t.name}/#{t.status}/#{t.alive? ? 'alive' : 'dead'}"
         end.join(', '),
         cleanup: @cleanup.status,
         pipeline: @pipeline.size,
@@ -177,6 +186,7 @@ module Zold
       return unless s.port == port
       return unless s.strength >= strength
       Thread.current.name = s.to_mnemo
+      Thread.current[:start] = Time.now
       score = @farmer.up(s)
       @log.debug("New score discovered: #{score}")
       save(threads, [score])
