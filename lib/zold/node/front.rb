@@ -129,7 +129,10 @@ while #{settings.address} is in '#{settings.network}'")
       headers[Http::SCORE_HEADER] = score.reduced(16).to_s
       headers['X-Zold-Thread'] = Thread.current.object_id.to_s
       unless @start.nil?
-        settings.log.info("Slow response to #{request.url} in #{Age.new(@start, limit: 1)}") if Time.now - @start > 1
+        if Time.now - @start > 1
+          settings.log.info("Slow response to #{request.request_method} #{request.url} \
+in #{Age.new(@start, limit: 1)}")
+        end
         headers['X-Zold-Milliseconds'] = ((Time.now - @start) * 1000).round.to_s
       end
     end
@@ -191,7 +194,7 @@ while #{settings.address} is in '#{settings.network}'")
         platform: RUBY_PLATFORM,
         load: Cachy.cache(:a_load, expires_in: 5 * 60) { Usagewatch.uw_load.to_f },
         threads: "#{Thread.list.select { |t| t.status == 'run' }.count}/#{Thread.list.count}",
-        wallets: Cachy.cache(:a_wallets, expires_in: 5 * 60) { settings.wallets.all.count },
+        wallets: total_wallets,
         remotes: settings.remotes.all.count,
         nscore: settings.remotes.all.map { |r| r[:score] }.inject(&:+) || 0,
         farm: settings.farm.to_json,
@@ -213,7 +216,7 @@ while #{settings.address} is in '#{settings.network}'")
           protocol: settings.protocol,
           id: wallet.id.to_s,
           score: score.to_h,
-          wallets: Cachy.cache(:a_wallets, expires_in: 5 * 60) { settings.wallets.all.count },
+          wallets: total_wallets,
           mtime: wallet.mtime.utc.iso8601,
           size: File.size(wallet.path),
           digest: wallet.digest,
@@ -235,7 +238,7 @@ while #{settings.address} is in '#{settings.network}'")
           protocol: settings.protocol,
           id: wallet.id.to_s,
           score: score.to_h,
-          wallets: settings.wallets.all.count,
+          wallets: total_wallets,
           key: wallet.key.to_pub,
           mtime: wallet.mtime.utc.iso8601,
           digest: wallet.digest,
@@ -355,7 +358,7 @@ while #{settings.address} is in '#{settings.network}'")
         version: settings.version,
         alias: settings.node_alias,
         score: score.to_h,
-        wallets: settings.wallets.all.count
+        wallets: total_wallets
       )
     end
 
@@ -422,6 +425,10 @@ while #{settings.address} is in '#{settings.network}'")
       header = request.env[name]
       return unless header
       yield header
+    end
+
+    def total_wallets
+      Cachy.cache(:a_wallets, expires_in: 5 * 60) { settings.wallets.all.count }
     end
 
     def score
