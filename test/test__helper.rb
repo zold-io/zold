@@ -24,7 +24,6 @@ gem 'openssl'
 require 'openssl'
 require 'minitest/autorun'
 require 'concurrent'
-require 'moneta'
 
 STDOUT.sync = true
 

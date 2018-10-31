@@ -55,7 +55,6 @@ and suggests a different architecture for digital wallet maintenance.'
   s.rdoc_options = ['--charset=UTF-8']
   s.extra_rdoc_files = ['README.md', 'LICENSE.txt']
   s.add_runtime_dependency 'backtrace', '~>0'
-  s.add_runtime_dependency 'cachy', '~>0'
   s.add_runtime_dependency 'concurrent-ruby', '~>1.0'
   s.add_runtime_dependency 'cucumber', '~>3' # has to stay here for Heroku
   s.add_runtime_dependency 'diffy', '~>3'
@@ -64,7 +63,6 @@ and suggests a different architecture for digital wallet maintenance.'
   s.add_runtime_dependency 'futex', '~>0'
   s.add_runtime_dependency 'get_process_mem', '~>0'
   s.add_runtime_dependency 'json', '~>2'
-  s.add_runtime_dependency 'moneta', '~>1'
   s.add_runtime_dependency 'openssl', '~>2'
   s.add_runtime_dependency 'posix-spawn', '~>0.3'
   s.add_runtime_dependency 'rainbow', '~>3'

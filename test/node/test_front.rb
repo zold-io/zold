@@ -109,6 +109,19 @@ class FrontTest < Minitest::Test
     end
   end
 
+  def test_increments_score
+    FakeNode.new(log: test_log).run(['--threads=1', '--strength=1', '--no-metronome']) do |port|
+      3.times do |i|
+        assert_equal_wait(true) do
+          response = Zold::Http.new(uri: "http://localhost:#{port}/", score: nil).get
+          assert_equal('200', response.code, response.body)
+          score = Zold::Score.parse_json(Zold::JsonPage.new(response.body).to_hash['score'])
+          score.value >= i
+        end
+      end
+    end
+  end
+
   def test_renders_wallet_pages
     FakeHome.new(log: test_log).run do |home|
       FakeNode.new(log: test_log).run(['--ignore-score-weakness', '--standalone']) do |port|
