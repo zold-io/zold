@@ -427,8 +427,12 @@ in #{Age.new(@start, limit: 1)}")
       yield header
     end
 
+    # @todo #513:30min This method is temporarily disabled since it
+    #  takes a lot of time (when the amount of wallets is big, like 40K). However,
+    #  we must find a way to count them somehow faster.
     def total_wallets
-      Cachy.cache(:a_wallets, expires_in: 5 * 60) { settings.wallets.all.count }
+      0
+      # Cachy.cache(:a_wallets, expires_in: 5 * 60) { settings.wallets.all.count }
     end
 
     def score
