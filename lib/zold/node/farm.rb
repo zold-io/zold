@@ -186,7 +186,7 @@ module Zold
       return unless s.port == port
       return unless s.strength >= strength
       Thread.current.name = s.to_mnemo
-      Thread.current.thread_variable_set(:start, Time.now)
+      Thread.current.thread_variable_set(:start, Time.now.to_s)
       score = @farmer.up(s)
       @log.debug("New score discovered: #{score}")
       save(threads, [score])

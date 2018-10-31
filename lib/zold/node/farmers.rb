@@ -51,7 +51,7 @@ module Zold
         bin = File.expand_path(File.join(File.dirname(__FILE__), '../../../bin/zold'))
         raise "Zold binary not found at #{bin}" unless File.exist?(bin)
         Open3.popen2e("ruby #{bin} --skip-upgrades --low-priority next \"#{score}\"") do |stdin, stdout, thr|
-          Thread.current.thread_variable_set(:pid, thr.pid)
+          Thread.current.thread_variable_set(:pid, thr.pid.to_s)
           @log.debug("Scoring started in proc ##{thr.pid} \
 for #{score.value}/#{score.strength} at #{score.host}:#{score.port}")
           begin
@@ -74,7 +74,7 @@ for #{score.value}/#{score.strength} at #{score.host}:#{score.port}")
                 break
               end
               sleep 0.25
-              Thread.current.thread_variable_set(:buffer, buffer.length)
+              Thread.current.thread_variable_set(:buffer, buffer.length.to_s)
             end
             after = Score.parse(buffer.strip)
             @log.debug("Next score #{after.value}/#{after.strength} found in proc ##{thr.pid} \
