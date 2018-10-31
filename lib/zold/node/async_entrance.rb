@@ -74,7 +74,7 @@ module Zold
             loop do
               VerboseThread.new(@log).run(true) { take }
               break if @pool.shuttingdown?
-              sleep Random.rand(100) / 100
+              sleep(1 + Random.rand(100) / 100)
             end
           end
         end
