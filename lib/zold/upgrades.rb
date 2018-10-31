@@ -32,7 +32,7 @@ module Zold
     end
 
     def run
-      Dir.glob("#{@directory}/*.rb").select { |f| f =~ /^(\d+)\.rb$/ }.sort.each do |script|
+      Dir.glob("#{@directory}/*.rb").select { |f| f =~ /\d\.\d\.\d\.rb/ }.sort.each do |script|
         @version.apply(script)
       end
     end

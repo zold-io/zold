@@ -31,11 +31,28 @@ module Zold
       @log = log
     end
 
-    # @todo #285:30min Replace this stub with functionality.
-    #  We need to run the script (`yield`) if the version of
-    #  the script is between the saved version and the current one.
-    def apply(version)
-      @log.info("Version #{version} doesn't need to be applied.")
+    def apply(script)
+      version = extract_version_from_script_name(script)
+      return unless ::Gem::Version.new(version) > current_version
+      code = File.read(script)
+      eval(code)
+    end
+
+    def extract_version_from_script_name(file_name)
+      file_name.scan(/\d\.\d\.\d/).last
+    end
+
+    def current_version
+      return ::Gem::Version.new('0.0.0') unless File.exist?(version_file)
+      @current_version ||= ::Gem::Version.new(current_version_from_version_file)
+    end
+
+    def current_version_from_version_file
+      File.read(version_file).strip
+    end
+
+    def version_file
+      File.join(@path, 'version')
     end
   end
 end

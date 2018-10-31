@@ -31,5 +31,7 @@ Style/MultilineBlockChain:
   Enabled: false
 Layout/MultilineOperationIndentation:
   Enabled: false
+Security/Eval:
+  Enabled: false
 Naming/UncommunicativeMethodParamName:
   MinNameLength: 1
