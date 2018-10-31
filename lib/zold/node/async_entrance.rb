@@ -119,6 +119,7 @@ in #{Age.new(start, limit: 0.05)}")
       opts = queue
       return if opts.empty?
       id = opts[0]
+      Thread.current.thread_variable_set(:wallet, id.to_s)
       body = Futex.new(file(id), log: @log).open do |f|
         b = File.exist?(f) ? IO.read(f) : ''
         FileUtils.rm_f(f)

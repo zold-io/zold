@@ -69,6 +69,7 @@ module Zold
               if @remotes.all.empty?
                 @log.info("There are no remotes, won\'t spread #{id}")
               else
+                Thread.current.thread_variable_set(:wallet, id.to_s)
                 Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
                   ['push', "--ignore-node=#{@address}", id.to_s] +
                   (@ignore_score_weakeness ? ['--ignore-score-weakness'] : [])

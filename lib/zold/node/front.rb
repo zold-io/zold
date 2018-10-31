@@ -83,6 +83,7 @@ module Zold
     use Rack::Deflater
 
     before do
+      Thread.current.thread_variable_set(:uri, request.url)
       @start = Time.now
       if !settings.halt.empty? && params[:halt] && params[:halt] == settings.halt
         settings.log.error('Halt signal received, shutting the front end down...')
@@ -390,6 +391,7 @@ in #{Age.new(@start, limit: 1)}")
         Thread.list.map do |t|
           [
             "#{t.name}: status=#{t.status}; alive=#{t.alive?}",
+            'Vars: ' + t.thread_variables.map { |v| "#{v}=\"#{t.thread_variable_get(v)}\"" }.join('; '),
             t.backtrace.nil? ? 'NO BACKTRACE' : "  #{t.backtrace.join("\n  ")}"
           ].join("\n")
         end
