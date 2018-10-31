@@ -431,14 +431,16 @@ in #{Age.new(@start, limit: 1)}")
     #  takes a lot of time (when the amount of wallets is big, like 40K). However,
     #  we must find a way to count them somehow faster.
     def total_wallets
-      0
-      # Cachy.cache(:a_wallets, expires_in: 5 * 60) { settings.wallets.all.count }
+      return 256 if settings.network == 'zold'
+      settings.wallets.all.count
     end
 
     def score
-      best = Cachy.cache(:a_score, expires_in: 60) { settings.farm.best }
-      raise 'Score is empty, there is something wrong with the Farm!' if best.empty?
-      best[0]
+      Cachy.cache(:a_score, expires_in: 60) do
+        b = settings.farm.best
+        raise 'Score is empty, there is something wrong with the Farm!' if b.empty?
+        b[0]
+      end
     end
 
     def copy_of(id)
