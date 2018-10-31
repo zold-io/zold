@@ -23,6 +23,7 @@
 require 'open3'
 require 'slop'
 require 'backtrace'
+require 'concurrent'
 require_relative '../version'
 require_relative '../age'
 require_relative '../score'
@@ -78,8 +79,8 @@ module Zold
           "The strength of the score (default: #{Score::STRENGTH})",
           default: Score::STRENGTH
         o.integer '--threads',
-          'How many threads to use for scores finding (default: 2)',
-          default: 2
+          "How many threads to use for scores finding (default: #{Concurrent.processor_count})",
+          default: Concurrent.processor_count
         o.bool '--dump-errors',
           'Make HTTP front-end errors visible in the log (false by default)',
           default: false
