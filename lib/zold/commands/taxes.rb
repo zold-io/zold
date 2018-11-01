@@ -115,7 +115,8 @@ Available options:"
       raise 'The wallet is absent' unless wallet.exists?
       tax = Tax.new(wallet)
       debt = tax.debt
-      @log.info("The current debt of #{wallet.id}/#{wallet.txns.count}t is #{debt} (#{debt.to_i} zents)")
+      @log.info("The current debt of #{wallet.id}/#{wallet.txns.count}t is #{debt} (#{debt.to_i} zents), \
+the balance is #{wallet.balance}: #{tax.to_text}")
       unless tax.in_debt?
         @log.debug("No need to pay taxes yet, while the debt is less than #{Tax::TRIAL} (#{Tax::TRIAL.to_i} zents)")
         return
@@ -160,7 +161,7 @@ Available options:"
         r.assert_valid_score(score)
         r.assert_score_strength(score) unless opts['ignore-score-weakness']
         r.assert_score_value(score, Tax::EXACT_SCORE)
-        @log.info("#{r}: #{Rainbow(score.value).green}")
+        @log.info("#{r}: #{Rainbow(score.value).green} to #{score.invoice}")
         best << score
       end
       best.sort_by(&:value).reverse

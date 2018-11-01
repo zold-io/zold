@@ -82,6 +82,14 @@ class TestTax < Minitest::Test
     end
   end
 
+  def test_prints_tax_formula
+    FakeHome.new(log: test_log).run do |home|
+      wallet = home.create_wallet
+      tax = Zold::Tax.new(wallet)
+      assert(!tax.to_text.nil?)
+    end
+  end
+
   def test_takes_tax_payment_into_account
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet

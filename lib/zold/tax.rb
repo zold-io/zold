@@ -76,6 +76,10 @@ module Zold
       debt > Tax::TRIAL
     end
 
+    def to_text
+      "A=#{@wallet.age}, F=#{Tax::FEE_TXN_HOUR}, T=#{@wallet.txns.count}"
+    end
+
     def debt
       txns = @wallet.txns
       scored = txns.map do |t|
