@@ -100,9 +100,7 @@ while #{settings.address} is in '#{settings.network}'")
         end
       end
       check_header(Http::SCORE_HEADER) do |header|
-        if settings.remotes.all.empty?
-          settings.log.debug("#{request.url}: we are in standalone mode, won't update remotes")
-        end
+        settings.log.debug("#{request.url}: we are in standalone mode, won't update remotes") if all_remotes.empty?
         s = Score.parse_text(header)
         error(400, 'The score is invalid') unless s.valid?
         error(400, 'The score is weak') if s.strength < Score::STRENGTH && !settings.ignore_score_weakness
@@ -195,8 +193,8 @@ in #{Age.new(@start, limit: 1)}")
         load: settings.cache.get(:load, lifetime: 5 * 60) { Usagewatch.uw_load.to_f },
         threads: "#{Thread.list.select { |t| t.status == 'run' }.count}/#{Thread.list.count}",
         wallets: total_wallets,
-        remotes: settings.remotes.all.count,
-        nscore: settings.remotes.all.map { |r| r[:score] }.inject(&:+) || 0,
+        remotes: all_remotes.count,
+        nscore: all_remotes.map { |r| r[:score] }.inject(&:+) || 0,
         farm: settings.farm.to_json,
         entrance: settings.entrance.to_json,
         date: Time.now.utc.iso8601,
@@ -368,7 +366,7 @@ in #{Age.new(@start, limit: 1)}")
         version: settings.version,
         alias: settings.node_alias,
         score: score.to_h,
-        all: settings.remotes.all,
+        all: all_remotes,
         mtime: settings.remotes.mtime.utc.iso8601
       )
     end
@@ -436,8 +434,14 @@ in #{Age.new(@start, limit: 1)}")
       settings.wallets.all.count
     end
 
+    def all_remotes
+      settings.cache.get(:remotes, lifetime: settings.network == Wallet::MAIN_NETWORK ? 60 : 0) do
+        settings.remotes.all
+      end
+    end
+
     def score
-      settings.cache.get(:score, lifetime: settings.network == Wallet::MAIN_NETWORK ? 60 : 1) do
+      settings.cache.get(:score, lifetime: settings.network == Wallet::MAIN_NETWORK ? 60 : 0) do
         b = settings.farm.best
         raise 'Score is empty, there is something wrong with the Farm!' if b.empty?
         b[0]

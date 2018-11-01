@@ -32,7 +32,6 @@ require_relative 'age'
 require_relative 'score'
 require_relative 'http'
 require_relative 'node/farm'
-require_relative 'type'
 
 # The list of remotes.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -40,7 +39,7 @@ require_relative 'type'
 # License:: MIT
 module Zold
   # All remotes
-  class Remotes < Dry::Struct
+  class Remotes
     # The default TCP port all nodes are supposed to use.
     PORT = 4096
 
@@ -50,9 +49,8 @@ module Zold
     # Default number of nodes to fetch.
     MAX_NODES = 16
 
-    attribute :file, Types::Strict::String
-    attribute :network, Types::Strict::String.optional.default('test')
-    attribute :timeout, Types::Strict::Integer.optional.default(16)
+    # Default nodes and their ports
+    DEFS = CSV.read(File.expand_path(File.join(File.dirname(__FILE__), '../../resources/remotes')))
 
     # Empty, for standalone mode
     class Empty
@@ -74,22 +72,22 @@ module Zold
     end
 
     # One remote.
-    class Remote < Dry::Struct
-      attribute :host, Types::Strict::String
-      attribute :port, Types::Strict::Integer.constrained(gteq: 0, lt: 65_535)
-      attribute :score, Score
-      attribute :idx, Types::Strict::Integer
-      attribute :network, Types::Strict::String.optional.default('test')
-      attribute :log, (Types::Class.constructor do |value|
-        value.nil? ? Log::Quiet.new : value
-      end)
+    class Remote
+      def initialize(host:, port:, score:, idx:, network: 'test', log: Log::Quiet.new)
+        @host = host
+        @port = port
+        @score = score
+        @idx = idx
+        @network = network
+        @log = log
+      end
 
       def http(path = '/')
-        Http.new(uri: "http://#{host}:#{port}#{path}", score: score, network: network)
+        Http.new(uri: "http://#{@host}:#{@port}#{path}", score: @score, network: @network)
       end
 
       def to_s
-        "#{host}:#{port}/#{idx}"
+        "#{@host}:#{@port}/#{@idx}"
       end
 
       def assert_code(code, response)
@@ -108,8 +106,8 @@ module Zold
       end
 
       def assert_score_ownership(score)
-        raise "Masqueraded host #{host} as #{score.host}: #{score}" if host != score.host
-        raise "Masqueraded port #{port} as #{score.port}: #{score}" if port != score.port
+        raise "Masqueraded host #{@host} as #{score.host}: #{score}" if @host != score.host
+        raise "Masqueraded port #{@port} as #{score.port}: #{score}" if @port != score.port
       end
 
       def assert_score_strength(score)
@@ -119,6 +117,12 @@ module Zold
       def assert_score_value(score, min)
         raise "Score #{score.value} is too small (<#{min}): #{score}" if score.value < min
       end
+    end
+
+    def initialize(file:, network: 'test', timeout: 16)
+      @file = file
+      @network = network
+      @timeout = timeout
     end
 
     def all
@@ -137,9 +141,8 @@ module Zold
     end
 
     def defaults
-      other = Remotes.new(file: File.expand_path(File.join(File.dirname(__FILE__), '../../resources/remotes')))
-      other.all.each do |r|
-        add(r[:host], r[:port])
+      Remotes::DEFS.each do |r|
+        add(r[0], r[1].to_i)
       end
     end
 
@@ -194,12 +197,12 @@ module Zold
               score: score,
               idx: idx,
               log: log,
-              network: network
+              network: @network
             )
-            raise 'Took too long to execute' if (Time.now - start).round > timeout
+            raise 'Took too long to execute' if (Time.now - start).round > @timeout
           rescue StandardError => e
             error(r[:host], r[:port])
-            log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message} in #{Age.new(start)}")
+            log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: \"#{e.message}\" in #{Age.new(start)}")
             log.debug(Backtrace.new(e).to_s)
             remove(r[:host], r[:port]) if errors > Remotes::TOLERANCE
           end
@@ -226,13 +229,17 @@ module Zold
     end
 
     def mtime
-      File.exist?(file) ? File.mtime(file) : Time.now
+      File.exist?(@file) ? File.mtime(@file) : Time.now
+    end
+
+    def default?(host, port)
+      !Remotes::DEFS.find { |r| r[0] == host && r[1].to_i == port }.nil?
     end
 
     private
 
     def modify
-      Futex.new(file).open do
+      Futex.new(@file).open do
         save(yield(load))
       end
     end
@@ -247,13 +254,14 @@ module Zold
     end
 
     def load
-      if File.exist?(file)
-        raw = CSV.read(file).map do |row|
+      if File.exist?(@file)
+        raw = CSV.read(@file).map do |row|
           {
             host: row[0],
             port: row[1].to_i,
             score: row[2].to_i,
-            errors: row[3].to_i
+            errors: row[3].to_i,
+            default: default?(row[0], row[1].to_i)
           }
         end
         raw.reject { |r| !r[:host] || r[:port].zero? }.map do |r|
@@ -266,9 +274,9 @@ module Zold
     end
 
     def save(list)
-      FileUtils.mkdir_p(File.dirname(file))
+      FileUtils.mkdir_p(File.dirname(@file))
       IO.write(
-        file,
+        @file,
         list.uniq { |r| "#{r[:host]}:#{r[:port]}" }.map do |r|
           [
             r[:host],

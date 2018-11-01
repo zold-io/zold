@@ -34,14 +34,14 @@ require_relative '../lib/zold/score'
 class TestHttp < Minitest::Test
   def test_pings_broken_uri
     stub_request(:get, 'http://bad-host/').to_return(status: 500)
-    res = Zold::Http.new(uri: 'http://bad-host/', score: nil).get
+    res = Zold::Http.new(uri: 'http://bad-host/').get
     assert_equal('500', res.code)
     assert_equal('', res.body)
   end
 
   def test_pings_with_exception
     stub_request(:get, 'http://exception/').to_return { raise 'Intentionally' }
-    res = Zold::Http.new(uri: 'http://exception/', score: nil).get
+    res = Zold::Http.new(uri: 'http://exception/').get
     assert_equal('599', res.code)
     assert(res.body.include?('Intentionally'))
     assert(!res.header['nothing'])
@@ -49,7 +49,7 @@ class TestHttp < Minitest::Test
 
   def test_pings_live_uri
     stub_request(:get, 'http://good-host/').to_return(status: 200)
-    res = Zold::Http.new(uri: 'http://good-host/', score: nil).get
+    res = Zold::Http.new(uri: 'http://good-host/').get
     assert_equal('200', res.code)
   end
 
@@ -57,7 +57,7 @@ class TestHttp < Minitest::Test
     stub_request(:get, 'http://some-host-1/')
       .with(headers: { 'X-Zold-Network' => 'xyz' })
       .to_return(status: 200)
-    res = Zold::Http.new(uri: 'http://some-host-1/', score: nil, network: 'xyz').get
+    res = Zold::Http.new(uri: 'http://some-host-1/', network: 'xyz').get
     assert_equal('200', res.code)
   end
 
@@ -65,7 +65,7 @@ class TestHttp < Minitest::Test
     stub_request(:get, 'http://some-host-2/')
       .with(headers: { 'X-Zold-Protocol' => Zold::PROTOCOL })
       .to_return(status: 200)
-    res = Zold::Http.new(uri: 'http://some-host-2/', score: nil).get
+    res = Zold::Http.new(uri: 'http://some-host-2/').get
     assert_equal('200', res.code)
   end
 
@@ -74,7 +74,7 @@ class TestHttp < Minitest::Test
       sleep 100
       { body: 'This should never be returned!' }
     end
-    res = Zold::Http.new(uri: 'http://the-fake-host-99/', score: nil).get
+    res = Zold::Http.new(uri: 'http://the-fake-host-99/').get
     assert_equal('599', res.code)
   end
 
@@ -82,7 +82,7 @@ class TestHttp < Minitest::Test
     stub_request(:get, 'http://some-host-3/')
       .with(headers: { 'X-Zold-Version' => Zold::VERSION })
       .to_return(status: 200)
-    res = Zold::Http.new(uri: 'http://some-host-3/', score: nil).get
-    assert_equal('200', res.code)
+    res = Zold::Http.new(uri: 'http://some-host-3/').get
+    assert_equal('200', res.code, res)
   end
 end

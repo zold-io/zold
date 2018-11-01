@@ -45,6 +45,15 @@ class TestRemotes < Minitest::Test
     end
   end
 
+  def test_finds_defaults
+    Dir.mktmpdir do |dir|
+      file = File.join(dir, 'remotes')
+      FileUtils.touch(file)
+      remotes = Zold::Remotes.new(file: file)
+      assert(remotes.default?('b1.zold.io', 80))
+    end
+  end
+
   def test_reads_broken_file
     Dir.mktmpdir do |dir|
       file = File.join(dir, 'remotes')

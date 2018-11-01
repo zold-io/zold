@@ -26,7 +26,7 @@ require 'timeout'
 require 'net/http'
 require 'backtrace'
 require_relative 'version'
-require_relative 'type'
+require_relative 'score'
 
 # HTTP page.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -34,7 +34,7 @@ require_relative 'type'
 # License:: MIT
 module Zold
   # Http page
-  class Http < Dry::Struct
+  class Http
     # HTTP header we add to each HTTP request, in order to inform
     # the other node about the score. If the score is big enough,
     # the remote node will add us to its list of remote nodes.
@@ -60,23 +60,19 @@ module Zold
     # Connect timeout in seconds
     CONNECT_TIMEOUT = 4
 
-    # @todo #98:30m/DEV The following two statements are seen as issues by rubocop
-    #  raising a Lint/AmbiguousBlockAssociation offense. It is somthing
-    #  that could be solved by changing the TargetRubyVersion in .rubocop.yml
-    #  that is already taken care of in another issue. I am leaving a todo
-    #  to check that rubocop doesn't complain anymore, otherwise find another
-    #  solution
-    attribute :uri, (Types::Class.constructor { |v| v.is_a?(URI) ? v : URI(v) })
-    attribute :score, (Types::Class.constructor { |v| v.nil? ? Score::ZERO : v })
-    attribute :network, Types::Strict::String.optional.default('test')
+    def initialize(uri:, score: Score::ZERO, network: 'test')
+      @uri = uri.is_a?(URI) ? uri : URI(uri)
+      @score = score
+      @network = network
+    end
 
     def get
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = uri.scheme == 'https'
+      http = Net::HTTP.new(@uri.host, @uri.port)
+      http.use_ssl = @uri.scheme == 'https'
       http.read_timeout = Http::READ_TIMEOUT
       http.open_timeout = Http::CONNECT_TIMEOUT
-      path = uri.path
-      path += '?' + uri.query if uri.query
+      path = @uri.path
+      path += '?' + @uri.query if @uri.query
       Timeout.timeout(Http::READ_TIMEOUT + Http::CONNECT_TIMEOUT) do
         http.request_get(path, headers)
       end
@@ -85,12 +81,12 @@ module Zold
     end
 
     def put(body)
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = uri.scheme == 'https'
+      http = Net::HTTP.new(@uri.host, @uri.port)
+      http.use_ssl = @uri.scheme == 'https'
       http.read_timeout = Http::READ_TIMEOUT
       http.open_timeout = Http::CONNECT_TIMEOUT
-      path = uri.path
-      path += '?' + uri.query if uri.query
+      path = @uri.path
+      path += '?' + @uri.query if @uri.query
       Timeout.timeout(Http::READ_TIMEOUT + Http::CONNECT_TIMEOUT) do
         http.request_put(
           path, body,
@@ -141,8 +137,8 @@ module Zold
       }
       headers[Http::VERSION_HEADER] = Zold::VERSION
       headers[Http::PROTOCOL_HEADER] = Zold::PROTOCOL.to_s
-      headers[Http::NETWORK_HEADER] = network
-      headers[Http::SCORE_HEADER] = score.reduced(4).to_text if score.valid? && !score.expired? && score.value > 3
+      headers[Http::NETWORK_HEADER] = @network
+      headers[Http::SCORE_HEADER] = @score.reduced(4).to_text if @score.valid? && !@score.expired? && @score.value > 3
       headers
     end
   end

@@ -22,7 +22,6 @@
 
 require 'openssl'
 require 'time'
-require_relative 'type'
 
 # The score.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -30,21 +29,22 @@ require_relative 'type'
 # License:: MIT
 module Zold
   # Score
-  class Score < Dry::Struct
+  class Score
     # Default strength for the entire system, in production mode.
     STRENGTH = 6
 
-    attribute :time, Types::Strict::Time.optional.default(Time.now)
-    attribute :host, Types::Strict::String.constrained(
-      format: /^[a-z0-9\.-]+$/
-    )
-    attribute :port, Types::Strict::Integer.constrained(gteq: 0, lt: 65_535)
-    attribute :invoice, Types::Strict::String.constrained(
-      format: /^[a-zA-Z0-9]{8,32}@[a-f0-9]{16}$/
-    )
-    attribute :suffixes, Types::Strict::Array.optional.default([])
-    attribute :strength, Types::Strict::Integer.optional.default(STRENGTH)
-    attribute :created, Types::Strict::Time.optional.default(Time.now)
+    attr_reader :time, :host, :port, :invoice, :suffixes, :strength, :created
+
+    def initialize(time: Time.now, host:, port:, invoice:, suffixes: [],
+      strength: Score::STRENGTH, created: Time.now)
+      @time = time
+      @host = host
+      @port = port
+      @invoice = invoice
+      @suffixes = suffixes
+      @strength = strength
+      @created = created
+    end
 
     # The default no-value score.
     ZERO = Score.new(time: Time.now, host: 'localhost', port: 80, invoice: 'NOPREFIX@ffffffffffffffff')
@@ -96,61 +96,62 @@ module Zold
     end
 
     def hash
-      raise 'Score has zero value, there is no hash' if suffixes.empty?
-      suffixes.reduce(prefix) do |pfx, suffix|
+      raise 'Score has zero value, there is no hash' if @suffixes.empty?
+      @suffixes.reduce(prefix) do |pfx, suffix|
         OpenSSL::Digest::SHA256.new("#{pfx} #{suffix}").hexdigest
       end
     end
 
     def to_mnemo
-      "#{value}:#{time.strftime('%H%M')}"
+      "#{value}:#{@time.strftime('%H%M')}"
     end
 
     def to_text
-      pfx, bnf = invoice.split('@')
+      pfx, bnf = @invoice.split('@')
       [
-        strength,
-        time.to_i.to_s(16),
-        host,
-        port.to_s(16),
+        @strength,
+        @time.to_i.to_s(16),
+        @host,
+        @port.to_s(16),
         pfx,
         bnf,
-        suffixes.join(' ')
+        @suffixes.join(' ')
       ].join(' ')
     end
 
     def to_s
       [
-        "#{value}/#{strength}:",
-        time.utc.iso8601,
-        host,
-        port,
-        invoice,
-        suffixes.join(' ')
+        "#{value}/#{@strength}:",
+        @time.utc.iso8601,
+        @host,
+        @port,
+        @invoice,
+        @suffixes.join(' ')
       ].join(' ').strip
     end
 
     def to_h
       {
         value: value,
-        host: host,
-        port: port,
-        invoice: invoice,
-        time: time.utc.iso8601,
-        suffixes: suffixes,
-        strength: strength,
+        host: @host,
+        port: @port,
+        invoice: @invoice,
+        time: @time.utc.iso8601,
+        suffixes: @suffixes,
+        strength: @strength,
         hash: value.zero? ? nil : hash,
         expired: expired?,
         valid: valid?,
         age: (age / 60).round,
-        created: created.utc.iso8601
+        created: @created.utc.iso8601
       }
     end
 
     def reduced(max = 4)
       Score.new(
-        time: time, host: host, port: port, invoice: invoice,
-        suffixes: suffixes[0..[max, suffixes.count].min - 1], strength: strength, created: nil
+        time: @time, host: @host, port: @port, invoice: @invoice,
+        suffixes: @suffixes[0..[max, suffixes.count].min - 1],
+        strength: @strength
       )
     end
 
@@ -160,14 +161,15 @@ module Zold
       loop do
         suffix = idx.to_s(16)
         score = Score.new(
-          time: time, host: host, port: port, invoice: invoice, suffixes: suffixes + [suffix],
-          strength: strength
+          time: @time, host: @host, port: @port,
+          invoice: @invoice, suffixes: @suffixes + [suffix],
+          strength: @strength
         )
         return score if score.valid?
         if score.expired?
           return Score.new(
-            time: Time.now, host: host, port: port, invoice: invoice,
-            suffixes: [], strength: strength
+            time: Time.now, host: @host, port: @port, invoice: @invoice,
+            suffixes: [], strength: @strength
           )
         end
         idx += 1
@@ -175,7 +177,7 @@ module Zold
     end
 
     def age
-      Time.now - time
+      Time.now - @time
     end
 
     def expired?(hours = 24)
@@ -183,15 +185,15 @@ module Zold
     end
 
     def prefix
-      "#{time.utc.iso8601} #{host} #{port} #{invoice}"
+      "#{@time.utc.iso8601} #{@host} #{@port} #{@invoice}"
     end
 
     def valid?
-      suffixes.empty? || hash.end_with?('0' * strength)
+      @suffixes.empty? || hash.end_with?('0' * @strength)
     end
 
     def value
-      suffixes.length
+      @suffixes.length
     end
 
     def zero?
