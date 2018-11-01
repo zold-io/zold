@@ -70,6 +70,10 @@ module Zold
       id.to_s
     end
 
+    def to_text
+      (@head.fetch + [''] + @txns.fetch.map(&:to_text)).join("\n")
+    end
+
     def network
       n = @head.fetch[0].strip
       raise "Invalid network name '#{n}'" unless n =~ /^[a-z]{4,16}$/

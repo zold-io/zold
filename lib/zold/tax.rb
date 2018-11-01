@@ -33,11 +33,14 @@ require_relative 'amount'
 module Zold
   # A single tax payment
   class Tax
-    # The exact score a wallet can buy in order to pay taxes.
+    # The exact score a wallet can/must buy in order to pay taxes.
     EXACT_SCORE = 8
 
     # The maximum allowed amount in one transaction.
-    MAX_PAYMENT = Amount.new(zld: 1.0)
+    # The correct amount should be 1 ZLD, but we allow bigger amounts
+    # now since the amount of nodes in the network is still small. When
+    # the network grows up, let's put this number back to 1 ZLD.
+    MAX_PAYMENT = Amount.new(zld: 16.0)
 
     # This is how much we charge per one transaction per hour
     # of storage. A wallet of 4096 transactions will pay
@@ -47,9 +50,6 @@ module Zold
     # The maximum debt we can tolerate at the wallet. If the debt
     # is bigger than this threshold, nodes must stop accepting PUSH.
     TRIAL = Amount.new(zld: 1.0)
-
-    # For how many days to pay at once.
-    DAYS_INCREMENT = 64
 
     # Text prefix for taxes details
     PREFIX = 'TAXES'

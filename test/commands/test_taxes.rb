@@ -41,11 +41,12 @@ class TestTaxes < Minitest::Test
     FakeHome.new(log: test_log).run do |home|
       wallets = home.wallets
       wallet = home.create_wallet
+      fund = Zold::Amount.new(zld: 19.99)
       wallet.add(
         Zold::Txn.new(
           1,
           Time.now - 24 * 60 * 60 * 365 * 300,
-          Zold::Amount.new(zld: 19.99),
+          fund,
           'NOPREFIX', Zold::Id.new, '-'
         )
       )
@@ -62,12 +63,12 @@ class TestTaxes < Minitest::Test
       Zold::Taxes.new(wallets: wallets, remotes: remotes, log: test_log).run(
         ['taxes', '--private-key=fixtures/id_rsa', '--ignore-score-weakness', 'pay', wallet.id.to_s]
       )
-      assert_equal(Zold::Amount.new(coins: 81_561_428_951), wallet.balance)
+      assert_equal(fund - Zold::Tax::MAX_PAYMENT, wallet.balance)
       wallet.add(
         Zold::Txn.new(
           2,
           Time.now - 24 * 60 * 60 * 365 * 300,
-          Zold::Amount.new(zld: 19.99),
+          fund,
           'NOPREFIX', Zold::Id.new, '-'
         )
       )
@@ -77,7 +78,7 @@ class TestTaxes < Minitest::Test
           '--ignore-nodes-absence', 'pay', wallet.id.to_s
         ]
       )
-      assert_equal(Zold::Amount.new(coins: 167_417_825_198), wallet.balance)
+      assert_equal(fund + fund - Zold::Tax::MAX_PAYMENT, wallet.balance)
     end
   end
 end
