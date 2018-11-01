@@ -31,6 +31,7 @@ require 'diffy'
 require 'usagewatch_ext'
 require 'concurrent'
 require 'backtrace'
+require 'zache'
 require_relative '../version'
 require_relative '../size'
 require_relative '../wallet'
@@ -39,7 +40,6 @@ require_relative '../copies'
 require_relative '../log'
 require_relative '../id'
 require_relative '../http'
-require_relative '../cache'
 
 # The web front of the node.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -77,7 +77,7 @@ module Zold
       set :remotes, nil? # to be injected at node.rb
       set :copies, nil? # to be injected at node.rb
       set :node_alias, nil? # to be injected at node.rb
-      set :cache, Cache.new
+      set :zache, Zache.new
     end
     use Rack::Deflater
 
@@ -187,10 +187,10 @@ in #{Age.new(@start, limit: 1)}")
         protocol: settings.protocol,
         score: score.to_h,
         pid: Process.pid,
-        cpus: settings.cache.get(:cpus) { Concurrent.processor_count },
+        cpus: settings.zache.get(:cpus) { Concurrent.processor_count },
         memory: GetProcessMem.new.bytes.to_i,
         platform: RUBY_PLATFORM,
-        load: settings.cache.get(:load, lifetime: 5 * 60) { Usagewatch.uw_load.to_f },
+        load: settings.zache.get(:load, lifetime: 5 * 60) { Usagewatch.uw_load.to_f },
         threads: "#{Thread.list.select { |t| t.status == 'run' }.count}/#{Thread.list.count}",
         wallets: total_wallets,
         remotes: all_remotes.count,
@@ -435,13 +435,13 @@ in #{Age.new(@start, limit: 1)}")
     end
 
     def all_remotes
-      settings.cache.get(:remotes, lifetime: settings.network == Wallet::MAIN_NETWORK ? 60 : 0) do
+      settings.zache.get(:remotes, lifetime: settings.network == Wallet::MAIN_NETWORK ? 60 : 0) do
         settings.remotes.all
       end
     end
 
     def score
-      settings.cache.get(:score, lifetime: settings.network == Wallet::MAIN_NETWORK ? 60 : 0) do
+      settings.zache.get(:score, lifetime: settings.network == Wallet::MAIN_NETWORK ? 60 : 0) do
         b = settings.farm.best
         raise 'Score is empty, there is something wrong with the Farm!' if b.empty?
         b[0]
