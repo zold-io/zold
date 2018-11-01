@@ -40,7 +40,7 @@ module Zold
     # The correct amount should be 1 ZLD, but we allow bigger amounts
     # now since the amount of nodes in the network is still small. When
     # the network grows up, let's put this number back to 1 ZLD.
-    MAX_PAYMENT = Amount.new(zld: 16.0)
+    MAX_PAYMENT = Amount.new(zld: 64.0)
 
     # This is how much we charge per one transaction per hour
     # of storage. A wallet of 4096 transactions will pay
