@@ -29,11 +29,13 @@ require 'time'
 require_relative 'args'
 require_relative '../node/farm'
 require_relative '../log'
+require_relative '../age'
 require_relative '../json_page'
 require_relative '../http'
 require_relative '../remotes'
 require_relative '../score'
 require_relative '../wallet'
+require_relative '../gem'
 
 # REMOTE command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -58,6 +60,8 @@ Available commands:
       Remove all registered remote nodes
     #{Rainbow('remote reset').green}
       Restore it back to the default list of nodes
+    #{Rainbow('remote defaults').green}
+      Add all default nodes to the list
     #{Rainbow('remote add').green} host [port]
       Add a new remote node
     #{Rainbow('remote remove').green} host [port]
@@ -123,6 +127,8 @@ Available options:"
         clean
       when 'reset'
         reset
+      when 'defaults'
+        defaults
       when 'add'
         add(mine[1], mine[2] ? mine[2].to_i : Remotes::PORT, opts)
       when 'remove'
@@ -156,8 +162,13 @@ Available options:"
     end
 
     def reset
-      @remotes.reset
-      @log.debug("Remote nodes set back to default, #{@remotes.all.count} total")
+      clean
+      defaults
+    end
+
+    def defaults
+      @remotes.defaults
+      @log.debug("Default remote nodes were added to the list, #{@remotes.all.count} total")
     end
 
     def add(host, port, opts)
@@ -182,9 +193,10 @@ Available options:"
     def elect(opts)
       scores = []
       @remotes.iterate(@log, farm: @farm) do |r|
-        res = r.http('/').get
+        uri = '/'
+        res = r.http(uri).get
         r.assert_code(200, res)
-        json = JsonPage.new(res.body).to_hash
+        json = JsonPage.new(res.body, uri).to_hash
         score = Score.parse_json(json['score'])
         r.assert_valid_score(score)
         r.assert_score_ownership(score)
@@ -215,15 +227,18 @@ Available options:"
       capacity = []
       @remotes.iterate(@log, farm: @farm) do |r|
         start = Time.now
-        res = r.http('/remotes').get
+        uri = '/remotes'
+        res = r.http(uri).get
         r.assert_code(200, res)
-        json = JsonPage.new(res.body).to_hash
+        json = JsonPage.new(res.body, uri).to_hash
         score = Score.parse_json(json['score'])
         r.assert_valid_score(score)
         r.assert_score_ownership(score)
         r.assert_score_strength(score) unless opts['ignore-score-weakness']
         @remotes.rescore(score.host, score.port, score.value)
-        if Semantic::Version.new(VERSION) < Semantic::Version.new(json['version'])
+        gem = Zold::Gem.new
+        if Semantic::Version.new(VERSION) < Semantic::Version.new(json['version']) ||
+           Semantic::Version.new(VERSION) < Semantic::Version.new(gem.last_version)
           if opts['reboot']
             @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, reboot! \
 (use --never-reboot to avoid this from happening)")
@@ -239,8 +254,7 @@ it's recommended to reboot, but I don't do it because of --never-reboot")
           end
         end
         capacity << { host: score.host, port: score.port, count: json['all'].count }
-        @log.info("#{r}: the score is #{Rainbow(score.value).green} (#{json['version']}) \
-in #{(Time.now - start).round(2)}s")
+        @log.info("#{r}: the score is #{Rainbow(score.value).green} (#{json['version']}) in #{Age.new(start)}")
       end
       max_capacity = capacity.map { |c| c[:count] }.max || 0
       capacity.each do |c|

@@ -11,7 +11,7 @@ class TestAlias < Minitest::Test
   #  The syntax is already documented in the alias command in the help.
   def test_set_writes_alias_to_the_alias_file
     skip
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       Zold::Alias.new(wallets: home.wallets, log: test_log).run(%W[set #{wallet.id} my-alias])
       assert_equal read_alias_file(home), %W[my-alias #{wallet.id}]
@@ -23,7 +23,7 @@ class TestAlias < Minitest::Test
   #  The syntax is already documented in the alias command in the help.
   def test_remove_removes_the_alias_from_the_alias_file
     skip
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       cmd = Zold::Alias.new(wallets: home.wallets, log: test_log)
       cmd.run(%W[set #{wallet.id} my-alias])
@@ -38,7 +38,7 @@ class TestAlias < Minitest::Test
   #  The syntax is already documented in the alias command in the help.
   def test_show_prints_out_the_aliased_wallet_id
     skip
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       cmd = Zold::Alias.new(wallets: home.wallets, log: test_log)
       cmd.run(%W[set #{wallet.id} my-alias])
@@ -51,6 +51,6 @@ class TestAlias < Minitest::Test
   private
 
   def read_alias_file(home)
-    File.read(File.join(home.dir, 'aliases')).split(' ')
+    IO.read(File.join(home.dir, 'aliases')).split(' ')
   end
 end

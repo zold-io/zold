@@ -40,14 +40,14 @@ After do
 end
 
 When(%r{^I run ([a-z/-]+) with "([^"]*)"$}) do |cmd, args|
-  home = File.join(File.dirname(__FILE__), '../..')
+  home = File.expand_path(File.join(File.dirname(__FILE__), '../..'))
   @stdout = `ruby -I#{home}/lib #{home}/#{cmd} #{args} 2>&1`
   @exitstatus = $CHILD_STATUS.exitstatus
 end
 
 When(/^I run bash with:$/) do |text|
   FileUtils.copy_entry(@cwd, File.join(@dir, 'zold'))
-  File.write('run.sh', text)
+  IO.write('run.sh', text)
   @stdout = `/bin/bash run.sh 2>&1`
   @exitstatus = $CHILD_STATUS.exitstatus
 end

@@ -44,14 +44,16 @@ Available options:"
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
-      mine = @wallets.all if mine.empty?
-      mine.map { |i| Id.new(i) }.each do |id|
+      (mine.empty? ? @wallets.all : mine.map { |i| Id.new(i) }).each do |id|
         remove(id, opts)
       end
     end
 
     def remove(id, _)
-      @wallets.find(id) { |w| File.delete(w.path) }
+      @wallets.find(id) do |w|
+        raise "Wallet #{id} doesn't exist in #{w.path}" unless w.exists?
+        File.delete(w.path)
+      end
       @log.info("Wallet #{id} removed")
     end
   end

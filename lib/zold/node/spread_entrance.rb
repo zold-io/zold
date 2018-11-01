@@ -40,19 +40,13 @@ module Zold
   # The entrance
   class SpreadEntrance
     def initialize(entrance, wallets, remotes, address, log: Log::Quiet.new, ignore_score_weakeness: false)
-      raise 'Entrance can\'t be nil' if entrance.nil?
       @entrance = entrance
-      raise 'Wallets can\'t be nil' if wallets.nil?
-      raise 'Wallets must implement the contract of Wallets: method #find is required' unless wallets.respond_to?(:find)
       @wallets = wallets
-      raise 'Remotes can\'t be nil' if remotes.nil?
-      raise 'Remotes must be of type Remotes' unless remotes.is_a?(Remotes)
       @remotes = remotes
-      raise 'Address can\'t be nil' if address.nil?
       @address = address
-      raise 'Log can\'t be nil' if log.nil?
       @log = log
       @ignore_score_weakeness = ignore_score_weakeness
+      @mutex = Mutex.new
     end
 
     def to_json
@@ -75,12 +69,13 @@ module Zold
               if @remotes.all.empty?
                 @log.info("There are no remotes, won\'t spread #{id}")
               else
+                Thread.current.thread_variable_set(:wallet, id.to_s)
                 Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
                   ['push', "--ignore-node=#{@address}", id.to_s] +
                   (@ignore_score_weakeness ? ['--ignore-score-weakness'] : [])
                 )
               end
-              @seen.delete(id)
+              @mutex.synchronize { @seen.delete(id) }
             end
           end
         end
@@ -95,13 +90,15 @@ module Zold
       end
     end
 
+    # This method is thread-safe
     def push(id, body)
       mods = @entrance.push(id, body)
+      return mods if @remotes.all.empty?
       (mods + [id]).each do |m|
         next if @seen.include?(m)
-        @seen << m
+        @mutex.synchronize { @seen << m }
         @modified.push(m)
-        @log.debug("Push scheduled for #{m}, queue size is #{@modified.size}")
+        @log.debug("Spread-push scheduled for #{m}, queue size is #{@modified.size}")
       end
       mods
     end

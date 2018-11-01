@@ -34,7 +34,7 @@ module Zold
 
     def exec
       Dir.new(@home).each do |path|
-        next unless path =~ /^[a-f0-9]{16}#{Wallet::EXTENSION}$/
+        next unless path =~ /^[a-f0-9]{16}#{Wallet::EXT}$/
         f = File.join(@home, path)
         wallet = Wallet.new(f)
         next if wallet.network == @network

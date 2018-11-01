@@ -25,12 +25,13 @@ require 'csv'
 require 'uri'
 require 'net/http'
 require 'time'
+require 'futex'
 require 'fileutils'
-require_relative 'backtrace'
+require 'backtrace'
+require_relative 'age'
 require_relative 'score'
 require_relative 'http'
 require_relative 'node/farm'
-require_relative 'atomic_file'
 require_relative 'type'
 
 # The list of remotes.
@@ -39,7 +40,7 @@ require_relative 'type'
 # License:: MIT
 module Zold
   # All remotes
-  class Remotes
+  class Remotes < Dry::Struct
     # The default TCP port all nodes are supposed to use.
     PORT = 4096
 
@@ -49,8 +50,16 @@ module Zold
     # Default number of nodes to fetch.
     MAX_NODES = 16
 
+    attribute :file, Types::Strict::String
+    attribute :network, Types::Strict::String.optional.default('test')
+    attribute :timeout, Types::Strict::Integer.optional.default(16)
+
     # Empty, for standalone mode
-    class Empty < Remotes
+    class Empty
+      def initialize
+        # Nothing to init here
+      end
+
       def all
         []
       end
@@ -58,13 +67,17 @@ module Zold
       def iterate(_)
         # Nothing to do here
       end
+
+      def mtime
+        Time.now
+      end
     end
 
     # One remote.
     class Remote < Dry::Struct
       attribute :host, Types::Strict::String
       attribute :port, Types::Strict::Integer.constrained(gteq: 0, lt: 65_535)
-      attribute :score, Object
+      attribute :score, Score
       attribute :idx, Types::Strict::Integer
       attribute :network, Types::Strict::String.optional.default('test')
       attribute :log, (Types::Class.constructor do |value|
@@ -82,14 +95,16 @@ module Zold
       def assert_code(code, response)
         msg = response.message.strip
         return if response.code.to_i == code
-        raise "#{response.code}/#{response.header['X-Zold-Error']}" if response.header['X-Zold-Error']
+        if response.header['X-Zold-Error']
+          raise "Error ##{response.code} \"#{response.header['X-Zold-Error']}\" at #{response.header['X-Zold-Path']}"
+        end
         raise "Unexpected HTTP code #{response.code}, instead of #{code}" if msg.empty?
         raise "#{msg} (HTTP code #{response.code}, instead of #{code})"
       end
 
       def assert_valid_score(score)
         raise "Invalid score #{score}" unless score.valid?
-        raise "Expired score #{score}" if score.expired?
+        raise "Expired score (#{Age.new(score.time)}) #{score}" if score.expired?
       end
 
       def assert_score_ownership(score)
@@ -102,40 +117,30 @@ module Zold
       end
 
       def assert_score_value(score, min)
-        raise "Score is too small (<#{min}): #{score}" if score.value < min
+        raise "Score #{score.value} is too small (<#{min}): #{score}" if score.value < min
       end
-    end
-
-    def initialize(file:, network: 'test', mutex: Mutex.new, timeout: 16)
-      @file = file
-      @network = network
-      @mutex = mutex
-      @timeout = timeout
     end
 
     def all
-      @mutex.synchronize do
-        list = load
-        max_score = list.map { |r| r[:score] }.max || 0
-        max_score = 1 if max_score.zero?
-        max_errors = list.map { |r| r[:errors] }.max || 0
-        max_errors = 1 if max_errors.zero?
-        list.sort_by do |r|
-          (1 - r[:errors] / max_errors) * 5 + (r[:score] / max_score)
-        end.reverse
-      end
+      list = load
+      max_score = list.map { |r| r[:score] }.max || 0
+      max_score = 1 if max_score.zero?
+      max_errors = list.map { |r| r[:errors] }.max || 0
+      max_errors = 1 if max_errors.zero?
+      list.sort_by do |r|
+        (1 - r[:errors] / max_errors) * 5 + (r[:score] / max_score)
+      end.reverse
     end
 
     def clean
       modify { [] }
     end
 
-    def reset
-      FileUtils.mkdir_p(File.dirname(@file))
-      FileUtils.copy(
-        File.join(File.dirname(__FILE__), '../../resources/remotes'),
-        @file
-      )
+    def defaults
+      other = Remotes.new(file: File.expand_path(File.join(File.dirname(__FILE__), '../../resources/remotes')))
+      other.all.each do |r|
+        add(r[:host], r[:port])
+      end
     end
 
     def exists?(host, port = Remotes::PORT)
@@ -154,7 +159,7 @@ module Zold
       raise 'Port can\'t be negative' if port.negative?
       raise 'Port can\'t be over 65536' if port > 0xffff
       modify do |list|
-        list + [{ host: host.downcase, port: port, score: 0 }]
+        list + [{ host: host.downcase, port: port, score: 0, errors: 0 }]
       end
     end
 
@@ -180,7 +185,7 @@ module Zold
       list.each do |r|
         pool.post do
           Thread.current.abort_on_exception = true
-          Thread.current.name = "remotes@#{r[:host]}:#{r[:port]}"
+          Thread.current.name = "remotes-#{idx}@#{r[:host]}:#{r[:port]}"
           start = Time.now
           begin
             yield Remotes::Remote.new(
@@ -189,18 +194,17 @@ module Zold
               score: score,
               idx: idx,
               log: log,
-              network: @network
+              network: network
             )
-            idx += 1
-            raise 'Took too long to execute' if (Time.now - start).round > @timeout
+            raise 'Took too long to execute' if (Time.now - start).round > timeout
           rescue StandardError => e
             error(r[:host], r[:port])
-            log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message} \
-in #{(Time.now - start).round}s")
+            log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message} in #{Age.new(start)}")
             log.debug(Backtrace.new(e).to_s)
             remove(r[:host], r[:port]) if errors > Remotes::TOLERANCE
           end
         end
+        idx += 1
       end
       pool.shutdown
       pool.kill unless pool.wait_for_termination(5 * 60)
@@ -221,10 +225,14 @@ in #{(Time.now - start).round}s")
       if_present(host, port) { |r| r[:score] = score }
     end
 
+    def mtime
+      File.exist?(file) ? File.mtime(file) : Time.now
+    end
+
     private
 
     def modify
-      @mutex.synchronize do
+      Futex.new(file).open do
         save(yield(load))
       end
     end
@@ -239,23 +247,28 @@ in #{(Time.now - start).round}s")
     end
 
     def load
-      reset unless File.exist?(@file)
-      raw = CSV.read(@file).map do |r|
-        {
-          host: r[0],
-          port: r[1].to_i,
-          score: r[2].to_i,
-          errors: r[3].to_i
-        }
-      end
-      raw.reject { |r| !r[:host] || r[:port].zero? }.map do |r|
-        r[:home] = URI("http://#{r[:host]}:#{r[:port]}/")
-        r
+      if File.exist?(file)
+        raw = CSV.read(file).map do |row|
+          {
+            host: row[0],
+            port: row[1].to_i,
+            score: row[2].to_i,
+            errors: row[3].to_i
+          }
+        end
+        raw.reject { |r| !r[:host] || r[:port].zero? }.map do |r|
+          r[:home] = URI("http://#{r[:host]}:#{r[:port]}/")
+          r
+        end
+      else
+        []
       end
     end
 
     def save(list)
-      AtomicFile.new(@file).write(
+      FileUtils.mkdir_p(File.dirname(file))
+      IO.write(
+        file,
         list.uniq { |r| "#{r[:host]}:#{r[:port]}" }.map do |r|
           [
             r[:host],

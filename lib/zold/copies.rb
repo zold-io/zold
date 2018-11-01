@@ -22,10 +22,12 @@
 
 require 'time'
 require 'csv'
-require_relative 'atomic_file'
+require 'futex'
+require 'backtrace'
 require_relative 'log'
+require_relative 'size'
 require_relative 'wallet'
-require_relative 'backtrace'
+require_relative 'dir_items'
 
 # The list of copies.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -38,15 +40,12 @@ module Zold
     EXT = '.zc'
 
     def initialize(dir, log: Log::Quiet.new)
-      raise 'Dir can\'t be nil' if dir.nil?
       @dir = dir
-      raise 'Log can\'t be nil' if log.nil?
       @log = log
-      @mutex = Mutex.new
     end
 
     def root
-      File.join(@dir, '..')
+      File.expand_path(File.join(@dir, '..'))
     end
 
     def to_s
@@ -54,7 +53,7 @@ module Zold
     end
 
     def clean
-      @mutex.synchronize do
+      Futex.new(file, log: @log).open do
         list = load
         list.reject! { |s| s[:time] < Time.now - 24 * 60 * 60 }
         save(list)
@@ -64,7 +63,7 @@ module Zold
           file = File.join(@dir, f)
           size = File.size(file)
           File.delete(file)
-          @log.debug("Copy at #{f} deleted: #{size}b")
+          @log.debug("Copy at #{f} deleted: #{Size.new(size)}")
           deleted += 1
         end
         files.each do |f|
@@ -74,7 +73,7 @@ module Zold
             wallet.refurbish
             raise "Invalid protocol #{wallet.protocol} in #{file}" unless wallet.protocol == Zold::PROTOCOL
           rescue StandardError => e
-            File.delete(file)
+            FileUtils.rm_rf(file)
             @log.debug("Copy at #{f} deleted: #{Backtrace.new(e)}")
             deleted += 1
           end
@@ -84,7 +83,7 @@ module Zold
     end
 
     def remove(host, port)
-      @mutex.synchronize do
+      Futex.new(file, log: @log).open do
         save(load.reject { |s| s[:host] == host && s[:port] == port })
       end
     end
@@ -98,21 +97,21 @@ module Zold
       raise "Time must be in the past: #{time}" if time > Time.now
       raise 'Score must be Integer' unless score.is_a?(Integer)
       raise "Score can't be negative: #{score}" if score.negative?
-      @mutex.synchronize do
+      Futex.new(file, log: @log).open do
         FileUtils.mkdir_p(@dir)
         list = load
         target = list.find do |s|
           f = File.join(@dir, "#{s[:name]}#{Copies::EXT}")
-          File.exist?(f) && AtomicFile.new(f).read == content
+          File.exist?(f) && IO.read(f) == content
         end
         if target.nil?
-          max = Dir.new(@dir)
+          max = DirItems.new(@dir).fetch
             .select { |f| File.basename(f, Copies::EXT) =~ /^[0-9]+$/ }
             .map(&:to_i)
             .max
           max = 0 if max.nil?
           name = (max + 1).to_s
-          AtomicFile.new(File.join(@dir, "#{name}#{Copies::EXT}")).write(content)
+          IO.write(File.join(@dir, "#{name}#{Copies::EXT}"), content)
         else
           name = target[:name]
         end
@@ -130,7 +129,7 @@ module Zold
     end
 
     def all
-      @mutex.synchronize do
+      Futex.new(file, log: @log).open do
         load.group_by { |s| s[:name] }.map do |name, scores|
           {
             name: name,
@@ -160,7 +159,8 @@ module Zold
     private
 
     def save(list)
-      AtomicFile.new(file).write(
+      IO.write(
+        file,
         list.map do |r|
           [
             r[:name], r[:host],
@@ -172,7 +172,7 @@ module Zold
     end
 
     def files
-      Dir.new(@dir).select { |f| File.basename(f, Copies::EXT) =~ /^[0-9]+$/ }
+      DirItems.new(@dir).fetch.select { |f| File.basename(f, Copies::EXT) =~ /^[0-9]+$/ }
     end
 
     def file

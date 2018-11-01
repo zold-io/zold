@@ -25,6 +25,7 @@ require_relative '../log'
 require_relative '../remotes'
 require_relative '../copies'
 require_relative '../tax'
+require_relative '../age'
 require_relative '../commands/clean'
 require_relative '../commands/merge'
 require_relative '../commands/fetch'
@@ -38,19 +39,11 @@ module Zold
   # The entrance
   class Entrance
     def initialize(wallets, remotes, copies, address, log: Log::Quiet.new, network: 'test')
-      raise 'Wallets can\'t be nil' if wallets.nil?
-      raise 'Wallets must implement the contract of Wallets: method #find is required' unless wallets.respond_to?(:find)
       @wallets = wallets
-      raise 'Remotes can\'t be nil' if remotes.nil?
-      raise "Remotes must be of type Remotes: #{remotes.class.name}" unless remotes.is_a?(Remotes)
       @remotes = remotes
-      raise 'Copies can\'t be nil' if copies.nil?
       @copies = copies
-      raise 'Address can\'t be nil' if address.nil?
       @address = address
-      raise 'Log can\'t be nil' if log.nil?
       @log = log
-      raise 'Network can\'t be nil' if network.nil?
       @network = network
       @history = []
       @speed = []
@@ -88,12 +81,12 @@ module Zold
       ).run(['merge', id.to_s])
       Clean.new(wallets: @wallets, copies: copies.root, log: @log).run(['clean', id.to_s])
       copies.remove(localhost, Remotes::PORT)
-      sec = (Time.now - start).round(2)
       if modified.empty?
-        @log.info("Accepted #{id} in #{sec}s and not modified anything")
+        @log.info("Accepted #{id} in #{Age.new(start, limit: 1)} and not modified anything")
       else
-        @log.info("Accepted #{id} in #{sec}s and modified #{modified.join(', ')}")
+        @log.info("Accepted #{id} in #{Age.new(start, limit: 1)} and modified #{modified.join(', ')}")
       end
+      sec = (Time.now - start).round(2)
       @mutex.synchronize do
         @history.shift if @history.length >= 16
         @speed.shift if @speed.length >= 64

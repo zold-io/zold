@@ -22,6 +22,7 @@
 
 require_relative 'key'
 require_relative 'id'
+require_relative 'wallet'
 require_relative 'amount'
 
 # Tax transaction.
@@ -32,11 +33,14 @@ require_relative 'amount'
 module Zold
   # A single tax payment
   class Tax
-    # The exact score a wallet can buy in order to pay taxes.
+    # The exact score a wallet can/must buy in order to pay taxes.
     EXACT_SCORE = 8
 
     # The maximum allowed amount in one transaction.
-    MAX_PAYMENT = Amount.new(zld: 1.0)
+    # The correct amount should be 1 ZLD, but we allow bigger amounts
+    # now since the amount of nodes in the network is still small. When
+    # the network grows up, let's put this number back to 1 ZLD.
+    MAX_PAYMENT = Amount.new(zld: 16.0)
 
     # This is how much we charge per one transaction per hour
     # of storage. A wallet of 4096 transactions will pay
@@ -47,19 +51,17 @@ module Zold
     # is bigger than this threshold, nodes must stop accepting PUSH.
     TRIAL = Amount.new(zld: 1.0)
 
-    # For how many days to pay at once.
-    DAYS_INCREMENT = 64
-
     # Text prefix for taxes details
     PREFIX = 'TAXES'
 
     def initialize(wallet)
+      raise "The wallet must be of type Wallet: #{wallet.class.name}" unless wallet.is_a?(Wallet)
       @wallet = wallet
     end
 
     # Check whether this tax payment already exists in the wallet.
-    def exists?(txn)
-      !@wallet.txns.find { |t| t.details.start_with?("#{Tax::PREFIX} ") && t.details == txn.details }.nil?
+    def exists?(details)
+      !@wallet.txns.find { |t| t.details.start_with?("#{Tax::PREFIX} ") && t.details == details }.nil?
     end
 
     def details(best)
@@ -67,8 +69,7 @@ module Zold
     end
 
     def pay(pvt, best)
-      fee = Tax::FEE_TXN_HOUR * @wallet.txns.count * Tax::DAYS_INCREMENT * 24
-      @wallet.sub(fee, best.invoice, pvt, details(best))
+      @wallet.sub(Tax::MAX_PAYMENT, best.invoice, pvt, details(best))
     end
 
     def in_debt?
@@ -85,7 +86,7 @@ module Zold
         next if score.strength < Score::STRENGTH
         next if t.amount > Tax::MAX_PAYMENT
         t
-      end.reject(&:nil?).uniq(&:details)
+      end.compact.uniq(&:details)
       paid = scored.empty? ? Amount::ZERO : scored.map(&:amount).inject(&:+)
       owned = Tax::FEE_TXN_HOUR * txns.count * @wallet.age
       owned - paid

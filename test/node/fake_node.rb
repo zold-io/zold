@@ -22,6 +22,7 @@
 
 require 'tmpdir'
 require 'webmock/minitest'
+require 'random-port'
 require_relative '../fake_home'
 require_relative '../../lib/zold/log'
 require_relative '../../lib/zold/http'
@@ -33,27 +34,21 @@ require_relative '../../lib/zold/node/front'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class FakeNode
-  # rubocop:disable Style/ClassVars
-  @@ports = Set.new
-  # rubocop:enable Style/ClassVars
-
   def initialize(log: Zold::Log::Quiet.new)
     @log = log
   end
 
-  def run(args = ['--standalone'])
+  def run(args = ['--standalone', '--no-metronome'])
     WebMock.allow_net_connect!
-    start = Dir.pwd
-    begin
-      FakeHome.new.run do |home|
-        port = FakeNode.random_port
+    FakeHome.new(log: @log).run do |home|
+      RandomPort::Pool::SINGLETON.acquire do |port|
         node = Thread.new do
           Zold::VerboseThread.new(@log).run do
             Thread.current.abort_on_exception = true
-            Dir.chdir(home.dir)
             require_relative '../../lib/zold/commands/node'
             Zold::Node.new(wallets: home.wallets, remotes: home.remotes, copies: home.copies.root, log: @log).run(
               [
+                '--home', home.dir,
                 '--network=test',
                 '--port', port.to_s,
                 '--host=localhost',
@@ -82,19 +77,6 @@ class FakeNode
           node.join
         end
       end
-    ensure
-      Dir.chdir(start)
-    end
-  end
-
-  def self.random_port
-    loop do
-      server = TCPServer.new('127.0.0.1', 0)
-      port = server.addr[1]
-      server.close
-      next if @@ports.include?(port)
-      @@ports << port
-      return port
     end
   end
 end

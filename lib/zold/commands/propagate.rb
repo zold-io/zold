@@ -24,6 +24,7 @@ require 'slop'
 require 'rainbow'
 require_relative 'args'
 require_relative '../log'
+require_relative '../age'
 require_relative '../wallet'
 require_relative '../wallets'
 require_relative '../prefixes'
@@ -48,9 +49,8 @@ Available options:"
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
-      mine = @wallets.all if mine.empty?
       modified = []
-      mine.map { |i| Id.new(i) }.each do |id|
+      (mine.empty? ? @wallets.all : mine.map { |i| Id.new(i) }).each do |id|
         modified += propagate(id, opts)
       end
       modified
@@ -60,10 +60,16 @@ Available options:"
 
     # Returns list of Wallet IDs which were affected
     def propagate(id, _)
+      start = Time.now
       modified = []
+      total = 0
       @wallets.find(id) do |wallet|
         wallet.txns.select { |t| t.amount.negative? }.each do |t|
-          next if t.bnf == id
+          total += 1
+          if t.bnf == id
+            @log.error("Paying itself in #{id}? #{t}")
+            next
+          end
           @wallets.find(t.bnf) do |target|
             unless target.exists?
               @log.debug("#{t.amount * -1} to #{t.bnf}: wallet is absent")
@@ -73,7 +79,7 @@ Available options:"
               @log.error("#{t.amount * -1} to #{t.bnf}: network mismatch, '#{target.network}'!='#{wallet.network}'")
               next
             end
-            next if target.has?(t.id, id)
+            next if target.includes_positive?(t.id, id)
             unless target.prefix?(t.prefix)
               @log.error("#{t.amount * -1} to #{t.bnf}: wrong prefix")
               next
@@ -85,7 +91,8 @@ Available options:"
         end
       end
       modified.uniq!
-      @log.debug("Wallet #{id} propagated successfully, #{modified.count} wallets affected")
+      @log.debug("Wallet #{id} propagated successfully, #{total} txns \
+in #{Age.new(start, limit: 20 + total * 0.005)}, #{modified.count} wallets affected")
       modified
     end
   end

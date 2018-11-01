@@ -34,7 +34,7 @@ require_relative '../../../lib/zold/node/entrance.rb'
 # License:: MIT
 class TestSpread < Minitest::Test
   def test_spread_wallets
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       5.times { home.create_wallet }
       opts = {
         'routine-immediately' => true

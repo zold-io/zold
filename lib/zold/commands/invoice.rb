@@ -55,8 +55,7 @@ Available options:"
       end
       mine = Args.new(opts, @log).take || return
       raise 'Receiver wallet ID is required' if mine[0].nil?
-      id = Zold::Id.new(mine[0])
-      invoice(id, opts)
+      invoice(Id.new(mine[0]), opts)
     end
 
     private

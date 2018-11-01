@@ -34,7 +34,7 @@ require_relative '../lib/zold/prefixes'
 # License:: MIT
 class TestPrefixes < Minitest::Test
   def test_creates_and_validates
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       prefixes = Zold::Prefixes.new(wallet)
       (8..32).each do |len|

@@ -39,6 +39,9 @@ module Zold
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = "Usage: zold next [options] score
 Available options:"
+        o.bool '--low-priority',
+          'Set the lowest priority to this process',
+          default: false
         o.bool '--help', 'Print instructions'
       end
       if opts.help?
@@ -51,6 +54,7 @@ Available options:"
     private
 
     def calculate(opts)
+      Process.setpriority(Process::PRIO_PROCESS, 0, 20) if opts['low-priority']
       @log.info(Score.parse(opts.arguments.drop_while { |a| a.start_with?('--') }[1]).next.to_s)
     end
   end

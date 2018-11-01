@@ -21,22 +21,18 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
-require_relative '../lib/zold/backtrace'
+require_relative '../lib/zold/size'
 
-# Backtrace test.
+# Size test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestBacktrace < Minitest::Test
-  def test_prints_backtrace
-    obj = Object.new
-    def obj.exec
-      raise 'Intended to be here'
-    end
-    obj.exec
-  rescue RuntimeError => e
-    text = Zold::Backtrace.new(e).to_s
-    assert(text.include?('Intended to be here'), text)
-    assert(!text.include?('lib/minitest'), text)
+class TestSize < Minitest::Test
+  def test_prints_size
+    assert_equal('?', Zold::Size.new(nil).to_s)
+    assert_equal('10b', Zold::Size.new(10).to_s)
+    assert_equal('2Kb', Zold::Size.new(2 * 1024).to_s)
+    assert_equal('9Mb', Zold::Size.new(9 * 1024 * 1024).to_s)
+    assert_equal('7Gb', Zold::Size.new(7 * 1024 * 1024 * 1024).to_s)
   end
 end

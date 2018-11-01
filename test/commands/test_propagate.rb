@@ -33,7 +33,7 @@ require_relative '../../lib/zold/commands/pay'
 # License:: MIT
 class TestPropagate < Minitest::Test
   def test_propagates_wallet
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       friend = home.create_wallet
       amount = Zold::Amount.new(zld: 14.95)
@@ -44,6 +44,7 @@ class TestPropagate < Minitest::Test
         ['merge', wallet.id.to_s]
       )
       assert(amount, friend.balance)
+      assert(1, friend.txns.count)
       assert('', friend.txns[0].sign)
     end
   end

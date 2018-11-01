@@ -22,6 +22,7 @@
 
 require 'minitest/autorun'
 require 'time'
+require 'threads'
 require_relative '../fake_home'
 require_relative '../test__helper'
 require_relative '../../lib/zold/copies'
@@ -33,13 +34,25 @@ require_relative '../../lib/zold/commands/clean'
 # License:: MIT
 class TestClean < Minitest::Test
   def test_cleans_copies
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       copies = home.copies(wallet)
       copies.add('a1', 'host-1', 80, 1, Time.now - 26 * 60 * 60)
       copies.add('a2', 'host-2', 80, 2, Time.now - 26 * 60 * 60)
       Zold::Clean.new(wallets: home.wallets, copies: copies.root, log: test_log).run(['clean', wallet.id.to_s])
       assert(copies.all.empty?)
+    end
+  end
+
+  def test_cleans_copies_in_threads
+    FakeHome.new(log: test_log).run do |home|
+      wallet = home.create_wallet
+      copies = home.copies(wallet)
+      copies.add(IO.read(wallet.path), 'host-2', 80, 2, Time.now)
+      Threads.new(20).assert do
+        Zold::Clean.new(wallets: home.wallets, copies: copies.root, log: test_log).run(['clean'])
+      end
+      assert_equal(1, copies.all.count)
     end
   end
 end

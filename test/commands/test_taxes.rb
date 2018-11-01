@@ -38,30 +38,47 @@ require_relative '../../lib/zold/commands/taxes'
 # License:: MIT
 class TestTaxes < Minitest::Test
   def test_pays_taxes
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallets = home.wallets
       wallet = home.create_wallet
+      fund = Zold::Amount.new(zld: 19.99)
       wallet.add(
         Zold::Txn.new(
           1,
-          Time.now - 24 * 60 * 60 * 365 * 20,
-          Zold::Amount.new(zld: 19.99),
+          Time.now - 24 * 60 * 60 * 365 * 300,
+          fund,
           'NOPREFIX', Zold::Id.new, '-'
         )
       )
       remotes = home.remotes
-      zero = Zold::Score::ZERO
-      remotes.add(zero.host, zero.port)
-      stub_request(:get, "http://#{zero.host}:#{zero.port}/").to_return(
+      score = Zold::Score.new(host: 'localhost', port: 80, strength: 1, invoice: 'NOPREFIX@0000000000000000')
+      Zold::Tax::EXACT_SCORE.times { score = score.next }
+      remotes.add(score.host, score.port)
+      stub_request(:get, "http://#{score.host}:#{score.port}/").to_return(
         status: 200,
         body: {
-          score: zero.to_h
+          score: score.to_h
         }.to_json
       )
-      Zold::Taxes.new(
-        wallets: wallets, remotes: remotes, log: test_log
-      ).run(['taxes', '--private-key=fixtures/id_rsa', wallet.id.to_s])
-      assert_equal(Zold::Amount.new(coins: 85_856_396_247), wallet.balance)
+      Zold::Taxes.new(wallets: wallets, remotes: remotes, log: test_log).run(
+        ['taxes', '--private-key=fixtures/id_rsa', '--ignore-score-weakness', 'pay', wallet.id.to_s]
+      )
+      assert_equal(fund - Zold::Tax::MAX_PAYMENT, wallet.balance)
+      wallet.add(
+        Zold::Txn.new(
+          2,
+          Time.now - 24 * 60 * 60 * 365 * 300,
+          fund,
+          'NOPREFIX', Zold::Id.new, '-'
+        )
+      )
+      Zold::Taxes.new(wallets: wallets, remotes: remotes, log: test_log).run(
+        [
+          'taxes', '--private-key=fixtures/id_rsa', '--ignore-score-weakness',
+          '--ignore-nodes-absence', 'pay', wallet.id.to_s
+        ]
+      )
+      assert_equal(fund + fund - Zold::Tax::MAX_PAYMENT, wallet.balance)
     end
   end
 end

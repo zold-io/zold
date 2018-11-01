@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'futex'
 require_relative 'log'
 
 # Sync collection of wallets.
@@ -29,9 +30,8 @@ require_relative 'log'
 module Zold
   # Synchronized collection of wallets
   class SyncWallets
-    def initialize(wallets, dir = Dir.tmpdir, timeout: 30, log: Log::Quiet.new)
+    def initialize(wallets, timeout: 30, log: Log::Quiet.new)
       @wallets = wallets
-      @dir = dir
       @log = log
       @timeout = timeout
     end
@@ -50,26 +50,7 @@ module Zold
 
     def find(id)
       @wallets.find(id) do |wallet|
-        f = File.join(@dir, id)
-        FileUtils.mkdir_p(File.dirname(f))
-        File.open(f, File::RDWR | File::CREAT) do |lock|
-          start = Time.now
-          cycles = 0
-          loop do
-            break if lock.flock(File::LOCK_EX | File::LOCK_NB)
-            sleep 0.1
-            cycles += 1
-            delay = (Time.now - start).round(2)
-            if delay > @timeout
-              raise "##{Process.pid}/#{Thread.current.name} can't get exclusive access to the wallet #{id} \
-because of the lock at #{lock.path}, after #{delay}s of waiting: #{File.read(lock)}"
-            end
-            if (cycles % 20).zero? && delay > 10
-              @log.info("##{Process.pid}/#{Thread.current.name} still waiting for \
-exclusive access to #{id}, #{delay.round}s already: #{File.read(lock)}")
-            end
-          end
-          File.write(lock, "##{Process.pid}/#{Thread.current.name}")
+        Futex.new(wallet.path, log: @log).open do
           yield wallet
         end
       end

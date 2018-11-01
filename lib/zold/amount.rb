@@ -61,15 +61,17 @@ module Zold
 
     def to_s
       text = "#{to_zld}ZLD"
-      if negative?
+      if positive?
+        Rainbow(text).green
+      elsif negative?
         Rainbow(text).red
       else
-        Rainbow(text).green
+        text
       end
     end
 
     def ==(other)
-      raise '== may only work with Amount' unless other.is_a?(Amount)
+      raise "== may only work with Amount: #{other}" unless other.is_a?(Amount)
       @coins == other.to_i
     end
 
@@ -111,10 +113,20 @@ module Zold
       @coins.negative?
     end
 
+    def positive?
+      @coins.positive?
+    end
+
     def *(other)
+      raise '* may only work with a number' unless other.is_a?(Integer) || other.is_a?(Float)
       c = (@coins * other).to_i
       raise "Overflow, can't multiply #{@coins} by #{m}" if c > Amount::MAX
       Amount.new(coins: c)
+    end
+
+    def /(other)
+      raise '/ may only work with a number' unless other.is_a?(Integer) || other.is_a?(Float)
+      Amount.new(coins: (@coins / other).to_i)
     end
   end
 end

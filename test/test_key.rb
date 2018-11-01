@@ -56,9 +56,9 @@ class TestKey < Minitest::Test
     Dir.mktmpdir do |dir|
       key = OpenSSL::PKey::RSA.new(2048)
       file = File.join(dir, 'temp')
-      File.write(file, key.public_key.to_s)
+      IO.write(file, key.public_key.to_s)
       pub = Zold::Key.new(file: file)
-      File.write(file, key.to_s)
+      IO.write(file, key.to_s)
       pvt = Zold::Key.new(file: file)
       text = 'How are you doing, dude?'
       signature = pvt.sign(text)

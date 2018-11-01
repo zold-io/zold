@@ -24,7 +24,6 @@ gem 'openssl'
 require 'openssl'
 require 'base64'
 require 'tempfile'
-require_relative 'atomic_file'
 
 # The RSA key (either private or public).
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -38,7 +37,7 @@ module Zold
         unless file.nil?
           path = File.expand_path(file)
           raise "Can't find RSA key at #{file} (#{path})" unless File.exist?(path)
-          return AtomicFile.new(path).read
+          return IO.read(path)
         end
         unless text.nil?
           return text if text.start_with?('-----')
@@ -78,7 +77,7 @@ module Zold
       text = @body.call.strip
       unless text.start_with?('-----BEGIN')
         Tempfile.open do |f|
-          File.write(f.path, text)
+          IO.write(f.path, text)
           text = `ssh-keygen -f #{f.path} -e -m pem`
         end
       end

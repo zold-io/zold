@@ -22,6 +22,7 @@
 require 'pathname'
 require_relative 'id'
 require_relative 'wallet'
+require_relative 'dir_items'
 
 # The local collection of wallets.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -50,20 +51,20 @@ module Zold
 
     # Returns the list of their IDs (as plain text)
     def all
-      Dir.new(path).select do |f|
+      DirItems.new(path).fetch(recursive: false).select do |f|
         file = File.join(@dir, f)
-        basename = File.basename(f, Wallet::EXTENSION)
+        basename = File.basename(f, Wallet::EXT)
         File.file?(file) &&
           !File.directory?(file) &&
           basename =~ /^[0-9a-fA-F]{16}$/ &&
           Id.new(basename).to_s == basename
-      end.map { |w| File.basename(w, Wallet::EXTENSION) }
+      end.map { |w| Id.new(File.basename(w, Wallet::EXT)) }
     end
 
     def find(id)
       raise 'Id can\'t be nil' if id.nil?
-      raise 'Id must be of type Id' unless id.is_a?(Id)
-      yield Zold::Wallet.new(File.join(path, id.to_s))
+      raise "Id must be of type Id, #{id.class.name} instead" unless id.is_a?(Id)
+      yield Wallet.new(File.join(path, id.to_s + Wallet::EXT))
     end
   end
 end

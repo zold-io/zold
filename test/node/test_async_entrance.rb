@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
+require 'threads'
 require_relative '../fake_home'
 require_relative '../test__helper'
 require_relative '../../lib/zold/id'
@@ -33,33 +34,48 @@ require_relative 'fake_entrance'
 # License:: MIT
 class TestAsyncEntrance < Minitest::Test
   def test_renders_json
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       Zold::AsyncEntrance.new(FakeEntrance.new, home.dir, log: test_log).start do |e|
         assert_equal(true, e.to_json[:'pool.running'])
       end
     end
   end
 
-  def test_sends_through
-    FakeHome.new.run do |home|
+  def test_sends_through_once
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       amount = Zold::Amount.new(zld: 39.99)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
       basic = CountingEntrance.new
       Zold::AsyncEntrance.new(basic, File.join(home.dir, 'a/b/c'), log: test_log).start do |e|
-        5.times { e.push(wallet.id, File.read(wallet.path)) }
-        assert_equal_wait(false) { basic.count.zero? }
-        assert(!basic.count.zero?)
+        e.push(wallet.id, IO.read(wallet.path))
+        assert_equal_wait(1) { basic.count }
       end
     end
   end
 
+  def test_sends_through
+    FakeHome.new(log: test_log).run do |home|
+      basic = CountingEntrance.new
+      Zold::AsyncEntrance.new(basic, File.join(home.dir, 'a/b/c'), log: test_log).start do |e|
+        Threads.new(20).assert do
+          wallet = home.create_wallet
+          amount = Zold::Amount.new(zld: 39.99)
+          key = Zold::Key.new(file: 'fixtures/id_rsa')
+          wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
+          5.times { e.push(wallet.id, IO.read(wallet.path)) }
+        end
+      end
+      assert_equal_wait(true) { basic.count >= 20 }
+    end
+  end
+
   def test_handles_broken_entrance_gracefully
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       Zold::AsyncEntrance.new(BrokenEntrance.new, home.dir, log: test_log).start do |e|
-        e.push(wallet.id, File.read(wallet.path))
+        e.push(wallet.id, IO.read(wallet.path))
       end
     end
   end

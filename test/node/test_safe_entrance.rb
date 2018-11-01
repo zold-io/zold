@@ -35,23 +35,23 @@ require_relative 'fake_entrance'
 # License:: MIT
 class TestSafeEntrance < Minitest::Test
   def test_rejects_wallet_with_negative_balance
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       amount = Zold::Amount.new(zld: 39.99)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
       assert_raises StandardError do
-        Zold::SafeEntrance.new(FakeEntrance.new).push(wallet.id, File.read(wallet.path))
+        Zold::SafeEntrance.new(FakeEntrance.new).push(wallet.id, IO.read(wallet.path))
       end
     end
   end
 
   def test_rejects_wallet_with_wrong_network
-    FakeHome.new.run do |home|
-      wallet = Zold::Wallet.new(File.join(home.dir, 'wallet'))
+    FakeHome.new(log: test_log).run do |home|
+      wallet = Zold::Wallet.new(File.join(home.dir, 'wallet.z'))
       wallet.init(Zold::Id.new, Zold::Key.new(file: 'fixtures/id_rsa.pub'), network: 'someothernetwork')
       assert_raises StandardError do
-        Zold::SafeEntrance.new(FakeEntrance.new).push(wallet.id, File.read(wallet.path))
+        Zold::SafeEntrance.new(FakeEntrance.new).push(wallet.id, IO.read(wallet.path))
       end
     end
   end

@@ -21,5 +21,5 @@
 # SOFTWARE.
 
 require_relative 'asserts.rb'
-wallet = Zold::Wallet.new(Zold::Id.new('0123456789abcdef'))
+wallet = Zold::Wallet.new('0123456789abcdef.z')
 assert_equal(Zold::Amount.new(zld: 388.0), wallet.balance)

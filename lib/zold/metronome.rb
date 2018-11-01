@@ -20,9 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'backtrace'
 require_relative 'log'
+require_relative 'age'
 require_relative 'verbose_thread'
-require_relative 'backtrace'
 
 # Background routines.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -35,13 +36,24 @@ module Zold
       @log = log
       @routines = []
       @threads = []
+      @starts = {}
       @failures = {}
     end
 
     def to_text
-      @threads.map do |t|
-        "#{t.name}: status=#{t.status}; alive=#{t.alive?};\n  #{t.backtrace.join("\n  ")}"
-      end.join("\n") + "\n\n" + @failures.map { |r, f| "#{r}\n#{f}\n" }.join("\n")
+      [
+        Time.now.utc.iso8601,
+        'Current threads:',
+        @threads.map do |t|
+          [
+            "#{t.name}: status=#{t.status}; alive=#{t.alive?}",
+            "Most recent start: #{Age.new(@starts[t])} ago",
+            t.backtrace.nil? ? 'NO BACKTRACE' : "  #{t.backtrace.join("\n  ")}"
+          ].join("\n")
+        end,
+        'Failures:',
+        @failures.map { |r, f| "#{r}\n#{f}\n" }
+      ].flatten.join("\n\n")
     end
 
     def add(routine)
@@ -51,19 +63,19 @@ module Zold
 
     def start
       alive = true
-      @routines.each do |r|
+      @routines.each_with_index do |r, idx|
         @threads << Thread.start do
           Thread.current.abort_on_exception = true
-          Thread.current.name = r.class.name
+          Thread.current.name = "#{r.class.name}-#{idx}"
           step = 0
           while alive
-            start = Time.now
+            @starts[Thread.current] = Time.now
             begin
               r.exec(step)
-              @log.info("Routine #{r.class.name} ##{step} done in #{(Time.now - start).round(2)}s")
+              @log.info("Routine #{r.class.name} ##{step} done in #{Age.new(@starts[Thread.current])}")
             rescue StandardError => e
-              @failures[r.class.name] = Backtrace.new(e).to_s
-              @log.error("Routine #{r.class.name} ##{step} failed in #{(Time.now - start).round(2)}s")
+              @failures[r.class.name] = Time.now.utc.iso8601 + "\n" + Backtrace.new(e).to_s
+              @log.error("Routine #{r.class.name} ##{step} failed in #{Age.new(@starts[Thread.current])}")
               @log.error(Backtrace.new(e).to_s)
             end
             step += 1
@@ -80,13 +92,13 @@ module Zold
         @threads.each do |t|
           tstart = Time.now
           if t.join(60)
-            @log.info("Thread #{t.name} finished in #{(Time.now - tstart).round(2)}s")
+            @log.info("Thread #{t.name} finished in #{Age.new(tstart)}")
           else
             t.exit
-            @log.info("Thread #{t.name} killed in #{(Time.now - tstart).round(2)}s")
+            @log.info("Thread #{t.name} killed in #{Age.new(tstart)}")
           end
         end
-        @log.info("Metronome stopped in #{(Time.now - start).round(2)}s, #{@failures.count} failures")
+        @log.info("Metronome stopped in #{Age.new(start)}, #{@failures.count} failures")
       end
     end
   end

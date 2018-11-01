@@ -22,22 +22,24 @@
 
 STDOUT.sync = true
 
+require 'eventmachine'
+require 'thin'
 require 'json'
 require 'sinatra/base'
-require 'webrick'
-require 'cachy'
 require 'get_process_mem'
 require 'diffy'
 require 'usagewatch_ext'
 require 'concurrent'
-require_relative '../backtrace'
+require 'backtrace'
 require_relative '../version'
+require_relative '../size'
 require_relative '../wallet'
+require_relative '../age'
 require_relative '../copies'
 require_relative '../log'
 require_relative '../id'
 require_relative '../http'
-require_relative '../atomic_file'
+require_relative '../cache'
 
 # The web front of the node.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -53,7 +55,7 @@ module Zold
       set :start, Time.now
       set :lock, false
       set :show_exceptions, false
-      set :server, 'webrick'
+      set :server, :thin
       set :log, nil? # to be injected at node.rb
       set :trace, nil? # to be injected at node.rb
       set :halt, '' # to be injected at node.rb
@@ -65,6 +67,7 @@ module Zold
       set :nohup_log, false # to be injected at node.rb
       set :home, nil? # to be injected at node.rb
       set :logging, true # to be injected at node.rb
+      set :logger, nil? # to be injected at node.rb
       set :address, nil? # to be injected at node.rb
       set :farm, nil? # to be injected at node.rb
       set :metronome, nil? # to be injected at node.rb
@@ -74,23 +77,26 @@ module Zold
       set :remotes, nil? # to be injected at node.rb
       set :copies, nil? # to be injected at node.rb
       set :node_alias, nil? # to be injected at node.rb
+      set :cache, Cache.new
     end
     use Rack::Deflater
 
     before do
+      Thread.current.thread_variable_set(:uri, request.url)
+      @start = Time.now
       if !settings.halt.empty? && params[:halt] && params[:halt] == settings.halt
         settings.log.error('Halt signal received, shutting the front end down...')
         Front.stop!
       end
       check_header(Http::NETWORK_HEADER) do |header|
         if header != settings.network
-          raise "Network name mismatch at #{request.url}, #{request.ip} is in '#{header}', \
-while #{settings.address} is in '#{settings.network}'"
+          error(400, "Network name mismatch at #{request.url}, #{request.ip} is in '#{header}', \
+while #{settings.address} is in '#{settings.network}'")
         end
       end
       check_header(Http::PROTOCOL_HEADER) do |header|
         if header != settings.protocol.to_s
-          raise "Protocol mismatch, you are in '#{header}', we are in '#{settings.protocol}'"
+          error(400, "Protocol mismatch, you are in '#{header}', we are in '#{settings.protocol}'")
         end
       end
       check_header(Http::SCORE_HEADER) do |header|
@@ -105,7 +111,11 @@ while #{settings.address} is in '#{settings.network}'"
         end
         require_relative '../commands/remote'
         cmd = Remote.new(remotes: settings.remotes, log: settings.log)
-        cmd.run(['remote', 'add', s.host, s.port.to_s, "--network=#{settings.network}"])
+        begin
+          cmd.run(['remote', 'add', s.host, s.port.to_s, "--network=#{settings.network}"])
+        rescue StandardError => e
+          error(400, e.message)
+        end
       end
     end
 
@@ -113,44 +123,51 @@ while #{settings.address} is in '#{settings.network}'"
     #  Currently there are no tests at all that would verify the headers.
     after do
       headers['Cache-Control'] = 'no-cache'
-      headers['Connection'] = 'close'
       headers['X-Zold-Version'] = settings.version
       headers[Http::PROTOCOL_HEADER] = settings.protocol.to_s
       headers['Access-Control-Allow-Origin'] = '*'
       headers[Http::SCORE_HEADER] = score.reduced(16).to_s
+      headers['X-Zold-Thread'] = Thread.current.object_id.to_s
+      unless @start.nil?
+        if Time.now - @start > 1
+          settings.log.info("Slow response to #{request.request_method} #{request.url} \
+in #{Age.new(@start, limit: 1)}")
+        end
+        headers['X-Zold-Milliseconds'] = ((Time.now - @start) * 1000).round.to_s
+      end
     end
 
     get '/robots.txt' do
-      content_type 'text/plain'
+      content_type('text/plain')
       'User-agent: *'
     end
 
     get '/version' do
-      content_type 'text/plain'
+      content_type('text/plain')
       settings.version
     end
 
     get '/pid' do
-      content_type 'text/plain'
+      content_type('text/plain')
       Process.pid.to_s
     end
 
     get '/score' do
-      content_type 'text/plain'
+      content_type('text/plain')
       score.to_s
     end
 
     get '/trace' do
-      content_type 'text/plain'
+      content_type('text/plain')
       settings.trace.to_s
     end
 
     get '/nohup_log' do
       raise 'Run it with --nohup in order to see this log' if settings.nohup_log.nil?
-      raise "Log not found at #{settings.nohup_log}" unless File.exist?(settings.nohup_log)
+      error(400, "Log not found at #{settings.nohup_log}") unless File.exist?(settings.nohup_log)
       response.headers['Content-Type'] = 'text/plain'
       response.headers['Content-Disposition'] = "attachment; filename='#{File.basename(settings.nohup_log)}'"
-      File.read(settings.nohup_log)
+      IO.read(settings.nohup_log)
     end
 
     get '/favicon.ico' do
@@ -164,7 +181,7 @@ while #{settings.address} is in '#{settings.network}'"
     end
 
     get '/' do
-      content_type 'application/json'
+      content_type('application/json')
       JSON.pretty_generate(
         version: settings.version,
         alias: settings.node_alias,
@@ -172,12 +189,12 @@ while #{settings.address} is in '#{settings.network}'"
         protocol: settings.protocol,
         score: score.to_h,
         pid: Process.pid,
-        cpus: Concurrent.processor_count,
+        cpus: settings.cache.get(:cpus) { Concurrent.processor_count },
         memory: GetProcessMem.new.bytes.to_i,
         platform: RUBY_PLATFORM,
-        load: Usagewatch.uw_load.to_f,
+        load: settings.cache.get(:load, lifetime: 5 * 60) { Usagewatch.uw_load.to_f },
         threads: "#{Thread.list.select { |t| t.status == 'run' }.count}/#{Thread.list.count}",
-        wallets: Cachy.cache(:a_key, expires_in: 5 * 60) { settings.wallets.all.count },
+        wallets: total_wallets,
         remotes: settings.remotes.all.count,
         nscore: settings.remotes.all.map { |r| r[:score] }.inject(&:+) || 0,
         farm: settings.farm.to_json,
@@ -189,88 +206,88 @@ while #{settings.address} is in '#{settings.network}'"
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})} do
+      error(404, 'FETCH is disabled with --disable-fetch') if settings.disable_fetch
       id = Id.new(params[:id])
-      settings.wallets.find(id) do |wallet|
-        error 404 unless wallet.exists?
-        content_type 'application/json'
-        {
+      copy_of(id) do |wallet|
+        content_type('application/json')
+        JSON.pretty_generate(
           version: settings.version,
           alias: settings.node_alias,
           protocol: settings.protocol,
           id: wallet.id.to_s,
           score: score.to_h,
-          wallets: settings.wallets.all.count,
+          wallets: total_wallets,
           mtime: wallet.mtime.utc.iso8601,
           size: File.size(wallet.path),
           digest: wallet.digest,
           copies: Copies.new(File.join(settings.copies, id)).all.count,
           balance: wallet.balance.to_i,
-          body: AtomicFile.new(wallet.path).read
-        }.to_json
+          body: File.new(wallet.path).read
+        )
       end
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16}).json} do
+      error(404, 'FETCH is disabled with --disable-fetch') if settings.disable_fetch
       id = Id.new(params[:id])
-      settings.wallets.find(id) do |wallet|
-        error 404 unless wallet.exists?
-        content_type 'application/json'
-        {
+      copy_of(id) do |wallet|
+        content_type('application/json')
+        JSON.pretty_generate(
           version: settings.version,
           alias: settings.node_alias,
           protocol: settings.protocol,
           id: wallet.id.to_s,
           score: score.to_h,
-          wallets: settings.wallets.all.count,
+          wallets: total_wallets,
           key: wallet.key.to_pub,
           mtime: wallet.mtime.utc.iso8601,
           digest: wallet.digest,
           balance: wallet.balance.to_i,
           txns: wallet.txns.count
-        }.to_json
+        )
       end
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/balance} do
+      error(404, 'FETCH is disabled with --disable-fetch') if settings.disable_fetch
       id = Id.new(params[:id])
-      settings.wallets.find(id) do |wallet|
-        error 404 unless wallet.exists?
+      copy_of(id) do |wallet|
         content_type 'text/plain'
         wallet.balance.to_i.to_s
       end
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/key} do
+      error(404, 'FETCH is disabled with --disable-fetch') if settings.disable_fetch
       id = Id.new(params[:id])
-      settings.wallets.find(id) do |wallet|
-        error 404 unless wallet.exists?
+      copy_of(id) do |wallet|
         content_type 'text/plain'
         wallet.key.to_pub
       end
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/mtime} do
+      error(404, 'FETCH is disabled with --disable-fetch') if settings.disable_fetch
       id = Id.new(params[:id])
-      settings.wallets.find(id) do |wallet|
-        error 404 unless wallet.exists?
+      copy_of(id) do |wallet|
         content_type 'text/plain'
         wallet.mtime.utc.iso8601.to_s
       end
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/digest} do
+      error(404, 'FETCH is disabled with --disable-fetch') if settings.disable_fetch
       id = Id.new(params[:id])
-      settings.wallets.find(id) do |wallet|
-        error 404 unless wallet.exists?
+      copy_of(id) do |wallet|
         content_type 'text/plain'
         wallet.digest
       end
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.txt} do
+      error(404, 'FETCH is disabled with --disable-fetch') if settings.disable_fetch
       id = Id.new(params[:id])
-      settings.wallets.find(id) do |wallet|
-        error 404 unless wallet.exists?
+      copy_of(id) do |wallet|
         content_type 'text/plain'
         [
           wallet.network,
@@ -281,28 +298,28 @@ while #{settings.address} is in '#{settings.network}'"
           wallet.txns.map(&:to_text).join("\n"),
           '',
           '--',
-          "Balance: #{wallet.balance.to_zld} ZLD (#{wallet.balance.to_i} zents)",
+          "Balance: #{wallet.balance.to_zld(8)} ZLD (#{wallet.balance.to_i} zents)",
           "Transactions: #{wallet.txns.count}",
           "File size: #{File.size(wallet.path)} bytes (#{Copies.new(File.join(settings.copies, id)).all.count} copies)",
-          "Modified: #{wallet.mtime.utc.iso8601}",
+          "Modified: #{wallet.mtime.utc.iso8601} (#{Age.new(wallet.mtime.utc.iso8601)} ago)",
           "Digest: #{wallet.digest}"
         ].join("\n")
       end
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.bin} do
+      error(404, 'FETCH is disabled with --disable-fetch') if settings.disable_fetch
       id = Id.new(params[:id])
-      settings.wallets.find(id) do |wallet|
-        error 404 unless wallet.exists?
+      copy_of(id) do |wallet|
         content_type 'text/plain'
-        AtomicFile.new(wallet.path).read
+        IO.read(wallet.path)
       end
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/copies} do
+      error(404, 'FETCH is disabled with --disable-fetch') if settings.disable_fetch
       id = Id.new(params[:id])
-      settings.wallets.find(id) do |wallet|
-        error 404 unless wallet.exists?
+      copy_of(id) do
         content_type 'text/plain'
         copies = Copies.new(File.join(settings.copies, id))
         copies.load.map do |c|
@@ -312,67 +329,83 @@ while #{settings.address} is in '#{settings.network}'"
         copies.all.map do |c|
           w = Wallet.new(c[:path])
           "#{c[:name]}: #{c[:score]} #{w.balance}/#{w.txns.count}t/\
-#{w.digest[0, 6]}/#{File.size(c[:path])}b/#{Age.new(File.mtime(c[:path]))}"
+#{w.digest[0, 6]}/#{Size.new(File.size(c[:path]))}/#{Age.new(File.mtime(c[:path]))}"
         end.join("\n")
       end
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/copy/(?<name>[0-9]+)} do
+      error(404, 'FETCH is disabled with --disable-fetch') if settings.disable_fetch
       id = Id.new(params[:id])
       name = params[:name]
-      settings.wallets.find(id) do |wallet|
-        error 404 unless wallet.exists?
+      copy_of(id) do
         copy = Copies.new(File.join(settings.copies, id)).all.find { |c| c[:name] == name }
         error 404 if copy.nil?
         content_type 'text/plain'
-        File.read(copy[:path])
+        IO.read(copy[:path])
       end
     end
 
     put %r{/wallet/(?<id>[A-Fa-f0-9]{16})/?} do
+      error(404, 'PUSH is disabled with --disable-push') if settings.disable_fetch
       request.body.rewind
       modified = settings.entrance.push(Id.new(params[:id]), request.body.read.to_s)
       if modified.empty?
-        status 304
+        status(304)
         return
       end
       JSON.pretty_generate(
         version: settings.version,
         alias: settings.node_alias,
         score: score.to_h,
-        wallets: settings.wallets.all.count
+        wallets: total_wallets
       )
     end
 
     get '/remotes' do
-      content_type 'application/json'
+      content_type('application/json')
       JSON.pretty_generate(
         version: settings.version,
         alias: settings.node_alias,
         score: score.to_h,
-        all: settings.remotes.all
+        all: settings.remotes.all,
+        mtime: settings.remotes.mtime.utc.iso8601
       )
     end
 
     get '/farm' do
-      content_type 'text/plain'
+      content_type('text/plain')
       settings.farm.to_text
     end
 
     get '/metronome' do
-      content_type 'text/plain'
+      content_type('text/plain')
       settings.metronome.to_text
     end
 
+    get '/threads' do
+      content_type('text/plain')
+      [
+        "Total threads: #{Thread.list.count}",
+        Thread.list.map do |t|
+          [
+            "#{t.name}: status=#{t.status}; alive=#{t.alive?}",
+            'Vars: ' + t.thread_variables.map { |v| "#{v}=\"#{t.thread_variable_get(v)}\"" }.join('; '),
+            t.backtrace.nil? ? 'NO BACKTRACE' : "  #{t.backtrace.join("\n  ")}"
+          ].join("\n")
+        end
+      ].flatten.join("\n\n")
+    end
+
     not_found do
-      status 404
-      content_type 'text/plain'
+      status(404)
+      content_type('text/plain')
       "Page not found: #{request.url}"
     end
 
     error 400 do
-      status 400
-      content_type 'text/plain'
+      status(400)
+      content_type('text/plain')
       env['sinatra.error'] ? env['sinatra.error'].message : 'Invalid request'
     end
 
@@ -381,6 +414,8 @@ while #{settings.address} is in '#{settings.network}'"
       e = env['sinatra.error']
       content_type 'text/plain'
       headers['X-Zold-Error'] = e.message
+      headers['X-Zold-Path'] = request.url
+      settings.log.error(Backtrace.new(e).to_s)
       Backtrace.new(e).to_s
     end
 
@@ -393,10 +428,30 @@ while #{settings.address} is in '#{settings.network}'"
       yield header
     end
 
+    # @todo #513:30min This method is temporarily disabled since it
+    #  takes a lot of time (when the amount of wallets is big, like 40K). However,
+    #  we must find a way to count them somehow faster.
+    def total_wallets
+      return 256 if settings.network == Wallet::MAIN_NETWORK
+      settings.wallets.all.count
+    end
+
     def score
-      best = settings.farm.best
-      raise 'Score is empty, there is something wrong with the Farm!' if best.empty?
-      best[0]
+      settings.cache.get(:score, lifetime: settings.network == Wallet::MAIN_NETWORK ? 60 : 1) do
+        b = settings.farm.best
+        raise 'Score is empty, there is something wrong with the Farm!' if b.empty?
+        b[0]
+      end
+    end
+
+    def copy_of(id)
+      Tempfile.open([id.to_s, Wallet::EXT]) do |f|
+        settings.wallets.find(id) do |wallet|
+          error(404, "Wallet ##{id} doesn't exist on the node") unless wallet.exists?
+          IO.write(f, IO.read(wallet.path))
+        end
+        yield Wallet.new(f.path)
+      end
     end
   end
 end

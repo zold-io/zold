@@ -22,14 +22,17 @@
 
 require 'open3'
 require 'slop'
+require 'backtrace'
+require 'concurrent'
 require_relative '../version'
+require_relative '../age'
 require_relative '../score'
-require_relative '../backtrace'
 require_relative '../metronome'
 require_relative '../wallet'
 require_relative '../wallets'
 require_relative '../remotes'
 require_relative '../verbose_thread'
+require_relative '../node/farmers'
 require_relative '../node/entrance'
 require_relative '../node/safe_entrance'
 require_relative '../node/spread_entrance'
@@ -76,8 +79,8 @@ module Zold
           "The strength of the score (default: #{Score::STRENGTH})",
           default: Score::STRENGTH
         o.integer '--threads',
-          'How many threads to use for scores finding (default: 2)',
-          default: 2
+          "How many threads to use for scores finding (default: #{Concurrent.processor_count})",
+          default: Concurrent.processor_count
         o.bool '--dump-errors',
           'Make HTTP front-end errors visible in the log (false by default)',
           default: false
@@ -127,13 +130,25 @@ module Zold
           'Maximum amount of nohup re-starts (-1 by default, which means forever)',
           require: true,
           default: -1
+        o.string '--home',
+          "Home directory (default: #{Dir.pwd})",
+          default: Dir.pwd
         o.bool '--no-metronome',
           'Don\'t run the metronome',
           required: true,
           default: false
+        o.bool '--disable-push',
+          'Prohibit all PUSH requests',
+          default: false
+        o.bool '--disable-fetch',
+          'Prohibit all FETCH requests',
+          default: false
         o.string '--alias',
           'The alias of the node (default: host:port)',
           require: false
+        o.string '--no-spawn',
+          'Don\'t use child processes for the score farm',
+          default: false
         o.bool '--help', 'Print instructions'
       end
       if opts.help?
@@ -143,22 +158,26 @@ module Zold
       raise '--invoice is mandatory' unless opts['invoice']
       if opts['nohup']
         pid = nohup(opts)
-        File.write(opts['save-pid'], pid) if opts['save-pid']
+        IO.write(opts['save-pid'], pid) if opts['save-pid']
         @log.debug("Process ID #{pid} saved into \"#{opts['save-pid']}\"")
         @log.info(pid)
         return
       end
       @log = Trace.new(@log, opts['trace-length'])
       Front.set(:log, @log)
+      Front.set(:logger, @log)
       Front.set(:trace, @log)
       Front.set(:nohup_log, opts['nohup-log']) if opts['nohup-log']
       Front.set(:version, opts['expose-version'])
       Front.set(:protocol, Zold::PROTOCOL)
       Front.set(:logging, @log.debug?)
       Front.set(:halt, opts['halt-code'])
-      Front.set(:home, Dir.pwd)
+      Front.set(:disable_push, opts['disable-push'])
+      Front.set(:disable_fetch, opts['disable-fetch'])
+      home = File.expand_path(opts['home'])
+      Front.set(:home, home)
       @log.info("Time: #{Time.now.utc.iso8601}")
-      @log.info("Home directory: #{Dir.pwd}")
+      @log.info("Home directory: #{home}")
       @log.info("Ruby version: #{RUBY_VERSION}")
       @log.info("Zold gem version: #{Zold::VERSION}")
       @log.info("Zold protocol version: #{Zold::PROTOCOL}")
@@ -171,13 +190,8 @@ module Zold
       @log.info("Remote nodes (#{@remotes.all.count}): \
 #{@remotes.all.map { |r| "#{r[:host]}:#{r[:port]}" }.join(', ')}")
       @log.info("Wallets at: #{@wallets.path}")
-      Front.set(
-        :server_settings,
-        Logger: WebrickLog.new(@log),
-        AccessLog: []
-      )
       if opts['standalone']
-        @remotes = Zold::Remotes::Empty.new(file: '/tmp/standalone')
+        @remotes = Zold::Remotes::Empty.new
         @log.info('Running in standalone mode! (will never talk to other remotes)')
       elsif @remotes.exists?(host, port)
         Zold::Remote.new(remotes: @remotes).run(['remote', 'remove', host, port.to_s])
@@ -189,12 +203,12 @@ module Zold
       Front.set(:remotes, @remotes)
       Front.set(:copies, @copies)
       Front.set(:address, address)
-      Front.set(:root, Dir.pwd)
+      Front.set(:root, home)
       Front.set(:dump_errors, opts['dump-errors'])
       Front.set(:port, opts['bind-port'])
       Front.set(:reboot, !opts['never-reboot'])
       node_alias = opts[:alias] || address
-      unless node_alias.eql?(address) || node_alias =~ /^[a-z0-9]{4,16}$/
+      unless node_alias.eql?(address) || node_alias =~ /^[A-Za-z0-9]{4,16}$/
         raise "Alias should be a 4 to 16 char long alphanumeric string: #{node_alias}"
       end
       Front.set(:node_alias, node_alias)
@@ -215,21 +229,22 @@ module Zold
                   @remotes, @copies, address,
                   log: @log, network: opts['network']
                 ),
-                File.join(Dir.pwd, '.zoldata/entrance'),
+                File.join(home, '.zoldata/sync-entrance'),
                 log: @log
               ),
               @wallets, @remotes, address,
               log: @log,
               ignore_score_weakeness: opts['ignore-score-weakness']
             ),
-            File.join(Dir.pwd, '.zoldata/entrance'), log: @log
+            File.join(home, '.zoldata/async-entrance'), log: @log
           ),
           @wallets
         ),
         network: opts['network']
       ).start do |entrance|
         Front.set(:entrance, entrance)
-        Farm.new(invoice, File.join(Dir.pwd, 'farm'), log: @log)
+        farmer = opts['no-spawn'] ? Farmers::Plain.new : Farmers::Spawn.new(log: @log)
+        Farm.new(invoice, File.join(home, 'farm'), log: @log, farmer: farmer)
           .start(host, opts[:port], threads: opts[:threads], strength: opts[:strength]) do |farm|
           Front.set(:farm, farm)
           metronome(farm, opts).start do |metronome|
@@ -261,8 +276,7 @@ module Zold
         end
         nohup_log.print("Nothing else left to read from ##{thr.pid}\n")
         code = thr.value.to_i
-        nohup_log.print("Exit code of process ##{thr.pid} is #{code}, was alive for \
-#{((Time.now - start) / 60).round} min: #{cmd}\n")
+        nohup_log.print("Exit code of process ##{thr.pid} is #{code}, was alive for #{Age.new(start)}: #{cmd}\n")
         code
       end
     end
@@ -311,8 +325,12 @@ module Zold
         @log.info('Metronome hasn\'t been started because of --no-metronome')
         return metronome
       end
-      require_relative 'routines/spread'
-      metronome.add(Routines::Spread.new(opts, @wallets, @remotes, log: @log))
+      # This was a good idea to spread wallets among other nodes,
+      # but with the growing number of wallets it's obvious that this
+      # doesn't make a lot of sense. We better focus of HungryWallets
+      # implementation, where wallets are being pulled if they are missed.
+      # require_relative 'routines/spread'
+      # metronome.add(Routines::Spread.new(opts, @wallets, @remotes, log: @log))
       unless opts['standalone']
         require_relative 'routines/reconnect'
         metronome.add(Routines::Reconnect.new(opts, @remotes, farm, network: opts['network'], log: @log))
@@ -362,33 +380,6 @@ module Zold
           end
         end
         total
-      end
-    end
-
-    # Fake logging facility for Webrick
-    class WebrickLog
-      def initialize(log)
-        @log = log
-      end
-
-      def info(msg)
-        @log.debug(msg)
-      end
-
-      def debug(msg)
-        # nothing
-      end
-
-      def error(msg)
-        @log.error(msg)
-      end
-
-      def fatal(msg)
-        @log.error(msg)
-      end
-
-      def debug?
-        @log.info?
       end
     end
   end

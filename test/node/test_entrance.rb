@@ -39,7 +39,7 @@ class TestEntrance < Minitest::Test
   def test_pushes_wallet
     sid = Zold::Id::ROOT
     tid = Zold::Id.new
-    body = FakeHome.new.run do |home|
+    body = FakeHome.new(log: test_log).run do |home|
       source = home.create_wallet(sid)
       target = home.create_wallet(tid)
       Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: test_log).run(
@@ -48,24 +48,28 @@ class TestEntrance < Minitest::Test
           source.id.to_s, target.id.to_s, '19.99', 'testing'
         ]
       )
-      File.read(source.path)
+      IO.read(source.path)
     end
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       source = home.create_wallet(sid)
-      home.create_wallet(tid)
+      target = home.create_wallet(tid)
       e = Zold::Entrance.new(home.wallets, home.remotes, home.copies(source).root, 'x', log: test_log)
       modified = e.push(source.id, body)
+      assert_equal(Zold::Amount.new(zld: -19.99), source.balance)
+      assert_equal(Zold::Amount.new(zld: 19.99), target.balance)
       assert_equal(2, modified.count)
+      assert(modified.include?(sid))
+      assert(modified.include?(tid))
     end
   end
 
   def test_renders_json
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       e = Zold::Entrance.new(home.wallets, home.remotes, home.copies.root, 'x', log: test_log)
-      e.push(wallet.id, File.read(wallet.path))
+      e.push(wallet.id, IO.read(wallet.path))
       assert(e.to_json[:history].include?(wallet.id.to_s))
-      assert(e.to_json[:speed].positive?)
+      assert(!e.to_json[:speed].negative?)
     end
   end
 end

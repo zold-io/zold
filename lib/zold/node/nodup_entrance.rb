@@ -22,8 +22,8 @@
 
 require 'tempfile'
 require_relative '../log'
+require_relative '../size'
 require_relative '../wallet'
-require_relative '../atomic_file'
 
 # The entrance that ignores duplicates.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -54,19 +54,23 @@ module Zold
       raise 'Id can\'t be nil' if id.nil?
       raise 'Id must be of type Id' unless id.is_a?(Id)
       raise 'Body can\'t be nil' if body.nil?
-      Tempfile.open(['', Wallet::EXTENSION]) do |f|
-        File.write(f, body)
+      Tempfile.open(['', Wallet::EXT]) do |f|
+        IO.write(f, body)
         wallet = Wallet.new(f.path)
         wallet.refurbish
-        after = File.read(wallet.path)
+        after = IO.read(wallet.path)
         before = @wallets.find(id) do |w|
-          w.exists? ? AtomicFile.new(w.path).read.to_s : ''
+          w.exists? ? IO.read(w.path).to_s : ''
         end
         if before == after
-          @log.info("Duplicate of #{id}/#{wallet.digest[0, 6]}/#{after.length}b/#{wallet.txns.count}t ignored")
+          @log.info(
+            "Duplicate of #{id}/#{wallet.digest[0, 6]}/#{Size.new(after.length)}/#{wallet.txns.count}t ignored"
+          )
           return []
         end
-        @log.info("New content for #{id} arrived, #{before.length}b before and #{after.length}b after")
+        @log.info(
+          "New content for #{id} arrived, #{Size.new(before.length)} before and #{Size.new(after.length)} after"
+        )
         @entrance.push(id, body)
       end
     end

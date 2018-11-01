@@ -35,7 +35,7 @@ require_relative 'fake_entrance'
 # License:: MIT
 class TestSpreadEntrance < Minitest::Test
   def test_renders_json
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet(Zold::Id.new)
       Zold::SpreadEntrance.new(
         Zold::Entrance.new(home.wallets, home.remotes, home.copies(wallet).root, 'x', log: test_log),
@@ -47,13 +47,13 @@ class TestSpreadEntrance < Minitest::Test
   end
 
   def test_ignores_duplicates
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
         wallet = home.create_wallet
         remotes = home.remotes
         remotes.add('localhost', port)
         Zold::SpreadEntrance.new(FakeEntrance.new, home.wallets, remotes, 'x', log: test_log).start do |e|
-          8.times { e.push(wallet.id, File.read(wallet.path)) }
+          8.times { e.push(wallet.id, IO.read(wallet.path)) }
           assert(e.to_json[:modified] < 2, "It's too big: #{e.to_json[:modified]}")
         end
       end

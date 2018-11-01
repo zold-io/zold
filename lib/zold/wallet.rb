@@ -27,10 +27,12 @@ require_relative 'key'
 require_relative 'id'
 require_relative 'txn'
 require_relative 'tax'
+require_relative 'copies'
 require_relative 'amount'
 require_relative 'hexnum'
 require_relative 'signature'
-require_relative 'atomic_file'
+require_relative 'txns'
+require_relative 'head'
 
 # The wallet.
 #
@@ -49,11 +51,15 @@ module Zold
     MAIN_NETWORK = 'zold'
 
     # The extension of the wallet files
-    EXTENSION = '.z'
+    EXT = '.z'
 
     def initialize(file)
-      @file = file
-      @file = "#{file}#{EXTENSION}" if File.extname(file).empty?
+      unless file.end_with?(Wallet::EXT, Copies::EXT)
+        raise "Wallet file must end with #{Wallet::EXT} or #{Copies::EXT}: #{file}"
+      end
+      @file = File.absolute_path(file)
+      @txns = Txns::Cached.new(Txns.new(@file))
+      @head = Head::Cached.new(Head.new(@file))
     end
 
     def ==(other)
@@ -64,14 +70,18 @@ module Zold
       id.to_s
     end
 
+    def to_text
+      (@head.fetch + [''] + @txns.fetch.map(&:to_text)).join("\n")
+    end
+
     def network
-      n = lines[0].strip
+      n = @head.fetch[0].strip
       raise "Invalid network name '#{n}'" unless n =~ /^[a-z]{4,16}$/
       n
     end
 
     def protocol
-      v = lines[1].strip
+      v = @head.fetch[1].strip
       raise "Invalid protocol version name '#{v}'" unless v =~ /^[0-9]+$/
       v.to_i
     end
@@ -87,7 +97,10 @@ module Zold
     def init(id, pubkey, overwrite: false, network: 'test')
       raise "File '#{@file}' already exists" if File.exist?(@file) && !overwrite
       raise "Invalid network name '#{network}'" unless network =~ /^[a-z]{4,16}$/
-      AtomicFile.new(@file).write("#{network}\n#{PROTOCOL}\n#{id}\n#{pubkey.to_pub}\n\n")
+      FileUtils.mkdir_p(File.dirname(@file))
+      IO.write(@file, "#{network}\n#{PROTOCOL}\n#{id}\n#{pubkey.to_pub}\n\n")
+      @txns.flush
+      @head.flush
     end
 
     def root?
@@ -95,7 +108,7 @@ module Zold
     end
 
     def id
-      Id.new(lines[2].strip)
+      Id.new(@head.fetch[2].strip)
     end
 
     def balance
@@ -125,17 +138,28 @@ module Zold
 
     def add(txn)
       raise 'The txn has to be of type Txn' unless txn.is_a?(Txn)
-      dup = txns.find { |t| t.bnf == txn.bnf && t.id == txn.id }
       raise "Wallet #{id} can't pay itself: #{txn}" if txn.bnf == id
-      raise "The transaction with the same ID and BNF already exists: #{dup}" unless dup.nil?
-      raise "The tax payment already exists: #{txn}" if Tax.new(self).exists?(txn)
+      raise "The amount can't be zero in #{id}: #{txn}" if txn.amount.zero?
+      if txn.amount.negative? && includes_negative?(txn.id)
+        raise "Negative transaction with the same ID #{txn.id} already exists in #{id}"
+      end
+      if txn.amount.positive? && includes_positive?(txn.id, txn.bnf)
+        raise "Positive transaction with the same ID #{txn.id} and BNF #{txn.bnf} already exists in #{id}"
+      end
+      raise "The tax payment already exists in #{id}: #{txn}" if Tax.new(self).exists?(txn.details)
       File.open(@file, 'a') { |f| f.print "#{txn}\n" }
+      @txns.flush
     end
 
-    def has?(id, bnf)
+    def includes_negative?(id, bnf = nil)
+      raise 'The txn ID has to be of type Integer' unless id.is_a?(Integer)
+      !txns.find { |t| t.id == id && (bnf.nil? || t.bnf == bnf) && t.amount.negative? }.nil?
+    end
+
+    def includes_positive?(id, bnf)
       raise 'The txn ID has to be of type Integer' unless id.is_a?(Integer)
       raise 'The bnf has to be of type Id' unless bnf.is_a?(Id)
-      !txns.find { |t| t.id == id && t.bnf == bnf }.nil?
+      !txns.find { |t| t.id == id && t.bnf == bnf && !t.amount.negative? }.nil?
     end
 
     def prefix?(prefix)
@@ -143,7 +167,7 @@ module Zold
     end
 
     def key
-      Key.new(text: lines[3].strip)
+      Key.new(text: @head.fetch[3].strip)
     end
 
     def income
@@ -157,7 +181,7 @@ module Zold
     end
 
     def digest
-      OpenSSL::Digest::SHA256.new(File.read(@file)).hexdigest
+      OpenSSL::Digest::SHA256.new(IO.read(@file)).hexdigest
     end
 
     # Age of wallet in hours
@@ -167,16 +191,20 @@ module Zold
     end
 
     def txns
-      lines.drop(5)
-        .each_with_index
-        .map { |line, i| Txn.parse(line, i + 6) }
-        .sort
+      @txns.fetch
     end
 
     def refurbish
-      AtomicFile.new(@file).write(
+      IO.write(
+        @file,
         "#{network}\n#{protocol}\n#{id}\n#{key.to_pub}\n\n#{txns.map { |t| t.to_s + "\n" }.join}"
       )
+      @txns.flush
+    end
+
+    def flush
+      @head.flush
+      @txns.flush
     end
 
     private
@@ -184,13 +212,6 @@ module Zold
     def max
       negative = txns.select { |t| t.amount.negative? }
       negative.empty? ? 0 : negative.max_by(&:id).id
-    end
-
-    def lines
-      raise "Wallet file '#{@file}' is absent" unless File.exist?(@file)
-      lines = AtomicFile.new(@file).read.split(/\n/)
-      raise "Not enough lines in #{@file}, just #{lines.count}" if lines.count < 4
-      lines
     end
   end
 end

@@ -54,30 +54,34 @@ and suggests a different architecture for digital wallet maintenance.'
   s.test_files = s.files.grep(%r{^(test|features)/})
   s.rdoc_options = ['--charset=UTF-8']
   s.extra_rdoc_files = ['README.md', 'LICENSE.txt']
-  s.add_runtime_dependency 'cachy', '0.4.2'
+  s.add_runtime_dependency 'backtrace', '~>0'
   s.add_runtime_dependency 'concurrent-ruby', '~>1.0'
-  s.add_runtime_dependency 'cucumber', '~>3.1' # has to stay here for Heroku
-  s.add_runtime_dependency 'diffy', '~>3.2'
-  s.add_runtime_dependency 'dry-struct', '~>0.5.0'
-  s.add_runtime_dependency 'dry-types', '~>0.13.2'
-  s.add_runtime_dependency 'get_process_mem', '0.2.2'
-  s.add_runtime_dependency 'json', '~>1.8'
-  s.add_runtime_dependency 'moneta', '1.0.0'
-  s.add_runtime_dependency 'openssl', '~>2.1'
-  s.add_runtime_dependency 'rainbow', '~>3.0'
-  s.add_runtime_dependency 'rake', '~>12.3' # has to stay here for Heroku
+  s.add_runtime_dependency 'cucumber', '~>3' # has to stay here for Heroku
+  s.add_runtime_dependency 'diffy', '~>3'
+  s.add_runtime_dependency 'dry-struct', '~>0'
+  s.add_runtime_dependency 'dry-types', '~>0'
+  s.add_runtime_dependency 'futex', '~>0'
+  s.add_runtime_dependency 'get_process_mem', '~>0'
+  s.add_runtime_dependency 'json', '~>2'
+  s.add_runtime_dependency 'openssl', '~>2'
+  s.add_runtime_dependency 'posix-spawn', '~>0.3'
+  s.add_runtime_dependency 'rainbow', '~>3'
+  s.add_runtime_dependency 'rake', '~>12' # has to stay here for Heroku
   s.add_runtime_dependency 'rubocop', '0.58.1' # has to stay here for Heroku
-  s.add_runtime_dependency 'rubocop-rspec', '1.27.0' # has to stay here for Heroku
-  s.add_runtime_dependency 'semantic', '~>1.6'
-  s.add_runtime_dependency 'sigdump', '~>0.2'
-  s.add_runtime_dependency 'sinatra', '~>2.0'
-  s.add_runtime_dependency 'slop', '~>4.4'
-  s.add_runtime_dependency 'sys-proctable', '1.1.5'
-  s.add_runtime_dependency 'usagewatch_ext', '0.2.0'
-  s.add_runtime_dependency 'xcop', '~>0.5'
-  s.add_development_dependency 'codecov', '0.1.10'
-  s.add_development_dependency 'minitest', '5.11.3'
-  s.add_development_dependency 'rdoc', '4.2.0'
-  s.add_development_dependency 'rspec-rails', '3.1.0'
-  s.add_development_dependency 'webmock', '3.4.2'
+  s.add_runtime_dependency 'rubocop-rspec', '~>1' # has to stay here for Heroku
+  s.add_runtime_dependency 'semantic', '~>1'
+  s.add_runtime_dependency 'sigdump', '~>0'
+  s.add_runtime_dependency 'sinatra', '~>2'
+  s.add_runtime_dependency 'slop', '~>4'
+  s.add_runtime_dependency 'sys-proctable', '~>1'
+  s.add_runtime_dependency 'thin', '~>1'
+  s.add_runtime_dependency 'threads', '~>0'
+  s.add_runtime_dependency 'usagewatch_ext', '~>0'
+  s.add_runtime_dependency 'xcop', '~>0'
+  s.add_development_dependency 'codecov', '~>0'
+  s.add_development_dependency 'minitest', '~>5'
+  s.add_development_dependency 'random-port', '~>0'
+  s.add_development_dependency 'rdoc', '~>4'
+  s.add_development_dependency 'rspec-rails', '~>3'
+  s.add_development_dependency 'webmock', '~>3'
 end

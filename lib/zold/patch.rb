@@ -23,7 +23,6 @@
 require_relative 'log'
 require_relative 'wallet'
 require_relative 'signature'
-require_relative 'atomic_file'
 
 # Patch.
 #
@@ -105,7 +104,7 @@ module Zold
             @log.error("Paying wallet file is absent: #{txn.to_text}")
             next
           end
-          unless @wallets.find(txn.bnf) { |p| p.has?(txn.id, wallet.id) }
+          unless @wallets.find(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
             @log.error("Paying wallet #{txn.bnf} doesn't have transaction ##{txn.id} \
 among #{payer.txns.count} transactions: #{txn.to_text}")
             next
@@ -120,12 +119,16 @@ among #{payer.txns.count} transactions: #{txn.to_text}")
     def save(file, overwrite: false)
       raise 'You have to join at least one wallet in' if @id.nil?
       before = ''
-      before = AtomicFile.new(file).read if File.exist?(file)
+      before = IO.read(file) if File.exist?(file)
       wallet = Wallet.new(file)
       wallet.init(@id, @key, overwrite: overwrite, network: @network)
-      @txns.each { |t| wallet.add(t) }
+      File.open(file, 'a') do |f|
+        @txns.each do |txn|
+          f.print "#{txn}\n"
+        end
+      end
       wallet.refurbish
-      after = AtomicFile.new(file).read
+      after = IO.read(file)
       before != after
     end
   end

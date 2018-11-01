@@ -20,8 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'backtrace'
 require_relative 'log'
-require_relative 'backtrace'
 
 # Verbose thread.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

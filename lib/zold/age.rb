@@ -21,29 +21,38 @@
 # SOFTWARE.
 
 require 'time'
+require 'rainbow'
 
-# Age
+# Age in seconds.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
   # Age
   class Age
-    def initialize(time)
-      @time = time
-      @time = Time.parse(@time) unless time.is_a?(Time)
+    def initialize(time, limit: nil)
+      @time = time.nil? || time.is_a?(Time) ? time : Time.parse(time)
+      @limit = limit
     end
 
     def to_s
       return '?' if @time.nil?
       sec = Time.now - @time
-      if sec < 60
-        "#{sec.round(2)}s"
-      elsif sec < 60 * 60
-        "#{(sec / 60).round}m"
+      txt = text(sec)
+      if !@limit.nil? && sec > @limit
+        Rainbow(txt).red
       else
-        "#{(sec / 3600).round}h"
+        txt
       end
+    end
+
+    private
+
+    def text(sec)
+      return "#{(sec * 1000).round}ms" if sec < 1
+      return "#{sec.round(2)}s" if sec < 60
+      return "#{(sec / 60).round}m" if sec < 60 * 60
+      "#{(sec / 3600).round}h"
     end
   end
 end

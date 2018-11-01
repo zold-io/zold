@@ -21,14 +21,15 @@
 # SOFTWARE.
 
 require 'tmpdir'
+require_relative '../lib/zold/log'
 require_relative '../lib/zold/id'
 require_relative '../lib/zold/wallet'
 require_relative '../lib/zold/wallets'
 require_relative '../lib/zold/sync_wallets'
+require_relative '../lib/zold/cached_wallets'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/version'
 require_relative '../lib/zold/remotes'
-require_relative '../lib/zold/atomic_file'
 
 # Fake home dir.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -36,25 +37,29 @@ require_relative '../lib/zold/atomic_file'
 # License:: MIT
 class FakeHome
   attr_reader :dir
-  def initialize(dir = __dir__)
+  def initialize(dir = __dir__, log: Zold::Log::Quiet.new)
     @dir = dir
+    @log = log
   end
 
   def run
     Dir.mktmpdir do |dir|
-      FileUtils.copy(File.join(__dir__, '../fixtures/id_rsa'), File.join(dir, 'id_rsa'))
-      yield FakeHome.new(dir)
+      FileUtils.copy(File.expand_path(File.join(__dir__, '../fixtures/id_rsa')), File.join(dir, 'id_rsa'))
+      yield FakeHome.new(dir, log: @log)
     end
   end
 
   def wallets
-    Zold::SyncWallets.new(Zold::Wallets.new(@dir), File.join(@dir, 'locks'))
+    Zold::SyncWallets.new(Zold::CachedWallets.new(Zold::Wallets.new(@dir)), log: @log)
   end
 
   def create_wallet(id = Zold::Id.new, dir = @dir)
-    wallet = Zold::Wallet.new(File.join(dir, id.to_s))
-    wallet.init(id, Zold::Key.new(file: File.join(__dir__, '../fixtures/id_rsa.pub')))
-    wallet
+    target = Zold::Wallet.new(File.join(dir, id.to_s + Zold::Wallet::EXT))
+    wallets.find(id) do |w|
+      w.init(id, Zold::Key.new(file: File.expand_path(File.join(__dir__, '../fixtures/id_rsa.pub'))))
+      IO.write(target.path, IO.read(w.path))
+    end
+    target
   end
 
   def create_wallet_json(id = Zold::Id.new)
@@ -71,7 +76,7 @@ class FakeHome
         mtime: wallet.mtime.utc.iso8601,
         digest: wallet.digest,
         balance: wallet.balance.to_i,
-        body: Zold::AtomicFile.new(wallet.path).read
+        body: IO.read(wallet.path)
       }.to_json
     end
   end

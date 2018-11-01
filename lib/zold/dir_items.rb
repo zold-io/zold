@@ -20,33 +20,36 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Atomic file.
+require 'shellwords'
+require 'posix/spawn'
+
+# Items in a directory.
+#
+# We need this class because Dir.new() from Ruby is blocking. It doesn't
+# allow to write and read to any files in a directory, while listing it.
+# More: https://stackoverflow.com/questions/52987672/
+#
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # Atomic file
-  class AtomicFile
-    def initialize(file)
-      raise 'File can\'t be nil' if file.nil?
-      @file = file
-      @mutex = Mutex.new
+  # Items in a dir
+  class DirItems
+    def initialize(dir)
+      @dir = dir
     end
 
-    def read
-      @mutex.synchronize do
-        File.open(@file, 'rb', &:read)
-      end
-    end
-
-    def write(content)
-      raise 'Content can\'t be nil' if content.nil?
-      FileUtils.mkdir_p(File.dirname(@file))
-      @mutex.synchronize do
-        File.open(@file, 'wb') do |f|
-          f.write(content)
-        end
-      end
+    def fetch(recursive: true)
+      spawn = POSIX::Spawn::Child.new(
+        'find',
+        *([Shellwords.escape(@dir), '-type', 'f', '-print'] + (recursive ? [] : ['-maxdepth', '1']))
+      )
+      raise spawn.err unless spawn.status.success?
+      spawn.out
+        .strip
+        .split(' ')
+        .select { |f| f.start_with?(@dir) && f.length > @dir.length }
+        .map { |f| f[(@dir.length + 1)..-1] }
     end
   end
 end

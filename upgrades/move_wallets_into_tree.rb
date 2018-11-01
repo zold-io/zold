@@ -34,7 +34,7 @@ module Zold
 
     def exec
       Dir.new(@home).each do |path|
-        next unless path =~ /^[a-f0-9]{16}#{Wallet::EXTENSION}$/
+        next unless path =~ /^[a-f0-9]{16}#{Wallet::EXT}$/
         f = File.join(@home, path)
         target = File.join(@home, (path.split('', 5).take(4) + [path]).join('/'))
         FileUtils.mkdir_p(File.dirname(target))

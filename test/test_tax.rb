@@ -43,7 +43,7 @@ class TestTax < Minitest::Test
   end
 
   def test_calculates_tax_for_one_year
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       wallet.add(
         Zold::Txn.new(
@@ -60,7 +60,7 @@ class TestTax < Minitest::Test
   end
 
   def test_calculates_debt
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       (1..30).each do |i|
         wallet.add(
@@ -78,12 +78,12 @@ class TestTax < Minitest::Test
       )
       tax = Zold::Tax.new(wallet)
       txn = tax.pay(Zold::Key.new(file: 'fixtures/id_rsa'), score)
-      assert_equal(-88_243_200, txn.amount.to_i)
+      assert_equal(Zold::Tax::MAX_PAYMENT * -1, txn.amount)
     end
   end
 
   def test_takes_tax_payment_into_account
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       wallet.add(
         Zold::Txn.new(
@@ -101,7 +101,7 @@ class TestTax < Minitest::Test
   end
 
   def test_checks_existence_of_duplicates
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       wallet.add(
         Zold::Txn.new(
@@ -119,26 +119,8 @@ class TestTax < Minitest::Test
         suffixes: %w[A B C D E F G H I J K L M N O P Q R S T U V]
       )
       tax.pay(Zold::Key.new(file: 'fixtures/id_rsa'), score)
-      assert(
-        tax.exists?(
-          Zold::Txn.new(
-            2,
-            Time.now,
-            Zold::Amount.new(zld: 10.99),
-            'AAPREFIX', target.id, tax.details(score)
-          )
-        )
-      )
-      assert(
-        !tax.exists?(
-          Zold::Txn.new(
-            2,
-            Time.now,
-            Zold::Amount.new(zld: 10.99),
-            'NOPREFIX', target.id, '-'
-          )
-        )
-      )
+      assert(tax.exists?(tax.details(score)))
+      assert(!tax.exists?('-'))
     end
   end
 end

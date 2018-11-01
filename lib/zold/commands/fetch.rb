@@ -31,6 +31,7 @@ require_relative 'args'
 require_relative '../log'
 require_relative '../age'
 require_relative '../http'
+require_relative '../size'
 require_relative '../score'
 require_relative '../json_page'
 require_relative '../copies'
@@ -68,8 +69,7 @@ Available options:"
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
-      mine = @wallets.all if mine.empty?
-      mine.map { |i| Id.new(i) }.each do |id|
+      (mine.empty? ? @wallets.all : mine.map { |i| Id.new(i) }).each do |id|
         fetch(id, Copies.new(File.join(@copies, id)), opts)
       end
     end
@@ -88,13 +88,13 @@ Available options:"
       end
       raise "There are no remote nodes, run 'zold remote reset'" if nodes.value.zero?
       raise "No nodes out of #{nodes.value} have the wallet #{id}" if done.value.zero? && !opts['quiet-if-absent']
-      @log.info("#{done.value} copies of #{id} fetched in #{(Time.now - start).round}s with the total score of \
+      @log.info("#{done.value} copies of #{id} fetched in #{Age.new(start)} with the total score of \
 #{total.value} from #{nodes.value} nodes")
       @log.debug("#{cps.all.count} local copies:")
       cps.all.each do |c|
         wallet = Wallet.new(c[:path])
         @log.debug("  #{c[:name]}: #{c[:score]} #{wallet.balance}/#{wallet.txns.count}t/\
-#{wallet.digest[0, 6]}/#{File.size(c[:path])}b/#{Age.new(File.mtime(c[:path]))}")
+#{wallet.digest[0, 6]}/#{Size.new(File.size(c[:path]))}/#{Age.new(File.mtime(c[:path]))}")
       end
     end
 
@@ -104,17 +104,18 @@ Available options:"
         @log.debug("#{r} ignored because of --ignore-node")
         return 0
       end
-      res = r.http("/wallet/#{id}").get
+      uri = "/wallet/#{id}"
+      res = r.http(uri).get
       raise "Wallet #{id} not found" if res.code == '404'
       r.assert_code(200, res)
-      json = JsonPage.new(res.body).to_hash
+      json = JsonPage.new(res.body, uri).to_hash
       score = Score.parse_json(json['score'])
       r.assert_valid_score(score)
       r.assert_score_ownership(score)
       r.assert_score_strength(score) unless opts['ignore-score-weakness']
-      Tempfile.open(['', Wallet::EXTENSION]) do |f|
+      Tempfile.open(['', Wallet::EXT]) do |f|
         body = json['body']
-        File.write(f, body)
+        IO.write(f, body)
         wallet = Wallet.new(f.path)
         wallet.refurbish
         if wallet.protocol != Zold::PROTOCOL
@@ -126,10 +127,10 @@ Available options:"
         if wallet.balance.negative? && !wallet.root?
           raise "The balance of #{id} is #{wallet.balance} and it's not a root wallet"
         end
-        copy = cps.add(File.read(f), score.host, score.port, score.value)
-        @log.info("#{r} returned #{body.length}b/#{wallet.balance}/#{wallet.txns.count}t/\
+        copy = cps.add(IO.read(f), score.host, score.port, score.value)
+        @log.info("#{r} returned #{Size.new(body.length)}/#{wallet.balance}/#{wallet.txns.count}t/\
 #{digest(json)}/#{Age.new(json['mtime'])}/#{json['copies']}c \
-as copy #{copy} of #{id} in #{(Time.now - start).round(2)}s: #{Rainbow(score.value).green} (#{json['version']})")
+as copy #{copy} of #{id} in #{Age.new(start, limit: 4)}: #{Rainbow(score.value).green} (#{json['version']})")
       end
       score.value
     end

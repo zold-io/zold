@@ -21,35 +21,33 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
-require 'tmpdir'
-require 'securerandom'
-require_relative 'test__helper'
-require_relative '../lib/zold/atomic_file'
-require_relative '../lib/zold/verbose_thread'
+require 'threads'
+require_relative '../lib/zold/cache'
 
-# AtomicFile test.
+# Cache test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestAtomicFile < Minitest::Test
-  def test_writes_and_reads
-    Dir.mktmpdir do |dir|
-      file = Zold::AtomicFile.new(File.join(dir, 'test.txt'))
-      ['', 'hello, dude!'].each do |t|
-        file.write(t)
-        assert_equal(t, file.read)
-      end
-    end
+class TestCache < Minitest::Test
+  def test_caches
+    cache = Zold::Cache.new
+    first = cache.get(:hey, lifetime: 5) { Random.rand }
+    second = cache.get(:hey) { Random.rand }
+    assert(first == second)
   end
 
-  def test_writes_from_many_threads
-    Dir.mktmpdir do |dir|
-      file = Zold::AtomicFile.new(File.join(dir, 'a.txt'))
-      content = SecureRandom.hex(1000)
-      assert_in_threads(loops: 1000) do
-        file.write(content)
-        assert_equal(content, file.read, 'Invalid content')
-      end
+  def test_caches_and_expires
+    cache = Zold::Cache.new
+    first = cache.get(:hey, lifetime: 0.01) { Random.rand }
+    sleep 0.1
+    second = cache.get(:hey) { Random.rand }
+    assert(first != second)
+  end
+
+  def test_caches_in_threads
+    cache = Zold::Cache.new
+    Threads.new(10).assert(100) do
+      cache.get(:hey, lifetime: 0.0001) { Random.rand }
     end
   end
 end

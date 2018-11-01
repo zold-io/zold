@@ -22,11 +22,14 @@
 
 require 'time'
 require 'open3'
+require 'backtrace'
+require 'futex'
+require 'json'
 require_relative '../log'
 require_relative '../score'
+require_relative '../age'
 require_relative '../verbose_thread'
-require_relative '../backtrace'
-require_relative '../atomic_file'
+require_relative 'farmers'
 
 # The farm of scores.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -42,13 +45,14 @@ module Zold
       end
     end
 
-    def initialize(invoice, cache = File.join(Dir.pwd, 'farm'), log: Log::Quiet.new)
+    def initialize(invoice, cache = File.join(Dir.pwd, 'farm'), log: Log::Quiet.new,
+      farmer: Farmers::Plain.new)
       @log = log
       @cache = cache
       @invoice = invoice
       @pipeline = Queue.new
+      @farmer = farmer
       @threads = []
-      @mutex = Mutex.new
     end
 
     def best
@@ -56,20 +60,29 @@ module Zold
     end
 
     def to_text
-      @threads.map do |t|
-        trace = t.backtrace || []
-        "#{t.name}: status=#{t.status}; alive=#{t.alive?};\n  #{trace.join("\n  ")}"
-      end.join("\n")
+      [
+        "Current time: #{Time.now.utc.iso8601}",
+        JSON.pretty_generate(to_json),
+        @threads.map do |t|
+          trace = t.backtrace || []
+          [
+            "#{t.name}: status=#{t.status}; alive=#{t.alive?}",
+            'Vars: ' + t.thread_variables.map { |v| "#{v}=\"#{t.thread_variable_get(v)}\"" }.join('; '),
+            "  #{trace.join("\n  ")}"
+          ].join("\n")
+        end
+      ].flatten.join("\n\n")
     end
 
     def to_json
       {
         threads: @threads.map do |t|
-          "#{t.name}/#{t.status}/#{t.alive? ? 'A' : 'D'}"
+          "#{t.name}/#{t.status}/#{t.alive? ? 'alive' : 'dead'}"
         end.join(', '),
         cleanup: @cleanup.status,
         pipeline: @pipeline.size,
-        best: best.map(&:to_mnemo).join(', ')
+        best: best.map(&:to_mnemo).join(', '),
+        alive: @alive
       }
     end
 
@@ -103,7 +116,7 @@ module Zold
             @log.info("It's time to stop the cleanup thread (#{a.count} != #{max}, alive=#{@alive})...")
             break
           end
-          VerboseThread.new(@log).run do
+          VerboseThread.new(@log).run(true) do
             cleanup(host, port, strength, threads)
           end
         end
@@ -117,7 +130,7 @@ module Zold
         start = Time.now
         finish(@cleanup)
         @threads.each { |t| finish(t) }
-        @log.info("Farm stopped in #{(Time.now - start).round(2)}s")
+        @log.info("Farm stopped in #{Age.new(start)}")
       end
     end
 
@@ -126,16 +139,16 @@ module Zold
     def finish(thread)
       start = Time.now
       @alive = false
-      @log.info("Attempting to terminate the thread \"#{thread.name}\"...")
+      @log.info("Attempting to terminate the thread \"#{thread.name}\" of the farm...")
       loop do
-        delay = (Time.now - start).round(2)
+        delay = Time.now - start
         if thread.join(0.1)
-          @log.info("Thread \"#{thread.name}\" finished in #{delay}s")
+          @log.info("Thread \"#{thread.name}\" finished in #{Age.new(start)}")
           break
         end
-        if delay > 10
+        if delay > 1
           thread.exit
-          @log.error("Thread \"#{thread.name}\" forcefully terminated after #{delay}s")
+          @log.error("Thread \"#{thread.name}\" forcefully terminated after #{Age.new(start)}")
         end
       end
     end
@@ -173,54 +186,19 @@ module Zold
       return unless s.port == port
       return unless s.strength >= strength
       Thread.current.name = s.to_mnemo
-      bin = File.expand_path(File.join(File.dirname(__FILE__), '../../../bin/zold'))
-      Open3.popen2e("ruby #{bin} --skip-upgrades next \"#{s}\"") do |stdin, stdout, thr|
-        @log.debug("Score counting started in process ##{thr.pid}")
-        begin
-          stdin.close
-          buffer = +''
-          loop do
-            begin
-              buffer << stdout.read_nonblock(1024)
-              # rubocop:disable Lint/HandleExceptions
-            rescue IO::WaitReadable => _
-              # rubocop:enable Lint/HandleExceptions
-              # nothing to do here
-            end
-            if buffer.end_with?("\n") && thr.value.to_i.zero?
-              score = Score.parse(buffer.strip)
-              @log.debug("New score discovered: #{score}")
-              save(threads, [score])
-              cleanup(host, port, strength, threads)
-              break
-            end
-            if stdout.closed?
-              raise "Failed to calculate the score (##{thr.value}): #{buffer}" unless thr.value.to_i.zero?
-              break
-            end
-            break unless @alive
-            sleep 0.25
-          end
-        rescue StandardError => e
-          @log.error(Backtrace.new(e).to_s)
-        ensure
-          kill(thr.pid)
-        end
-      end
-    end
-
-    def kill(pid)
-      Process.kill('TERM', pid)
-      @log.debug("Process ##{pid} killed")
-    rescue StandardError => e
-      @log.debug("No need to kill process ##{pid} since it's dead already: #{e.message}")
+      Thread.current.thread_variable_set(:start, Time.now.utc.iso8601)
+      score = @farmer.up(s)
+      @log.debug("New score discovered: #{score}")
+      save(threads, [score])
+      cleanup(host, port, strength, threads)
     end
 
     def save(threads, list = [])
       scores = load + list
       period = 24 * 60 * 60 / [threads, 1].max
-      @mutex.synchronize do
-        AtomicFile.new(@cache).write(
+      Futex.new(@cache, log: @log).open do |f|
+        IO.write(
+          f,
           scores.select(&:valid?)
             .reject(&:expired?)
             .sort_by(&:value)
@@ -235,9 +213,9 @@ module Zold
     end
 
     def load
-      @mutex.synchronize do
-        if File.exist?(@cache)
-          AtomicFile.new(@cache).read.split(/\n/)
+      Futex.new(@cache, log: @log).open do |f|
+        if File.exist?(f)
+          IO.read(f).split(/\n/)
             .map { |t| parse_score_line(t) }
             .reject(&:zero?)
         else

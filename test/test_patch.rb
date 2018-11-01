@@ -35,17 +35,17 @@ require_relative '../lib/zold/patch'
 # License:: MIT
 class TestPatch < Minitest::Test
   def test_builds_patch
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       first = home.create_wallet
       second = home.create_wallet
       third = home.create_wallet
-      File.write(second.path, File.read(first.path))
+      IO.write(second.path, IO.read(first.path))
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       first.sub(Zold::Amount.new(zld: 39.0), "NOPREFIX@#{Zold::Id.new}", key)
       first.sub(Zold::Amount.new(zld: 11.0), "NOPREFIX@#{Zold::Id.new}", key)
       first.sub(Zold::Amount.new(zld: 3.0), "NOPREFIX@#{Zold::Id.new}", key)
       second.sub(Zold::Amount.new(zld: 44.0), "NOPREFIX@#{Zold::Id.new}", key)
-      File.write(third.path, File.read(first.path))
+      IO.write(third.path, IO.read(first.path))
       t = third.sub(Zold::Amount.new(zld: 10.0), "NOPREFIX@#{Zold::Id.new}", key)
       third.add(t.inverse(Zold::Id.new))
       patch = Zold::Patch.new(home.wallets, log: test_log)
@@ -59,10 +59,10 @@ class TestPatch < Minitest::Test
   end
 
   def test_rejects_fake_positives
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       first = home.create_wallet
       second = home.create_wallet
-      File.write(second.path, File.read(first.path))
+      IO.write(second.path, IO.read(first.path))
       second.add(Zold::Txn.new(1, Time.now, Zold::Amount.new(zld: 11.0), 'NOPREFIX', Zold::Id.new, 'fake'))
       patch = Zold::Patch.new(home.wallets, log: test_log)
       patch.join(first)
@@ -74,10 +74,10 @@ class TestPatch < Minitest::Test
   end
 
   def test_accepts_negative_balance_in_root_wallet
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       first = home.create_wallet(Zold::Id::ROOT)
       second = home.create_wallet
-      File.write(second.path, File.read(first.path))
+      IO.write(second.path, IO.read(first.path))
       amount = Zold::Amount.new(zld: 333.0)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       second.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
@@ -91,10 +91,10 @@ class TestPatch < Minitest::Test
   end
 
   def test_merges_similar_ids_but_different_signs
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       first = home.create_wallet(Zold::Id::ROOT)
       second = home.create_wallet
-      File.write(second.path, File.read(first.path))
+      IO.write(second.path, IO.read(first.path))
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       second.sub(Zold::Amount.new(zld: 7.0), "NOPREFIX@#{Zold::Id.new}", key)
       first.add(Zold::Txn.new(1, Time.now, Zold::Amount.new(zld: 9.0), 'NOPREFIX', Zold::Id.new, 'fake'))
@@ -108,10 +108,10 @@ class TestPatch < Minitest::Test
   end
 
   def test_merges_fragmented_parts
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       first = home.create_wallet(Zold::Id::ROOT)
       second = home.create_wallet
-      File.write(second.path, File.read(first.path))
+      IO.write(second.path, IO.read(first.path))
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       start = Time.parse('2017-07-19T21:24:51Z')
       first.add(

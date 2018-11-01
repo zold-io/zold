@@ -31,7 +31,7 @@ require_relative '../fake_home'
 # License:: MIT
 class TestProtocolUp < Minitest::Test
   def test_upgrades_protocol_in_wallet
-    FakeHome.new.run do |home|
+    FakeHome.new(log: test_log).run do |home|
       id = home.create_wallet.id
       Zold::ProtocolUp.new(home.dir, test_log).exec
       home.wallets.find(id) do |wallet|

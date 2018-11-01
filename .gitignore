@@ -8,3 +8,4 @@ rdoc/
 .zoldata
 farm
 zold.log
+farm.lock

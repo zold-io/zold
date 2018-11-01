@@ -24,8 +24,6 @@ gem 'openssl'
 require 'openssl'
 require 'minitest/autorun'
 require 'concurrent'
-require 'cachy'
-require 'moneta'
 
 STDOUT.sync = true
 
@@ -37,8 +35,6 @@ if ENV['CI'] == 'true'
   require 'codecov'
   SimpleCov.formatter = SimpleCov::Formatter::Codecov
 end
-
-Cachy.cache_store = Moneta.new(:Memory)
 
 module Minitest
   class Test
@@ -56,40 +52,33 @@ module Minitest
         end
         sleep 1
         sec = Time.now - start
-        raise "'#{actual}' is not equal to '#{expected}' even after #{sec.round}s of waiting" if sec > max
+        require_relative '../lib/zold/age'
+        raise "'#{actual}' is not equal to '#{expected}' even after #{Zold::Age.new(start)} of waiting" if sec > max
       end
-    end
-
-    def assert_in_threads(threads: Concurrent.processor_count * 8, loops: 0)
-      done = Concurrent::AtomicFixnum.new
-      cycles = Concurrent::AtomicFixnum.new
-      pool = Concurrent::FixedThreadPool.new(threads)
-      latch = Concurrent::CountDownLatch.new(1)
-      threads.times do |t|
-        pool.post do
-          Thread.current.name = "assert-thread-#{t}"
-          latch.wait(10)
-          loop do
-            Zold::VerboseThread.new(test_log).run(true) do
-              yield t
-            end
-            cycles.increment
-            break if cycles.value > loops
-          end
-          done.increment
-        end
-      end
-      latch.count_down
-      pool.shutdown
-      pool.kill unless pool.wait_for_termination(10)
-      assert_equal(threads, done.value)
     end
 
     def test_log
       require_relative '../lib/zold/log'
-      @test_log = Zold::Log::Verbose.new
-      @test_log = Zold::Log::Quiet.new if ENV['TEST_QUIET_LOG']
-      Zold::Log::Sync.new(@test_log)
+      @test_log ||= Zold::Log::Sync.new(ENV['TEST_QUIET_LOG'] ? Zold::Log::Quiet.new : Zold::Log::Verbose.new)
+    end
+
+    class TestLogger
+      attr_accessor :msgs
+      def initialize
+        @msgs = []
+      end
+
+      def info(msg)
+        @msgs << msg
+      end
+
+      def debug(msg)
+        @msgs << msg
+      end
+
+      def error(msg)
+        @msgs << msg
+      end
     end
   end
 end

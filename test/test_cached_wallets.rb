@@ -20,25 +20,33 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Backtrace.
+require 'minitest/autorun'
+require 'tmpdir'
+require_relative 'fake_home'
+require_relative '../lib/zold/key'
+require_relative '../lib/zold/id'
+require_relative '../lib/zold/wallets'
+require_relative '../lib/zold/cached_wallets'
+require_relative '../lib/zold/amount'
+
+# CachedWallets test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # Backtrace of an exception
-  class Backtrace
-    def initialize(error)
-      @error = error
-    end
-
-    def to_s
-      [
-        @error.class.name,
-        ': ',
-        @error.message,
-        "\n\t",
-        @error.backtrace.reverse.drop_while { |t| !t.include?('zold/') }.reverse.join("\n\t")
-      ].join
+class TestCachedWallets < Minitest::Test
+  def test_adds_wallet
+    FakeHome.new(log: test_log).run do |home|
+      wallets = Zold::CachedWallets.new(home.wallets)
+      id = Zold::Id.new
+      first = nil
+      wallets.find(id) do |wallet|
+        wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+        assert_equal(1, wallets.all.count)
+        first = wallet
+      end
+      wallets.find(id) do |wallet|
+        assert_equal(first, wallet)
+      end
     end
   end
 end

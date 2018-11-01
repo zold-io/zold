@@ -72,6 +72,12 @@ Available options:"
           'The location of RSA private key (default: ~/.ssh/id_rsa)',
           require: true,
           default: '~/.ssh/id_rsa'
+        o.bool '--ignore-score-weakness',
+          'Don\'t complain when their score is too weak',
+          default: false
+        o.bool '--ignore-nodes-absence',
+          'Don\'t complain if there are not enough nodes in the network to pay taxes',
+          default: false
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
@@ -109,21 +115,28 @@ Available options:"
       raise 'The wallet is absent' unless wallet.exists?
       tax = Tax.new(wallet)
       debt = tax.debt
-      @log.debug("The current debt is #{debt} (#{debt.to_i} zents)")
+      @log.info("The current debt of #{wallet.id}/#{wallet.txns.count}t is #{debt} (#{debt.to_i} zents)")
       unless tax.in_debt?
-        @log.debug("No need to pay taxes yet, until the debt is less than #{Tax::TRIAL} (#{Tax::TRIAL.to_i} zents)")
+        @log.debug("No need to pay taxes yet, while the debt is less than #{Tax::TRIAL} (#{Tax::TRIAL.to_i} zents)")
         return
       end
-      top = top_scores
-      while debt > Amount::ZERO
-        raise 'No acceptable remote nodes, try later' if top.empty?
+      top = top_scores(opts)
+      while debt > Tax::TRIAL
+        if top.empty?
+          raise 'No acceptable remote nodes, try later' unless opts['ignore-nodes-absence']
+          @log.info('Not enough strong nodes in the network, try later')
+          break
+        end
         best = top.shift
+        if tax.exists?(tax.details(best))
+          @log.debug("The score has already been taxed: #{best}")
+          next
+        end
         txn = tax.pay(Zold::Key.new(file: opts['private-key']), best)
-        wallet.add(txn)
-        debt -= txn.amount
+        debt += txn.amount
         @log.info("#{txn.amount} of taxes paid to #{txn.bnf}, #{debt} left to pay")
       end
-      @log.info('The wallet is in good standing, all taxes paid')
+      @log.info('The wallet is in good standing, all taxes paid') unless tax.in_debt?
     end
 
     def debt(wallet, _)
@@ -136,15 +149,16 @@ Available options:"
       raise 'Not implemented yet'
     end
 
-    def top_scores
+    def top_scores(opts)
       best = []
       @remotes.iterate(@log) do |r|
-        res = r.http.get
+        uri = '/'
+        res = r.http(uri).get
         r.assert_code(200, res)
-        json = JsonPage.new(res.body).to_hash
+        json = JsonPage.new(res.body, uri).to_hash
         score = Score.parse_json(json['score'])
         r.assert_valid_score(score)
-        r.assert_score_strength(score)
+        r.assert_score_strength(score) unless opts['ignore-score-weakness']
         r.assert_score_value(score, Tax::EXACT_SCORE)
         @log.info("#{r}: #{Rainbow(score.value).green}")
         best << score
