@@ -79,10 +79,14 @@ module Zold
     end
 
     def to_text
-      "A=#{@wallet.age.round} hours, F=#{Tax::FEE.to_i}z/th, T=#{@wallet.txns.count}t"
+      "A=#{@wallet.age.round} hours, F=#{Tax::FEE.to_i}z/th, T=#{@wallet.txns.count}t, Paid=#{paid}"
     end
 
     def debt
+      Tax::FEE * @wallet.txns.count * @wallet.age - paid
+    end
+
+    def paid
       txns = @wallet.txns
       scored = txns.map do |t|
         pfx, body = t.details.split(' ', 2)
@@ -93,9 +97,7 @@ module Zold
         next if t.amount > Tax::MAX_PAYMENT
         t
       end.compact.uniq(&:details)
-      paid = scored.empty? ? Amount::ZERO : scored.map(&:amount).inject(&:+)
-      owned = Tax::FEE * txns.count * @wallet.age
-      owned - paid
+      scored.empty? ? Amount::ZERO : scored.map(&:amount).inject(&:+)
     end
   end
 end
