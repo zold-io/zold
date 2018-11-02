@@ -6,7 +6,7 @@ function start_node {
   cd ${port}
   zold node --trace --invoice=DISTRWALLET@ffffffffffffffff \
     --host=localhost --port=${port} --bind-port=${port} \
-    --threads=0 --routine-immediately > log.txt &
+    --threads=0 --routine-immediately --never-reboot > log.txt &
   pid=$!
   echo ${pid} > pid
   cd ..
