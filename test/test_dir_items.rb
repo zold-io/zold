@@ -35,7 +35,7 @@ class TestDirItems < Minitest::Test
   def test_intensive_write_in_threads
     Dir.mktmpdir do |dir|
       file = File.join(dir, 'hey.txt')
-      Thread.start do
+      back = Thread.start do
         loop do
           Zold::DirItems.new(dir).fetch
         end
@@ -48,6 +48,7 @@ class TestDirItems < Minitest::Test
         test_log.debug("Saved in #{Zold::Age.new(start)}")
         sleep 1
       end
+      back.kill
     end
   end
 
