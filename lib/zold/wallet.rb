@@ -32,6 +32,7 @@ require_relative 'amount'
 require_relative 'hexnum'
 require_relative 'signature'
 require_relative 'txns'
+require_relative 'size'
 require_relative 'head'
 
 # The wallet.
@@ -68,6 +69,10 @@ module Zold
 
     def to_s
       id.to_s
+    end
+
+    def memo
+      "#{id}/#{balance.to_zld(4)}/#{txns.count}t/#{digest[0, 6]}/Size.new(File.size(@file))}"
     end
 
     def to_text

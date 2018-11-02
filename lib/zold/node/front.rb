@@ -326,8 +326,8 @@ in #{Age.new(@start, limit: 1)}")
         "\n\n" +
         copies.all.map do |c|
           w = Wallet.new(c[:path])
-          "#{c[:name]}: #{c[:score]} #{w.balance}/#{w.txns.count}t/\
-#{w.digest[0, 6]}/#{Size.new(File.size(c[:path]))}/#{Age.new(File.mtime(c[:path]))}"
+          "#{c[:name]}: #{c[:score]} #{w.memo} \
+#{Size.new(File.size(c[:path]))}/#{Age.new(File.mtime(c[:path]))}"
         end.join("\n")
       end
     end

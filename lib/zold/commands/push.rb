@@ -95,8 +95,8 @@ total score for #{id} is #{total}")
       response = r.http(uri).put(content)
       @wallets.find(id) do |wallet|
         if response.code == '304'
-          @log.info("#{r}: same version #{Size.new(content.length)}/#{wallet.txns.count}t \
-of #{wallet.id} there, in #{Age.new(start, limit: 0.5)}")
+          @log.info("#{r}: same version #{Size.new(content.length)} of #{wallet.memo} \
+there, in #{Age.new(start, limit: 0.5)}")
           return 0
         end
         r.assert_code(200, response)
@@ -105,8 +105,8 @@ of #{wallet.id} there, in #{Age.new(start, limit: 0.5)}")
         r.assert_valid_score(score)
         r.assert_score_ownership(score)
         r.assert_score_strength(score) unless opts['ignore-score-weakness']
-        @log.info("#{r} accepted #{Size.new(content.length)}/#{wallet.digest[0, 6]}/#{wallet.txns.count}t \
-of #{wallet.id} in #{Age.new(start, limit: 4)}: #{Rainbow(score.value).green} (#{json['version']})")
+        @log.info("#{r} accepted #{Size.new(content.length)} of #{wallet.memo} \
+in #{Age.new(start, limit: 4)}: #{Rainbow(score.value).green} (#{json['version']})")
         score.value
       end
     end

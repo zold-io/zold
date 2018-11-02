@@ -115,7 +115,7 @@ Available options:"
       raise 'The wallet is absent' unless wallet.exists?
       tax = Tax.new(wallet)
       debt = total = tax.debt
-      @log.info("The current debt of #{wallet.id}/#{wallet.txns.count}t is #{debt} (#{debt.to_i} zents), \
+      @log.info("The current debt of #{wallet.memo} is #{debt} (#{debt.to_i} zents), \
 the balance is #{wallet.balance}: #{tax.to_text}")
       unless tax.in_debt?
         @log.debug("No need to pay taxes yet, while the debt is less than #{Tax::TRIAL} (#{Tax::TRIAL.to_i} zents)")
@@ -144,7 +144,8 @@ the balance is #{wallet.balance}: #{tax.to_text}")
         txn = tax.pay(Zold::Key.new(file: opts['private-key']), best)
         debt += txn.amount
         paid += 1
-        @log.info("#{txn.amount} of taxes paid to #{txn.bnf} (payment no.#{paid}), #{debt} left to pay")
+        @log.info("#{txn.amount * -1} of taxes paid from #{wallet.id} to #{txn.bnf} \
+(payment no.#{paid}, txn ##{txn.id}/#{wallet.txns.count}), #{debt} left to pay")
       end
       @log.info('The wallet is in good standing, all taxes paid') unless tax.in_debt?
     end

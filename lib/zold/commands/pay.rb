@@ -114,18 +114,10 @@ Available options:"
       @log.debug("#{amount} sent from #{from} to #{txn.bnf}: #{details}")
       @log.debug("Don't forget to do 'zold push #{from}'")
       @log.info(txn.id)
-      notify_of_tax_debt(from)
+      tax = Tax.new(from)
+      @log.info("The tax debt of #{from.memo} is #{tax.debt} \
+(#{tax.in_debt? ? 'too high' : 'still acceptable'})")
       txn
-    end
-
-    # @todo #79:40min Extract message cretion into a separate method for easier
-    #  testing. Add tests for when in debt and not. Extract to a
-    #  module, possibly Notify.
-    def notify_of_tax_debt(wallet)
-      tax = Tax.new(wallet)
-      message = "The tax debt of #{wallet} is #{tax.debt}"
-      message += ' (still acceptable)' unless tax.in_debt?
-      @log.info(message)
     end
   end
 end

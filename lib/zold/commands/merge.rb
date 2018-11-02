@@ -88,7 +88,7 @@ Available options:"
         wallet.flush
         if modified
           @log.info("#{cps.count} copies with the total score of #{score} successfully merged \
-into #{wallet.id}/#{wallet.balance}/#{wallet.txns.count}t in #{Age.new(start, limit: 0.1 + cps.count * 0.01)}")
+into #{wallet.memo} in #{Age.new(start, limit: 0.1 + cps.count * 0.01)}")
         else
           @log.info("Nothing changed in #{wallet.id} after merge of #{cps.count} copies")
         end

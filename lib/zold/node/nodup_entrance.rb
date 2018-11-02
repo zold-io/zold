@@ -64,7 +64,7 @@ module Zold
         end
         if before == after
           @log.info(
-            "Duplicate of #{id}/#{wallet.digest[0, 6]}/#{Size.new(after.length)}/#{wallet.txns.count}t ignored"
+            "Duplicate of #{Size.new(after.length)} #{wallet.memo} ignored"
           )
           return []
         end

@@ -77,8 +77,9 @@ class TestTax < Minitest::Test
         suffixes: %w[A B C D E F G H I J K L M N O P Q R S T U V]
       )
       tax = Zold::Tax.new(wallet)
+      debt = tax.debt
       txn = tax.pay(Zold::Key.new(file: 'fixtures/id_rsa'), score)
-      assert_equal(Zold::Tax::MAX_PAYMENT * -1, txn.amount)
+      assert_equal(debt, txn.amount * -1)
     end
   end
 
@@ -93,18 +94,20 @@ class TestTax < Minitest::Test
   def test_takes_tax_payment_into_account
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
+      amount = Zold::Amount.new(zents: 95_596_800)
       wallet.add(
         Zold::Txn.new(
           1,
           Time.now,
-          Zold::Amount.new(zents: 95_596_800),
+          amount * -1,
           'NOPREFIX', Zold::Id.new('912ecc24b32dbe74'),
           "TAXES 6 5b5a21a9 b2.zold.io 1000 DCexx0hG 912ecc24b32dbe74 \
 386d4a ec9eae 306e3d 119d073 1c00dba 1376703 203589 5b55f7"
         )
       )
       tax = Zold::Tax.new(wallet)
-      assert(tax.debt < Zold::Amount::ZERO)
+      assert_equal(amount, tax.paid)
+      assert(tax.debt < Zold::Amount::ZERO, tax.debt)
     end
   end
 

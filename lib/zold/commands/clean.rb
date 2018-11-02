@@ -68,8 +68,8 @@ Available options:"
 in #{Age.new(start, limit: 0.01)}, #{cps.all.count} left:\n" +
           cps.all.map do |c|
             wallet = Wallet.new(c[:path])
-            "  #{c[:name]}: #{c[:score]} #{wallet.balance}/#{wallet.txns.count}t/\
-#{wallet.digest[0, 6]}/#{Size.new(File.size(c[:path]))}/#{Age.new(File.mtime(c[:path]))}"
+            "  #{c[:name]}: #{c[:score]} #{wallet.memo} \
+#{Size.new(File.size(c[:path]))}/#{Age.new(File.mtime(c[:path]))}"
           end.join("\n")
         )
       end

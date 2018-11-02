@@ -91,7 +91,7 @@ module Zold
         @history.shift if @history.length >= 16
         @speed.shift if @speed.length >= 64
         @wallets.find(id) do |wallet|
-          @history << "#{id}/#{sec}/#{modified.count}/#{wallet.balance.to_zld}/#{wallet.txns.count}t"
+          @history << "#{id}/#{sec}/#{modified.count}/#{wallet.memo}"
         end
         @speed << sec
       end

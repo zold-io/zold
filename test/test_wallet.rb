@@ -43,6 +43,13 @@ class TestWallet < Minitest::Test
     end
   end
 
+  def test_generates_memo
+    FakeHome.new(log: test_log).run do |home|
+      wallet = home.create_wallet
+      assert(!wallet.memo.nil?)
+    end
+  end
+
   def test_reads_large_wallet
     key = Zold::Key.new(file: 'fixtures/id_rsa')
     FakeHome.new(log: test_log).run do |home|
