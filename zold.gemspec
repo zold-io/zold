@@ -68,7 +68,6 @@ and suggests a different architecture for digital wallet maintenance.'
   s.add_runtime_dependency 'rubocop', '0.58.1' # has to stay here for Heroku
   s.add_runtime_dependency 'rubocop-rspec', '~>1' # has to stay here for Heroku
   s.add_runtime_dependency 'semantic', '~>1'
-  s.add_runtime_dependency 'sigdump', '~>0'
   s.add_runtime_dependency 'sinatra', '~>2'
   s.add_runtime_dependency 'slop', '~>4'
   s.add_runtime_dependency 'sys-proctable', '~>1'
