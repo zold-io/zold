@@ -70,7 +70,7 @@ class TestTaxes < Minitest::Test
       )
       wallet.flush
       assert(tax.paid.positive?, tax.paid)
-      assert_equal(before - debt, wallet.balance)
+      assert_equal((before - debt).to_zld(6), wallet.balance.to_zld(6))
     end
   end
 end

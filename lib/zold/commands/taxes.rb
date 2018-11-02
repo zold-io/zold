@@ -121,13 +121,14 @@ the balance is #{wallet.balance}: #{tax.to_text}")
         @log.debug("No need to pay taxes yet, while the debt is less than #{Tax::TRIAL} (#{Tax::TRIAL.to_i} zents)")
         return
       end
-      top = everybody = top_scores(opts)
+      top = top_scores(opts)
+      everybody = top.dup
       paid = 0
       while debt > Tax::TRIAL
         if top.empty?
           msg = [
             "There were #{everybody.count} remote nodes as tax collecting candidates;",
-            "#{paid} payments have been made",
+            "#{paid} payments have been made;",
             "there was not enough score power to pay the total debt of #{total} for #{wallet.id};",
             "the residual amount to pay is #{debt} (trial amount is #{Tax::TRIAL});",
             "the formula ingredients are #{tax.to_text}"
