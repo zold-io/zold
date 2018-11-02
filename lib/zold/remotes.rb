@@ -119,7 +119,7 @@ module Zold
       end
     end
 
-    def initialize(file:, network: 'test', timeout: 16)
+    def initialize(file:, network: 'test', timeout: Http::READ_TIMEOUT + Http::CONNECT_TIMEOUT)
       @file = file
       @network = network
       @timeout = timeout
