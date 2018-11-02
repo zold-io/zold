@@ -202,7 +202,7 @@ module Zold
             raise 'Took too long to execute' if (Time.now - start).round > @timeout
           rescue StandardError => e
             error(r[:host], r[:port])
-            log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: \"#{e.message}\" in #{Age.new(start)}")
+            log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message} in #{Age.new(start)}")
             log.debug(Backtrace.new(e).to_s)
             remove(r[:host], r[:port]) if errors > Remotes::TOLERANCE
           end

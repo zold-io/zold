@@ -72,7 +72,7 @@ module Zold
     end
 
     def memo
-      "#{id}/#{balance.to_zld(4)}/#{txns.count}t/#{digest[0, 6]}/Size.new(File.size(@file))}"
+      "#{id}/#{balance.to_zld(4)}/#{txns.count}t/#{digest[0, 6]}/#{Size.new(File.size(@file))}"
     end
 
     def to_text
