@@ -55,7 +55,7 @@ module Zold
     PROTOCOL_HEADER = 'X-Zold-Protocol'
 
     # Read timeout in seconds
-    READ_TIMEOUT = 4
+    READ_TIMEOUT = 32
 
     # Connect timeout in seconds
     CONNECT_TIMEOUT = 4
