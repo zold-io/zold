@@ -53,7 +53,7 @@ until zold fetch 0000000000000000 --ignore-score-weakness; do
     echo "The wallet has not been distributed, after ${i} attempts"
     exit 9
   fi
-  sleep 5
+  sleep 2
 done
 
 # Here we check the JSON of the first node to make sure all status
@@ -81,6 +81,6 @@ until zold fetch 0000000000000000 --ignore-score-weakness; do
     cat ${first}/log.txt
     exit 8
   fi
-  sleep 5
+  sleep 2
 done
 

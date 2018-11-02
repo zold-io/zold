@@ -114,18 +114,26 @@ Available options:"
     def pay(wallet, opts)
       raise 'The wallet is absent' unless wallet.exists?
       tax = Tax.new(wallet)
-      debt = tax.debt
+      debt = total = tax.debt
       @log.info("The current debt of #{wallet.id}/#{wallet.txns.count}t is #{debt} (#{debt.to_i} zents), \
 the balance is #{wallet.balance}: #{tax.to_text}")
       unless tax.in_debt?
         @log.debug("No need to pay taxes yet, while the debt is less than #{Tax::TRIAL} (#{Tax::TRIAL.to_i} zents)")
         return
       end
-      top = top_scores(opts)
+      top = everybody = top_scores(opts)
+      paid = 0
       while debt > Tax::TRIAL
         if top.empty?
-          raise 'No acceptable remote nodes, try later' unless opts['ignore-nodes-absence']
-          @log.info('Not enough strong nodes in the network, try later')
+          msg = [
+            "There were #{everybody.count} remote nodes as tax collecting candidates;",
+            "#{paid} payments have been made",
+            "there was not enough score power to pay the total debt of #{total} for #{wallet.id};",
+            "the residual amount to pay is #{debt} (trial amount is #{Tax::TRIAL});",
+            "the formula ingredients are #{tax.to_text}"
+          ].join(' ')
+          raise msg unless opts['ignore-nodes-absence']
+          @log.info(msg)
           break
         end
         best = top.shift
@@ -135,7 +143,8 @@ the balance is #{wallet.balance}: #{tax.to_text}")
         end
         txn = tax.pay(Zold::Key.new(file: opts['private-key']), best)
         debt += txn.amount
-        @log.info("#{txn.amount} of taxes paid to #{txn.bnf}, #{debt} left to pay")
+        paid += 1
+        @log.info("#{txn.amount} of taxes paid to #{txn.bnf} (payment no.#{paid}), #{debt} left to pay")
       end
       @log.info('The wallet is in good standing, all taxes paid') unless tax.in_debt?
     end
@@ -144,6 +153,8 @@ the balance is #{wallet.balance}: #{tax.to_text}")
       raise 'The wallet is absent' unless wallet.exists?
       tax = Tax.new(wallet)
       @log.info(tax.debt)
+      @log.debug(tax.to_text)
+      @log.debug('Read the White Paper for more details: https://papers.zold.io/wp.pdf')
     end
 
     def show(_, _)

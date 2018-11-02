@@ -84,7 +84,7 @@ module Zold
           balance = @txns.map(&:amount).map(&:to_i).inject(&:+).to_i
           if balance < txn.amount.to_i * -1 && !wallet.root?
             @log.error("Transaction ##{txn.id} attempts to make the balance of \
-#{wallet.id}/#{Amount.new(coins: balance).to_zld}/#{@txns.size} negative: #{txn.to_text}")
+#{wallet.id}/#{Amount.new(zents: balance).to_zld}/#{@txns.size} negative: #{txn.to_text}")
             next
           end
           unless Signature.new.valid?(@key, wallet.id, txn)

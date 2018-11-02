@@ -132,10 +132,10 @@ class TestWallet < Minitest::Test
       wallet = home.create_wallet
       time = Time.now
       key = Zold::Key.new(file: 'fixtures/id_rsa')
-      wallet.add(Zold::Txn.new(1, time, Zold::Amount.new(coins: 1), 'NOPREFIX', Zold::Id.new, '-'))
-      wallet.sub(Zold::Amount.new(coins: 2), "NOPREFIX@#{Zold::Id.new}", key, time: time)
-      wallet.add(Zold::Txn.new(2, time, Zold::Amount.new(coins: 3), 'NOPREFIX', Zold::Id.new, '-'))
-      wallet.sub(Zold::Amount.new(coins: 4), "NOPREFIX@#{Zold::Id.new}", key, time: time)
+      wallet.add(Zold::Txn.new(1, time, Zold::Amount.new(zents: 1), 'NOPREFIX', Zold::Id.new, '-'))
+      wallet.sub(Zold::Amount.new(zents: 2), "NOPREFIX@#{Zold::Id.new}", key, time: time)
+      wallet.add(Zold::Txn.new(2, time, Zold::Amount.new(zents: 3), 'NOPREFIX', Zold::Id.new, '-'))
+      wallet.sub(Zold::Amount.new(zents: 4), "NOPREFIX@#{Zold::Id.new}", key, time: time)
       assert_equal('3, 1, -2, -4', wallet.txns.map(&:amount).map(&:to_i).join(', '))
     end
   end
@@ -219,7 +219,7 @@ class TestWallet < Minitest::Test
         sum += t.amount
       end
       assert(
-        sum == Zold::Amount.new(coins: 235_965_503_242),
+        sum == Zold::Amount.new(zents: 235_965_503_242),
         "#{sum} (#{sum.to_i}) is not equal to #{Zold::Amount.new(zld: 54.94)}"
       )
     end

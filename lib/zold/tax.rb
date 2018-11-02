@@ -45,7 +45,9 @@ module Zold
     # This is how much we charge per one transaction per hour
     # of storage. A wallet of 4096 transactions will pay
     # approximately 16ZLD per year.
-    FEE_TXN_HOUR = Amount.new(zld: 16.0 / (365 * 24) / 4096)
+    # Here is the formula: 16.0 / (365 * 24) / 4096 = 1915
+    # But I like the 1917 number better.
+    FEE = Amount.new(zents: 1917)
 
     # The maximum debt we can tolerate at the wallet. If the debt
     # is bigger than this threshold, nodes must stop accepting PUSH.
@@ -77,7 +79,7 @@ module Zold
     end
 
     def to_text
-      "A=#{@wallet.age}, F=#{Tax::FEE_TXN_HOUR}, T=#{@wallet.txns.count}"
+      "A=#{@wallet.age.round} hours, F=#{Tax::FEE.to_i}z/th, T=#{@wallet.txns.count}t"
     end
 
     def debt
@@ -92,7 +94,7 @@ module Zold
         t
       end.compact.uniq(&:details)
       paid = scored.empty? ? Amount::ZERO : scored.map(&:amount).inject(&:+)
-      owned = Tax::FEE_TXN_HOUR * txns.count * @wallet.age
+      owned = Tax::FEE * txns.count * @wallet.age
       owned - paid
     end
   end

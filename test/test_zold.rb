@@ -35,6 +35,8 @@ class TestZold < Minitest::Test
   def test_all_scripts
     Dir.new('fixtures/scripts').select { |f| f =~ /\.sh$/ && !f.start_with?('_') }.each do |f|
       # next unless f == 'push-and-pull.sh'
+      start = Time.now
+      test_log.debug("\n\n#{f} running...")
       Dir.mktmpdir do |dir|
         FileUtils.cp('fixtures/id_rsa.pub', dir)
         FileUtils.cp('fixtures/id_rsa', dir)
@@ -55,6 +57,7 @@ class TestZold < Minitest::Test
           end
         end
       end
+      test_log.debug("\n\n#{f} done in #{Zold::Age.new(start)}")
     end
   end
 

@@ -35,28 +35,28 @@ module Zold
     # Maximum amount of zents
     MAX = 2**63
 
-    def initialize(coins: nil, zld: nil)
-      if !coins.nil?
-        raise "Integer is required, while #{coins.class} provided: #{coins}" unless coins.is_a?(Integer)
-        @coins = coins
+    def initialize(zents: nil, zld: nil)
+      if !zents.nil?
+        raise "Integer is required, while #{zents.class} provided: #{zents}" unless zents.is_a?(Integer)
+        @zents = zents
       elsif !zld.nil?
         raise "Float is required, while #{zld.class} provided: #{zld}" unless zld.is_a?(Float)
-        @coins = (zld * 2**Amount::FRACTION).to_i
+        @zents = (zld * 2**Amount::FRACTION).to_i
       else
         raise 'You can\'t specify both coints and zld'
       end
-      raise "The amount is too big: #{@coins}" if @coins > Amount::MAX
-      raise "The amount is too small: #{@coins}" if @coins < -Amount::MAX
+      raise "The amount is too big: #{@zents}" if @zents > Amount::MAX
+      raise "The amount is too small: #{@zents}" if @zents < -Amount::MAX
     end
 
-    ZERO = Amount.new(coins: 0)
+    ZERO = Amount.new(zents: 0)
 
     def to_i
-      @coins
+      @zents
     end
 
     def to_zld(digits = 2)
-      format("%0.#{digits}f", @coins.to_f / 2**Amount::FRACTION)
+      format("%0.#{digits}f", @zents.to_f / 2**Amount::FRACTION)
     end
 
     def to_s
@@ -72,61 +72,61 @@ module Zold
 
     def ==(other)
       raise "== may only work with Amount: #{other}" unless other.is_a?(Amount)
-      @coins == other.to_i
+      @zents == other.to_i
     end
 
     def >(other)
       raise '> may only work with Amount' unless other.is_a?(Amount)
-      @coins > other.to_i
+      @zents > other.to_i
     end
 
     def <(other)
       raise '< may only work with Amount' unless other.is_a?(Amount)
-      @coins < other.to_i
+      @zents < other.to_i
     end
 
     def <=(other)
       raise '<= may only work with Amount' unless other.is_a?(Amount)
-      @coins <= other.to_i
+      @zents <= other.to_i
     end
 
     def <=>(other)
       raise '<= may only work with Amount' unless other.is_a?(Amount)
-      @coins <=> other.to_i
+      @zents <=> other.to_i
     end
 
     def +(other)
       raise '+ may only work with Amount' unless other.is_a?(Amount)
-      Amount.new(coins: @coins + other.to_i)
+      Amount.new(zents: @zents + other.to_i)
     end
 
     def -(other)
       raise '- may only work with Amount' unless other.is_a?(Amount)
-      Amount.new(coins: @coins - other.to_i)
+      Amount.new(zents: @zents - other.to_i)
     end
 
     def zero?
-      @coins.zero?
+      @zents.zero?
     end
 
     def negative?
-      @coins.negative?
+      @zents.negative?
     end
 
     def positive?
-      @coins.positive?
+      @zents.positive?
     end
 
     def *(other)
       raise '* may only work with a number' unless other.is_a?(Integer) || other.is_a?(Float)
-      c = (@coins * other).to_i
-      raise "Overflow, can't multiply #{@coins} by #{m}" if c > Amount::MAX
-      Amount.new(coins: c)
+      c = (@zents * other).to_i
+      raise "Overflow, can't multiply #{@zents} by #{m}" if c > Amount::MAX
+      Amount.new(zents: c)
     end
 
     def /(other)
       raise '/ may only work with a number' unless other.is_a?(Integer) || other.is_a?(Float)
-      Amount.new(coins: (@coins / other).to_i)
+      Amount.new(zents: (@zents / other).to_i)
     end
   end
 end

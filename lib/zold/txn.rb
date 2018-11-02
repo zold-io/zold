@@ -133,7 +133,7 @@ module Zold
       txn = Txn.new(
         Hexnum.parse(parts[:id]).to_i,
         Time.parse(parts[:date]),
-        Amount.new(coins: Hexnum.parse(parts[:amount]).to_i),
+        Amount.new(zents: Hexnum.parse(parts[:amount]).to_i),
         parts[:prefix],
         Id.new(parts[:bnf]),
         parts[:details]

@@ -48,7 +48,7 @@ module Zold
 
     def limit
       max = Amount::MAX
-      Amount.new(coins: (max * quota).to_i)
+      Amount.new(zents: (max * quota).to_i)
     end
 
     def check

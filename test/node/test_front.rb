@@ -326,7 +326,7 @@ class FrontTest < Minitest::Test
         assert_equal_wait('200') { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").get.code }
         cycles = 50
         cycles.times do
-          wallet.sub(Zold::Amount.new(coins: 10), "NOPREFIX@#{Zold::Id.new}", key)
+          wallet.sub(Zold::Amount.new(zents: 10), "NOPREFIX@#{Zold::Id.new}", key)
           Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").put(IO.read(wallet.path))
           assert_equal('200', Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").get.code)
         end

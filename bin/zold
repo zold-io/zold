@@ -23,6 +23,8 @@
 
 STDOUT.sync = true
 
+start = Time.now
+
 require 'slop'
 require 'rainbow'
 require_relative '../lib/zold'
@@ -34,6 +36,7 @@ require_relative '../lib/zold/sync_wallets'
 require_relative '../lib/zold/cached_wallets'
 require_relative '../lib/zold/log'
 require_relative '../lib/zold/key'
+require_relative '../lib/zold/age'
 require_relative '../lib/zold/amount'
 require_relative '../lib/zold/copies'
 require_relative '../lib/zold/remotes'
@@ -54,9 +57,6 @@ unless ENV['RACK_ENV'] == 'test' || ARGV.find { |a| a == '--ignore-global-config
     body = IO.read(config)
     extra = body.split(/[\r\n]+/).map(&:strip)
     args += extra
-    log.debug("Found #{body.split(/\n/).length} lines in #{config}")
-  else
-    log.debug("Default config file #{config} not found")
   end
 end
 args += ARGV
@@ -125,6 +125,8 @@ Available options:"
 
   log = Zold::Log::Sync.new(log)
 
+  log.debug("Gem location: #{File.dirname(File.dirname(__FILE__))}")
+
   commands = opts.arguments.reject { |a| a.start_with?('-') }
   command = commands[0]
 
@@ -141,6 +143,7 @@ Available options:"
   home = File.expand_path(opts[:home])
   FileUtils.mkdir_p(home)
   Dir.chdir(home)
+  log.debug("Home directory: #{home}")
 
   zoldata = File.join(home, '.zoldata')
 
@@ -169,10 +172,15 @@ Available options:"
   )
   fremotes = File.join(zoldata, 'remotes')
   remotes = Zold::Remotes.new(file: fremotes, network: opts['network'])
-  remotes.defaults unless File.exist?(fremotes)
+  if File.exist?(fremotes)
+    log.debug("Remote nodes: #{remotes.all.count} total")
+  else
+    remotes.defaults
+    log.debug("Default remotes have been set: #{remotes.all.count} total")
+  end
   copies = File.join(zoldata, 'copies')
 
-  log.debug("Network: #{opts['network']}")
+  log.debug("Network: #{opts['network']} (#{opts['network'] == Zold::Wallet::MAIN_NETWORK ? 'main' : 'test'} net)")
 
   case command
   when 'node'
@@ -240,3 +248,5 @@ rescue StandardError => ex
   puts(ex.backtrace) if opts['trace']
   exit -1
 end
+
+log.debug("Successfully finished in #{Zold::Age.new(start)}")

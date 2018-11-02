@@ -39,23 +39,23 @@ require_relative '../lib/zold/score'
 # License:: MIT
 class TestTax < Minitest::Test
   def test_print_fee
-    test_log.info("Fee in zents: #{Zold::Tax::FEE_TXN_HOUR.to_i}")
+    test_log.info("Fee in zents: #{Zold::Tax::FEE.to_i}")
   end
 
   def test_calculates_tax_for_one_year
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
+      a = 10_000
       wallet.add(
         Zold::Txn.new(
           1,
-          Time.now - 24 * 60 * 60 * 365,
+          Time.now - a * 60 * 60,
           Zold::Amount.new(zld: 19.99),
           'NOPREFIX', Zold::Id.new, '-'
         )
       )
       tax = Zold::Tax.new(wallet)
-      assert(tax.debt > Zold::Amount.new(coins: 16_770_000))
-      assert(tax.debt < Zold::Amount.new(coins: 16_790_000))
+      assert_equal(Zold::Tax::FEE * a, tax.debt, tax.to_text)
     end
   end
 
@@ -97,7 +97,7 @@ class TestTax < Minitest::Test
         Zold::Txn.new(
           1,
           Time.now,
-          Zold::Amount.new(coins: 95_596_800),
+          Zold::Amount.new(zents: 95_596_800),
           'NOPREFIX', Zold::Id.new('912ecc24b32dbe74'),
           "TAXES 6 5b5a21a9 b2.zold.io 1000 DCexx0hG 912ecc24b32dbe74 \
 386d4a ec9eae 306e3d 119d073 1c00dba 1376703 203589 5b55f7"
