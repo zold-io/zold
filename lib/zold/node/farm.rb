@@ -62,6 +62,7 @@ module Zold
     def to_text
       [
         "Current time: #{Time.now.utc.iso8601}",
+        "Ruby processes: #{`ps -a | grep zold | wc -l`}",
         JSON.pretty_generate(to_json),
         @threads.map do |t|
           trace = t.backtrace || []
