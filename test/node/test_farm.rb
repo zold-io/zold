@@ -80,6 +80,8 @@ class FarmTest < Minitest::Test
       farm = Zold::Farm.new('NOPREFIX3@cccccccccccccccc', cache, log: test_log)
       farm.start('example.com', 8080, threads: 0, strength: 1) do
         score = farm.best[0]
+        assert(!score.nil?, 'The list of best scores can\'t be empty!')
+        assert(File.exist?(cache), 'The cache file has to be created!')
         assert_equal(0, score.value)
         assert(!score.expired?)
         assert_equal('example.com', score.host)

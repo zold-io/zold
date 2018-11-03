@@ -79,8 +79,8 @@ module Zold
           "The strength of the score (default: #{Score::STRENGTH})",
           default: Score::STRENGTH
         o.integer '--threads',
-          "How many threads to use for scores finding (default: #{Concurrent.processor_count})",
-          default: Concurrent.processor_count
+          "How many threads to use for scores finding (default: #{[Concurrent.processor_count, 4].max})",
+          default: [Concurrent.processor_count, 4].max
         o.bool '--dump-errors',
           'Make HTTP front-end errors visible in the log (false by default)',
           default: false

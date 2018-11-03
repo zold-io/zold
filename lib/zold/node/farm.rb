@@ -48,7 +48,7 @@ module Zold
     def initialize(invoice, cache = File.join(Dir.pwd, 'farm'), log: Log::Quiet.new,
       farmer: Farmers::Plain.new)
       @log = log
-      @cache = cache
+      @cache = File.expand_path(cache)
       @invoice = invoice
       @pipeline = Queue.new
       @farmer = farmer
@@ -89,8 +89,12 @@ module Zold
 
     def start(host, port, strength: 8, threads: 8)
       @log.info('Zero-threads farm won\'t score anything!') if threads.zero?
+      if best.empty?
+        @log.info("No scores found in cache at #{@cache}")
+      else
+        @log.info("#{best.size} scores pre-loaded from #{@cache}, the best is: #{best[0]}")
+      end
       cleanup(host, port, strength, threads)
-      @log.info("#{@pipeline.size} scores pre-loaded, the best is: #{best[0]}")
       @alive = true
       @threads = (1..threads).map do |t|
         Thread.new do
@@ -131,7 +135,7 @@ module Zold
         start = Time.now
         finish(@cleanup)
         @threads.each { |t| finish(t) }
-        @log.info("Farm stopped in #{Age.new(start)}")
+        @log.info("Farm stopped in #{Age.new(start)} (threads=#{threads}, strength=#{strength})")
       end
     end
 
@@ -144,7 +148,7 @@ module Zold
       loop do
         delay = Time.now - start
         if thread.join(0.1)
-          @log.info("Thread \"#{thread.name}\" finished in #{Age.new(start)}")
+          @log.info("Thread \"#{thread.name}\" peacefully finished in #{Age.new(start)}")
           break
         end
         if delay > 1
@@ -216,20 +220,18 @@ module Zold
     def load
       Futex.new(@cache, log: @log).open do |f|
         if File.exist?(f)
-          IO.read(f).split(/\n/)
-            .map { |t| parse_score_line(t) }
-            .reject(&:zero?)
+          IO.read(f).split(/\n/).map do |t|
+            begin
+              Score.parse(t)
+            rescue StandardError => e
+              @log.error(Backtrace.new(e).to_s)
+              nil
+            end
+          end.compact
         else
           []
         end
       end
-    end
-
-    def parse_score_line(line)
-      Score.parse(line)
-    rescue StandardError => e
-      @log.error(Backtrace.new(e).to_s)
-      Score::ZERO
     end
   end
 end

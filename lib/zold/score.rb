@@ -197,7 +197,7 @@ module Zold
     end
 
     def zero?
-      equal?(Score::ZERO)
+      @suffixes.empty?
     end
   end
 end
