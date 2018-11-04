@@ -64,19 +64,23 @@ module Minitest
 
     class TestLogger
       attr_accessor :msgs
-      def initialize
+      def initialize(log = Zold::Log::Quiet.new)
+        @log = log
         @msgs = []
       end
 
       def info(msg)
+        @log.info(msg)
         @msgs << msg
       end
 
       def debug(msg)
+        @log.debug(msg)
         @msgs << msg
       end
 
       def error(msg)
+        @log.error(msg)
         @msgs << msg
       end
     end

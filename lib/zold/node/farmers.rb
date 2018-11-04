@@ -100,7 +100,7 @@ for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}")
       private
 
       def kill(pid)
-        Process.kill('TERM', pid)
+        Process.kill('KILL', pid)
         @log.debug("Process ##{pid} killed")
       rescue StandardError => e
         @log.debug("No need to kill process ##{pid} since it's dead already: #{e.message}")

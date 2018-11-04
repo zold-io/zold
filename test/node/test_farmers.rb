@@ -38,7 +38,7 @@ class FarmersTest < Minitest::Test
   end
 
   def test_calculates_large_score
-    log = TestLogger.new
+    log = TestLogger.new(test_log)
     thread = Thread.start do
       farmer = Zold::Farmers::Spawn.new(log: log)
       farmer.up(Zold::Score.new(host: 'a', port: 1, invoice: 'NOPREFIX4@ffffffffffffffff', strength: 20))
