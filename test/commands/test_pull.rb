@@ -36,10 +36,10 @@ class TestPull < Minitest::Test
   def test_pull_wallet
     FakeHome.new(log: test_log).run do |home|
       remotes = home.remotes
-      remotes.add('localhost', 80)
+      remotes.add('localhost', 4096)
       json = home.create_wallet_json
       id = Zold::JsonPage.new(json).to_hash['id']
-      stub_request(:get, "http://localhost:80/wallet/#{id}").to_return(status: 200, body: json)
+      stub_request(:get, "http://localhost:4096/wallet/#{id}").to_return(status: 200, body: json)
       Zold::Pull.new(wallets: home.wallets, remotes: remotes, copies: home.copies.root.to_s, log: test_log).run(
         ['--ignore-this-stupid-option', 'pull', id.to_s]
       )

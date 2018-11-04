@@ -22,8 +22,8 @@
 
 require 'minitest/autorun'
 require 'time'
+require 'zold/score'
 require_relative '../test__helper'
-require_relative '../../lib/zold/score'
 require_relative '../../lib/zold/node/farmers'
 
 class FarmersTest < Minitest::Test

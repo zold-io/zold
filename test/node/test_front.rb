@@ -25,13 +25,13 @@ require 'json'
 require 'time'
 require 'securerandom'
 require 'threads'
+require 'zold/score'
 require_relative '../test__helper'
 require_relative 'fake_node'
 require_relative '../fake_home'
 require_relative '../../lib/zold/http'
 require_relative '../../lib/zold/age'
 require_relative '../../lib/zold/json_page'
-require_relative '../../lib/zold/score'
 
 class FrontTest < Minitest::Test
   def app

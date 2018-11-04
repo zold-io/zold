@@ -25,8 +25,8 @@ require 'uri'
 require 'timeout'
 require 'net/http'
 require 'backtrace'
+require 'zold/score'
 require_relative 'version'
-require_relative 'score'
 
 # HTTP page.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

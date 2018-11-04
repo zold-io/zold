@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
+require 'zold/score'
 require 'time'
 require_relative 'test__helper'
 require_relative 'fake_home'
@@ -31,7 +32,6 @@ require_relative '../lib/zold/tax'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/amount'
 require_relative '../lib/zold/prefixes'
-require_relative '../lib/zold/score'
 
 # Tax test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

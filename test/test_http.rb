@@ -24,8 +24,8 @@ require 'minitest/autorun'
 require 'tmpdir'
 require 'uri'
 require 'webmock/minitest'
+require 'zold/score'
 require_relative '../lib/zold/http'
-require_relative '../lib/zold/score'
 
 # Http test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

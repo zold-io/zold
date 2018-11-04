@@ -76,7 +76,7 @@ class FarmTest < Minitest::Test
 
   def test_pre_loads_history
     Dir.mktmpdir do |dir|
-      cache = File.join(dir, 'cache')
+      cache = File.join(dir, 'a/b/c/cache')
       farm = Zold::Farm.new('NOPREFIX3@cccccccccccccccc', cache, log: test_log)
       farm.start('example.com', 8080, threads: 0, strength: 1) do
         score = farm.best[0]

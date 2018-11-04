@@ -28,8 +28,8 @@ require 'time'
 require 'futex'
 require 'fileutils'
 require 'backtrace'
+require 'zold/score'
 require_relative 'age'
-require_relative 'score'
 require_relative 'http'
 require_relative 'node/farm'
 
@@ -181,7 +181,6 @@ module Zold
       list = all
       return if list.empty?
       best = farm.best[0]
-      require_relative 'score'
       score = best.nil? ? Score::ZERO : best
       idx = 0
       pool = Concurrent::FixedThreadPool.new([list.count, Concurrent.processor_count * 4].min, max_queue: 0)

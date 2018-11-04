@@ -26,12 +26,12 @@ require 'time'
 require 'futex'
 require 'slop'
 require 'rainbow'
+require 'zold/score'
 require_relative 'args'
 require_relative '../age'
 require_relative '../size'
 require_relative '../log'
 require_relative '../http'
-require_relative '../score'
 require_relative '../copies'
 
 # CLEAN command.

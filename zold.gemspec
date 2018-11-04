@@ -65,7 +65,7 @@ and suggests a different architecture for digital wallet maintenance.'
   s.add_runtime_dependency 'posix-spawn', '~>0.3'
   s.add_runtime_dependency 'rainbow', '~>3'
   s.add_runtime_dependency 'rake', '~>12' # has to stay here for Heroku
-  s.add_runtime_dependency 'rubocop', '0.58.1' # has to stay here for Heroku
+  s.add_runtime_dependency 'rubocop', '0.60.0' # has to stay here for Heroku
   s.add_runtime_dependency 'rubocop-rspec', '~>1' # has to stay here for Heroku
   s.add_runtime_dependency 'semantic', '~>1'
   s.add_runtime_dependency 'sinatra', '~>2'
@@ -76,6 +76,7 @@ and suggests a different architecture for digital wallet maintenance.'
   s.add_runtime_dependency 'usagewatch_ext', '~>0'
   s.add_runtime_dependency 'xcop', '~>0'
   s.add_runtime_dependency 'zache', '~>0'
+  s.add_runtime_dependency 'zold-score', '~>0'
   s.add_development_dependency 'codecov', '~>0'
   s.add_development_dependency 'minitest', '~>5'
   s.add_development_dependency 'random-port', '~>0'

@@ -25,6 +25,7 @@ require 'tmpdir'
 require 'json'
 require 'time'
 require 'webmock/minitest'
+require 'zold/score'
 require_relative '../test__helper'
 require_relative '../fake_home'
 require_relative '../../lib/zold/wallet'
@@ -33,7 +34,6 @@ require_relative '../../lib/zold/remotes'
 require_relative '../../lib/zold/id'
 require_relative '../../lib/zold/copies'
 require_relative '../../lib/zold/key'
-require_relative '../../lib/zold/score'
 require_relative '../../lib/zold/commands/fetch'
 
 # FETCH test.
@@ -44,7 +44,7 @@ class TestFetch < Minitest::Test
   def test_fetches_wallet
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
-      stub_request(:get, "http://localhost:80/wallet/#{wallet.id}").to_return(
+      stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}").to_return(
         status: 200,
         body: {
           'score': Zold::Score::ZERO.to_h,
@@ -56,7 +56,7 @@ class TestFetch < Minitest::Test
         status: 404
       )
       remotes = home.remotes
-      remotes.add('localhost', 80)
+      remotes.add('localhost', 4096)
       remotes.add('localhost', 81)
       copies = home.copies(wallet)
       begin

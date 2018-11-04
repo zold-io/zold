@@ -63,7 +63,7 @@ class FakeHome
   end
 
   def create_wallet_json(id = Zold::Id.new)
-    require_relative '../lib/zold/score'
+    require 'zold/score'
     score = Zold::Score::ZERO
     Dir.mktmpdir 'wallets' do |external_dir|
       wallet = create_wallet(id, external_dir)

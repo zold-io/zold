@@ -22,8 +22,8 @@
 
 require 'open3'
 require 'backtrace'
+require 'zold/score'
 require_relative '../log'
-require_relative '../score'
 require_relative '../age'
 
 # Farmers.

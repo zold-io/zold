@@ -25,8 +25,8 @@ require 'open3'
 require 'backtrace'
 require 'futex'
 require 'json'
+require 'zold/score'
 require_relative '../log'
-require_relative '../score'
 require_relative '../age'
 require_relative '../verbose_thread'
 require_relative 'farmers'
@@ -45,16 +45,32 @@ module Zold
       end
     end
 
+    # Makes an instance of a farm. There should be only farm in the entire
+    # application, but you can, of course, start as many of them as necessary for the
+    # purpose of unit testing.
+    #
+    # <tt>cache</tt> is the file where the farm will keep all the scores it
+    # manages to find. If the file is absent, it will be created, together with
+    # the necesary parent directories.
+    #
+    # <tt>lifetime</tt> is the amount of seconds for a score to live in the farm, by default
+    # it's the entire day, since the Score expires in 24 hours; can be decreased for the
+    # purpose of unit testing.
     def initialize(invoice, cache = File.join(Dir.pwd, 'farm'), log: Log::Quiet.new,
-      farmer: Farmers::Plain.new)
+      farmer: Farmers::Plain.new, lifetime: 24 * 60 * 60)
       @log = log
       @cache = File.expand_path(cache)
       @invoice = invoice
       @pipeline = Queue.new
       @farmer = farmer
       @threads = []
+      @lifetime = lifetime
     end
 
+    # Returns the list of best scores the farm managed to find up to now. The
+    # list is NEVER empty, even if the farm has just started. If it's empty,
+    # it's definitely a bug. If the farm is just fresh start, the list will
+    # contain a single score with a zero value.
     def best
       load
     end
@@ -87,7 +103,18 @@ module Zold
       }
     end
 
+    # Starts a farm, all threads, and yields the block provided. You are
+    # supposed to use it only with the block:
+    #
+    #  Farm.new.start('example.org', 4096) do |farm|
+    #    score = farm.best[0]
+    #    # Everything else...
+    #  end
+    #
+    # The farm will stop all its threads and close all resources safely
+    # right after the block provided exists.
     def start(host, port, strength: 8, threads: 8)
+      raise 'Block is required for the farm to start' unless block_given?
       @log.info('Zero-threads farm won\'t score anything!') if threads.zero?
       if best.empty?
         @log.info("No scores found in cache at #{@cache}")
@@ -200,7 +227,7 @@ module Zold
 
     def save(threads, list = [])
       scores = load + list
-      period = 24 * 60 * 60 / [threads, 1].max
+      period = @lifetime / [threads, 1].max
       Futex.new(@cache, log: @log).open do |f|
         IO.write(
           f,
