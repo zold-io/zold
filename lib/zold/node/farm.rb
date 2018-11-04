@@ -139,9 +139,9 @@ module Zold
         Thread.current.abort_on_exception = true
         Thread.current.name = 'cleanup'
         loop do
-          max = 600
-          a = (0..max).take_while do
-            sleep 0.1
+          max = 100
+          a = (0..max - 1).take_while do
+            sleep 0.01
             @alive
           end
           unless a.count == max
@@ -188,16 +188,13 @@ module Zold
     def cleanup(host, port, strength, threads)
       scores = load
       before = scores.map(&:value).max.to_i
-      save(threads, [Score.new(time: Time.now, host: host, port: port, invoice: @invoice, strength: strength)])
+      save(threads, [Score.new(host: host, port: port, invoice: @invoice, strength: strength)])
       scores = load
-      push(scores)
-      after = scores.map(&:value).max.to_i
-      @log.debug("#{Thread.current.name}: best score is #{scores[0]}") if before != after && !after.zero?
-    end
-
-    def push(scores)
       free = scores.reject { |s| @threads.find { |t| t.name == s.to_mnemo } }
       @pipeline << free[0] if @pipeline.size.zero? && !free.empty?
+      after = scores.map(&:value).max.to_i
+      return unless before != after && !after.zero?
+      @log.debug("#{Thread.current.name}: best score of #{scores.count} is #{scores[0]}")
     end
 
     def cycle(host, port, strength, threads)
@@ -220,7 +217,7 @@ module Zold
       Thread.current.name = s.to_mnemo
       Thread.current.thread_variable_set(:start, Time.now.utc.iso8601)
       score = @farmer.up(s)
-      @log.debug("New score discovered: #{score}")
+      @log.debug("New score discovered: #{score}") if strength > 4
       save(threads, [score])
       cleanup(host, port, strength, threads)
     end

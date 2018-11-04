@@ -133,7 +133,7 @@ class TestRemote < Minitest::Test
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.txt'))
       score = Zold::Score.new(
-        time: Time.now, host: 'aa1.example.org', port: 9999, invoice: 'NOPREFIX4@ffffffffffffffff'
+        host: 'aa1.example.org', port: 9999, invoice: 'NOPREFIX4@ffffffffffffffff'
       )
       stub_request(:get, 'http://localhost:8883/version').to_return(
         status: 200,

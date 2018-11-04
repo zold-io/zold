@@ -96,7 +96,7 @@ class FrontTest < Minitest::Test
   def test_updates_list_of_remotes
     FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
       score = Zold::Score.new(
-        time: Time.now, host: 'localhost', port: port, invoice: 'NOPREFIX@ffffffffffffffff', strength: 1
+        host: 'localhost', port: port, invoice: 'NOPREFIX@ffffffffffffffff', strength: 1
       ).next.next.next.next
       response = Zold::Http.new(uri: "http://localhost:#{port}/remotes", score: score).get
       assert_equal('200', response.code, response.body)
@@ -207,7 +207,7 @@ class FrontTest < Minitest::Test
       '16' => 'https://www.zold.io/images/logo-green.png'
     }.each do |num, path|
       score = Zold::Score.new(
-        time: Time.now, host: 'localhost', port: 999,
+        host: 'localhost', port: 999,
         invoice: 'NOPREFIX@ffffffffffffffff',
         strength: 1
       )
