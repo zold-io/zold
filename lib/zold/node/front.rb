@@ -189,7 +189,7 @@ in #{Age.new(@start, limit: 1)}")
         cpus: settings.zache.get(:cpus) do
           Concurrent.processor_count
         end,
-        memory: settings.zache.get(:load, lifetime: 5 * 60) do
+        memory: settings.zache.get(:memory, lifetime: 5 * 60) do
           require 'get_process_mem'
           GetProcessMem.new.bytes.to_i
         end,
@@ -405,7 +405,7 @@ in #{Age.new(@start, limit: 1)}")
 
     get '/ps' do
       content_type('text/plain')
-      `ps ax`
+      `ps ax | grep zold`
     end
 
     not_found do

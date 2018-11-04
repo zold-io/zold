@@ -55,8 +55,8 @@ module Zold
           'ruby',
           Shellwords.escape(bin),
           '--skip-upgrades',
-          Shellwords.escape("--info-thread=#{Thread.current.name}"),
-          Shellwords.escape("--info-start=#{Time.now.utc.iso8601}"),
+          "--info-thread=#{Shellwords.escape(Thread.current.name)}",
+          "--info-start=#{Time.now.utc.iso8601}",
           '--low-priority',
           'next',
           Shellwords.escape(score)
