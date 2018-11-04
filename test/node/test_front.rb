@@ -67,7 +67,8 @@ class FrontTest < Minitest::Test
           '/metronome',
           '/score',
           '/trace',
-          '/threads'
+          '/threads',
+          '/ps'
         ],
         '404' => [
           '/this-is-absent',

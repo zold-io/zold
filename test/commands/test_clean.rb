@@ -44,6 +44,12 @@ class TestClean < Minitest::Test
     end
   end
 
+  def test_cleans_empty_wallets
+    FakeHome.new(log: test_log).run do |home|
+      Zold::Clean.new(wallets: home.wallets, copies: File.join(home.dir, 'c'), log: test_log).run(['clean'])
+    end
+  end
+
   def test_cleans_copies_in_threads
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet

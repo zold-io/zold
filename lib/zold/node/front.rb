@@ -188,6 +188,7 @@ in #{Age.new(@start, limit: 1)}")
         protocol: settings.protocol,
         score: score.to_h,
         pid: Process.pid,
+        processes: processes_count,
         cpus: settings.zache.get(:cpus) { Concurrent.processor_count },
         memory: GetProcessMem.new.bytes.to_i,
         platform: RUBY_PLATFORM,
@@ -397,6 +398,11 @@ in #{Age.new(@start, limit: 1)}")
       ].flatten.join("\n\n")
     end
 
+    get '/ps' do
+      content_type('text/plain')
+      `ps ax`
+    end
+
     not_found do
       status(404)
       content_type('text/plain')
@@ -439,6 +445,12 @@ in #{Age.new(@start, limit: 1)}")
     def all_remotes
       settings.zache.get(:remotes, lifetime: settings.network == Wallet::MAIN_NETWORK ? 60 : 0) do
         settings.remotes.all
+      end
+    end
+
+    def processes_count
+      settings.zache.get(:processes, lifetime: settings.network == Wallet::MAIN_NETWORK ? 60 : 0) do
+        `ps ax | grep zold | wc -l`
       end
     end
 
