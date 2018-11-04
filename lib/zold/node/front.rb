@@ -38,6 +38,7 @@ require_relative '../wallet'
 require_relative '../age'
 require_relative '../copies'
 require_relative '../log'
+require_relative '../tax'
 require_relative '../id'
 require_relative '../http'
 
