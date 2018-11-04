@@ -23,6 +23,7 @@
 require 'open3'
 require 'backtrace'
 require 'zold/score'
+require 'shellwords'
 require_relative '../log'
 require_relative '../age'
 
@@ -50,7 +51,17 @@ module Zold
         start = Time.now
         bin = File.expand_path(File.join(File.dirname(__FILE__), '../../../bin/zold'))
         raise "Zold binary not found at #{bin}" unless File.exist?(bin)
-        Open3.popen2e("ruby #{bin} --skip-upgrades --low-priority next \"#{score}\"") do |stdin, stdout, thr|
+        cmd = [
+          'ruby',
+          Shellwords.escape(bin),
+          '--skip-upgrades',
+          Shellwords.escape("--info-thread=#{Thread.current.name}"),
+          Shellwords.escape("--info-start=#{Time.now.utc.iso8601}"),
+          '--low-priority',
+          'next',
+          Shellwords.escape(score)
+        ].join(' ')
+        Open3.popen2e(cmd) do |stdin, stdout, thr|
           Thread.current.thread_variable_set(:pid, thr.pid.to_s)
           @log.debug("Scoring started in proc ##{thr.pid} \
 for #{score.value}/#{score.strength} at #{score.host}:#{score.port}")
