@@ -26,9 +26,6 @@ require 'eventmachine'
 require 'thin'
 require 'json'
 require 'sinatra/base'
-require 'get_process_mem'
-require 'diffy'
-require 'usagewatch_ext'
 require 'concurrent'
 require 'backtrace'
 require 'zache'
@@ -189,10 +186,18 @@ in #{Age.new(@start, limit: 1)}")
         score: score.to_h,
         pid: Process.pid,
         processes: processes_count,
-        cpus: settings.zache.get(:cpus) { Concurrent.processor_count },
-        memory: GetProcessMem.new.bytes.to_i,
+        cpus: settings.zache.get(:cpus) do
+          Concurrent.processor_count
+        end,
+        memory: settings.zache.get(:load, lifetime: 5 * 60) do
+          require 'get_process_mem'
+          GetProcessMem.new.bytes.to_i
+        end,
         platform: RUBY_PLATFORM,
-        load: settings.zache.get(:load, lifetime: 5 * 60) { Usagewatch.uw_load.to_f },
+        load: settings.zache.get(:load, lifetime: 5 * 60) do
+          require 'usagewatch_ext'
+          Usagewatch.uw_load.to_f
+        end,
         threads: "#{Thread.list.select { |t| t.status == 'run' }.count}/#{Thread.list.count}",
         wallets: total_wallets,
         remotes: all_remotes.count,
