@@ -32,7 +32,7 @@ require_relative 'fake_entrance'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestAsyncEntrance < Minitest::Test
+class TestAsyncEntrance < Zold::Test
   def test_renders_json
     FakeHome.new(log: test_log).run do |home|
       Zold::AsyncEntrance.new(FakeEntrance.new, home.dir, log: test_log).start do |e|

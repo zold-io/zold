@@ -31,7 +31,7 @@ require_relative '../../../lib/zold/commands/routines/reconnect.rb'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestReconnect < Minitest::Test
+class TestReconnect < Zold::Test
   def test_reconnects
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.csv'))

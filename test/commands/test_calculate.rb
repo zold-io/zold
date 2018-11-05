@@ -29,7 +29,7 @@ require_relative '../../lib/zold/commands/calculate'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestCalculate < Minitest::Test
+class TestCalculate < Zold::Test
   def test_calculates_score
     score = Zold::Calculate.new(log: test_log).run(
       ['score', '--strength=2', '--max=8', '--invoice=NOSUFFIX@ffffffffffffffff']

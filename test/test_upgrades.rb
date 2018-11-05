@@ -29,7 +29,7 @@ require_relative '../lib/zold/version_file'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestUpgrades < Minitest::Test
+class TestUpgrades < Zold::Test
   # @todo #327:30min Uncomment, when you're ready to work on upgrade manager's
   #  test case of absent version file. Start with running the test first.
   def test_no_version_file_is_ok

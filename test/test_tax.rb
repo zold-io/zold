@@ -37,7 +37,7 @@ require_relative '../lib/zold/prefixes'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestTax < Minitest::Test
+class TestTax < Zold::Test
   def test_print_fee
     test_log.info("Fee in zents: #{Zold::Tax::FEE.to_i}")
   end

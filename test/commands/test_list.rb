@@ -32,7 +32,7 @@ require_relative '../../lib/zold/commands/list'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestList < Minitest::Test
+class TestList < Zold::Test
   def test_lists_wallets_with_balances
     Dir.mktmpdir do |dir|
       id = Zold::Id.new

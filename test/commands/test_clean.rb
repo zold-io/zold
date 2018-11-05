@@ -32,7 +32,7 @@ require_relative '../../lib/zold/commands/clean'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestClean < Minitest::Test
+class TestClean < Zold::Test
   def test_cleans_copies
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet

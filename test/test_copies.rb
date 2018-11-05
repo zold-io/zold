@@ -35,7 +35,7 @@ require_relative '../lib/zold/wallet'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestCopies < Minitest::Test
+class TestCopies < Zold::Test
   def test_adds_and_removes_copies
     Dir.mktmpdir do |dir|
       copies = Zold::Copies.new(File.join(dir, 'my/a/copies'), log: test_log)

@@ -31,7 +31,7 @@ require_relative '../lib/zold/amount'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestTxn < Minitest::Test
+class TestTxn < Zold::Test
   def test_prints_and_parses
     time = Time.now
     txn = Zold::Txn.parse(

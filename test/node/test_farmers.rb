@@ -26,7 +26,7 @@ require 'zold/score'
 require_relative '../test__helper'
 require_relative '../../lib/zold/node/farmers'
 
-class FarmersTest < Minitest::Test
+class FarmersTest < Zold::Test
   def test_calculates_next_score
     before = Zold::Score.new(host: 'some-host', port: 9999, invoice: 'NOPREFIX4@ffffffffffffffff', strength: 3)
     farmer = Zold::Farmers::Spawn.new(log: test_log)

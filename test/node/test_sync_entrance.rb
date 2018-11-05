@@ -30,7 +30,7 @@ require_relative 'fake_entrance'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestSyncEntrance < Minitest::Test
+class TestSyncEntrance < Zold::Test
   def test_renders_json
     FakeHome.new(log: test_log).run do
       Zold::SyncEntrance.new(FakeEntrance.new, log: test_log).start do |e|

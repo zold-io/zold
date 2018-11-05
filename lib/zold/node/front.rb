@@ -455,7 +455,7 @@ in #{Age.new(@start, limit: 1)}")
 
     def processes_count
       settings.zache.get(:processes, lifetime: settings.network == Wallet::MAIN_NETWORK ? 60 : 0) do
-        `ps ax | grep zold | wc -l`
+        `ps ax | grep zold | wc -l`.strip.to_i
       end
     end
 

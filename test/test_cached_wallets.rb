@@ -33,7 +33,7 @@ require_relative '../lib/zold/amount'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestCachedWallets < Minitest::Test
+class TestCachedWallets < Zold::Test
   def test_adds_wallet
     FakeHome.new(log: test_log).run do |home|
       wallets = Zold::CachedWallets.new(home.wallets)

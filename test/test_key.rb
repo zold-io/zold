@@ -29,7 +29,7 @@ require_relative '../lib/zold/key'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestKey < Minitest::Test
+class TestKey < Zold::Test
   def test_reads_public_rsa
     key = Zold::Key.new(file: 'fixtures/id_rsa.pub')
     assert(key.to_pub.start_with?('MIICI'))

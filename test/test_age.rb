@@ -27,7 +27,7 @@ require_relative '../lib/zold/age'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestAge < Minitest::Test
+class TestAge < Zold::Test
   def test_prints_age
     assert_equal('10m', Zold::Age.new(Time.now - 10 * 60).to_s)
     assert_equal('5.5s', Zold::Age.new(Time.now - 5.5).to_s)

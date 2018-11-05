@@ -33,7 +33,7 @@ require_relative '../../lib/zold/commands/invoice'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestInvoice < Minitest::Test
+class TestInvoice < Zold::Test
   def test_generates_invoice
     Dir.mktmpdir do |dir|
       id = Zold::Id.new

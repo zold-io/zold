@@ -40,7 +40,7 @@ require_relative '../../lib/zold/commands/pay'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestMerge < Minitest::Test
+class TestMerge < Zold::Test
   def test_merges_wallet
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet

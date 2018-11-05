@@ -28,7 +28,7 @@ require_relative '../lib/zold/metronome'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestMetronome < Minitest::Test
+class TestMetronome < Zold::Test
   def test_start_and_stop
     metronome = Zold::Metronome.new(test_log)
     list = []

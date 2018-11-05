@@ -27,7 +27,7 @@ require_relative '../lib/zold/size'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestSize < Minitest::Test
+class TestSize < Zold::Test
   def test_prints_size
     assert_equal('?', Zold::Size.new(nil).to_s)
     assert_equal('10b', Zold::Size.new(10).to_s)

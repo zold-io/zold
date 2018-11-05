@@ -5,7 +5,7 @@ require_relative '../test__helper'
 require_relative '../fake_home'
 require_relative '../../lib/zold/commands/alias'
 
-class TestAlias < Minitest::Test
+class TestAlias < Zold::Test
   # alias set <wallet> <alias>
   # @todo #322:30min Implement the set command and unskip this test.
   #  The syntax is already documented in the alias command in the help.

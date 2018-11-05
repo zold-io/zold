@@ -32,7 +32,7 @@ require_relative '../lib/zold/dir_items'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestDirItems < Minitest::Test
+class TestDirItems < Zold::Test
   def test_intensive_write_in_threads
     Dir.mktmpdir do |dir|
       file = File.join(dir, 'hey.txt')

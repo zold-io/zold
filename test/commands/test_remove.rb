@@ -29,7 +29,7 @@ require_relative '../../lib/zold/commands/remove'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestRemove < Minitest::Test
+class TestRemove < Zold::Test
   def test_removes_one_wallet
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet

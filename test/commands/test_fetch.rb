@@ -40,7 +40,7 @@ require_relative '../../lib/zold/commands/fetch'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestFetch < Minitest::Test
+class TestFetch < Zold::Test
   def test_fetches_wallet
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet

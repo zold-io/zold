@@ -33,7 +33,7 @@ require_relative '../../lib/zold/commands/show'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestShow < Minitest::Test
+class TestShow < Zold::Test
   def test_checks_wallet_balance
     Dir.mktmpdir do |dir|
       id = Zold::Id.new

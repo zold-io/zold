@@ -29,7 +29,7 @@ require_relative '../fake_home'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestProtocolUp < Minitest::Test
+class TestProtocolUp < Zold::Test
   def test_upgrades_protocol_in_wallet
     FakeHome.new(log: test_log).run do |home|
       id = home.create_wallet.id

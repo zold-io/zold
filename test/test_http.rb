@@ -31,7 +31,7 @@ require_relative '../lib/zold/http'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestHttp < Minitest::Test
+class TestHttp < Zold::Test
   def test_pings_broken_uri
     stub_request(:get, 'http://bad-host/').to_return(status: 500)
     res = Zold::Http.new(uri: 'http://bad-host/').get

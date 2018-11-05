@@ -27,7 +27,7 @@ require_relative '../lib/zold/amount'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestAmount < Minitest::Test
+class TestAmount < Zold::Test
   def test_parses_zld
     amount = Zold::Amount.new(zld: 14.95)
     assert(

@@ -35,7 +35,7 @@ require_relative '../lib/zold/amount'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestSyncWallets < Minitest::Test
+class TestSyncWallets < Zold::Test
   def test_adds_wallet
     FakeHome.new(log: test_log).run do |home|
       wallets = home.wallets

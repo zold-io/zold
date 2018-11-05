@@ -36,7 +36,7 @@ require_relative '../../lib/zold/commands/remote'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestRemote < Minitest::Test
+class TestRemote < Zold::Test
   def test_updates_remote
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'a/b/c/remotes'))

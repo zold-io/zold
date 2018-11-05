@@ -27,7 +27,7 @@ require_relative '../test__helper'
 require_relative '../../lib/zold/log'
 require_relative '../../lib/zold/node/farm'
 
-class FarmTest < Minitest::Test
+class FarmTest < Zold::Test
   def test_renders_in_json
     Dir.mktmpdir do |dir|
       farm = Zold::Farm.new('NOPREFIX6@ffffffffffffffff', File.join(dir, 'f'), log: test_log)

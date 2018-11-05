@@ -33,7 +33,7 @@ require_relative '../../lib/zold/http'
 require_relative '../../lib/zold/age'
 require_relative '../../lib/zold/json_page'
 
-class FrontTest < Minitest::Test
+class FrontTest < Zold::Test
   def app
     Zold::Front
   end

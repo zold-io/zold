@@ -34,7 +34,7 @@ require_relative '../lib/zold/verbose_thread'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestRemotes < Minitest::Test
+class TestRemotes < Zold::Test
   def test_adds_remotes
     Dir.mktmpdir do |dir|
       file = File.join(dir, 'remotes')

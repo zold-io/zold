@@ -32,7 +32,7 @@ require_relative '../../lib/zold/commands/pull'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestPull < Minitest::Test
+class TestPull < Zold::Test
   def test_pull_wallet
     FakeHome.new(log: test_log).run do |home|
       remotes = home.remotes

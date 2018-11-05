@@ -4,7 +4,7 @@ require 'semantic'
 require 'zold/version'
 require 'minitest/autorun'
 
-class TestVersion < Minitest::Test
+class TestVersion < Zold::Test
   def test_has_version
     assert Semantic::Version.new(Zold::VERSION)
   end

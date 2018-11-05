@@ -36,7 +36,7 @@ require_relative '../../lib/zold/commands/taxes'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestTaxes < Minitest::Test
+class TestTaxes < Zold::Test
   def test_pays_taxes
     FakeHome.new(log: test_log).run do |home|
       wallets = home.wallets

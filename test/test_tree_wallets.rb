@@ -31,7 +31,7 @@ require_relative '../lib/zold/tree_wallets'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestTreeWallets < Minitest::Test
+class TestTreeWallets < Zold::Test
   def test_adds_wallet
     Dir.mktmpdir do |dir|
       wallets = Zold::TreeWallets.new(dir)

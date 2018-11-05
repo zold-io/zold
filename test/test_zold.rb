@@ -26,15 +26,16 @@ require 'open3'
 require 'English'
 require_relative 'test__helper'
 require_relative '../lib/zold/version'
+require_relative '../lib/zold/age'
 
 # Zold main module test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestZold < Minitest::Test
-  def test_all_scripts
-    Dir.new('fixtures/scripts').select { |f| f =~ /\.sh$/ && !f.start_with?('_') }.each do |f|
-      # next unless f == 'push-and-pull.sh'
+class TestZold < Zold::Test
+  Dir.new('fixtures/scripts').select { |f| f =~ /\.sh$/ && !f.start_with?('_') }.each do |f|
+    # next unless f == 'push-and-pull.sh'
+    define_method("test_script_#{f.gsub(/[^a-z]/, '_')}") do
       start = Time.now
       test_log.debug("\n\n#{f} running...")
       Dir.mktmpdir do |dir|
