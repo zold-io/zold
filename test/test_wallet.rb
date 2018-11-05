@@ -46,7 +46,7 @@ class TestWallet < Minitest::Test
   def test_generates_memo
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
-      assert(!wallet.memo.nil?)
+      assert(!wallet.mnemo.nil?)
     end
   end
 

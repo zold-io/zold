@@ -42,6 +42,7 @@ module Zold
     end
 
     def start
+      raise 'Block must be given to start()' unless block_given?
       @entrance.start { yield(self) }
     end
 
@@ -63,14 +64,11 @@ module Zold
           w.exists? ? IO.read(w.path).to_s : ''
         end
         if before == after
-          @log.info(
-            "Duplicate of #{Size.new(after.length)} #{wallet.memo} ignored"
-          )
+          @log.info("Duplicate of #{Size.new(after.length)} #{wallet.mnemo} ignored")
           return []
         end
-        @log.info(
-          "New content for #{id} arrived, #{Size.new(before.length)} before and #{Size.new(after.length)} after"
-        )
+        @log.info("New content for #{wallet.mnemo} arrived, \
+#{Size.new(before.length)} before and #{Size.new(after.length)} after")
         @entrance.push(id, body)
       end
     end

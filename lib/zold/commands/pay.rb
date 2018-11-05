@@ -115,7 +115,7 @@ Available options:"
       @log.debug("Don't forget to do 'zold push #{from}'")
       @log.info(txn.id)
       tax = Tax.new(from)
-      @log.info("The tax debt of #{from.memo} is #{tax.debt} \
+      @log.info("The tax debt of #{from.mnemo} is #{tax.debt} \
 (#{tax.in_debt? ? 'too high' : 'still acceptable'})")
       txn
     end

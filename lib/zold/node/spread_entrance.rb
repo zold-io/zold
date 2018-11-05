@@ -58,6 +58,7 @@ module Zold
     end
 
     def start
+      raise 'Block must be given to start()' unless block_given?
       @entrance.start do
         @seen = Set.new
         @modified = Queue.new

@@ -93,7 +93,7 @@ Available options:"
       @log.debug("#{cps.all.count} local copies:")
       cps.all.each do |c|
         wallet = Wallet.new(c[:path])
-        @log.debug("  #{c[:name]}: #{c[:score]} #{wallet.memo} \
+        @log.debug("  #{c[:name]}: #{c[:score]} #{wallet.mnemo} \
 #{Size.new(File.size(c[:path]))}/#{Age.new(File.mtime(c[:path]))}")
       end
     end
@@ -128,7 +128,7 @@ Available options:"
           raise "The balance of #{id} is #{wallet.balance} and it's not a root wallet"
         end
         copy = cps.add(IO.read(f), score.host, score.port, score.value)
-        @log.info("#{r} returned #{Size.new(body.length)} #{wallet.memo} \
+        @log.info("#{r} returned #{Size.new(body.length)} #{wallet.mnemo} \
 #{digest(json)}/#{Age.new(json['mtime'])}/#{json['copies']}c \
 as copy #{copy} of #{id} in #{Age.new(start, limit: 4)}: #{Rainbow(score.value).green} (#{json['version']})")
       end

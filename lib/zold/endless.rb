@@ -40,12 +40,15 @@ module Zold
       start = Time.now
       Thread.current.name = @title
       Thread.current.abort_on_exception = true
-      loop do
-        VerboseThread.new(@log).run(true) do
-          yield
+      begin
+        loop do
+          VerboseThread.new(@log).run(true) do
+            yield
+          end
         end
+      ensure
+        @log.debug("Endless loop \"#{@title}\" quit in #{Age.new(start)}")
       end
-      @log.debug("Endless loop \"#{@title}\" exited in #{Age.new(start)}")
     end
   end
 end
