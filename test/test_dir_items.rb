@@ -25,6 +25,7 @@ require 'tmpdir'
 require 'threads'
 require_relative 'test__helper'
 require_relative '../lib/zold/age'
+require_relative '../lib/zold/endless'
 require_relative '../lib/zold/dir_items'
 
 # DirItems test.
@@ -36,7 +37,7 @@ class TestDirItems < Minitest::Test
     Dir.mktmpdir do |dir|
       file = File.join(dir, 'hey.txt')
       back = Thread.start do
-        loop do
+        Endless.new('test-diritems', log: test_log).run do
           Zold::DirItems.new(dir).fetch
         end
       end

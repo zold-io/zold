@@ -55,6 +55,7 @@ module Zold
           'ruby',
           Shellwords.escape(bin),
           '--skip-upgrades',
+          "--info-tid=#{Thread.current.thread_variable_get(:tid)}",
           "--info-thread=#{Shellwords.escape(Thread.current.name)}",
           "--info-start=#{Time.now.utc.iso8601}",
           '--low-priority',
@@ -84,7 +85,7 @@ for #{score.value}/#{score.strength} at #{score.host}:#{score.port}")
                 raise "Failed to calculate the score (##{thr.value}): #{buffer}" unless thr.value.to_i.zero?
                 break
               end
-              sleep 0.25
+              sleep(10)
               Thread.current.thread_variable_set(:buffer, buffer.length.to_s)
             end
             after = Score.parse(buffer.strip)

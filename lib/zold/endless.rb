@@ -20,40 +20,32 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'time'
-require 'rainbow'
+require_relative 'log'
+require_relative 'verbose_thread'
+require_relative 'age'
 
-# Age in seconds.
+# Endless loop.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # Age
-  class Age
-    def initialize(time, limit: nil)
-      @time = time.nil? || time.is_a?(Time) ? time : Time.parse(time)
-      @limit = limit
+  # Endless loop
+  class Endless
+    def initialize(title, log: Log::Quiet.new)
+      @title = title
+      @log = log
     end
 
-    def to_s
-      return '?' if @time.nil?
-      sec = Time.now - @time
-      txt = text(sec)
-      if !@limit.nil? && sec > @limit
-        Rainbow(txt).red
-      else
-        txt
+    def run
+      start = Time.now
+      Thread.current.name = @title
+      Thread.current.abort_on_exception = true
+      loop do
+        VerboseThread.new(@log).run(true) do
+          yield
+        end
       end
-    end
-
-    private
-
-    def text(sec)
-      return "#{(sec * 1_000_000).round}μs" if sec < 0.001
-      return "#{(sec * 1000).round}ms" if sec < 1
-      return "#{sec.round(2)}s" if sec < 60
-      return "#{(sec / 60).round}m" if sec < 60 * 60
-      "#{(sec / 3600).round}h"
+      @log.debug("Endless loop \"#{@title}\" exited in #{Age.new(start)}")
     end
   end
 end

@@ -26,6 +26,7 @@ require_relative 'emission'
 require_relative '../log'
 require_relative '../remotes'
 require_relative '../copies'
+require_relative '../endless'
 require_relative '../tax'
 require_relative '../commands/merge'
 require_relative '../commands/fetch'
@@ -61,22 +62,18 @@ module Zold
         @seen = Set.new
         @modified = Queue.new
         @push = Thread.start do
-          Thread.current.abort_on_exception = true
-          Thread.current.name = 'push'
-          VerboseThread.new(@log).run(true) do
-            loop do
-              id = @modified.pop
-              if @remotes.all.empty?
-                @log.info("There are no remotes, won\'t spread #{id}")
-              else
-                Thread.current.thread_variable_set(:wallet, id.to_s)
-                Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-                  ['push', "--ignore-node=#{@address}", id.to_s] +
-                  (@ignore_score_weakeness ? ['--ignore-score-weakness'] : [])
-                )
-              end
-              @mutex.synchronize { @seen.delete(id) }
+          Endless.new('push', log: @log).run do
+            id = @modified.pop
+            if @remotes.all.empty?
+              @log.info("There are no remotes, won\'t spread #{id}")
+            else
+              Thread.current.thread_variable_set(:wallet, id.to_s)
+              Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
+                ['push', "--ignore-node=#{@address}", id.to_s] +
+                (@ignore_score_weakeness ? ['--ignore-score-weakness'] : [])
+              )
             end
+            @mutex.synchronize { @seen.delete(id) }
           end
         end
         begin

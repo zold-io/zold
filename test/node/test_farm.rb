@@ -59,6 +59,28 @@ class FarmTest < Minitest::Test
     end
   end
 
+  # @todo #527:30min This test takes too long. The speed should be less than
+  #  a few milliseconds, however, if you run it a few times, you will see
+  #  that it is over 100ms sometimes. This is way too slow. I can't understand
+  #  what's going on. It seems that IO.read() is taking too long sometimes.
+  #  Try to measure its time of execution in Farm.load() and you will see
+  #  that it's usually a few microseconds, but sometimes over 200ms.
+  def test_reads_scores_at_high_speed
+    Dir.mktmpdir do |dir|
+      farm = Zold::Farm.new('NOPREFIX6@ffffffffffffffff', File.join(dir, 'f'), log: test_log)
+      farm.start('localhost', 80, threads: 4, strength: 4) do
+        assert_wait { !farm.best.empty? && !farm.best[0].value.zero? }
+        cycles = 100
+        speed = (0..cycles - 1).map do
+          start = Time.now
+          farm.best
+          Time.now - start
+        end.inject(&:+) / cycles
+        test_log.debug("Average speed is #{(speed * 1000).round(2)}ms in #{cycles} cycles")
+      end
+    end
+  end
+
   def test_makes_best_score_in_background
     Dir.mktmpdir do |dir|
       farm = Zold::Farm.new('NOPREFIX1@ffffffffffffffff', File.join(dir, 'f'), log: test_log)

@@ -85,7 +85,7 @@ module Zold
             @log.info("Stopping async entrance, #{queue.count} still in the queue (cycle=#{cycle})...")
             cycle += 1
             raise "Can't wait for async entrance to stop for so long" if cycle > 10
-            sleep 1
+            sleep(1)
           end
         ensure
           @log.info("Stopping async entrance, pool length is #{@pool.length}, queue length is #{@pool.queue_length}")
