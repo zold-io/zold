@@ -121,8 +121,8 @@ module Zold
         @log.info("#{best.size} scores pre-loaded from #{@cache}, the best is: #{best[0]}")
       end
       @threads = (1..threads).map do |t|
-        Thread.current.thread_variable_set(:tid, t.to_s)
         Thread.new do
+          Thread.current.thread_variable_set(:tid, t.to_s)
           Endless.new("f#{t}", log: @log).run do
             cycle(host, port, strength, threads)
           end
@@ -141,7 +141,7 @@ module Zold
       end
       if @threads.empty?
         cleanup(host, port, strength, threads)
-        @log.info('Farm started with no threads (there will be no score)')
+        @log.info("Farm started with no threads (there will be no score) at #{host}:#{port}")
       else
         @log.info("Farm started with #{@threads.count} threads (one for cleanup) \
 at #{host}:#{port}, strength is #{strength}")
