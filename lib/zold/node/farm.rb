@@ -128,17 +128,24 @@ module Zold
           end
         end
       end
-      ready = false
-      @threads << Thread.new do
-        Endless.new('cleanup', log: @log).run do
-          cleanup(host, port, strength, threads)
-          ready = true
-          sleep(1)
+      unless threads.zero?
+        ready = false
+        @threads << Thread.new do
+          Endless.new('cleanup', log: @log).run do
+            cleanup(host, port, strength, threads)
+            ready = true
+            sleep(1)
+          end
         end
+        loop { break if ready }
       end
-      @log.info("Farm started with #{@threads.count} threads (one for cleanup) \
+      if @threads.empty?
+        cleanup(host, port, strength, threads)
+        @log.info('Farm started with no threads (there will be no score)')
+      else
+        @log.info("Farm started with #{@threads.count} threads (one for cleanup) \
 at #{host}:#{port}, strength is #{strength}")
-      loop { break if ready }
+      end
       begin
         yield(self)
       ensure
