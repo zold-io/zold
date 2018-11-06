@@ -82,6 +82,7 @@ module Zold
 
     before do
       Thread.current.thread_variable_set(:uri, request.url)
+      Thread.current.thread_variable_set(:ip, request.ip)
       @start = Time.now
       if !settings.halt.empty? && params[:halt] && params[:halt] == settings.halt
         settings.log.error('Halt signal received, shutting the front end down...')
