@@ -411,7 +411,7 @@ in #{Age.new(@start, limit: 1)}")
 
     get '/ps' do
       content_type('text/plain')
-      POSIX::Spawn::Child.new('ps', 'ax').out.select { |t| t.include?('zold') }.join("\n")
+      processes.join("\n")
     end
 
     not_found do
@@ -461,8 +461,12 @@ in #{Age.new(@start, limit: 1)}")
 
     def processes_count
       settings.zache.get(:processes, lifetime: settings.network == Wallet::MAIN_NETWORK ? 60 : 0) do
-        POSIX::Spawn::Child.new('ps', 'ax').out.split("\n").select { |t| t.include?('zold') }.count
+        processes.count
       end
+    end
+
+    def processes
+      POSIX::Spawn::Child.new('ps', 'ax').out.split("/n").select { |t| t.include?('zold') }
     end
 
     def score
