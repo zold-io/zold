@@ -203,7 +203,7 @@ in #{Age.new(@start, limit: 1)}")
         platform: RUBY_PLATFORM,
         load: settings.zache.get(:load, lifetime: 5 * 60) do
           require 'usagewatch_ext'
-          Usagewatch.uw_load.to_f
+          Object.const_defined?('Usagewatch') ? Usagewatch.uw_load.to_f : 0.0
         end,
         threads: "#{Thread.list.select { |t| t.status == 'run' }.count}/#{Thread.list.count}",
         wallets: total_wallets,
