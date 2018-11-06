@@ -47,7 +47,7 @@ module Zold
           end
         end
       ensure
-        @log.debug("Endless loop \"#{@title}\" quit in #{Age.new(start)}")
+        @log.debug("Endless loop \"#{@title}\" quit after #{Age.new(start)} of work")
       end
     end
   end

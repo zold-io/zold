@@ -27,6 +27,7 @@ start = Time.now
 
 require 'slop'
 require 'rainbow'
+require 'backtrace'
 require_relative '../lib/zold'
 require_relative '../lib/zold/version'
 require_relative '../lib/zold/wallet'
@@ -166,7 +167,7 @@ Available options:"
 
   wallets = Zold::SyncWallets.new(
     Zold::CachedWallets.new(
-      command == 'node' ? Zold::TreeWallets.new('.') : Zold::Wallets.new('.')
+      command == 'node' ? Zold::TreeWallets.new(home) : Zold::Wallets.new(home)
     ),
     log: log
   )
@@ -245,7 +246,7 @@ Available options:"
   end
 rescue StandardError => ex
   log.error("#{ex.message} (#{ex.class.name})")
-  puts(ex.backtrace) if opts['trace']
+  puts(Backtrace.new(ex)) if opts['trace']
   exit -1
 end
 

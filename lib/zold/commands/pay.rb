@@ -52,7 +52,7 @@ Available options:"
         o.string '--private-key',
           'The location of RSA private key (default: ~/.ssh/id_rsa)',
           require: true,
-          default: '~/.ssh/id_rsa'
+          default: File.expand_path('~/.ssh/id_rsa')
         o.bool '--force',
           'Ignore all validations',
           default: false

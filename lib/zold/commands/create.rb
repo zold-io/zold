@@ -46,7 +46,7 @@ Available options:"
         o.string '--public-key',
           'The location of RSA public key (default: ~/.ssh/id_rsa.pub)',
           require: true,
-          default: '~/.ssh/id_rsa.pub'
+          default: File.expand_path('~/.ssh/id_rsa.pub')
         o.string '--network',
           "The name of the network (default: #{Wallet::MAIN_NETWORK}",
           require: true,

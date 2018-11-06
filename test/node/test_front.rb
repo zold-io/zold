@@ -63,6 +63,7 @@ class FrontTest < Zold::Test
           '/',
           '/remotes',
           '/version',
+          '/protocol',
           '/farm',
           '/metronome',
           '/score',

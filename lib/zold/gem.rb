@@ -34,7 +34,7 @@ module Zold
   class Gem
     def last_version
       JsonPage.new(
-        Http.new(uri: 'https://rubygems.org/api/v1/versions/zold/latest.json', score: Score::ZERO).get.body
+        Http.new(uri: 'https://rubygems.org/api/v1/versions/zold/latest.json').get.body
       ).to_hash['version']
     rescue StandardError => _
       '0.0.0'

@@ -37,7 +37,7 @@ class TestDirItems < Zold::Test
     Dir.mktmpdir do |dir|
       file = File.join(dir, 'hey.txt')
       back = Thread.start do
-        Endless.new('test-diritems', log: test_log).run do
+        Zold::Endless.new('test-diritems', log: test_log).run do
           Zold::DirItems.new(dir).fetch
         end
       end

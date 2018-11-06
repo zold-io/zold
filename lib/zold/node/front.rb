@@ -29,6 +29,7 @@ require 'sinatra/base'
 require 'concurrent'
 require 'backtrace'
 require 'zache'
+require 'posix/spawn'
 require_relative '../version'
 require_relative '../size'
 require_relative '../wallet'
@@ -141,6 +142,11 @@ in #{Age.new(@start, limit: 1)}")
     get '/version' do
       content_type('text/plain')
       settings.version
+    end
+
+    get '/protocol' do
+      content_type('text/plain')
+      settings.protocol.to_s
     end
 
     get '/pid' do
@@ -405,7 +411,7 @@ in #{Age.new(@start, limit: 1)}")
 
     get '/ps' do
       content_type('text/plain')
-      `ps ax | grep zold`
+      POSIX::Spawn::Child.new('ps', 'ax').out.select { |t| t.include?('zold') }
     end
 
     not_found do
@@ -455,7 +461,7 @@ in #{Age.new(@start, limit: 1)}")
 
     def processes_count
       settings.zache.get(:processes, lifetime: settings.network == Wallet::MAIN_NETWORK ? 60 : 0) do
-        `ps ax | grep zold | wc -l`.strip.to_i
+        POSIX::Spawn::Child.new('ps', 'ax').out.split("\n").select { |t| t.include?('zold') }.count
       end
     end
 
