@@ -19,24 +19,32 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-require 'delegate'
-require_relative './commands/pull'
-require_relative './commands/fetch'
-require_relative 'wallet'
-module Zold
-  # Wallets decorator that adds missing wallets to the queue to be pulled later.
-  class HungryWallets < SimpleDelegator
-    def initialize(wallets, remotes, copies)
-      @wallets = wallets
-      @remotes = remotes
-      @copies  = copies
-      super(@wallets)
-    end
 
-    def find(id)
-      Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies).run(['pull', id.to_s, '--quiet-if-absent']) unless File.exist?(File.join(@wallets.path, id.to_s + Wallet::EXT))
-      super(id) do |wallet|
-        yield wallet
+require 'minitest/autorun'
+require 'webmock/minitest'
+require 'tmpdir'
+require_relative 'test__helper'
+require_relative 'fake_home'
+
+require_relative '../lib/zold/json_page'
+require_relative '../lib/zold/wallet.rb'
+require_relative '../lib/zold/hungry_wallets.rb'
+# CachedWallets test.
+# Author:: Yegor Bugayenko (yegor256@gmail.com)
+# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# License:: MIT
+class TestHungryWallets < Zold::Test
+  def test_find_wallet
+    FakeHome.new(log: test_log).run do |home|
+      remotes = home.remotes
+      remotes.add('localhost', 4096)
+      json = home.create_wallet_json
+      id = Zold::JsonPage.new(json).to_hash['id']
+      stub_request(:get, "http://localhost:4096/wallet/#{id}").to_return(status: 200, body: json)
+      FileUtils.rm(["#{home.dir}/#{id}#{Zold::Wallet::EXT}", "#{home.dir}/#{id}#{Zold::Wallet::EXT}.lock"])
+      wallets = Zold::HungryWallets.new(home.wallets, remotes, home.copies.root.to_s)
+      wallets.find(Zold::Id.new(id)) do |wallet|
+        assert(wallet.exists?)
       end
     end
   end
