@@ -19,9 +19,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-require 'pathname'
-require_relative 'id'
-require_relative 'wallet'
+
+require 'zache'
 
 # Cached collection of wallets.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -32,8 +31,7 @@ module Zold
   class CachedWallets
     def initialize(wallets)
       @wallets = wallets
-      @cache = {}
-      @mutex = Mutex.new
+      @zache = Zache.new
     end
 
     def to_s
@@ -50,11 +48,7 @@ module Zold
 
     def find(id)
       @wallets.find(id) do |wallet|
-        w = @mutex.synchronize do
-          @cache[id] = wallet unless @cache[id]
-          @cache[id]
-        end
-        yield w
+        yield @zache.get(id.to_s, lifetime: 5 * 60) { wallet }
       end
     end
   end
