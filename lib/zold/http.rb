@@ -55,10 +55,10 @@ module Zold
     PROTOCOL_HEADER = 'X-Zold-Protocol'
 
     # Read timeout in seconds
-    READ_TIMEOUT = 32
+    READ_TIMEOUT = 0.4
 
     # Connect timeout in seconds
-    CONNECT_TIMEOUT = 4
+    CONNECT_TIMEOUT = 0.2
 
     def initialize(uri:, score: Score::ZERO, network: 'test')
       @uri = uri.is_a?(URI) ? uri : URI(uri)
@@ -66,28 +66,28 @@ module Zold
       @network = network
     end
 
-    def get
+    def get(timeout: Http::READ_TIMEOUT + Http::CONNECT_TIMEOUT)
       http = Net::HTTP.new(@uri.host, @uri.port)
       http.use_ssl = @uri.scheme == 'https'
       http.read_timeout = Http::READ_TIMEOUT
       http.open_timeout = Http::CONNECT_TIMEOUT
       path = @uri.path
       path += '?' + @uri.query if @uri.query
-      Timeout.timeout(Http::READ_TIMEOUT + Http::CONNECT_TIMEOUT) do
+      Timeout.timeout(timeout) do
         http.request_get(path, headers)
       end
     rescue StandardError => e
       Error.new(e)
     end
 
-    def put(body)
+    def put(body, timeout: Http::READ_TIMEOUT + Http::CONNECT_TIMEOUT)
       http = Net::HTTP.new(@uri.host, @uri.port)
       http.use_ssl = @uri.scheme == 'https'
       http.read_timeout = Http::READ_TIMEOUT
       http.open_timeout = Http::CONNECT_TIMEOUT
       path = @uri.path
       path += '?' + @uri.query if @uri.query
-      Timeout.timeout(Http::READ_TIMEOUT + Http::CONNECT_TIMEOUT) do
+      Timeout.timeout(timeout) do
         http.request_put(
           path, body,
           headers.merge(

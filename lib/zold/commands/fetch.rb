@@ -105,7 +105,7 @@ Available options:"
         return 0
       end
       uri = "/wallet/#{id}"
-      res = r.http(uri).get
+      res = r.http(uri).get(timeout: 60)
       raise "Wallet #{id} not found" if res.code == '404'
       r.assert_code(200, res)
       json = JsonPage.new(res.body, uri).to_hash
