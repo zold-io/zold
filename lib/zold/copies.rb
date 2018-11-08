@@ -67,13 +67,13 @@ module Zold
           deleted += 1
         end
         files.each do |f|
-          file = File.join(@dir, f)
-          wallet = Wallet.new(file)
+          cp = File.join(@dir, f)
+          wallet = Wallet.new(cp)
           begin
             wallet.refurbish
-            raise "Invalid protocol #{wallet.protocol} in #{file}" unless wallet.protocol == Zold::PROTOCOL
+            raise "Invalid protocol #{wallet.protocol} in #{cp}" unless wallet.protocol == Zold::PROTOCOL
           rescue StandardError => e
-            FileUtils.rm_rf(file)
+            FileUtils.rm_rf(cp)
             @log.debug("Copy at #{f} deleted: #{Backtrace.new(e)}")
             deleted += 1
           end

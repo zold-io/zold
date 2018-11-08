@@ -63,31 +63,30 @@ Available options:"
       start = Time.now
       modified = []
       total = 0
-      @wallets.find(id) do |wallet|
-        wallet.txns.select { |t| t.amount.negative? }.each do |t|
-          total += 1
-          if t.bnf == id
-            @log.error("Paying itself in #{id}? #{t}")
+      network = @wallets.find(id, &:network)
+      @wallets.find(id, &:txns).select { |t| t.amount.negative? }.each do |t|
+        total += 1
+        if t.bnf == id
+          @log.error("Paying itself in #{id}? #{t}")
+          next
+        end
+        @wallets.find(t.bnf) do |target|
+          unless target.exists?
+            @log.debug("#{t.amount * -1} to #{t.bnf}: wallet is absent")
             next
           end
-          @wallets.find(t.bnf) do |target|
-            unless target.exists?
-              @log.debug("#{t.amount * -1} to #{t.bnf}: wallet is absent")
-              next
-            end
-            unless target.network == wallet.network
-              @log.error("#{t.amount * -1} to #{t.bnf}: network mismatch, '#{target.network}'!='#{wallet.network}'")
-              next
-            end
-            next if target.includes_positive?(t.id, id)
-            unless target.prefix?(t.prefix)
-              @log.error("#{t.amount * -1} to #{t.bnf}: wrong prefix")
-              next
-            end
-            target.add(t.inverse(id))
-            @log.info("#{t.amount * -1} arrived to #{t.bnf}: #{t.details}")
-            modified << t.bnf
+          unless target.network == network
+            @log.error("#{t.amount * -1} to #{t.bnf}: network mismatch, '#{target.network}'!='#{network}'")
+            next
           end
+          next if target.includes_positive?(t.id, id)
+          unless target.prefix?(t.prefix)
+            @log.error("#{t.amount * -1} to #{t.bnf}: wrong prefix")
+            next
+          end
+          target.add(t.inverse(id))
+          @log.info("#{t.amount * -1} arrived to #{t.bnf}: #{t.details}")
+          modified << t.bnf
         end
       end
       modified.uniq!

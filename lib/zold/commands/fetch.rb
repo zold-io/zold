@@ -90,12 +90,11 @@ Available options:"
       raise "No nodes out of #{nodes.value} have the wallet #{id}" if done.value.zero? && !opts['quiet-if-absent']
       @log.info("#{done.value} copies of #{id} fetched in #{Age.new(start)} with the total score of \
 #{total.value} from #{nodes.value} nodes")
-      @log.debug("#{cps.all.count} local copies:")
-      cps.all.each do |c|
-        wallet = Wallet.new(c[:path])
-        @log.debug("  #{c[:name]}: #{c[:score]} #{wallet.mnemo} \
-#{Size.new(File.size(c[:path]))}/#{Age.new(File.mtime(c[:path]))}")
+      list = cps.all.map do |c|
+        "  ##{c[:name]}: #{c[:score]} #{Wallet.new(c[:path]).mnemo} \
+#{Size.new(File.size(c[:path]))}/#{Age.new(File.mtime(c[:path]))}"
       end
+      @log.debug("#{cps.all.count} local copies of #{id}:\n#{list.join("\n")}")
     end
 
     def fetch_one(id, r, cps, opts)
