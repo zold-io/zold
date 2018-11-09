@@ -38,7 +38,7 @@ module Zold
   class AsyncEntrance
     def initialize(entrance, dir, log: Log::Quiet.new, threads: [Concurrent.processor_count, 4].max)
       @entrance = entrance
-      @dir = dir
+      @dir = File.expand_path(dir)
       @log = log
       @total = threads
       @queue = Queue.new
@@ -59,6 +59,7 @@ module Zold
         id = f.split('-')[0]
         @queue << { id: Id.new(id), file: file }
       end
+      @log.info("#{@queue.size} wallets pre-loaded into async_entrace from #{@dir}")
       @entrance.start do
         @threads = (0..@total - 1).map do |i|
           Thread.start do

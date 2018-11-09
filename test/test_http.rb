@@ -87,12 +87,12 @@ class TestHttp < Zold::Test
         server = TCPServer.new(port)
         loop do
           client = server.accept
-          sleep 2
+          sleep 1
           client.puts("HTTP/1.1 200 OK\nContent-Length: 4\n\nGood")
           client.close
         end
       end
-      res = Zold::Http.new(uri: "http://localhost:#{port}/").get(timeout: 4)
+      res = Zold::Http.new(uri: "http://localhost:#{port}/").get(timeout: 2)
       assert_equal('200', res.code, res)
       thread.kill
       thread.join
