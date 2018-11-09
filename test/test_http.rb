@@ -25,6 +25,7 @@ require 'tmpdir'
 require 'uri'
 require 'webmock/minitest'
 require 'zold/score'
+require_relative 'test__helper'
 require_relative '../lib/zold/http'
 
 # Http test.
@@ -76,6 +77,26 @@ class TestHttp < Zold::Test
     end
     res = Zold::Http.new(uri: 'http://the-fake-host-99/').get
     assert_equal('599', res.code)
+  end
+
+  def test_doesnt_terminate_on_long_call
+    require 'random-port'
+    WebMock.allow_net_connect!
+    RandomPort::Pool::SINGLETON.acquire do |port|
+      thread = Thread.start do
+        server = TCPServer.new(port)
+        loop do
+          client = server.accept
+          sleep 2
+          client.puts("HTTP/1.1 200 OK\nContent-Length: 4\n\nGood")
+          client.close
+        end
+      end
+      res = Zold::Http.new(uri: "http://localhost:#{port}/").get(timeout: 4)
+      assert_equal('200', res.code, res)
+      thread.kill
+      thread.join
+    end
   end
 
   def test_sends_valid_version_header
