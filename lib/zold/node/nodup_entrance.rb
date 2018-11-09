@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'tempfile'
+require 'openssl'
 require_relative '../log'
 require_relative '../size'
 require_relative '../wallet'
@@ -33,11 +34,8 @@ module Zold
   # The safe entrance
   class NoDupEntrance
     def initialize(entrance, wallets, log: Log::Quiet.new)
-      raise 'Entrance can\'t be nil' if entrance.nil?
       @entrance = entrance
-      raise 'Wallets can\'t be nil' if wallets.nil?
       @wallets = wallets
-      raise 'Log can\'t be nil' if log.nil?
       @log = log
     end
 
@@ -52,25 +50,14 @@ module Zold
 
     # Returns a list of modifed wallets (as Zold::Id)
     def push(id, body)
-      raise 'Id can\'t be nil' if id.nil?
-      raise 'Id must be of type Id' unless id.is_a?(Id)
-      raise 'Body can\'t be nil' if body.nil?
-      Tempfile.open(['', Wallet::EXT]) do |f|
-        IO.write(f, body)
-        wallet = Wallet.new(f.path)
-        wallet.refurbish
-        after = IO.read(wallet.path)
-        before = @wallets.find(id) do |w|
-          w.exists? ? IO.read(w.path).to_s : ''
-        end
-        if before == after
-          @log.info("Duplicate of #{Size.new(after.length)} #{wallet.mnemo} ignored")
-          return []
-        end
-        @log.info("New content for #{wallet.mnemo} arrived, \
-#{Size.new(before.length)} before and #{Size.new(after.length)} after")
-        @entrance.push(id, body)
+      before = @wallets.find(id) { |w| w.exists? ? w.digest : '' }
+      after = OpenSSL::Digest::SHA256.new(body).hexdigest
+      if before == after
+        @log.debug("Duplicate of #{id} ignored (#{Size.new(body.length)} bytes)")
+        return []
       end
+      @log.debug("New content for #{id} arrived (#{Size.new(body.length)} bytes)")
+      @entrance.push(id, body)
     end
   end
 end

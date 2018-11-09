@@ -59,7 +59,7 @@ module Zold
         id = f.split('-')[0]
         @queue << { id: Id.new(id), file: file }
       end
-      @log.info("#{@queue.size} wallets pre-loaded into async_entrace from #{@dir}")
+      @log.info("#{@queue.size} wallets pre-loaded into async_entrace from #{@dir}") unless @queue.size.zero?
       @entrance.start do
         @threads = (0..@total - 1).map do |i|
           Thread.start do

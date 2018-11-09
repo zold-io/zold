@@ -71,7 +71,7 @@ for #{score.value}/#{score.strength} at #{score.host}:#{score.port}")
             buffer = +''
             loop do
               begin
-                buffer << stdout.read_nonblock(1024)
+                buffer << stdout.read_nonblock(16 * 1024)
                 # rubocop:disable Lint/HandleExceptions
               rescue IO::WaitReadable => _
                 # rubocop:enable Lint/HandleExceptions
@@ -85,7 +85,7 @@ for #{score.value}/#{score.strength} at #{score.host}:#{score.port}")
                 raise "Failed to calculate the score (##{thr.value}): #{buffer}" unless thr.value.to_i.zero?
                 break
               end
-              sleep(10)
+              sleep(1)
               Thread.current.thread_variable_set(:buffer, buffer.length.to_s)
             end
             after = Score.parse(buffer.strip)
