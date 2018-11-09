@@ -41,7 +41,7 @@ class TestHungryWallets < Zold::Test
       json = home.create_wallet_json
       id = Zold::JsonPage.new(json).to_hash['id']
       stub_request(:get, "http://localhost:4096/wallet/#{id}").to_return(status: 200, body: json)
-      FileUtils.rm(["#{home.dir}/#{id}#{Zold::Wallet::EXT}", "#{home.dir}/#{id}#{Zold::Wallet::EXT}.lock"])
+      FileUtils.rm(["#{home.wallets.path}/#{id}#{Zold::Wallet::EXT}", "#{home.wallets.path}/#{id}#{Zold::Wallet::EXT}.lock"])
       wallets = Zold::HungryWallets.new(home.wallets, remotes, home.copies.root.to_s)
       wallets.find(Zold::Id.new(id)) do |wallet|
         assert(wallet.exists?)

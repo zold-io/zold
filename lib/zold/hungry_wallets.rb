@@ -34,10 +34,16 @@ module Zold
     end
 
     def find(id)
-      Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies).run(['pull', id.to_s, '--quiet-if-absent']) unless File.exist?(File.join(@wallets.path, id.to_s + Wallet::EXT))
+      Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies).run(['pull', id.to_s, '--quiet-if-absent']) unless wallet_present?(id)
       super(id) do |wallet|
         yield wallet
       end
+    end
+
+    private
+
+    def wallet_present?(id)
+      File.exist?(File.join(@wallets.path, id.to_s + Wallet::EXT))
     end
   end
 end
