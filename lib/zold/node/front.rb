@@ -230,7 +230,7 @@ in #{Age.new(@start, limit: 1)}")
           score: score.to_h,
           wallets: total_wallets,
           mtime: wallet.mtime.utc.iso8601,
-          size: File.size(wallet.path),
+          size: wallet.size,
           digest: wallet.digest,
           copies: Copies.new(File.join(settings.copies, id)).all.count,
           balance: wallet.balance.to_i,
@@ -313,7 +313,7 @@ in #{Age.new(@start, limit: 1)}")
           "Balance: #{wallet.balance.to_zld(8)} ZLD (#{wallet.balance.to_i} zents)",
           "Transactions: #{wallet.txns.count}",
           "Taxes: #{Tax.new(wallet).paid} paid, the debt is #{Tax.new(wallet).debt}",
-          "File size: #{File.size(wallet.path)} bytes (#{Copies.new(File.join(settings.copies, id)).all.count} copies)",
+          "File size: #{wallet.size} bytes (#{Copies.new(File.join(settings.copies, id)).all.count} copies)",
           "Modified: #{wallet.mtime.utc.iso8601} (#{Age.new(wallet.mtime.utc.iso8601)} ago)",
           "Digest: #{wallet.digest}"
         ].join("\n")

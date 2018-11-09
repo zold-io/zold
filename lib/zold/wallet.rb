@@ -72,7 +72,7 @@ module Zold
     end
 
     def mnemo
-      "#{id}/#{balance.to_zld(4)}/#{txns.count}t/#{digest[0, 6]}/#{Size.new(File.size(@file))}"
+      "#{id}/#{balance.to_zld(4)}/#{txns.count}t/#{digest[0, 6]}/#{Size.new(size)}"
     end
 
     def to_text
@@ -193,6 +193,11 @@ module Zold
     def age
       list = txns
       list.empty? ? 0 : (Time.now - list.min_by(&:date).date) / (60 * 60)
+    end
+
+    # Size of the wallet file in bytes
+    def size
+      File.size(path)
     end
 
     def txns
