@@ -41,25 +41,29 @@ module Zold
       @dir = dir
       @log = log
       @total = threads
-      @mutex = Mutex.new
+      @queue = Queue.new
     end
 
     def to_json
       @entrance.to_json.merge(
-        'queue': queue.count,
+        'queue': @queue.size,
         'threads': @threads.count
       )
     end
 
     def start
       raise 'Block must be given to start()' unless block_given?
+      FileUtils.mkdir_p(@dir)
+      DirItems.new(@dir).fetch.select { |f| f =~ /^[0-9a-f]{16}-/ }.each do |f|
+        file = File.join(@dir, f)
+        id = f.split('-')[0]
+        @queue << { id: Id.new(id), file: file }
+      end
       @entrance.start do
-        FileUtils.mkdir_p(@dir)
         @threads = (0..@total - 1).map do |i|
           Thread.start do
             Endless.new("async-e##{i}", log: @log).run do
               take
-              sleep(1)
             end
           end
         end
@@ -73,14 +77,15 @@ module Zold
 
     # Always returns an array with a single ID of the pushed wallet
     def push(id, body)
-      raise "Queue is too long (#{queue.count} wallets), try again later" if queue.count > 256
+      raise "Queue is too long (#{@queue.size} wallets), try again later" if @queue.size > 256
       start = Time.now
       loop do
         uuid = SecureRandom.uuid
         file = File.join(@dir, "#{id}-#{uuid}")
         next if File.exist?(file)
         IO.write(file, body)
-        @log.debug("Added #{id}/#{Size.new(body.length)} to the queue at pos.#{queue.count} \
+        @queue << { id: id, file: file }
+        @log.debug("Added #{id}/#{Size.new(body.length)} to the queue at pos.#{@queue.size} \
 in #{Age.new(start, limit: 0.05)}: #{uuid}")
         break
       end
@@ -91,23 +96,13 @@ in #{Age.new(start, limit: 0.05)}: #{uuid}")
 
     def take
       start = Time.now
-      id, body = @mutex.synchronize do
-        opts = queue
-        return if opts.empty?
-        file = File.join(@dir, opts[0])
-        id = opts[0].split('-')[0]
-        Thread.current.thread_variable_set(:wallet, id)
-        body = IO.read(file)
-        FileUtils.rm_f(file)
-        [id, body]
-      end
-      @entrance.push(Id.new(id), body)
-      @log.debug("Pushed #{id}/#{Size.new(body.length)} to #{@entrance.class.name} \
-in #{Age.new(start, limit: 0.1)} (#{queue.count} still in the queue)")
-    end
-
-    def queue
-      DirItems.new(@dir).fetch.select { |f| f =~ /^[0-9a-f]{16}-/ }
+      item = @queue.pop
+      Thread.current.thread_variable_set(:wallet, item[:id].to_s)
+      body = IO.read(item[:file])
+      FileUtils.rm_f(item[:file])
+      @entrance.push(item[:id], body)
+      @log.debug("Pushed #{item[:id]}/#{Size.new(body.length)} to #{@entrance.class.name} \
+in #{Age.new(start, limit: 0.1)} (#{@queue.size} still in the queue)")
     end
   end
 end
