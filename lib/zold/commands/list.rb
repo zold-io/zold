@@ -36,7 +36,7 @@ module Zold
     end
 
     def run(_ = [])
-      @wallets.all.each do |id|
+      @wallets.all.sort.each do |id|
         @wallets.find(id) do |wallet|
           msg = wallet.mnemo
           msg += " (net:#{wallet.network})" if wallet.network != Wallet::MAIN_NETWORK

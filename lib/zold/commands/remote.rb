@@ -87,6 +87,9 @@ Available options:"
         o.array '--ignore-node',
           'Ignore this node and never add it to the list',
           default: []
+        o.bool '--ignore-if-exists',
+          'Ignore the node while adding if it already exists in the list',
+          default: false
         o.integer '--min-score',
           "The minimum score required for winning the election (default: #{Tax::EXACT_SCORE})",
           default: Tax::EXACT_SCORE
@@ -177,6 +180,10 @@ Available options:"
     def add(host, port, opts)
       if opts['ignore-node'].include?("#{host}:#{port}")
         @log.info("#{host}:#{port} won't be added since it's in the --ignore-node list")
+        return
+      end
+      if opts['ignore-if-exists'] && @remotes.exists?(host, port)
+        @log.info("#{host}:#{port} already exists, won't add because of --ignore-if-exists")
         return
       end
       unless opts['skip-ping']

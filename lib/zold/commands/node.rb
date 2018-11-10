@@ -168,12 +168,8 @@ module Zold
       Front.set(:logger, @log)
       Front.set(:trace, @log)
       Front.set(:nohup_log, opts['nohup-log']) if opts['nohup-log']
-      Front.set(:version, opts['expose-version'])
       Front.set(:protocol, Zold::PROTOCOL)
       Front.set(:logging, @log.debug?)
-      Front.set(:halt, opts['halt-code'])
-      Front.set(:disable_push, opts['disable-push'])
-      Front.set(:disable_fetch, opts['disable-fetch'])
       home = File.expand_path(opts['home'])
       Front.set(:home, home)
       @log.info("Time: #{Time.now.utc.iso8601}")
@@ -197,16 +193,14 @@ module Zold
         Zold::Remote.new(remotes: @remotes).run(['remote', 'remove', host, port.to_s])
         @log.info("Removed current node (#{address}) from list of remotes")
       end
-      Front.set(:ignore_score_weakness, opts['ignore-score-weakness'])
-      Front.set(:network, opts['network'])
       Front.set(:wallets, @wallets)
       Front.set(:remotes, @remotes)
       Front.set(:copies, @copies)
       Front.set(:address, address)
       Front.set(:root, home)
+      Front.set(:opts, opts)
       Front.set(:dump_errors, opts['dump-errors'])
       Front.set(:port, opts['bind-port'])
-      Front.set(:reboot, !opts['never-reboot'])
       node_alias = opts[:alias] || address
       unless node_alias.eql?(address) || node_alias =~ /^[A-Za-z0-9]{4,16}$/
         raise "Alias should be a 4 to 16 char long alphanumeric string: #{node_alias}"

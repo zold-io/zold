@@ -104,8 +104,10 @@ total score for #{id} is #{total}")
         r.assert_valid_score(score)
         r.assert_score_ownership(score)
         r.assert_score_strength(score) unless opts['ignore-score-weakness']
-        @log.info("#{r} accepted #{wallet.mnemo} in #{Age.new(start, limit: 4)}: \
+        if @log.info?
+          @log.info("#{r} accepted #{wallet.mnemo} in #{Age.new(start, limit: 4)}: \
 #{Rainbow(score.value).green} (#{json['version']})")
+        end
         score.value
       end
     end

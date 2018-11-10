@@ -265,11 +265,11 @@ class FrontTest < Zold::Test
 
   def test_headers_are_being_set_correctly
     Time.stub :now, Time.at(0) do
-      FakeNode.new(log: test_log).run(['--no-metronome', '--threads=0', '--ignore-score-weakness']) do |port|
+      FakeNode.new(log: test_log).run(['--expose-version=9.9.9', '--no-metronome', '--threads=0']) do |port|
         response = Zold::Http.new(uri: URI("http://localhost:#{port}/")).get
         assert_equal('no-cache', response.header['Cache-Control'])
         assert_equal('close', response.header['Connection'])
-        assert_equal(app.settings.version, response.header['X-Zold-Version'])
+        assert_equal('9.9.9', response.header['X-Zold-Version'])
         assert_equal(app.settings.protocol.to_s, response.header[Zold::Http::PROTOCOL_HEADER])
         assert_equal('*', response.header['Access-Control-Allow-Origin'])
         assert(response.header['X-Zold-Milliseconds'])

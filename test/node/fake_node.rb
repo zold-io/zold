@@ -65,7 +65,7 @@ class FakeNode
         uri = "http://localhost:#{port}/"
         attempt = 0
         loop do
-          ping = Zold::Http.new(uri: uri, network: Zold::Front.network).get
+          ping = Zold::Http.new(uri: uri).get
           break unless ping.code == '599' && node.alive?
           @log.debug("Waiting for #{uri} (attempt no.#{attempt}): ##{ping.code}...")
           sleep 0.5
