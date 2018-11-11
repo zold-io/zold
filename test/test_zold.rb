@@ -34,8 +34,7 @@ require_relative '../lib/zold/age'
 # License:: MIT
 class TestZold < Zold::Test
   Dir.new('fixtures/scripts').select { |f| f =~ /\.sh$/ && !f.start_with?('_') }.each do |f|
-    # next unless f == 'push-and-pull.sh'
-    define_method("test_script_#{f.gsub(/[^a-z]/, '_')}") do
+    define_method("test_#{f.gsub(/\.sh$/, '').gsub(/[^a-z]/, '_')}") do
       start = Time.now
       test_log.debug("\n\n#{f} running...")
       Dir.mktmpdir do |dir|

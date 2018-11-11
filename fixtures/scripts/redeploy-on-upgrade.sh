@@ -7,7 +7,7 @@ function start_node {
   zold node $3 --nohup --nohup-command='touch restarted' --nohup-log=log --nohup-max-cycles=0 --nohup-log-truncate=10240 \
     --expose-version=$2 --save-pid=pid --routine-immediately \
     --verbose --trace --invoice=REDEPLOY@ffffffffffffffff \
-    --host=localhost --port=$1 --bind-port=$1 --threads=0 > /dev/null 2>&1
+    --host=localhost --port=$1 --bind-port=$1 --threads=1 --strength=20 > /dev/null 2>&1
   wait_for_port $1
   cat pid
   cd ..
@@ -18,11 +18,18 @@ primary=$(start_node ${high} 9.9.9 --standalone)
 
 low=$(reserve_port)
 secondary=$(start_node ${low} 1.1.1)
+
+zold remote clean
 zold remote add localhost ${high} --home=${low} --skip-ping
 
 trap "halt_nodes ${high}" EXIT
 
 wait_for_file ${low}/restarted
+
+if [ `ps ax | grep zold | grep "${low}"` -eq '' ]; then
+  echo "The score finder process is still there, it's a bug"
+  exit -1
+fi
 
 echo "High node logs (port ${high}):"
 cat ${high}/log
