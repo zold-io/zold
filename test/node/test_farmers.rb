@@ -58,4 +58,21 @@ class FarmersTest < Zold::Test
     assert_equal('some-host', after.host)
     assert_equal(9999, after.port)
   end
+
+  def test_avoid_duplicate_processes
+    log = TestLogger.new(test_log)
+    time = Time.now
+    thread = Thread.start do
+      farmer = Zold::Farmers::Spawn.new(log: log)
+      farmer.up(Zold::Score.new(time: time, host: 'a', port: 1, invoice: 'prefixone@ffffffffffffffff', strength: 20))
+    end
+    assert_wait { !log.msgs.find { |m| m.include?('Scoring started') }.nil? }
+    assert_raises do
+      Zold::Farmers::Spawn.new(log: log).up(
+        Zold::Score.new(time: time, host: 'a', port: 1, invoice: 'prefixtwo@ffffffffffffffff', strength: 20)
+      )
+    end
+    thread.kill
+    thread.join
+  end
 end

@@ -24,6 +24,7 @@ require 'open3'
 require 'backtrace'
 require 'zold/score'
 require 'shellwords'
+require 'posix/spawn'
 require_relative '../log'
 require_relative '../age'
 
@@ -48,6 +49,9 @@ module Zold
       end
 
       def up(score)
+        if POSIX::Spawn::Child.new('ps', 'ax').out.include?(score.to_s.split(' ').take(4).join(' '))
+          raise "We are farming the score already: #{score}"
+        end
         start = Time.now
         bin = File.expand_path(File.join(File.dirname(__FILE__), '../../../bin/zold'))
         raise "Zold binary not found at #{bin}" unless File.exist?(bin)
@@ -64,6 +68,7 @@ module Zold
         ].join(' ')
         Open3.popen2e(cmd) do |stdin, stdout, thr|
           Thread.current.thread_variable_set(:pid, thr.pid.to_s)
+          at_exit { Process.kill('KILL', thr.pid) }
           @log.debug("Scoring started in proc ##{thr.pid} \
 for #{score.value}/#{score.strength} at #{score.host}:#{score.port}")
           begin
@@ -93,16 +98,16 @@ for #{score.value}/#{score.strength} at #{score.host}:#{score.port}")
 for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}")
             after
           ensure
-            kill(thr.pid)
+            kill(thr.pid, start)
           end
         end
       end
 
       private
 
-      def kill(pid)
+      def kill(pid, start)
         Process.kill('KILL', pid)
-        @log.debug("Process ##{pid} killed")
+        @log.debug("Process ##{pid} killed after #{Age.new(start)} of activity")
       rescue StandardError => e
         @log.debug("No need to kill process ##{pid} since it's dead already: #{e.message}")
       end
