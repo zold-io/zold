@@ -68,7 +68,7 @@ module Zold
         ].join(' ')
         Open3.popen2e(cmd) do |stdin, stdout, thr|
           Thread.current.thread_variable_set(:pid, thr.pid.to_s)
-          at_exit { Process.kill('KILL', thr.pid) }
+          at_exit { kill(thr.pid, start) }
           @log.debug("Scoring started in proc ##{thr.pid} \
 for #{score.value}/#{score.strength} at #{score.host}:#{score.port}")
           begin
