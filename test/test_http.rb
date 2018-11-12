@@ -96,8 +96,9 @@ class TestHttp < Zold::Test
         server = TCPServer.new(port)
         loop do
           client = server.accept
+          client.puts("HTTP/1.1 200 OK\nContent-Length: 4\n\n")
           sleep 1
-          client.puts("HTTP/1.1 200 OK\nContent-Length: 4\n\nGood")
+          client.puts('Good')
           client.close
         end
       end
