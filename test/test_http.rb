@@ -71,12 +71,21 @@ class TestHttp < Zold::Test
   end
 
   def test_terminates_on_timeout
-    stub_request(:get, 'http://the-fake-host-99/').to_return do
-      sleep 100
-      { body: 'This should never be returned!' }
+    require 'random-port'
+    WebMock.allow_net_connect!
+    RandomPort::Pool::SINGLETON.acquire do |port|
+      thread = Thread.start do
+        server = TCPServer.new(port)
+        loop do
+          server.accept
+          sleep 400
+        end
+      end
+      res = Zold::Http.new(uri: "http://localhost:#{port}/").get(timeout: 0.1)
+      assert_equal('599', res.code, res)
+      thread.kill
+      thread.join
     end
-    res = Zold::Http.new(uri: 'http://the-fake-host-99/').get
-    assert_equal('599', res.code)
   end
 
   def test_doesnt_terminate_on_long_call

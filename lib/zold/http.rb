@@ -22,7 +22,6 @@
 
 require 'rainbow'
 require 'uri'
-require 'timeout'
 require 'net/http'
 require 'backtrace'
 require 'zold/score'
@@ -75,9 +74,7 @@ module Zold
       http.open_timeout = CONNECT_TIMEOUT
       path = @uri.path
       path += '?' + @uri.query if @uri.query
-      Timeout.timeout(timeout + CONNECT_TIMEOUT) do
-        http.request_get(path, headers)
-      end
+      http.request_get(path, headers)
     rescue StandardError => e
       Error.new(e)
     end
@@ -89,15 +86,13 @@ module Zold
       http.open_timeout = CONNECT_TIMEOUT
       path = @uri.path
       path += '?' + @uri.query if @uri.query
-      Timeout.timeout(timeout + CONNECT_TIMEOUT) do
-        http.request_put(
-          path, body,
-          headers.merge(
-            'Content-Type': 'text/plain',
-            'Content-Length': body.length.to_s
-          )
+      http.request_put(
+        path, body,
+        headers.merge(
+          'Content-Type': 'text/plain',
+          'Content-Length': body.length.to_s
         )
-      end
+      )
     rescue StandardError => e
       Error.new(e)
     end
