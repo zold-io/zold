@@ -72,13 +72,13 @@ module Zold
       wallet.txns.each do |txn|
         next if @txns.find { |t| t == txn }
         if @txns.find { |t| t.id == txn.id && t.bnf == txn.bnf }
-          @log.error("A transaction with the same ID #{t.id} and BNF #{t.bnf} already exists")
+          @log.error("A transaction with the same ID #{txn.id} and BNF #{txn.bnf} already exists")
           next
         end
         if txn.amount.negative?
           dup = @txns.find { |t| t.id == txn.id && t.amount.negative? }
           if dup
-            @log.error("An attempt to overwrite #{dup.to_text} with this: #{txn.to_text}")
+            @log.error("An attempt to overwrite \"#{dup.to_text}\" with \"#{txn.to_text}\" from #{wallet.mnemo}")
             next
           end
           balance = @txns.map(&:amount).map(&:to_i).inject(&:+).to_i
