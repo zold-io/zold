@@ -48,9 +48,9 @@ module Zold
         args << "--ignore-node=#{score.host}:#{score.port}" if score
         cmd.run(args + ['defaults']) unless @opts['routine-immediately']
         return if @opts['routine-immediately'] && @remotes.all.empty?
+        cmd.run(args + ['update'] + (@opts['never-reboot'] ? [] : ['--reboot']))
         cmd.run(args + ['trim'])
         cmd.run(args + ['select'])
-        cmd.run(args + ['update'] + (@opts['never-reboot'] ? [] : ['--reboot']))
         @log.info("Reconnected, there are #{@remotes.all.count} remote notes: \
 #{@remotes.all.map { |r| "#{r[:host]}:#{r[:port]}" }.join(', ')}")
       end
