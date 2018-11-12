@@ -26,6 +26,7 @@ require 'time'
 require 'securerandom'
 require 'threads'
 require 'zold/score'
+require 'memory_profiler'
 require_relative '../test__helper'
 require_relative 'fake_node'
 require_relative '../fake_home'
@@ -36,6 +37,21 @@ require_relative '../../lib/zold/json_page'
 class FrontTest < Zold::Test
   def app
     Zold::Front
+  end
+
+  # Use this test to check how much memory is being used after doing a large
+  # number of routine operations. There should be no suspicious information
+  # in the report, which will be printed to the console.
+  def test_memory_leakage
+    skip
+    report = MemoryProfiler.report(top: 10) do
+      FakeNode.new(log: test_log).run(['--no-metronome', '--network=foo', '--threads=0']) do |port|
+        100.times do
+          Zold::Http.new(uri: "http://localhost:#{port}/", network: 'foo').get
+        end
+      end
+    end
+    report.pretty_print
   end
 
   def test_renders_front_json

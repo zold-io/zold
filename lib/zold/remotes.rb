@@ -51,6 +51,7 @@ module Zold
 
     # Default nodes and their ports
     DEFS = CSV.read(File.expand_path(File.join(File.dirname(__FILE__), '../../resources/remotes')))
+    private_constant :DEFS
 
     # Empty, for standalone mode
     class Empty
@@ -119,7 +120,7 @@ module Zold
       end
     end
 
-    def initialize(file:, network: 'test', timeout: Http::READ_TIMEOUT + Http::CONNECT_TIMEOUT)
+    def initialize(file:, network: 'test', timeout: 60)
       @file = file
       @network = network
       @timeout = timeout
@@ -141,19 +142,19 @@ module Zold
     end
 
     def defaults
-      Remotes::DEFS.each do |r|
+      DEFS.each do |r|
         add(r[0], r[1].to_i)
       end
     end
 
-    def exists?(host, port = Remotes::PORT)
+    def exists?(host, port = PORT)
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
       raise 'Host can\'t be nil' if host.nil?
       raise 'Port can\'t be nil' if port.nil?
       !load.find { |r| r[:host] == host.downcase && r[:port] == port }.nil?
     end
 
-    def add(host, port = Remotes::PORT)
+    def add(host, port = PORT)
       raise 'Host can\'t be nil' if host.nil?
       raise 'Host can\'t be empty' if host.empty?
       raise 'Port can\'t be nil' if port.nil?
@@ -166,7 +167,7 @@ module Zold
       end
     end
 
-    def remove(host, port = Remotes::PORT)
+    def remove(host, port = PORT)
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
       raise 'Host can\'t be nil' if host.nil?
       raise 'Port can\'t be nil' if port.nil?
@@ -203,7 +204,7 @@ module Zold
             error(r[:host], r[:port])
             log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message} in #{Age.new(start)}")
             log.debug(Backtrace.new(e).to_s)
-            remove(r[:host], r[:port]) if errors > Remotes::TOLERANCE
+            remove(r[:host], r[:port]) if errors > TOLERANCE
           end
         end
         idx += 1
@@ -212,7 +213,7 @@ module Zold
       pool.kill unless pool.wait_for_termination(5 * 60)
     end
 
-    def error(host, port = Remotes::PORT)
+    def error(host, port = PORT)
       raise 'Host can\'t be nil' if host.nil?
       raise 'Port can\'t be nil' if port.nil?
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
@@ -232,7 +233,7 @@ module Zold
     end
 
     def default?(host, port)
-      !Remotes::DEFS.find { |r| r[0] == host && r[1].to_i == port }.nil?
+      !DEFS.find { |r| r[0] == host && r[1].to_i == port }.nil?
     end
 
     private

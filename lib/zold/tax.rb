@@ -55,6 +55,7 @@ module Zold
 
     # Text prefix for taxes details
     PREFIX = 'TAXES'
+    private_constant :PREFIX
 
     def initialize(wallet, ignore_score_weakness: false)
       raise "The wallet must be of type Wallet: #{wallet.class.name}" unless wallet.is_a?(Wallet)
@@ -64,38 +65,38 @@ module Zold
 
     # Check whether this tax payment already exists in the wallet.
     def exists?(details)
-      !@wallet.txns.find { |t| t.details.start_with?("#{Tax::PREFIX} ") && t.details == details }.nil?
+      !@wallet.txns.find { |t| t.details.start_with?("#{PREFIX} ") && t.details == details }.nil?
     end
 
     def details(best)
-      "#{Tax::PREFIX} #{best.reduced(Tax::EXACT_SCORE).to_text}"
+      "#{PREFIX} #{best.reduced(EXACT_SCORE).to_text}"
     end
 
     def pay(pvt, best)
-      @wallet.sub([Tax::MAX_PAYMENT, debt].min, best.invoice, pvt, details(best))
+      @wallet.sub([MAX_PAYMENT, debt].min, best.invoice, pvt, details(best))
     end
 
     def in_debt?
-      debt > Tax::TRIAL
+      debt > TRIAL
     end
 
     def to_text
-      "A=#{@wallet.age.round} hours, F=#{Tax::FEE.to_i}z/th, T=#{@wallet.txns.count}t, Paid=#{paid}"
+      "A=#{@wallet.age.round} hours, F=#{FEE.to_i}z/th, T=#{@wallet.txns.count}t, Paid=#{paid}"
     end
 
     def debt
-      Tax::FEE * @wallet.txns.count * @wallet.age - paid
+      FEE * @wallet.txns.count * @wallet.age - paid
     end
 
     def paid
       txns = @wallet.txns
       scored = txns.map do |t|
         pfx, body = t.details.split(' ', 2)
-        next if pfx != Tax::PREFIX || body.nil?
+        next if pfx != PREFIX || body.nil?
         score = Score.parse_text(body)
-        next if !score.valid? || score.value != Tax::EXACT_SCORE
+        next if !score.valid? || score.value != EXACT_SCORE
         next if score.strength < Score::STRENGTH && !@ignore_score_weakness
-        next if t.amount > Tax::MAX_PAYMENT
+        next if t.amount > MAX_PAYMENT
         t
       end.compact.uniq(&:details)
       scored.empty? ? Amount::ZERO : scored.map(&:amount).inject(&:+) * -1

@@ -27,12 +27,16 @@
 module Zold
   # Id of the wallet
   class Id
+    # Pattern to match the ID
+    PTN = Regexp.new('^[0-9a-fA-F]{16}$')
+    private_constant :PTN
+
     def initialize(id = nil)
       if id.nil?
         @id = rand(2**32..2**64 - 1)
       else
         raise "Invalid wallet ID type: #{id.class.name}" unless id.is_a?(String)
-        raise "Invalid wallet ID: #{id}" unless id =~ /^[0-9a-fA-F]{16}$/
+        raise "Invalid wallet ID: #{id}" unless id =~ PTN
         @id = Integer("0x#{id}", 16)
       end
     end

@@ -185,7 +185,7 @@ in #{Age.new(@start, limit: 1)}")
 
     get '/' do
       content_type('application/json')
-      JSON.pretty_generate(
+      pretty(
         version: settings.opts['expose-version'],
         alias: settings.node_alias,
         network: settings.opts['network'],
@@ -222,7 +222,7 @@ in #{Age.new(@start, limit: 1)}")
       id = Id.new(params[:id])
       copy_of(id) do |wallet|
         content_type('application/json')
-        JSON.pretty_generate(
+        pretty(
           version: settings.opts['expose-version'],
           alias: settings.node_alias,
           protocol: settings.protocol,
@@ -244,7 +244,7 @@ in #{Age.new(@start, limit: 1)}")
       id = Id.new(params[:id])
       copy_of(id) do |wallet|
         content_type('application/json')
-        JSON.pretty_generate(
+        pretty(
           version: settings.opts['expose-version'],
           alias: settings.node_alias,
           protocol: settings.protocol,
@@ -367,7 +367,7 @@ in #{Age.new(@start, limit: 1)}")
         status(304)
         return
       end
-      JSON.pretty_generate(
+      pretty(
         version: settings.opts['expose-version'],
         alias: settings.node_alias,
         score: score.to_h,
@@ -377,7 +377,7 @@ in #{Age.new(@start, limit: 1)}")
 
     get '/remotes' do
       content_type('application/json')
-      JSON.pretty_generate(
+      pretty(
         version: settings.opts['expose-version'],
         alias: settings.node_alias,
         score: score.to_h,
@@ -468,6 +468,11 @@ in #{Age.new(@start, limit: 1)}")
 
     def processes
       POSIX::Spawn::Child.new('ps', 'ax').out.split("\n").select { |t| t.include?('zold') }
+    end
+
+    def pretty(json)
+      json.to_json
+      # JSON.pretty_generate(json)
     end
 
     def score

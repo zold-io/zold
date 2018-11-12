@@ -54,7 +54,7 @@ class TestTaxes < Zold::Test
       end
       remotes = home.remotes
       score = Zold::Score.new(host: 'localhost', port: 80, strength: 1, invoice: 'NOPREFIX@0000000000000000')
-      Zold::Tax::EXACT_SCORE.times { score = score.next }
+      10.times { score = score.next }
       remotes.add(score.host, score.port)
       stub_request(:get, "http://#{score.host}:#{score.port}/").to_return(
         status: 200,

@@ -164,7 +164,7 @@ class FarmTest < Zold::Test
         end
         farm = Zold::Farm.new('NOPREFIX5@ffffffffffffffff', file, log: log)
         assert_equal(1, farm.best.count)
-        assert(log.msgs.find { |m| m.include?('Invalid score') })
+        assert(log.msgs.find { |m| m.include?('Invalid score') }, log.msgs)
       end
     end
   end

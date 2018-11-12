@@ -56,9 +56,11 @@ module Zold
 
     # Read timeout in seconds
     READ_TIMEOUT = 1
+    private_constant :READ_TIMEOUT
 
     # Connect timeout in seconds
     CONNECT_TIMEOUT = 0.4
+    private_constant :CONNECT_TIMEOUT
 
     def initialize(uri:, score: Score::ZERO, network: 'test')
       @uri = uri.is_a?(URI) ? uri : URI(uri)
@@ -66,28 +68,28 @@ module Zold
       @network = network
     end
 
-    def get(timeout: Http::READ_TIMEOUT + Http::CONNECT_TIMEOUT)
+    def get(timeout: READ_TIMEOUT + CONNECT_TIMEOUT)
       http = Net::HTTP.new(@uri.host, @uri.port)
       http.use_ssl = @uri.scheme == 'https'
       http.read_timeout = timeout
-      http.open_timeout = Http::CONNECT_TIMEOUT
+      http.open_timeout = CONNECT_TIMEOUT
       path = @uri.path
       path += '?' + @uri.query if @uri.query
-      Timeout.timeout(timeout + Http::CONNECT_TIMEOUT) do
+      Timeout.timeout(timeout + CONNECT_TIMEOUT) do
         http.request_get(path, headers)
       end
     rescue StandardError => e
       Error.new(e)
     end
 
-    def put(body, timeout: Http::READ_TIMEOUT + Http::CONNECT_TIMEOUT)
+    def put(body, timeout: READ_TIMEOUT + CONNECT_TIMEOUT)
       http = Net::HTTP.new(@uri.host, @uri.port)
       http.use_ssl = @uri.scheme == 'https'
       http.read_timeout = timeout
-      http.open_timeout = Http::CONNECT_TIMEOUT
+      http.open_timeout = CONNECT_TIMEOUT
       path = @uri.path
       path += '?' + @uri.query if @uri.query
-      Timeout.timeout(timeout + Http::CONNECT_TIMEOUT) do
+      Timeout.timeout(timeout + CONNECT_TIMEOUT) do
         http.request_put(
           path, body,
           headers.merge(
