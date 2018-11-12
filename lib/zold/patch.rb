@@ -71,10 +71,6 @@ module Zold
       end
       wallet.txns.each do |txn|
         next if @txns.find { |t| t == txn }
-        if @txns.find { |t| t.id == txn.id && t.bnf == txn.bnf }
-          @log.error("A transaction with the same ID #{txn.id} and BNF #{txn.bnf} already exists")
-          next
-        end
         if txn.amount.negative?
           dup = @txns.find { |t| t.id == txn.id && t.amount.negative? }
           if dup
@@ -92,6 +88,11 @@ module Zold
             next
           end
         else
+          dup = @txns.find { |t| t.id == txn.id && t.bnf == txn.bnf && t.amount.positive? }
+          if dup
+            @log.error("Overwriting \"#{dup.to_text}\" with \"#{txn.to_text}\" from #{wallet.mnemo} (same ID/BNF)")
+            next
+          end
           if !txn.sign.nil? && !txn.sign.empty?
             @log.error("RSA signature is redundant at ##{txn.id} of #{wallet.id}: #{txn.to_text}")
             next
