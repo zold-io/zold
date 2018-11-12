@@ -25,8 +25,10 @@ require 'tmpdir'
 require 'uri'
 require 'webmock/minitest'
 require 'zold/score'
+require 'random-port'
 require_relative 'test__helper'
 require_relative '../lib/zold/http'
+require_relative '../lib/zold/verbose_thread'
 
 # Http test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -70,31 +72,12 @@ class TestHttp < Zold::Test
     assert_equal('200', res.code)
   end
 
-  def test_terminates_on_timeout
-    require 'random-port'
-    WebMock.allow_net_connect!
-    RandomPort::Pool::SINGLETON.acquire do |port|
-      thread = Thread.start do
-        server = TCPServer.new(port)
-        loop do
-          server.accept
-          sleep 400
-        end
-      end
-      res = Zold::Http.new(uri: "http://localhost:#{port}/").get(timeout: 0.1)
-      assert_equal('599', res.code, res)
-      thread.kill
-      thread.join
-    end
-  end
-
   def test_doesnt_terminate_on_long_call
-    require 'random-port'
     WebMock.allow_net_connect!
     RandomPort::Pool::SINGLETON.acquire do |port|
       thread = Thread.start do
-        server = TCPServer.new(port)
-        loop do
+        Zold::VerboseThread.new(test_log).run do
+          server = TCPServer.new(port)
           client = server.accept
           client.puts("HTTP/1.1 200 OK\nContent-Length: 4\n\n")
           sleep 1
@@ -102,8 +85,27 @@ class TestHttp < Zold::Test
           client.close
         end
       end
-      res = Zold::Http.new(uri: "http://localhost:#{port}/").get(timeout: 2)
+      sleep 0.25
+      res = Zold::Http.new(uri: "http://127.0.0.1:#{port}/").get(timeout: 2)
       assert_equal('200', res.code, res)
+      thread.kill
+      thread.join
+    end
+  end
+
+  def test_terminates_on_timeout
+    WebMock.allow_net_connect!
+    RandomPort::Pool::SINGLETON.acquire do |port|
+      thread = Thread.start do
+        Zold::VerboseThread.new(test_log).run do
+          server = TCPServer.new(port)
+          server.accept
+          sleep 400
+        end
+      end
+      sleep 0.25
+      res = Zold::Http.new(uri: "http://127.0.0.1:#{port}/").get(timeout: 0.1)
+      assert_equal('599', res.code, res)
       thread.kill
       thread.join
     end

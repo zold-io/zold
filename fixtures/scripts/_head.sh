@@ -49,7 +49,7 @@ function wait_for_file {
 
 function halt_nodes {
   for p in "$@"; do
-    pid=$(curl --silent "http://localhost:$p/pid?halt=test" || echo 'absent')
+    pid=$(curl --silent "http://127.0.0.1:$p/pid?halt=test" || echo 'absent')
     if [[ "${pid}" =~ ^[0-9]+$ ]]; then
       i=0
       while kill -0 ${pid}; do

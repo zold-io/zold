@@ -5,7 +5,7 @@ port=$(reserve_port)
 mkdir server
 cd server
 zold node --trace --invoice=PUSHNPULL@ffffffffffffffff \
-  --host=localhost --port=${port} --bind-port=${port} \
+  --host=127.0.0.1 --port=${port} --bind-port=${port} \
   --threads=0 --standalone &
 pid=$!
 trap "halt_nodes ${port}" EXIT
@@ -14,7 +14,7 @@ cd ..
 wait_for_port ${port}
 
 zold remote clean
-zold remote add localhost ${port}
+zold remote add 127.0.0.1 ${port}
 zold remote trim
 zold remote show
 

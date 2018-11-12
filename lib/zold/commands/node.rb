@@ -182,7 +182,7 @@ module Zold
       port = opts[:port]
       address = "#{host}:#{port}".downcase
       @log.info("Node location: #{address}")
-      @log.info("Local address: http://localhost:#{opts['bind-port']}/")
+      @log.info("Local address: http://127.0.0.1:#{opts['bind-port']}/")
       @log.info("Remote nodes (#{@remotes.all.count}): \
 #{@remotes.all.map { |r| "#{r[:host]}:#{r[:port]}" }.join(', ')}")
       @log.info("Wallets at: #{@wallets.path}")

@@ -5,12 +5,12 @@ function start_node {
   mkdir ${port}
   cd ${port}
   zold node --trace --invoice=DISTRWALLET@ffffffffffffffff \
-    --host=localhost --port=${port} --bind-port=${port} \
+    --host=127.0.0.1 --port=${port} --bind-port=${port} \
     --threads=0 --routine-immediately --never-reboot > log.txt &
   pid=$!
   echo ${pid} > pid
   cd ..
-  wait_for_url http://localhost:${port}/
+  wait_for_url http://127.0.0.1:${port}/
   echo ${port}
 }
 
@@ -24,9 +24,9 @@ trap "halt_nodes ${first} ${second}" EXIT
 # is linked to the first one. The --home argument specifies their
 # locations.
 zold --home=${first} remote clean
-zold --home=${first} remote add localhost ${second}
+zold --home=${first} remote add 127.0.0.1 ${second}
 zold --home=${second} remote clean
-zold --home=${second} remote add localhost ${first}
+zold --home=${second} remote add 127.0.0.1 ${first}
 
 # Locally we create a new root wallet (to avoid negative balance checking)
 # and connect our local Zold home to the first remote node. Then, we push
@@ -35,10 +35,10 @@ zold --home=${second} remote add localhost ${first}
 zold --public-key=id_rsa.pub create 0000000000000000
 zold pay --private-key=id_rsa 0000000000000000 NOPREFIX@aaaabbbbccccdddd 4.95 'For the book'
 zold remote clean
-zold remote add localhost ${first}
+zold remote add 127.0.0.1 ${first}
 zold push 0000000000000000
 zold remote clean
-zold remote add localhost ${second}
+zold remote add 127.0.0.1 ${second}
 
 # Here we fetch the wallet from the second remote node. The wallet has
 # to be visible there. We are doing a number of attempts with a small
@@ -58,7 +58,7 @@ done
 
 # Here we check the JSON of the first node to make sure all status
 # indicators are clean.
-json=$(curl --silent --show-error http://localhost:${first})
+json=$(curl --silent --show-error http://127.0.0.1:${first})
 if [ ! $(echo ${json} | jq -r '.entrance.queue') == "0" ]; then
   echo "The queue is not empty after PUSH, it's a bug"
   exit 5

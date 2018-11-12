@@ -472,6 +472,8 @@ in #{Age.new(@start, limit: 1)}")
 
     def pretty(json)
       json.to_json
+      # There seems to be some issue with memory leakage at this line, that's
+      # why it's disabled for now:
       # JSON.pretty_generate(json)
     end
 
