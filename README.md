@@ -121,6 +121,12 @@ Grateful users of the system will pay "taxes" to your wallet
 for the maintenance of their wallets, and the system will occasionally
 send you bonuses for keeping the node online (approximately 1 ZLD per day).
 
+If you are lost, run this:
+
+```bash
+$ zold node --help
+```
+
 ## Frequently Asked Questions
 
 > Where are my RSA private/public keys?
