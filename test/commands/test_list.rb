@@ -37,7 +37,7 @@ class TestList < Zold::Test
     Dir.mktmpdir do |dir|
       id = Zold::Id.new
       wallets = Zold::Wallets.new(dir)
-      wallets.find(id) do |wallet|
+      wallets.acq(id) do |wallet|
         wallet.init(Zold::Id.new, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
         Zold::List.new(wallets: wallets, log: test_log).run
       end

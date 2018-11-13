@@ -63,14 +63,14 @@ Available options:"
       start = Time.now
       modified = []
       total = 0
-      network = @wallets.find(id, &:network)
-      @wallets.find(id, &:txns).select { |t| t.amount.negative? }.each do |t|
+      network = @wallets.acq(id, &:network)
+      @wallets.acq(id, &:txns).select { |t| t.amount.negative? }.each do |t|
         total += 1
         if t.bnf == id
           @log.error("Paying itself in #{id}? #{t}")
           next
         end
-        @wallets.find(t.bnf) do |target|
+        @wallets.acq(t.bnf) do |target|
           unless target.exists?
             @log.debug("#{t.amount * -1} to #{t.bnf}: wallet is absent")
             next

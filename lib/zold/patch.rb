@@ -33,8 +33,6 @@ module Zold
   # A patch
   class Patch
     def initialize(wallets, log: Log::Quiet.new)
-      raise 'Wallets can\'t be nil' if wallets.nil?
-      raise 'Wallets must implement the contract of Wallets: method #find is required' unless wallets.respond_to?(:find)
       @wallets = wallets
       @txns = []
       @log = log
@@ -101,11 +99,11 @@ module Zold
             @log.error("Payment prefix '#{txn.prefix}' doesn't match with the key of #{wallet.id}: \"#{txn.to_text}\"")
             next
           end
-          unless @wallets.find(txn.bnf, &:exists?)
+          unless @wallets.acq(txn.bnf, &:exists?)
             @log.error("Paying wallet file is absent: #{txn.to_text}")
             next
           end
-          unless @wallets.find(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
+          unless @wallets.acq(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
             @log.error("The beneficiary of #{@id} doesn't have this transaction: \"#{txn.to_text}\"")
             next
           end

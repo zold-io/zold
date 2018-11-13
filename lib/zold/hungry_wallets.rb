@@ -27,7 +27,7 @@ module Zold
   class HungryWallets < SimpleDelegator
     # @todo #280:30min Add to the queue. Once in there, try
     #  to pull it as soon as possible as is described in #280.
-    def find(id)
+    def acq(id)
       yield super(id)
     end
   end

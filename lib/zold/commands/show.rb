@@ -53,7 +53,7 @@ Available options:"
       else
         total = Amount::ZERO
         mine.map { |i| Id.new(i) }.each do |id|
-          @wallets.find(id) do |w|
+          @wallets.acq(id) do |w|
             total += show(w, opts)
           end
         end

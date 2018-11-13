@@ -66,7 +66,7 @@ Available options:"
       cps.each do |c|
         patch.join(Wallet.new(c[:path]))
       end
-      before = @wallets.find(id) do |wallet|
+      before = @wallets.acq(id) do |wallet|
         IO.read(wallet.path)
       end
       after = ''

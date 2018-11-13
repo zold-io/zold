@@ -36,7 +36,7 @@ class TestTreeWallets < Zold::Test
     Dir.mktmpdir do |dir|
       wallets = Zold::TreeWallets.new(dir)
       id = Zold::Id.new('abcd0123abcd0123')
-      wallets.find(id) do |wallet|
+      wallets.acq(id) do |wallet|
         wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
         assert(wallet.path.end_with?('/a/b/c/d/abcd0123abcd0123.z'), wallet.path)
       end
@@ -50,7 +50,7 @@ class TestTreeWallets < Zold::Test
       wallets = Zold::TreeWallets.new(dir)
       10.times do
         id = Zold::Id.new
-        wallets.find(id) do |wallet|
+        wallets.acq(id) do |wallet|
           wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
         end
       end

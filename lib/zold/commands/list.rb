@@ -42,7 +42,7 @@ module Zold
       balance = Amount::ZERO
       @wallets.all.sort.each do |id|
         total += 1
-        @wallets.find(id) do |wallet|
+        @wallets.acq(id) do |wallet|
           msg = wallet.mnemo
           msg += " (net:#{wallet.network})" if wallet.network != Wallet::MAIN_NETWORK
           txns += wallet.txns.count

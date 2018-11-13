@@ -48,8 +48,8 @@ module Zold
       @wallets.all
     end
 
-    def find(id)
-      @wallets.find(id) do |wallet|
+    def acq(id)
+      @wallets.acq(id) do |wallet|
         Futex.new(wallet.path, log: @log).open do
           yield wallet
         end

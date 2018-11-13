@@ -86,21 +86,21 @@ Available options:"
       when 'show'
         raise 'At least one wallet ID is required' unless mine[1]
         mine[1..-1].each do |id|
-          @wallets.find(Id.new(id)) do |w|
+          @wallets.acq(Id.new(id)) do |w|
             show(w, opts)
           end
         end
       when 'debt'
         raise 'At least one wallet ID is required' unless mine[1]
         mine[1..-1].each do |id|
-          @wallets.find(Id.new(id)) do |w|
+          @wallets.acq(Id.new(id)) do |w|
             debt(w, opts)
           end
         end
       when 'pay'
         raise 'At least one wallet ID is required' unless mine[1]
         mine[1..-1].each do |id|
-          @wallets.find(Id.new(id)) do |w|
+          @wallets.acq(Id.new(id)) do |w|
             pay(w, opts)
           end
         end

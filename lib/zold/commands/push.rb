@@ -87,13 +87,13 @@ total score for #{id} is #{total}")
         return 0
       end
       start = Time.now
-      content = @wallets.find(id) do |wallet|
+      content = @wallets.acq(id) do |wallet|
         raise "The wallet #{id} is absent" unless wallet.exists?
         IO.read(wallet.path)
       end
       uri = "/wallet/#{id}"
       response = r.http(uri).put(content, timeout: 2 + content.length * 0.01 / 1024)
-      @wallets.find(id) do |wallet|
+      @wallets.acq(id) do |wallet|
         if response.code == '304'
           @log.info("#{r}: same version of #{wallet.mnemo} there, in #{Age.new(start, limit: 0.5)}")
           return 0
