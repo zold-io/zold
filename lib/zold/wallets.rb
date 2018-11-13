@@ -61,7 +61,8 @@ module Zold
       end.map { |w| Id.new(File.basename(w, Wallet::EXT)) }
     end
 
-    def acq(id)
+    def acq(id, exclusive: false)
+      raise 'The flag can\'t be nil' if exclusive.nil?
       raise 'Id can\'t be nil' if id.nil?
       raise "Id must be of type Id, #{id.class.name} instead" unless id.is_a?(Id)
       yield Wallet.new(File.join(path, id.to_s + Wallet::EXT))

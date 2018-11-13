@@ -467,12 +467,9 @@ in #{Age.new(@start, limit: 1)}")
     end
 
     def copy_of(id)
-      Tempfile.open([id.to_s, Wallet::EXT]) do |f|
-        settings.wallets.acq(id) do |wallet|
-          error(404, "Wallet ##{id} doesn't exist on the node") unless wallet.exists?
-          IO.write(f, IO.read(wallet.path))
-        end
-        yield Wallet.new(f.path)
+      settings.wallets.acq(id) do |wallet|
+        error(404, "Wallet ##{id} doesn't exist on the node") unless wallet.exists?
+        yield wallet
       end
     end
 

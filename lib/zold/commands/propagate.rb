@@ -70,7 +70,7 @@ Available options:"
           @log.error("Paying itself in #{id}? #{t}")
           next
         end
-        @wallets.acq(t.bnf) do |target|
+        @wallets.acq(t.bnf, exclusive: true) do |target|
           unless target.exists?
             @log.debug("#{t.amount * -1} to #{t.bnf}: wallet is absent")
             next

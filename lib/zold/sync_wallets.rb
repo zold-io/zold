@@ -48,7 +48,8 @@ module Zold
       @wallets.all
     end
 
-    def acq(id)
+    def acq(id, exclusive: false)
+      raise 'The flag can\'t be nil' if exclusive.nil?
       @wallets.acq(id) do |wallet|
         Futex.new(wallet.path, log: @log).open do
           yield wallet

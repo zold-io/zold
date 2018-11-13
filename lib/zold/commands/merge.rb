@@ -76,7 +76,7 @@ Available options:"
         merge_one(opts, patch, wallet, name)
         score += c[:score]
       end
-      @wallets.acq(id) do |wallet|
+      @wallets.acq(id, exclusive: true) do |wallet|
         start = Time.now
         if wallet.exists?
           merge_one(opts, patch, wallet, 'localhost')

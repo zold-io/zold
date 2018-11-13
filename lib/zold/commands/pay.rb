@@ -79,7 +79,7 @@ Available options:"
       amount = Amount.new(zld: mine[2].to_f)
       details = mine[3] || '-'
       taxes(id, opts)
-      @wallets.acq(id) do |from|
+      @wallets.acq(id, exclusive: true) do |from|
         pay(from, invoice, amount, details, opts)
       end
       return if opts['skip-propagate']

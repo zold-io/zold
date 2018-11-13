@@ -53,8 +53,8 @@ module Zold
       @wallets.all
     end
 
-    def acq(id)
-      @wallets.acq(id) do |wallet|
+    def acq(id, exclusive: false)
+      @wallets.acq(id, exclusive: exclusive) do |wallet|
         yield @zache.get(id.to_s, lifetime: 5 * 60) { wallet }
       end
     end

@@ -44,7 +44,7 @@ class TestSyncWallets < Zold::Test
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       amount = Zold::Amount.new(zld: 5.0)
       Threads.new(5).assert(100) do
-        wallets.acq(id) do |wallet|
+        wallets.acq(id, exclusive: true) do |wallet|
           wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
           wallet.refurbish
         end

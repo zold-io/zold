@@ -100,7 +100,7 @@ Available options:"
       when 'pay'
         raise 'At least one wallet ID is required' unless mine[1]
         mine[1..-1].each do |id|
-          @wallets.acq(Id.new(id)) do |w|
+          @wallets.acq(Id.new(id), exclusive: true) do |w|
             pay(w, opts)
           end
         end

@@ -50,7 +50,7 @@ Available options:"
     end
 
     def remove(id, _)
-      @wallets.acq(id) do |w|
+      @wallets.acq(id, exclusive: true) do |w|
         raise "Wallet #{id} doesn't exist in #{w.path}" unless w.exists?
         File.delete(w.path)
       end

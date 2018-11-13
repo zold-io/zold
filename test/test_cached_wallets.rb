@@ -40,7 +40,7 @@ class TestCachedWallets < Zold::Test
       wallets = Zold::CachedWallets.new(home.wallets)
       id = Zold::Id.new
       first = nil
-      wallets.acq(id) do |wallet|
+      wallets.acq(id, exclusive: true) do |wallet|
         wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
         assert_equal(1, wallets.all.count)
         first = wallet
