@@ -94,11 +94,11 @@ module Zold
             next
           end
           if !txn.sign.nil? && !txn.sign.empty?
-            @log.error("RSA signature is redundant at ##{txn.id} of #{wallet.id}: #{txn.to_text}")
+            @log.error("RSA signature is redundant at ##{txn.id} of #{wallet.id}: \"#{txn.to_text}\"")
             next
           end
           unless wallet.prefix?(txn.prefix)
-            @log.error("Payment prefix '#{txn.prefix}' doesn't match with the key of #{wallet.id}: #{txn.to_text}")
+            @log.error("Payment prefix '#{txn.prefix}' doesn't match with the key of #{wallet.id}: \"#{txn.to_text}\"")
             next
           end
           unless @wallets.find(txn.bnf, &:exists?)
@@ -106,8 +106,7 @@ module Zold
             next
           end
           unless @wallets.find(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
-            @log.error("Paying wallet #{txn.bnf} doesn't have transaction ##{txn.id} \
-among #{payer.txns.count} transactions: #{txn.to_text}")
+            @log.error("Paying wallet #{txn.bnf} doesn't have this transaction: \"#{txn.to_text}\"")
             next
           end
         end

@@ -218,10 +218,7 @@ in #{Age.new(@start, limit: 1)}")
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})} do
-      error(404, 'FETCH is disabled with --disable-fetch') if settings.opts['disable-fetch']
-      id = Id.new(params[:id])
-      copy_of(id) do |wallet|
-        content_type('application/json')
+      fetch('application/json') do |wallet|
         pretty(
           version: settings.opts['expose-version'],
           alias: settings.node_alias,
@@ -232,7 +229,7 @@ in #{Age.new(@start, limit: 1)}")
           mtime: wallet.mtime.utc.iso8601,
           size: wallet.size,
           digest: wallet.digest,
-          copies: Copies.new(File.join(settings.copies, id)).all.count,
+          copies: Copies.new(File.join(settings.copies, wallet.id)).all.count,
           balance: wallet.balance.to_i,
           body: File.new(wallet.path).read
         )
@@ -240,10 +237,7 @@ in #{Age.new(@start, limit: 1)}")
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16}).json} do
-      error(404, 'FETCH is disabled with --disable-fetch') if settings.opts['disable-fetch']
-      id = Id.new(params[:id])
-      copy_of(id) do |wallet|
-        content_type('application/json')
+      fetch('application/json') do |wallet|
         pretty(
           version: settings.opts['expose-version'],
           alias: settings.node_alias,
@@ -261,46 +255,35 @@ in #{Age.new(@start, limit: 1)}")
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/balance} do
-      error(404, 'FETCH is disabled with --disable-fetch') if settings.opts['disable-fetch']
-      id = Id.new(params[:id])
-      copy_of(id) do |wallet|
-        content_type 'text/plain'
-        wallet.balance.to_i.to_s
-      end
+      fetch { |w| w.balance.to_i.to_s }
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/key} do
-      error(404, 'FETCH is disabled with --disable-fetch') if settings.opts['disable-fetch']
-      id = Id.new(params[:id])
-      copy_of(id) do |wallet|
-        content_type 'text/plain'
-        wallet.key.to_pub
-      end
+      fetch { |w| w.key.to_pub }
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/mtime} do
-      error(404, 'FETCH is disabled with --disable-fetch') if settings.opts['disable-fetch']
-      id = Id.new(params[:id])
-      copy_of(id) do |wallet|
-        content_type 'text/plain'
-        wallet.mtime.utc.iso8601.to_s
-      end
+      fetch { |w| w.mtime.utc.iso8601.to_s }
+    end
+
+    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/size} do
+      fetch { |w| w.size.to_s }
+    end
+
+    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/age} do
+      fetch { |w| w.age.to_s }
+    end
+
+    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/mnemo} do
+      fetch(&:mnemo)
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/digest} do
-      error(404, 'FETCH is disabled with --disable-fetch') if settings.opts['disable-fetch']
-      id = Id.new(params[:id])
-      copy_of(id) do |wallet|
-        content_type 'text/plain'
-        wallet.digest
-      end
+      fetch(&:digest)
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.txt} do
-      error(404, 'FETCH is disabled with --disable-fetch') if settings.opts['disable-fetch']
-      id = Id.new(params[:id])
-      copy_of(id) do |wallet|
-        content_type 'text/plain'
+      fetch do |wallet|
         [
           wallet.network,
           wallet.protocol,
@@ -313,7 +296,7 @@ in #{Age.new(@start, limit: 1)}")
           "Balance: #{wallet.balance.to_zld(8)} ZLD (#{wallet.balance.to_i} zents)",
           "Transactions: #{wallet.txns.count}",
           "Taxes: #{Tax.new(wallet).paid} paid, the debt is #{Tax.new(wallet).debt}",
-          "File size: #{wallet.size} bytes (#{Copies.new(File.join(settings.copies, id)).all.count} copies)",
+          "File size: #{wallet.size} bytes (#{Copies.new(File.join(settings.copies, wallet.id)).all.count} copies)",
           "Modified: #{wallet.mtime.utc.iso8601} (#{Age.new(wallet.mtime.utc.iso8601)} ago)",
           "Digest: #{wallet.digest}"
         ].join("\n")
@@ -321,20 +304,12 @@ in #{Age.new(@start, limit: 1)}")
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.bin} do
-      error(404, 'FETCH is disabled with --disable-fetch') if settings.opts['disable-fetch']
-      id = Id.new(params[:id])
-      copy_of(id) do |wallet|
-        content_type 'text/plain'
-        IO.read(wallet.path)
-      end
+      fetch { |w| IO.read(w.path) }
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/copies} do
-      error(404, 'FETCH is disabled with --disable-fetch') if settings.opts['disable-fetch']
-      id = Id.new(params[:id])
-      copy_of(id) do
-        content_type 'text/plain'
-        copies = Copies.new(File.join(settings.copies, id))
+      fetch do |wallet|
+        copies = Copies.new(File.join(settings.copies, wallet.id))
         copies.load.map do |c|
           "#{c[:name]}: #{c[:host]}:#{c[:port]} #{c[:score]} #{c[:time].utc.iso8601}"
         end.join("\n") +
@@ -348,13 +323,10 @@ in #{Age.new(@start, limit: 1)}")
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/copy/(?<name>[0-9]+)} do
-      error(404, 'FETCH is disabled with --disable-fetch') if settings.opts['disable-fetch']
-      id = Id.new(params[:id])
-      name = params[:name]
-      copy_of(id) do
-        copy = Copies.new(File.join(settings.copies, id)).all.find { |c| c[:name] == name }
+      fetch do |wallet|
+        name = params[:name]
+        copy = Copies.new(File.join(settings.copies, wallet.id)).all.find { |c| c[:name] == name }
         error 404 if copy.nil?
-        content_type 'text/plain'
         IO.read(copy[:path])
       end
     end
@@ -482,6 +454,15 @@ in #{Age.new(@start, limit: 1)}")
         b = settings.farm.best
         raise 'Score is empty, there is something wrong with the Farm!' if b.empty?
         b[0]
+      end
+    end
+
+    def fetch(type = 'text/plain')
+      error(404, 'FETCH is disabled with --disable-fetch') if settings.opts['disable-fetch']
+      id = Id.new(params[:id])
+      copy_of(id) do |wallet|
+        content_type(type)
+        yield wallet
       end
     end
 

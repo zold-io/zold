@@ -156,6 +156,9 @@ class FrontTest < Zold::Test
           "/wallet/#{wallet.id}/key",
           "/wallet/#{wallet.id}/mtime",
           "/wallet/#{wallet.id}/digest",
+          "/wallet/#{wallet.id}/size",
+          "/wallet/#{wallet.id}/age",
+          "/wallet/#{wallet.id}/mnemo",
           "/wallet/#{wallet.id}.bin",
           "/wallet/#{wallet.id}/copies"
         ].each do |u|

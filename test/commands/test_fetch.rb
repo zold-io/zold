@@ -44,6 +44,7 @@ class TestFetch < Zold::Test
   def test_fetches_wallet
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
+      stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}/size").to_return(status: 200, body: wallet.size)
       stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}").to_return(
         status: 200,
         body: {
