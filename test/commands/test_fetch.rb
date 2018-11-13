@@ -44,7 +44,8 @@ class TestFetch < Zold::Test
   def test_fetches_wallet
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
-      stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}/size").to_return(status: 200, body: wallet.size)
+      stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}/size")
+        .to_return(status: 200, body: wallet.size.to_s)
       stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}").to_return(
         status: 200,
         body: {
@@ -53,9 +54,7 @@ class TestFetch < Zold::Test
           'mtime': Time.now.utc.iso8601
         }.to_json
       )
-      stub_request(:get, "http://localhost:81/wallet/#{wallet.id}").to_return(
-        status: 404
-      )
+      stub_request(:get, "http://localhost:81/wallet/#{wallet.id}/size").to_return(status: 404)
       remotes = home.remotes
       remotes.add('localhost', 4096)
       remotes.add('localhost', 81)

@@ -39,6 +39,7 @@ class TestPull < Zold::Test
       remotes.add('localhost', 4096)
       json = home.create_wallet_json
       id = Zold::JsonPage.new(json).to_hash['id']
+      stub_request(:get, "http://localhost:4096/wallet/#{id}/size").to_return(status: 200, body: '10000')
       stub_request(:get, "http://localhost:4096/wallet/#{id}").to_return(status: 200, body: json)
       Zold::Pull.new(wallets: home.wallets, remotes: remotes, copies: home.copies.root.to_s, log: test_log).run(
         ['--ignore-this-stupid-option', 'pull', id.to_s]
