@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require_relative '../log'
+require_relative '../amount'
 require_relative '../wallet'
 
 # LIST command.
@@ -36,13 +37,20 @@ module Zold
     end
 
     def run(_ = [])
+      total = 0
+      txns = 0
+      balance = Amount::ZERO
       @wallets.all.sort.each do |id|
+        total += 1
         @wallets.find(id) do |wallet|
           msg = wallet.mnemo
           msg += " (net:#{wallet.network})" if wallet.network != Wallet::MAIN_NETWORK
+          txns += wallet.txns.count
+          balance += wallet.balance
           @log.info(msg)
         end
       end
+      @log.info("#{total} wallets, #{txns} transactions, #{balance} in total")
     end
   end
 end
