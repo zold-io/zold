@@ -130,7 +130,8 @@ Available options:"
         end
         copy = cps.add(IO.read(f), score.host, score.port, score.value)
         @log.info("#{r} returned #{wallet.mnemo} #{Age.new(json['mtime'])}/#{json['copies']}c \
-as copy ##{copy} in #{Age.new(start, limit: 4)}: #{Rainbow(score.value).green} (#{json['version']})")
+as copy ##{copy}/#{cps.all.count} in #{Age.new(start, limit: 4)}: \
+#{Rainbow(score.value).green} (#{json['version']})")
       end
       score.value
     end

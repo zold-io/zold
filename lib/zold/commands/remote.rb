@@ -183,7 +183,7 @@ Available options:"
         return
       end
       if opts['ignore-if-exists'] && @remotes.exists?(host, port)
-        @log.info("#{host}:#{port} already exists, won't add because of --ignore-if-exists")
+        @log.debug("#{host}:#{port} already exists, won't add because of --ignore-if-exists")
         return
       end
       unless opts['skip-ping']

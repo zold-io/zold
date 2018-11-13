@@ -106,7 +106,7 @@ module Zold
             next
           end
           unless @wallets.find(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
-            @log.error("Paying wallet #{txn.bnf} doesn't have this transaction: \"#{txn.to_text}\"")
+            @log.error("The beneficiary of #{@id} doesn't have this transaction: \"#{txn.to_text}\"")
             next
           end
         end
