@@ -94,7 +94,7 @@ total score for #{id} is #{total}")
       uri = "/wallet/#{id}"
       response = r.http(uri).put(content, timeout: 2 + content.length * 0.01 / 1024)
       @wallets.find(id) do |wallet|
-        if response.code == '304'
+        if response.status == 304
           @log.info("#{r}: same version of #{wallet.mnemo} there, in #{Age.new(start, limit: 0.5)}")
           return 0
         end

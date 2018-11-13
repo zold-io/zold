@@ -85,4 +85,5 @@ and suggests a different architecture for digital wallet maintenance.'
   s.add_development_dependency 'rdoc', '4.3.0'
   s.add_development_dependency 'rspec-rails', '3.8.1'
   s.add_development_dependency 'webmock', '3.4.2'
+  s.add_development_dependency 'patron', '0.13.1'
 end

@@ -188,7 +188,7 @@ Available options:"
       end
       unless opts['skip-ping']
         res = Http.new(uri: "http://#{host}:#{port}/version", network: opts['network']).get
-        raise "The node #{host}:#{port} is not responding, #{res.code}:#{res.message}" unless res.code == '200'
+        raise "The node #{host}:#{port} is not responding, #{res.status}:#{res.status_line}" unless res.status == 200
       end
       @remotes.add(host, port)
       @log.info("#{host}:#{port} added to the list, #{@remotes.all.count} total")

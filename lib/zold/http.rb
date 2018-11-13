@@ -22,8 +22,8 @@
 
 require 'rainbow'
 require 'uri'
-require 'net/http'
 require 'backtrace'
+require 'patron'
 require 'zold/score'
 require_relative 'version'
 
@@ -68,31 +68,34 @@ module Zold
     end
 
     def get(timeout: READ_TIMEOUT + CONNECT_TIMEOUT)
-      http = Net::HTTP.new(@uri.host, @uri.port)
-      http.use_ssl = @uri.scheme == 'https'
-      http.read_timeout = timeout
-      http.open_timeout = CONNECT_TIMEOUT
+      base_url = "#{@uri.scheme}://#{@uri.host}:#{@uri.port.to_s}"
+      session = Patron::Session.new({
+        timeout: timeout,
+        connect_timeout: CONNECT_TIMEOUT,
+        base_url: base_url,
+        headers: headers
+      })
       path = @uri.path
       path += '?' + @uri.query if @uri.query
-      http.request_get(path, headers)
+      session.get(path)
     rescue StandardError => e
       Error.new(e)
     end
 
     def put(body, timeout: READ_TIMEOUT + CONNECT_TIMEOUT)
-      http = Net::HTTP.new(@uri.host, @uri.port)
-      http.use_ssl = @uri.scheme == 'https'
-      http.read_timeout = timeout
-      http.open_timeout = CONNECT_TIMEOUT
-      path = @uri.path
-      path += '?' + @uri.query if @uri.query
-      http.request_put(
-        path, body,
-        headers.merge(
+      base_url = "#{@uri.scheme}://#{@uri.host}:#{@uri.port.to_s}"
+      session = Patron::Session.new({
+        timeout: timeout,
+        connect_timeout: CONNECT_TIMEOUT,
+        base_url: base_url,
+        headers: headers.merge(
           'Content-Type': 'text/plain',
           'Content-Length': body.length.to_s
         )
-      )
+      })
+      path = @uri.path
+      path += '?' + @uri.query if @uri.query
+      session.put(path, body)
     rescue StandardError => e
       Error.new(e)
     end
@@ -113,15 +116,15 @@ module Zold
         Backtrace.new(@ex).to_s
       end
 
-      def code
-        '599'
+      def status
+        599
       end
 
-      def message
+      def status_line
         @ex.message
       end
 
-      def header
+      def headers
         {}
       end
     end

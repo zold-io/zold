@@ -38,22 +38,22 @@ class TestHttp < Zold::Test
   def test_pings_broken_uri
     stub_request(:get, 'http://bad-host/').to_return(status: 500)
     res = Zold::Http.new(uri: 'http://bad-host/').get
-    assert_equal('500', res.code)
+    assert_equal(500, res.status)
     assert_equal('', res.body)
   end
 
   def test_pings_with_exception
     stub_request(:get, 'http://exception/').to_return { raise 'Intentionally' }
     res = Zold::Http.new(uri: 'http://exception/').get
-    assert_equal('599', res.code)
+    assert_equal(599, res.status)
     assert(res.body.include?('Intentionally'))
-    assert(!res.header['nothing'])
+    assert(!res.headers['nothing'])
   end
 
   def test_pings_live_uri
     stub_request(:get, 'http://good-host/').to_return(status: 200)
     res = Zold::Http.new(uri: 'http://good-host/').get
-    assert_equal('200', res.code)
+    assert_equal(200, res.status)
   end
 
   def test_sends_valid_network_header
@@ -61,7 +61,7 @@ class TestHttp < Zold::Test
       .with(headers: { 'X-Zold-Network' => 'xyz' })
       .to_return(status: 200)
     res = Zold::Http.new(uri: 'http://some-host-1/', network: 'xyz').get
-    assert_equal('200', res.code)
+    assert_equal(200, res.status)
   end
 
   def test_sends_valid_protocol_header
@@ -69,7 +69,7 @@ class TestHttp < Zold::Test
       .with(headers: { 'X-Zold-Protocol' => Zold::PROTOCOL })
       .to_return(status: 200)
     res = Zold::Http.new(uri: 'http://some-host-2/').get
-    assert_equal('200', res.code)
+    assert_equal(200, res.status)
   end
 
   def test_doesnt_terminate_on_long_call
@@ -87,7 +87,7 @@ class TestHttp < Zold::Test
       end
       sleep 0.25
       res = Zold::Http.new(uri: "http://127.0.0.1:#{port}/").get(timeout: 2)
-      assert_equal('200', res.code, res)
+      assert_equal(200, res.status, res)
       thread.kill
       thread.join
     end
@@ -105,7 +105,7 @@ class TestHttp < Zold::Test
       end
       sleep 0.25
       res = Zold::Http.new(uri: "http://127.0.0.1:#{port}/").get(timeout: 0.1)
-      assert_equal('599', res.code, res)
+      assert_equal(599, res.status, res)
       thread.kill
       thread.join
     end
@@ -116,6 +116,6 @@ class TestHttp < Zold::Test
       .with(headers: { 'X-Zold-Version' => Zold::VERSION })
       .to_return(status: 200)
     res = Zold::Http.new(uri: 'http://some-host-3/').get
-    assert_equal('200', res.code, res)
+    assert_equal(200, res.status, res)
   end
 end
