@@ -63,129 +63,129 @@ unless ENV['RACK_ENV'] == 'test' || ARGV.find { |a| a == '--ignore-global-config
 end
 args += ARGV
 
-begin
-  opts = Slop.parse(args, strict: false, suppress_errors: true) do |o|
-    o.banner = "Usage: zold [options] command [arguments]
+opts = Slop.parse(args, strict: false, suppress_errors: true) do |o|
+  o.banner = "Usage: zold [options] command [arguments]
 Available commands:
-    #{Rainbow('remote').green} command [options]
-      Manage remote nodes
-    #{Rainbow('create').green} [options]
-      Creates a new wallet with a random ID
-    #{Rainbow('fetch').green} [ID...] [options]
-      Fetch wallet copies from remote nodes
-    #{Rainbow('clean').green} [ID...] [options]
-      Remove expired local copies
-    #{Rainbow('merge').green} [ID...] [options]
-      Merge remote copies with the HEAD
-    #{Rainbow('propagate').green} [ID...] [options]
-      Propagate transactions to receiving wallets
-    #{Rainbow('pull').green} [ID...] [options]
-      Fetch and then merge
-    #{Rainbow('remove').green} [ID...] [options]
-      Remove the wallet(s) from the local storage
-    #{Rainbow('show').green} [ID...] [options]
-      Show all available information about the wallet
-    #{Rainbow('pay').green} from to amount details [options]
-      Pay ZOLD from one wallet to another
-    #{Rainbow('invoice').green} ID [options]
-      Generate invoice unique ID for a payment
-    #{Rainbow('push').green} [ID...] [options]
-      Push all/some local wallets or the ones required
-    #{Rainbow('taxes').green} command [ID...] [options]
-      Pay taxes, check their status
-    #{Rainbow('node').green} [options]
-      Run node at the given TCP port
-    #{Rainbow('alias').green} [alias] [wallet ID]
-      Set an alias for a wallet
-    #{Rainbow('next').green} score
-      Generate next score from the provided one
-    #{Rainbow('score').green} [options]
-      Generate score for the given host and port
+  #{Rainbow('remote').green} command [options]
+    Manage remote nodes
+  #{Rainbow('create').green} [options]
+    Creates a new wallet with a random ID
+  #{Rainbow('fetch').green} [ID...] [options]
+    Fetch wallet copies from remote nodes
+  #{Rainbow('clean').green} [ID...] [options]
+    Remove expired local copies
+  #{Rainbow('merge').green} [ID...] [options]
+    Merge remote copies with the HEAD
+  #{Rainbow('propagate').green} [ID...] [options]
+    Propagate transactions to receiving wallets
+  #{Rainbow('pull').green} [ID...] [options]
+    Fetch and then merge
+  #{Rainbow('remove').green} [ID...] [options]
+    Remove the wallet(s) from the local storage
+  #{Rainbow('show').green} [ID...] [options]
+    Show all available information about the wallet
+  #{Rainbow('pay').green} from to amount details [options]
+    Pay ZOLD from one wallet to another
+  #{Rainbow('invoice').green} ID [options]
+    Generate invoice unique ID for a payment
+  #{Rainbow('push').green} [ID...] [options]
+    Push all/some local wallets or the ones required
+  #{Rainbow('taxes').green} command [ID...] [options]
+    Pay taxes, check their status
+  #{Rainbow('node').green} [options]
+    Run node at the given TCP port
+  #{Rainbow('alias').green} [alias] [wallet ID]
+    Set an alias for a wallet
+  #{Rainbow('next').green} score
+    Generate next score from the provided one
+  #{Rainbow('score').green} [options]
+    Generate score for the given host and port
 Available options:"
-    o.string '--home',
-      "Home directory (default: #{Dir.pwd})",
-      default: Dir.pwd
-    o.string '--network',
-      "The name of the network we work in (default: #{Zold::Wallet::MAIN_NETWORK})",
-      required: true,
-      default: Zold::Wallet::MAIN_NETWORK
-    o.bool '-h', '--help', 'Show these instructions'
-    o.bool '--trace', 'Show full stack trace in case of a problem'
-    o.bool '--memory-dump', 'Dump memory snapshot afterwards, to the console', default: false
-    o.bool '--skip-upgrades', 'Don\'t upgrade the storage', default: false
-    o.bool '--ignore-global-config', 'Don\'t read options from the ~/.zold file'
-    o.on '--no-colors', 'Disable colors in the ouput' do
-      Rainbow.enabled = false
-    end
-    o.on '--verbose', 'Enable extra logging information' do
-      log = Zold::Log::Verbose.new
-    end
-    o.on '-v', '--version', 'Show current version' do
-      log.info(Zold::VERSION)
-      exit
-    end
+  o.string '--home',
+    "Home directory (default: #{Dir.pwd})",
+    default: Dir.pwd
+  o.string '--network',
+    "The name of the network we work in (default: #{Zold::Wallet::MAIN_NETWORK})",
+    required: true,
+    default: Zold::Wallet::MAIN_NETWORK
+  o.bool '-h', '--help', 'Show these instructions'
+  o.bool '--trace', 'Show full stack trace in case of a problem'
+  o.bool '--memory-dump', 'Dump memory snapshot afterwards, to the console', default: false
+  o.bool '--skip-upgrades', 'Don\'t upgrade the storage', default: false
+  o.bool '--ignore-global-config', 'Don\'t read options from the ~/.zold file'
+  o.on '--no-colors', 'Disable colors in the ouput' do
+    Rainbow.enabled = false
   end
-
-  log = Zold::Log::Sync.new(log)
-
-  log.debug("Gem location: #{File.dirname(File.dirname(__FILE__))}")
-
-  commands = opts.arguments.reject { |a| a.start_with?('-') }
-  command = commands[0]
-
-  if command.nil?
-    raise 'A command required, try --help' unless opts.help?
-    log.info(opts.to_s)
+  o.on '--verbose', 'Enable extra logging information' do
+    log = Zold::Log::Verbose.new
+  end
+  o.on '-v', '--version', 'Show current version' do
+    log.info(Zold::VERSION)
     exit
   end
+end
 
-  args = opts.arguments
-  args << '--help' if opts.help?
-  args << "--network=#{opts['network']}"
+log = Zold::Log::Sync.new(log)
 
-  home = File.expand_path(opts[:home])
-  FileUtils.mkdir_p(home)
-  Dir.chdir(home)
-  log.debug("Home directory: #{home}")
+log.debug("Gem location: #{File.dirname(File.dirname(__FILE__))}")
 
-  zoldata = File.join(home, '.zoldata')
+commands = opts.arguments.reject { |a| a.start_with?('-') }
+command = commands[0]
 
-  unless opts['skip-upgrades']
-    Zold::Upgrades.new(Zold::VersionFile.new(File.join(zoldata, 'version')), 'upgrades').run
-    # @todo #384:30min This is a workaround, move this code into Upgrades, somehow.
-    #  We should find a way to run these arbitrary scripts and pass arguments
-    #  to them. Each of them may need its own set of arguments.
-    require_relative '../upgrades/2'
-    Zold::UpgradeTo2.new(Dir.pwd, log).exec
-    require_relative '../upgrades/protocol_up'
-    Zold::ProtocolUp.new(Dir.pwd, log).exec
-    require_relative '../upgrades/rename_foreign_wallets'
-    Zold::RenameForeignWallets.new(Dir.pwd, opts['network'], log).exec
-    if command == 'node'
-      require_relative '../upgrades/move_wallets_into_tree'
-      Zold::MoveWalletsIntoTree.new(Dir.pwd, log).exec
-    end
+if command.nil?
+  raise 'A command required, try --help' unless opts.help?
+  log.info(opts.to_s)
+  exit
+end
+
+args = opts.arguments
+args << '--help' if opts.help?
+args << "--network=#{opts['network']}"
+
+home = File.expand_path(opts[:home])
+FileUtils.mkdir_p(home)
+Dir.chdir(home)
+log.debug("Home directory: #{home}")
+
+zoldata = File.join(home, '.zoldata')
+
+unless opts['skip-upgrades']
+  Zold::Upgrades.new(Zold::VersionFile.new(File.join(zoldata, 'version')), 'upgrades').run
+  # @todo #384:30min This is a workaround, move this code into Upgrades, somehow.
+  #  We should find a way to run these arbitrary scripts and pass arguments
+  #  to them. Each of them may need its own set of arguments.
+  require_relative '../upgrades/2'
+  Zold::UpgradeTo2.new(Dir.pwd, log).exec
+  require_relative '../upgrades/protocol_up'
+  Zold::ProtocolUp.new(Dir.pwd, log).exec
+  require_relative '../upgrades/rename_foreign_wallets'
+  Zold::RenameForeignWallets.new(Dir.pwd, opts['network'], log).exec
+  if command == 'node'
+    require_relative '../upgrades/move_wallets_into_tree'
+    Zold::MoveWalletsIntoTree.new(Dir.pwd, log).exec
   end
+end
 
-  wallets = Zold::SyncWallets.new(
-    Zold::CachedWallets.new(
-      command == 'node' ? Zold::TreeWallets.new(home) : Zold::Wallets.new(home)
-    ),
-    log: log
-  )
-  fremotes = File.join(zoldata, 'remotes')
-  remotes = Zold::Remotes.new(file: fremotes, network: opts['network'])
-  if File.exist?(fremotes)
-    log.debug("Remote nodes: #{remotes.all.count} total")
-  else
-    remotes.defaults
-    log.debug("Default remotes have been set: #{remotes.all.count} total")
-  end
-  copies = File.join(zoldata, 'copies')
+wallets = Zold::SyncWallets.new(
+  Zold::CachedWallets.new(
+    command == 'node' ? Zold::TreeWallets.new(home) : Zold::Wallets.new(home)
+  ),
+  log: log
+)
+fremotes = File.join(zoldata, 'remotes')
+remotes = Zold::Remotes.new(file: fremotes, network: opts['network'])
+if File.exist?(fremotes)
+  log.debug("Remote nodes: #{remotes.all.count} total")
+else
+  remotes.defaults
+  log.debug("Default remotes have been set: #{remotes.all.count} total")
+end
+copies = File.join(zoldata, 'copies')
 
-  log.debug("Network: #{opts['network']} (#{opts['network'] == Zold::Wallet::MAIN_NETWORK ? 'main' : 'test'} net)")
+log.debug("Network: #{opts['network']} (#{opts['network'] == Zold::Wallet::MAIN_NETWORK ? 'main' : 'test'} net)")
 
-  cmd = lambda do
+cmd = lambda do
+  begin
     case command
     when 'node'
       require_relative '../lib/zold/commands/node'
@@ -247,17 +247,21 @@ Available options:"
     else
       raise "Command '#{command}' is not supported"
     end
+    return 0
+  rescue StandardError => ex
+    log.error("#{ex.message} (#{ex.class.name})")
+    log.error(Backtrace.new(ex)) if opts['trace']
+    return -1
   end
-
-  if opts['memory-dump']
-    MemoryProfiler.report(top: 20) { cmd.call }.pretty_print
-  else
-    cmd.call
-  end
-rescue StandardError => ex
-  log.error("#{ex.message} (#{ex.class.name})")
-  puts(Backtrace.new(ex)) if opts['trace']
-  exit -1
 end
+
+code = 0
+if opts['memory-dump']
+  MemoryProfiler.report(top: 20) { code = cmd.call }.pretty_print
+else
+  code = cmd.call
+end
+
+exit(code) unless code.zero?
 
 log.debug("Successfully finished in #{Zold::Age.new(start)}")
