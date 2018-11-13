@@ -475,5 +475,9 @@ in #{Age.new(@start, limit: 1)}")
         yield Wallet.new(f.path)
       end
     end
+
+    def running_server?
+      false
+    end
   end
 end

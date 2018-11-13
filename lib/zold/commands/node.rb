@@ -124,18 +124,15 @@ module Zold
           default: '~/.ssh/id_rsa'
         o.string '--network',
           "The name of the network (default: #{Wallet::MAIN_NETWORK})",
-          require: true,
           default: Wallet::MAIN_NETWORK
         o.integer '--nohup-max-cycles',
           'Maximum amount of nohup re-starts (-1 by default, which means forever)',
-          require: true,
           default: -1
         o.string '--home',
           "Home directory (default: #{Dir.pwd})",
           default: Dir.pwd
         o.bool '--no-metronome',
           'Don\'t run the metronome',
-          required: true,
           default: false
         o.bool '--disable-push',
           'Prohibit all PUSH requests',
@@ -144,8 +141,7 @@ module Zold
           'Prohibit all FETCH requests',
           default: false
         o.string '--alias',
-          'The alias of the node (default: host:port)',
-          require: false
+          'The alias of the node (default: host:port)'
         o.string '--no-spawn',
           'Don\'t use child processes for the score farm',
           default: false
