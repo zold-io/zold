@@ -50,7 +50,7 @@ module Zold
 
     # Returns a list of modifed wallets (as Zold::Id)
     def push(id, body)
-      before = @wallets.find(id) { |w| w.exists? ? w.digest : '' }
+      before = @wallets.acq(id) { |w| w.exists? ? w.digest : '' }
       after = OpenSSL::Digest::SHA256.new(body).hexdigest
       if before == after
         @log.debug("Duplicate of #{id} ignored (#{Size.new(body.length)} bytes)")

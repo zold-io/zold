@@ -339,7 +339,7 @@ Then:
 
 ```bash
 $ bundle update
-$ rake
+$ bundle exec rake
 ```
 
 The build has to be clean. If it's not, [submit an issue](https://github.com/zold-io/zold/issues).

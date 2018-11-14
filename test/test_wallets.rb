@@ -38,7 +38,7 @@ class TestWallets < Zold::Test
     FakeHome.new(log: test_log).run do |home|
       wallets = home.wallets
       id = Zold::Id.new
-      wallets.find(id) do |wallet|
+      wallets.acq(id) do |wallet|
         wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
         assert_equal(1, wallets.all.count)
       end
@@ -52,7 +52,7 @@ class TestWallets < Zold::Test
       FileUtils.mkdir_p(File.join(home.dir, 'a/b/c'))
       FileUtils.touch(File.join(home.dir, 'a/b/c/0000111122223333.z'))
       id = Zold::Id.new
-      wallets.find(id) do |wallet|
+      wallets.acq(id) do |wallet|
         wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
         assert_equal(1, wallets.all.count)
       end

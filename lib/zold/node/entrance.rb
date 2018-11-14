@@ -91,7 +91,7 @@ module Zold
       @mutex.synchronize do
         @history.shift if @history.length >= 16
         @speed.shift if @speed.length >= 64
-        @wallets.find(id) do |wallet|
+        @wallets.acq(id) do |wallet|
           @history << "#{sec}/#{modified.count}/#{wallet.mnemo}"
         end
         @speed << sec

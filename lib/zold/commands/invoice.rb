@@ -61,13 +61,13 @@ Available options:"
     private
 
     def invoice(id, opts)
-      unless @wallets.find(id, &:exists?)
+      unless @wallets.acq(id, &:exists?)
         require_relative 'pull'
         Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
           ['pull', id.to_s, "--network=#{opts['network']}"]
         )
       end
-      inv = @wallets.find(id) do |wallet|
+      inv = @wallets.acq(id) do |wallet|
         "#{Prefixes.new(wallet).create(opts[:length])}@#{wallet.id}"
       end
       @log.info(inv)

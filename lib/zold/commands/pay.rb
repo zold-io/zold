@@ -79,7 +79,7 @@ Available options:"
       amount = Amount.new(zld: mine[2].to_f)
       details = mine[3] || '-'
       taxes(id, opts)
-      @wallets.find(id) do |from|
+      @wallets.acq(id, exclusive: true) do |from|
         pay(from, invoice, amount, details, opts)
       end
       return if opts['skip-propagate']
@@ -90,7 +90,7 @@ Available options:"
     private
 
     def taxes(id, opts)
-      debt = @wallets.find(id) do |wallet|
+      debt = @wallets.acq(id) do |wallet|
         raise "Wallet #{id} doesn't exist, do 'zold pull' first" unless wallet.exists?
         Tax.new(wallet).in_debt? && !opts['dont-pay-taxes']
       end

@@ -38,7 +38,7 @@ class TestInvoice < Zold::Test
     Dir.mktmpdir do |dir|
       id = Zold::Id.new
       wallets = Zold::Wallets.new(dir)
-      wallets.find(id) do |source|
+      wallets.acq(id) do |source|
         source.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
         invoice = Zold::Invoice.new(wallets: wallets, remotes: nil, copies: nil, log: test_log).run(
           ['invoice', id.to_s, '--length=16']

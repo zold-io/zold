@@ -157,7 +157,7 @@ Available options:"
     def show
       @remotes.all.each do |r|
         score = Rainbow("/#{r[:score]}").color(r[:score].positive? ? :green : :red)
-        @log.info(r[:host] + Rainbow(":#{r[:port]}").gray + score)
+        @log.info("#{r[:host]}:#{r[:port]}#{score} #{r[:errors]} errors#{r[:default] ? ' default' : ''}")
       end
     end
 
@@ -183,7 +183,7 @@ Available options:"
         return
       end
       if opts['ignore-if-exists'] && @remotes.exists?(host, port)
-        @log.info("#{host}:#{port} already exists, won't add because of --ignore-if-exists")
+        @log.debug("#{host}:#{port} already exists, won't add because of --ignore-if-exists")
         return
       end
       unless opts['skip-ping']

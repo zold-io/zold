@@ -61,7 +61,7 @@ Available options:"
 
     def create(id, opts)
       key = Zold::Key.new(file: opts['public-key'])
-      @wallets.find(id) do |wallet|
+      @wallets.acq(id, exclusive: true) do |wallet|
         wallet.init(id, key, network: opts['network'])
         @log.debug("Wallet #{Rainbow(wallet).green} created at #{@wallets.path}")
       end
