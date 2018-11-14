@@ -25,18 +25,19 @@ require 'tmpdir'
 require 'threads'
 require_relative 'test__helper'
 require_relative '../lib/zold/age'
+require_relative '../lib/zold/endless'
 require_relative '../lib/zold/dir_items'
 
 # DirItems test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestDirItems < Minitest::Test
+class TestDirItems < Zold::Test
   def test_intensive_write_in_threads
     Dir.mktmpdir do |dir|
       file = File.join(dir, 'hey.txt')
-      Thread.start do
-        loop do
+      back = Thread.start do
+        Zold::Endless.new('test-diritems', log: test_log).run do
           Zold::DirItems.new(dir).fetch
         end
       end
@@ -48,6 +49,7 @@ class TestDirItems < Minitest::Test
         test_log.debug("Saved in #{Zold::Age.new(start)}")
         sleep 1
       end
+      back.kill
     end
   end
 

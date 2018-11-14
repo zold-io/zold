@@ -29,7 +29,7 @@ require_relative '../lib/zold/log'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestLog < Minitest::Test
+class TestLog < Zold::Test
   def test_prints_from_many_threads
     Threads.new(20).assert do
       test_log.debug('How are you?')

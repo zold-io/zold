@@ -23,20 +23,20 @@
 require 'minitest/autorun'
 require 'tmpdir'
 require 'webmock/minitest'
+require 'zold/score'
 require_relative '../test__helper'
 require_relative '../../lib/zold/version'
 require_relative '../../lib/zold/wallets'
 require_relative '../../lib/zold/remotes'
 require_relative '../../lib/zold/key'
 require_relative '../../lib/zold/log'
-require_relative '../../lib/zold/score'
 require_relative '../../lib/zold/commands/remote'
 
 # REMOTE test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestRemote < Minitest::Test
+class TestRemote < Zold::Test
   def test_updates_remote
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'a/b/c/remotes'))
@@ -133,7 +133,7 @@ class TestRemote < Minitest::Test
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.txt'))
       score = Zold::Score.new(
-        time: Time.now, host: 'aa1.example.org', port: 9999, invoice: 'NOPREFIX4@ffffffffffffffff'
+        host: 'aa1.example.org', port: 9999, invoice: 'NOPREFIX4@ffffffffffffffff'
       )
       stub_request(:get, 'http://localhost:8883/version').to_return(
         status: 200,

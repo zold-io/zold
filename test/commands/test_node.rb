@@ -38,7 +38,7 @@ require_relative '../node/fake_node'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestNode < Minitest::Test
+class TestNode < Zold::Test
   # @todo #306:30min This test is failing from time to time
   #  We should find a way to check that tests involved in thread concurrency
   #  are always working

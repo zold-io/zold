@@ -32,18 +32,19 @@ require_relative '../../lib/zold/commands/pull'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestPull < Minitest::Test
+class TestPull < Zold::Test
   def test_pull_wallet
     FakeHome.new(log: test_log).run do |home|
       remotes = home.remotes
-      remotes.add('localhost', 80)
+      remotes.add('localhost', 4096)
       json = home.create_wallet_json
       id = Zold::JsonPage.new(json).to_hash['id']
-      stub_request(:get, "http://localhost:80/wallet/#{id}").to_return(status: 200, body: json)
+      stub_request(:get, "http://localhost:4096/wallet/#{id}/size").to_return(status: 200, body: '10000')
+      stub_request(:get, "http://localhost:4096/wallet/#{id}").to_return(status: 200, body: json)
       Zold::Pull.new(wallets: home.wallets, remotes: remotes, copies: home.copies.root.to_s, log: test_log).run(
         ['--ignore-this-stupid-option', 'pull', id.to_s]
       )
-      home.wallets.find(Zold::Id.new(id)) do |wallet|
+      home.wallets.acq(Zold::Id.new(id)) do |wallet|
         assert(wallet.exists?)
       end
     end

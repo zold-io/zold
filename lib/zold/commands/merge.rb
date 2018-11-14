@@ -76,7 +76,7 @@ Available options:"
         merge_one(opts, patch, wallet, name)
         score += c[:score]
       end
-      @wallets.find(id) do |wallet|
+      @wallets.acq(id, exclusive: true) do |wallet|
         start = Time.now
         if wallet.exists?
           merge_one(opts, patch, wallet, 'localhost')
@@ -88,7 +88,7 @@ Available options:"
         wallet.flush
         if modified
           @log.info("#{cps.count} copies with the total score of #{score} successfully merged \
-into #{wallet.id}/#{wallet.balance}/#{wallet.txns.count}t in #{Age.new(start, limit: 0.1 + cps.count * 0.01)}")
+into #{wallet.mnemo} in #{Age.new(start, limit: 0.1 + cps.count * 0.01)}")
         else
           @log.info("Nothing changed in #{wallet.id} after merge of #{cps.count} copies")
         end

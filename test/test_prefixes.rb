@@ -32,7 +32,7 @@ require_relative '../lib/zold/prefixes'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestPrefixes < Minitest::Test
+class TestPrefixes < Zold::Test
   def test_creates_and_validates
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet

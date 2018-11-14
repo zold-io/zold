@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
+require 'zold/score'
 require 'time'
 require_relative 'test__helper'
 require_relative 'fake_home'
@@ -31,31 +32,30 @@ require_relative '../lib/zold/tax'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/amount'
 require_relative '../lib/zold/prefixes'
-require_relative '../lib/zold/score'
 
 # Tax test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestTax < Minitest::Test
+class TestTax < Zold::Test
   def test_print_fee
-    test_log.info("Fee in zents: #{Zold::Tax::FEE_TXN_HOUR.to_i}")
+    test_log.info("Fee in zents: #{Zold::Tax::FEE.to_i}")
   end
 
   def test_calculates_tax_for_one_year
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
+      a = 10_000
       wallet.add(
         Zold::Txn.new(
           1,
-          Time.now - 24 * 60 * 60 * 365,
+          Time.now - a * 60 * 60,
           Zold::Amount.new(zld: 19.99),
           'NOPREFIX', Zold::Id.new, '-'
         )
       )
       tax = Zold::Tax.new(wallet)
-      assert(tax.debt > Zold::Amount.new(coins: 16_770_000))
-      assert(tax.debt < Zold::Amount.new(coins: 16_790_000))
+      assert_equal(Zold::Tax::FEE * a, tax.debt, tax.to_text)
     end
   end
 
@@ -73,30 +73,41 @@ class TestTax < Minitest::Test
         )
       end
       score = Zold::Score.new(
-        time: Time.now, host: 'localhost', port: 80, invoice: 'NOPREFIX@cccccccccccccccc',
+        host: 'localhost', port: 80, invoice: 'NOPREFIX@cccccccccccccccc',
         suffixes: %w[A B C D E F G H I J K L M N O P Q R S T U V]
       )
       tax = Zold::Tax.new(wallet)
+      debt = tax.debt
       txn = tax.pay(Zold::Key.new(file: 'fixtures/id_rsa'), score)
-      assert_equal(Zold::Tax::MAX_PAYMENT * -1, txn.amount)
+      assert_equal(debt, txn.amount * -1)
+    end
+  end
+
+  def test_prints_tax_formula
+    FakeHome.new(log: test_log).run do |home|
+      wallet = home.create_wallet
+      tax = Zold::Tax.new(wallet)
+      assert(!tax.to_text.nil?)
     end
   end
 
   def test_takes_tax_payment_into_account
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
+      amount = Zold::Amount.new(zents: 95_596_800)
       wallet.add(
         Zold::Txn.new(
           1,
           Time.now,
-          Zold::Amount.new(coins: 95_596_800),
+          amount * -1,
           'NOPREFIX', Zold::Id.new('912ecc24b32dbe74'),
           "TAXES 6 5b5a21a9 b2.zold.io 1000 DCexx0hG 912ecc24b32dbe74 \
 386d4a ec9eae 306e3d 119d073 1c00dba 1376703 203589 5b55f7"
         )
       )
       tax = Zold::Tax.new(wallet)
-      assert(tax.debt < Zold::Amount::ZERO)
+      assert_equal(amount, tax.paid)
+      assert(tax.debt < Zold::Amount::ZERO, tax.debt)
     end
   end
 
@@ -115,7 +126,7 @@ class TestTax < Minitest::Test
       invoice = "#{Zold::Prefixes.new(target).create}@#{target.id}"
       tax = Zold::Tax.new(wallet)
       score = Zold::Score.new(
-        time: Time.now, host: 'localhost', port: 80, invoice: invoice,
+        host: 'localhost', port: 80, invoice: invoice,
         suffixes: %w[A B C D E F G H I J K L M N O P Q R S T U V]
       )
       tax.pay(Zold::Key.new(file: 'fixtures/id_rsa'), score)

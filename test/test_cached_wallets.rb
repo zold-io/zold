@@ -22,6 +22,7 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
+require_relative 'test__helper'
 require_relative 'fake_home'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/id'
@@ -33,18 +34,18 @@ require_relative '../lib/zold/amount'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestCachedWallets < Minitest::Test
+class TestCachedWallets < Zold::Test
   def test_adds_wallet
     FakeHome.new(log: test_log).run do |home|
       wallets = Zold::CachedWallets.new(home.wallets)
       id = Zold::Id.new
       first = nil
-      wallets.find(id) do |wallet|
+      wallets.acq(id, exclusive: true) do |wallet|
         wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
         assert_equal(1, wallets.all.count)
         first = wallet
       end
-      wallets.find(id) do |wallet|
+      wallets.acq(id) do |wallet|
         assert_equal(first, wallet)
       end
     end

@@ -26,20 +26,19 @@ require 'eventmachine'
 require 'thin'
 require 'json'
 require 'sinatra/base'
-require 'get_process_mem'
-require 'diffy'
-require 'usagewatch_ext'
 require 'concurrent'
 require 'backtrace'
+require 'zache'
+require 'posix/spawn'
 require_relative '../version'
 require_relative '../size'
 require_relative '../wallet'
 require_relative '../age'
 require_relative '../copies'
 require_relative '../log'
+require_relative '../tax'
 require_relative '../id'
 require_relative '../http'
-require_relative '../cache'
 
 # The web front of the node.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -56,42 +55,39 @@ module Zold
       set :lock, false
       set :show_exceptions, false
       set :server, :thin
-      set :log, nil? # to be injected at node.rb
-      set :trace, nil? # to be injected at node.rb
-      set :halt, '' # to be injected at node.rb
+      set :opts, nil # to be injected at node.rb
+      set :log, nil # to be injected at node.rb
+      set :trace, nil # to be injected at node.rb
       set :dump_errors, false # to be injected at node.rb
-      set :version, VERSION # to be injected at node.rb
       set :protocol, PROTOCOL # to be injected at node.rb
-      set :ignore_score_weakness, false # to be injected at node.rb
-      set :reboot, false # to be injected at node.rb
       set :nohup_log, false # to be injected at node.rb
-      set :home, nil? # to be injected at node.rb
+      set :home, nil # to be injected at node.rb
       set :logging, true # to be injected at node.rb
-      set :logger, nil? # to be injected at node.rb
-      set :address, nil? # to be injected at node.rb
-      set :farm, nil? # to be injected at node.rb
-      set :metronome, nil? # to be injected at node.rb
-      set :entrance, nil? # to be injected at node.rb
-      set :network, 'test' # to be injected at node.rb
-      set :wallets, nil? # to be injected at node.rb
-      set :remotes, nil? # to be injected at node.rb
-      set :copies, nil? # to be injected at node.rb
-      set :node_alias, nil? # to be injected at node.rb
-      set :cache, Cache.new
+      set :logger, nil # to be injected at node.rb
+      set :address, nil # to be injected at node.rb
+      set :farm, nil # to be injected at node.rb
+      set :metronome, nil # to be injected at node.rb
+      set :entrance, nil # to be injected at node.rb
+      set :wallets, nil # to be injected at node.rb
+      set :remotes, nil # to be injected at node.rb
+      set :copies, nil # to be injected at node.rb
+      set :node_alias, nil # to be injected at node.rb
+      set :zache, Zache.new
     end
     use Rack::Deflater
 
     before do
       Thread.current.thread_variable_set(:uri, request.url)
+      Thread.current.thread_variable_set(:ip, request.ip)
       @start = Time.now
-      if !settings.halt.empty? && params[:halt] && params[:halt] == settings.halt
+      if !settings.opts['halt-code'].empty? && params[:halt] && params[:halt] == settings.opts['halt-code']
         settings.log.error('Halt signal received, shutting the front end down...')
         Front.stop!
       end
       check_header(Http::NETWORK_HEADER) do |header|
-        if header != settings.network
+        if header != settings.opts['network']
           error(400, "Network name mismatch at #{request.url}, #{request.ip} is in '#{header}', \
-while #{settings.address} is in '#{settings.network}'")
+while #{settings.address} is in '#{settings.opts['network']}'")
         end
       end
       check_header(Http::PROTOCOL_HEADER) do |header|
@@ -100,21 +96,23 @@ while #{settings.address} is in '#{settings.network}'")
         end
       end
       check_header(Http::SCORE_HEADER) do |header|
-        if settings.remotes.all.empty?
+        if settings.opts['standalone']
           settings.log.debug("#{request.url}: we are in standalone mode, won't update remotes")
-        end
-        s = Score.parse_text(header)
-        error(400, 'The score is invalid') unless s.valid?
-        error(400, 'The score is weak') if s.strength < Score::STRENGTH && !settings.ignore_score_weakness
-        if settings.address == "#{s.host}:#{s.port}" && !settings.ignore_score_weakness
-          error(400, 'Self-requests are prohibited')
-        end
-        require_relative '../commands/remote'
-        cmd = Remote.new(remotes: settings.remotes, log: settings.log)
-        begin
-          cmd.run(['remote', 'add', s.host, s.port.to_s, "--network=#{settings.network}"])
-        rescue StandardError => e
-          error(400, e.message)
+        else
+          s = Score.parse_text(header)
+          error(400, 'The score is invalid') unless s.valid?
+          error(400, 'The score is weak') if s.strength < Score::STRENGTH && !settings.opts['ignore-score-weakness']
+          if settings.address == "#{s.host}:#{s.port}" && !settings.opts['ignore-score-weakness']
+            error(400, 'Self-requests are prohibited')
+          end
+          require_relative '../commands/remote'
+          begin
+            Remote.new(remotes: settings.remotes, log: settings.log).run(
+              ['remote', 'add', s.host, s.port.to_s, "--network=#{settings.opts['network']}", '--ignore-if-exists']
+            )
+          rescue StandardError => e
+            error(400, e.message)
+          end
         end
       end
     end
@@ -123,7 +121,7 @@ while #{settings.address} is in '#{settings.network}'")
     #  Currently there are no tests at all that would verify the headers.
     after do
       headers['Cache-Control'] = 'no-cache'
-      headers['X-Zold-Version'] = settings.version
+      headers['X-Zold-Version'] = settings.opts['expose-version']
       headers[Http::PROTOCOL_HEADER] = settings.protocol.to_s
       headers['Access-Control-Allow-Origin'] = '*'
       headers[Http::SCORE_HEADER] = score.reduced(16).to_s
@@ -144,7 +142,12 @@ in #{Age.new(@start, limit: 1)}")
 
     get '/version' do
       content_type('text/plain')
-      settings.version
+      settings.opts['expose-version']
+    end
+
+    get '/protocol' do
+      content_type('text/plain')
+      settings.protocol.to_s
     end
 
     get '/pid' do
@@ -182,21 +185,30 @@ in #{Age.new(@start, limit: 1)}")
 
     get '/' do
       content_type('application/json')
-      JSON.pretty_generate(
-        version: settings.version,
+      pretty(
+        version: settings.opts['expose-version'],
         alias: settings.node_alias,
-        network: settings.network,
+        network: settings.opts['network'],
         protocol: settings.protocol,
         score: score.to_h,
         pid: Process.pid,
-        cpus: settings.cache.get(:cpus) { Concurrent.processor_count },
-        memory: GetProcessMem.new.bytes.to_i,
+        processes: processes_count,
+        cpus: settings.zache.get(:cpus) do
+          Concurrent.processor_count
+        end,
+        memory: settings.zache.get(:memory, lifetime: 5 * 60) do
+          require 'get_process_mem'
+          GetProcessMem.new.bytes.to_i
+        end,
         platform: RUBY_PLATFORM,
-        load: settings.cache.get(:load, lifetime: 5 * 60) { Usagewatch.uw_load.to_f },
+        load: settings.zache.get(:load, lifetime: 5 * 60) do
+          require 'usagewatch_ext'
+          Object.const_defined?('Usagewatch') ? Usagewatch.uw_load.to_f : 0.0
+        end,
         threads: "#{Thread.list.select { |t| t.status == 'run' }.count}/#{Thread.list.count}",
         wallets: total_wallets,
-        remotes: settings.remotes.all.count,
-        nscore: settings.remotes.all.map { |r| r[:score] }.inject(&:+) || 0,
+        remotes: all_remotes.count,
+        nscore: all_remotes.map { |r| r[:score] }.inject(&:+) || 0,
         farm: settings.farm.to_json,
         entrance: settings.entrance.to_json,
         date: Time.now.utc.iso8601,
@@ -206,21 +218,18 @@ in #{Age.new(@start, limit: 1)}")
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})} do
-      error(404, 'FETCH is disabled with --disable-fetch') if settings.disable_fetch
-      id = Id.new(params[:id])
-      copy_of(id) do |wallet|
-        content_type('application/json')
-        JSON.pretty_generate(
-          version: settings.version,
+      fetch('application/json') do |wallet|
+        pretty(
+          version: settings.opts['expose-version'],
           alias: settings.node_alias,
           protocol: settings.protocol,
           id: wallet.id.to_s,
           score: score.to_h,
           wallets: total_wallets,
           mtime: wallet.mtime.utc.iso8601,
-          size: File.size(wallet.path),
+          size: wallet.size,
           digest: wallet.digest,
-          copies: Copies.new(File.join(settings.copies, id)).all.count,
+          copies: Copies.new(File.join(settings.copies, wallet.id)).all.count,
           balance: wallet.balance.to_i,
           body: File.new(wallet.path).read
         )
@@ -228,12 +237,9 @@ in #{Age.new(@start, limit: 1)}")
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16}).json} do
-      error(404, 'FETCH is disabled with --disable-fetch') if settings.disable_fetch
-      id = Id.new(params[:id])
-      copy_of(id) do |wallet|
-        content_type('application/json')
-        JSON.pretty_generate(
-          version: settings.version,
+      fetch('application/json') do |wallet|
+        pretty(
+          version: settings.opts['expose-version'],
           alias: settings.node_alias,
           protocol: settings.protocol,
           id: wallet.id.to_s,
@@ -249,46 +255,35 @@ in #{Age.new(@start, limit: 1)}")
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/balance} do
-      error(404, 'FETCH is disabled with --disable-fetch') if settings.disable_fetch
-      id = Id.new(params[:id])
-      copy_of(id) do |wallet|
-        content_type 'text/plain'
-        wallet.balance.to_i.to_s
-      end
+      fetch { |w| w.balance.to_i.to_s }
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/key} do
-      error(404, 'FETCH is disabled with --disable-fetch') if settings.disable_fetch
-      id = Id.new(params[:id])
-      copy_of(id) do |wallet|
-        content_type 'text/plain'
-        wallet.key.to_pub
-      end
+      fetch { |w| w.key.to_pub }
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/mtime} do
-      error(404, 'FETCH is disabled with --disable-fetch') if settings.disable_fetch
-      id = Id.new(params[:id])
-      copy_of(id) do |wallet|
-        content_type 'text/plain'
-        wallet.mtime.utc.iso8601.to_s
-      end
+      fetch { |w| w.mtime.utc.iso8601.to_s }
+    end
+
+    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/size} do
+      fetch { |w| w.size.to_s }
+    end
+
+    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/age} do
+      fetch { |w| w.age.to_s }
+    end
+
+    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/mnemo} do
+      fetch(&:mnemo)
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/digest} do
-      error(404, 'FETCH is disabled with --disable-fetch') if settings.disable_fetch
-      id = Id.new(params[:id])
-      copy_of(id) do |wallet|
-        content_type 'text/plain'
-        wallet.digest
-      end
+      fetch(&:digest)
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.txt} do
-      error(404, 'FETCH is disabled with --disable-fetch') if settings.disable_fetch
-      id = Id.new(params[:id])
-      copy_of(id) do |wallet|
-        content_type 'text/plain'
+      fetch do |wallet|
         [
           wallet.network,
           wallet.protocol,
@@ -300,7 +295,8 @@ in #{Age.new(@start, limit: 1)}")
           '--',
           "Balance: #{wallet.balance.to_zld(8)} ZLD (#{wallet.balance.to_i} zents)",
           "Transactions: #{wallet.txns.count}",
-          "File size: #{File.size(wallet.path)} bytes (#{Copies.new(File.join(settings.copies, id)).all.count} copies)",
+          "Taxes: #{Tax.new(wallet).paid} paid, the debt is #{Tax.new(wallet).debt}",
+          "File size: #{wallet.size} bytes (#{Copies.new(File.join(settings.copies, wallet.id)).all.count} copies)",
           "Modified: #{wallet.mtime.utc.iso8601} (#{Age.new(wallet.mtime.utc.iso8601)} ago)",
           "Digest: #{wallet.digest}"
         ].join("\n")
@@ -308,54 +304,43 @@ in #{Age.new(@start, limit: 1)}")
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.bin} do
-      error(404, 'FETCH is disabled with --disable-fetch') if settings.disable_fetch
-      id = Id.new(params[:id])
-      copy_of(id) do |wallet|
-        content_type 'text/plain'
-        IO.read(wallet.path)
-      end
+      fetch { |w| IO.read(w.path) }
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/copies} do
-      error(404, 'FETCH is disabled with --disable-fetch') if settings.disable_fetch
-      id = Id.new(params[:id])
-      copy_of(id) do
-        content_type 'text/plain'
-        copies = Copies.new(File.join(settings.copies, id))
+      fetch do |wallet|
+        copies = Copies.new(File.join(settings.copies, wallet.id))
         copies.load.map do |c|
           "#{c[:name]}: #{c[:host]}:#{c[:port]} #{c[:score]} #{c[:time].utc.iso8601}"
         end.join("\n") +
         "\n\n" +
         copies.all.map do |c|
           w = Wallet.new(c[:path])
-          "#{c[:name]}: #{c[:score]} #{w.balance}/#{w.txns.count}t/\
-#{w.digest[0, 6]}/#{Size.new(File.size(c[:path]))}/#{Age.new(File.mtime(c[:path]))}"
+          "#{c[:name]}: #{c[:score]} #{w.mnemo} \
+#{Size.new(File.size(c[:path]))}/#{Age.new(File.mtime(c[:path]))}"
         end.join("\n")
       end
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/copy/(?<name>[0-9]+)} do
-      error(404, 'FETCH is disabled with --disable-fetch') if settings.disable_fetch
-      id = Id.new(params[:id])
-      name = params[:name]
-      copy_of(id) do
-        copy = Copies.new(File.join(settings.copies, id)).all.find { |c| c[:name] == name }
+      fetch do |wallet|
+        name = params[:name]
+        copy = Copies.new(File.join(settings.copies, wallet.id)).all.find { |c| c[:name] == name }
         error 404 if copy.nil?
-        content_type 'text/plain'
         IO.read(copy[:path])
       end
     end
 
     put %r{/wallet/(?<id>[A-Fa-f0-9]{16})/?} do
-      error(404, 'PUSH is disabled with --disable-push') if settings.disable_fetch
+      error(404, 'PUSH is disabled with --disable-push') if settings.opts['disable-fetch']
       request.body.rewind
       modified = settings.entrance.push(Id.new(params[:id]), request.body.read.to_s)
       if modified.empty?
         status(304)
         return
       end
-      JSON.pretty_generate(
-        version: settings.version,
+      pretty(
+        version: settings.opts['expose-version'],
         alias: settings.node_alias,
         score: score.to_h,
         wallets: total_wallets
@@ -364,11 +349,11 @@ in #{Age.new(@start, limit: 1)}")
 
     get '/remotes' do
       content_type('application/json')
-      JSON.pretty_generate(
-        version: settings.version,
+      pretty(
+        version: settings.opts['expose-version'],
         alias: settings.node_alias,
         score: score.to_h,
-        all: settings.remotes.all,
+        all: all_remotes,
         mtime: settings.remotes.mtime.utc.iso8601
       )
     end
@@ -395,6 +380,11 @@ in #{Age.new(@start, limit: 1)}")
           ].join("\n")
         end
       ].flatten.join("\n\n")
+    end
+
+    get '/ps' do
+      content_type('text/plain')
+      processes.join("\n")
     end
 
     not_found do
@@ -432,26 +422,59 @@ in #{Age.new(@start, limit: 1)}")
     #  takes a lot of time (when the amount of wallets is big, like 40K). However,
     #  we must find a way to count them somehow faster.
     def total_wallets
-      return 256 if settings.network == Wallet::MAIN_NETWORK
+      return 256 if settings.opts['network'] == Wallet::MAIN_NETWORK
       settings.wallets.all.count
     end
 
+    def all_remotes
+      settings.zache.get(:remotes, lifetime: settings.opts['network'] == Wallet::MAIN_NETWORK ? 60 : 0) do
+        settings.remotes.all
+      end
+    end
+
+    def processes_count
+      settings.zache.get(:processes, lifetime: settings.opts['network'] == Wallet::MAIN_NETWORK ? 60 : 0) do
+        processes.count
+      end
+    end
+
+    def processes
+      POSIX::Spawn::Child.new('ps', 'ax').out.split("\n").select { |t| t.include?('zold') }
+    end
+
+    def pretty(json)
+      json.to_json
+      # There seems to be some issue with memory leakage at this line, that's
+      # why it's disabled for now:
+      # JSON.pretty_generate(json)
+    end
+
     def score
-      settings.cache.get(:score, lifetime: settings.network == Wallet::MAIN_NETWORK ? 60 : 1) do
+      settings.zache.get(:score, lifetime: settings.opts['network'] == Wallet::MAIN_NETWORK ? 60 : 0) do
         b = settings.farm.best
         raise 'Score is empty, there is something wrong with the Farm!' if b.empty?
         b[0]
       end
     end
 
-    def copy_of(id)
-      Tempfile.open([id.to_s, Wallet::EXT]) do |f|
-        settings.wallets.find(id) do |wallet|
-          error(404, "Wallet ##{id} doesn't exist on the node") unless wallet.exists?
-          IO.write(f, IO.read(wallet.path))
-        end
-        yield Wallet.new(f.path)
+    def fetch(type = 'text/plain')
+      error(404, 'FETCH is disabled with --disable-fetch') if settings.opts['disable-fetch']
+      id = Id.new(params[:id])
+      copy_of(id) do |wallet|
+        content_type(type)
+        yield wallet
       end
+    end
+
+    def copy_of(id)
+      settings.wallets.acq(id) do |wallet|
+        error(404, "Wallet ##{id} doesn't exist on the node") unless wallet.exists?
+        yield wallet
+      end
+    end
+
+    def running_server?
+      false
     end
   end
 end

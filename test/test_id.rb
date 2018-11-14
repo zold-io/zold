@@ -28,7 +28,7 @@ require_relative '../lib/zold/id'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestId < Minitest::Test
+class TestId < Zold::Test
   def test_generates_new_id
     50.times do
       id = Zold::Id.new

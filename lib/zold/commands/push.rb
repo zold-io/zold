@@ -87,16 +87,15 @@ total score for #{id} is #{total}")
         return 0
       end
       start = Time.now
-      content = @wallets.find(id) do |wallet|
+      content = @wallets.acq(id) do |wallet|
         raise "The wallet #{id} is absent" unless wallet.exists?
         IO.read(wallet.path)
       end
       uri = "/wallet/#{id}"
-      response = r.http(uri).put(content)
-      @wallets.find(id) do |wallet|
+      response = r.http(uri).put(content, timeout: 2 + content.length * 0.01 / 1024)
+      @wallets.acq(id) do |wallet|
         if response.code == '304'
-          @log.info("#{r}: same version #{Size.new(content.length)}/#{wallet.txns.count}t \
-of #{wallet.id} there, in #{Age.new(start, limit: 0.5)}")
+          @log.info("#{r}: same version of #{wallet.mnemo} there, in #{Age.new(start, limit: 0.5)}")
           return 0
         end
         r.assert_code(200, response)
@@ -105,8 +104,10 @@ of #{wallet.id} there, in #{Age.new(start, limit: 0.5)}")
         r.assert_valid_score(score)
         r.assert_score_ownership(score)
         r.assert_score_strength(score) unless opts['ignore-score-weakness']
-        @log.info("#{r} accepted #{Size.new(content.length)}/#{wallet.digest[0, 6]}/#{wallet.txns.count}t \
-of #{wallet.id} in #{Age.new(start, limit: 4)}: #{Rainbow(score.value).green} (#{json['version']})")
+        if @log.info?
+          @log.info("#{r} accepted #{wallet.mnemo} in #{Age.new(start, limit: 4)}: \
+#{Rainbow(score.value).green} (#{json['version']})")
+        end
         score.value
       end
     end

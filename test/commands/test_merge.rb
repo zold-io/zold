@@ -24,6 +24,7 @@ require 'minitest/autorun'
 require 'tmpdir'
 require 'time'
 require 'webmock/minitest'
+require 'zold/score'
 require_relative '../test__helper'
 require_relative '../fake_home'
 require_relative '../../lib/zold/wallet'
@@ -31,7 +32,6 @@ require_relative '../../lib/zold/wallets'
 require_relative '../../lib/zold/id'
 require_relative '../../lib/zold/copies'
 require_relative '../../lib/zold/key'
-require_relative '../../lib/zold/score'
 require_relative '../../lib/zold/patch'
 require_relative '../../lib/zold/commands/merge'
 require_relative '../../lib/zold/commands/pay'
@@ -40,7 +40,7 @@ require_relative '../../lib/zold/commands/pay'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestMerge < Minitest::Test
+class TestMerge < Zold::Test
   def test_merges_wallet
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet

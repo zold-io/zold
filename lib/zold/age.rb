@@ -49,6 +49,7 @@ module Zold
     private
 
     def text(sec)
+      return "#{(sec * 1_000_000).round}μs" if sec < 0.001
       return "#{(sec * 1000).round}ms" if sec < 1
       return "#{sec.round(2)}s" if sec < 60
       return "#{(sec / 60).round}m" if sec < 60 * 60

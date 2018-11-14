@@ -26,7 +26,7 @@ require_relative '../test__helper'
 require_relative '../../lib/zold/node/emission'
 require_relative '../../lib/zold/amount'
 
-class EmissionTest < Minitest::Test
+class EmissionTest < Zold::Test
   def test_emission
     (1..10).each do |year|
       FakeHome.new(log: test_log).run do |home|

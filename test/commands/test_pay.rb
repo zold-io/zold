@@ -34,7 +34,7 @@ require_relative '../../lib/zold/commands/pay'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestPay < Minitest::Test
+class TestPay < Zold::Test
   def test_sends_from_wallet_to_wallet
     FakeHome.new(log: test_log).run do |home|
       source = home.create_wallet

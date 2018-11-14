@@ -31,14 +31,14 @@ require_relative '../../lib/zold/commands/create'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestCreate < Minitest::Test
+class TestCreate < Zold::Test
   def test_creates_wallet
     Dir.mktmpdir do |dir|
       wallets = Zold::Wallets.new(dir)
       id = Zold::Create.new(wallets: wallets, log: test_log).run(
         ['create', '--public-key=fixtures/id_rsa.pub']
       )
-      wallets.find(id) do |wallet|
+      wallets.acq(id) do |wallet|
         assert(wallet.balance.zero?)
         assert(
           File.exist?(File.join(dir, "#{wallet.id}#{Zold::Wallet::EXT}")),

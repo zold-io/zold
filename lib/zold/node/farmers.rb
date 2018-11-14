@@ -22,8 +22,10 @@
 
 require 'open3'
 require 'backtrace'
+require 'zold/score'
+require 'shellwords'
+require 'posix/spawn'
 require_relative '../log'
-require_relative '../score'
 require_relative '../age'
 
 # Farmers.
@@ -47,11 +49,26 @@ module Zold
       end
 
       def up(score)
+        if POSIX::Spawn::Child.new('ps', 'ax').out.include?(score.to_s.split(' ').take(4).join(' '))
+          raise "We are farming the score already: #{score}"
+        end
         start = Time.now
         bin = File.expand_path(File.join(File.dirname(__FILE__), '../../../bin/zold'))
         raise "Zold binary not found at #{bin}" unless File.exist?(bin)
-        Open3.popen2e("ruby #{bin} --skip-upgrades --low-priority next \"#{score}\"") do |stdin, stdout, thr|
+        cmd = [
+          'ruby',
+          Shellwords.escape(bin),
+          '--skip-upgrades',
+          "--info-tid=#{Thread.current.thread_variable_get(:tid)}",
+          "--info-thread=#{Shellwords.escape(Thread.current.name)}",
+          "--info-start=#{Time.now.utc.iso8601}",
+          '--low-priority',
+          'next',
+          Shellwords.escape(score)
+        ].join(' ')
+        Open3.popen2e(cmd) do |stdin, stdout, thr|
           Thread.current.thread_variable_set(:pid, thr.pid.to_s)
+          at_exit { kill(thr.pid, start) }
           @log.debug("Scoring started in proc ##{thr.pid} \
 for #{score.value}/#{score.strength} at #{score.host}:#{score.port}")
           begin
@@ -59,7 +76,7 @@ for #{score.value}/#{score.strength} at #{score.host}:#{score.port}")
             buffer = +''
             loop do
               begin
-                buffer << stdout.read_nonblock(1024)
+                buffer << stdout.read_nonblock(16 * 1024)
                 # rubocop:disable Lint/HandleExceptions
               rescue IO::WaitReadable => _
                 # rubocop:enable Lint/HandleExceptions
@@ -73,7 +90,7 @@ for #{score.value}/#{score.strength} at #{score.host}:#{score.port}")
                 raise "Failed to calculate the score (##{thr.value}): #{buffer}" unless thr.value.to_i.zero?
                 break
               end
-              sleep 0.25
+              sleep(1)
               Thread.current.thread_variable_set(:buffer, buffer.length.to_s)
             end
             after = Score.parse(buffer.strip)
@@ -81,16 +98,16 @@ for #{score.value}/#{score.strength} at #{score.host}:#{score.port}")
 for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}")
             after
           ensure
-            kill(thr.pid)
+            kill(thr.pid, start)
           end
         end
       end
 
       private
 
-      def kill(pid)
-        Process.kill('TERM', pid)
-        @log.debug("Process ##{pid} killed")
+      def kill(pid, start)
+        Process.kill('KILL', pid)
+        @log.debug("Process ##{pid} killed after #{Age.new(start)} of activity")
       rescue StandardError => e
         @log.debug("No need to kill process ##{pid} since it's dead already: #{e.message}")
       end

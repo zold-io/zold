@@ -24,24 +24,27 @@ require 'minitest/autorun'
 require 'tmpdir'
 require 'uri'
 require 'webmock/minitest'
+require 'zold/score'
+require 'random-port'
+require_relative 'test__helper'
 require_relative '../lib/zold/http'
-require_relative '../lib/zold/score'
+require_relative '../lib/zold/verbose_thread'
 
 # Http test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestHttp < Minitest::Test
+class TestHttp < Zold::Test
   def test_pings_broken_uri
     stub_request(:get, 'http://bad-host/').to_return(status: 500)
-    res = Zold::Http.new(uri: 'http://bad-host/', score: nil).get
+    res = Zold::Http.new(uri: 'http://bad-host/').get
     assert_equal('500', res.code)
     assert_equal('', res.body)
   end
 
   def test_pings_with_exception
     stub_request(:get, 'http://exception/').to_return { raise 'Intentionally' }
-    res = Zold::Http.new(uri: 'http://exception/', score: nil).get
+    res = Zold::Http.new(uri: 'http://exception/').get
     assert_equal('599', res.code)
     assert(res.body.include?('Intentionally'))
     assert(!res.header['nothing'])
@@ -49,7 +52,7 @@ class TestHttp < Minitest::Test
 
   def test_pings_live_uri
     stub_request(:get, 'http://good-host/').to_return(status: 200)
-    res = Zold::Http.new(uri: 'http://good-host/', score: nil).get
+    res = Zold::Http.new(uri: 'http://good-host/').get
     assert_equal('200', res.code)
   end
 
@@ -57,7 +60,7 @@ class TestHttp < Minitest::Test
     stub_request(:get, 'http://some-host-1/')
       .with(headers: { 'X-Zold-Network' => 'xyz' })
       .to_return(status: 200)
-    res = Zold::Http.new(uri: 'http://some-host-1/', score: nil, network: 'xyz').get
+    res = Zold::Http.new(uri: 'http://some-host-1/', network: 'xyz').get
     assert_equal('200', res.code)
   end
 
@@ -65,24 +68,54 @@ class TestHttp < Minitest::Test
     stub_request(:get, 'http://some-host-2/')
       .with(headers: { 'X-Zold-Protocol' => Zold::PROTOCOL })
       .to_return(status: 200)
-    res = Zold::Http.new(uri: 'http://some-host-2/', score: nil).get
+    res = Zold::Http.new(uri: 'http://some-host-2/').get
     assert_equal('200', res.code)
   end
 
-  def test_terminates_on_timeout
-    stub_request(:get, 'http://the-fake-host-99/').to_return do
-      sleep 100
-      { body: 'This should never be returned!' }
+  def test_doesnt_terminate_on_long_call
+    WebMock.allow_net_connect!
+    RandomPort::Pool::SINGLETON.acquire do |port|
+      thread = Thread.start do
+        Zold::VerboseThread.new(test_log).run do
+          server = TCPServer.new(port)
+          client = server.accept
+          client.puts("HTTP/1.1 200 OK\nContent-Length: 4\n\n")
+          sleep 1
+          client.puts('Good')
+          client.close
+        end
+      end
+      sleep 0.25
+      res = Zold::Http.new(uri: "http://127.0.0.1:#{port}/").get(timeout: 2)
+      assert_equal('200', res.code, res)
+      thread.kill
+      thread.join
     end
-    res = Zold::Http.new(uri: 'http://the-fake-host-99/', score: nil).get
-    assert_equal('599', res.code)
+  end
+
+  def test_terminates_on_timeout
+    WebMock.allow_net_connect!
+    RandomPort::Pool::SINGLETON.acquire do |port|
+      thread = Thread.start do
+        Zold::VerboseThread.new(test_log).run do
+          server = TCPServer.new(port)
+          server.accept
+          sleep 400
+        end
+      end
+      sleep 0.25
+      res = Zold::Http.new(uri: "http://127.0.0.1:#{port}/").get(timeout: 0.1)
+      assert_equal('599', res.code, res)
+      thread.kill
+      thread.join
+    end
   end
 
   def test_sends_valid_version_header
     stub_request(:get, 'http://some-host-3/')
       .with(headers: { 'X-Zold-Version' => Zold::VERSION })
       .to_return(status: 200)
-    res = Zold::Http.new(uri: 'http://some-host-3/', score: nil).get
-    assert_equal('200', res.code)
+    res = Zold::Http.new(uri: 'http://some-host-3/').get
+    assert_equal('200', res.code, res)
   end
 end

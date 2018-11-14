@@ -13,6 +13,7 @@
 [![Gem Version](https://badge.fury.io/rb/zold.svg)](http://badge.fury.io/rb/zold)
 [![Test Coverage](https://img.shields.io/codecov/c/github/zold-io/zold.svg)](https://codecov.io/github/zold-io/zold?branch=master)
 
+[![Yard Docs](http://img.shields.io/badge/yard-docs-blue.svg)](http://rubydoc.info/github/zold-io/zold/master/frames)
 [![Maintainability](https://api.codeclimate.com/v1/badges/2861728929db934eb376/maintainability)](https://codeclimate.com/github/zold-io/zold/maintainability)
 
 **NOTICE**: It's an experiment and a very early draft! Please, feel free to
@@ -119,6 +120,12 @@ $ killall -9 zold
 Grateful users of the system will pay "taxes" to your wallet
 for the maintenance of their wallets, and the system will occasionally
 send you bonuses for keeping the node online (approximately 1 ZLD per day).
+
+If you are lost, run this:
+
+```bash
+$ zold node --help
+```
 
 ## Frequently Asked Questions
 
@@ -332,7 +339,7 @@ Then:
 
 ```bash
 $ bundle update
-$ rake
+$ bundle exec rake
 ```
 
 The build has to be clean. If it's not, [submit an issue](https://github.com/zold-io/zold/issues).

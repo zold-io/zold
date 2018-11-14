@@ -26,12 +26,12 @@ require 'time'
 require 'futex'
 require 'slop'
 require 'rainbow'
+require 'zold/score'
 require_relative 'args'
 require_relative '../age'
 require_relative '../size'
 require_relative '../log'
 require_relative '../http'
-require_relative '../score'
 require_relative '../copies'
 
 # CLEAN command.
@@ -55,24 +55,23 @@ Available options:"
       end
       mine = Args.new(opts, @log).take || return
       (mine.empty? ? @wallets.all : mine.map { |i| Id.new(i) }).each do |id|
-        clean(id, Copies.new(File.join(@copies, id), log: @log), opts)
+        clean(Copies.new(File.join(@copies, id), log: @log), opts)
       end
     end
 
-    def clean(id, cps, _)
-      Futex.new(File.join(@copies, "#{id}-clean"), log: @log).open do
-        start = Time.now
-        deleted = cps.clean
-        @log.debug(
-          "#{deleted} expired local copies removed for #{cps} \
-in #{Age.new(start, limit: 0.01)}, #{cps.all.count} left:\n" +
-          cps.all.map do |c|
-            wallet = Wallet.new(c[:path])
-            "  #{c[:name]}: #{c[:score]} #{wallet.balance}/#{wallet.txns.count}t/\
-#{wallet.digest[0, 6]}/#{Size.new(File.size(c[:path]))}/#{Age.new(File.mtime(c[:path]))}"
-          end.join("\n")
-        )
+    def clean(cps, _)
+      start = Time.now
+      deleted = cps.clean
+      list = cps.all.map do |c|
+        wallet = Wallet.new(c[:path])
+        "  #{c[:name]}: #{c[:score]} #{wallet.mnemo} \
+#{Size.new(File.size(c[:path]))}/#{Age.new(File.mtime(c[:path]))}"
       end
+      @log.debug(
+        "#{deleted} expired local copies removed for #{cps} \
+in #{Age.new(start, limit: 0.01)}, \
+#{list.empty? ? 'nothing left' : "#{list.count} left:\n#{list.join("\n")}"}"
+      )
     end
   end
 end

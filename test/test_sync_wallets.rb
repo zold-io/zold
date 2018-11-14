@@ -35,7 +35,7 @@ require_relative '../lib/zold/amount'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestSyncWallets < Minitest::Test
+class TestSyncWallets < Zold::Test
   def test_adds_wallet
     FakeHome.new(log: test_log).run do |home|
       wallets = home.wallets
@@ -44,13 +44,13 @@ class TestSyncWallets < Minitest::Test
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       amount = Zold::Amount.new(zld: 5.0)
       Threads.new(5).assert(100) do
-        wallets.find(id) do |wallet|
+        wallets.acq(id, exclusive: true) do |wallet|
           wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
           wallet.refurbish
         end
       end
       # assert_equal_wait(amount * -100, max: 4) do
-      #   wallets.find(id, &:balance)
+      #   wallets.acq(id, &:balance)
       # end
     end
   end

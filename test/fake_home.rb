@@ -55,7 +55,7 @@ class FakeHome
 
   def create_wallet(id = Zold::Id.new, dir = @dir)
     target = Zold::Wallet.new(File.join(dir, id.to_s + Zold::Wallet::EXT))
-    wallets.find(id) do |w|
+    wallets.acq(id, exclusive: true) do |w|
       w.init(id, Zold::Key.new(file: File.expand_path(File.join(__dir__, '../fixtures/id_rsa.pub'))))
       IO.write(target.path, IO.read(w.path))
     end
@@ -63,7 +63,7 @@ class FakeHome
   end
 
   def create_wallet_json(id = Zold::Id.new)
-    require_relative '../lib/zold/score'
+    require 'zold/score'
     score = Zold::Score::ZERO
     Dir.mktmpdir 'wallets' do |external_dir|
       wallet = create_wallet(id, external_dir)

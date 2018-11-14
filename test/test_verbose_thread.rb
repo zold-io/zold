@@ -28,7 +28,7 @@ require_relative '../lib/zold/verbose_thread'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestVerboseThread < Minitest::Test
+class TestVerboseThread < Zold::Test
   def test_exceptions_are_logged
     assert_raises RuntimeError do
       Zold::VerboseThread.new(Zold::Log::Quiet.new).run do

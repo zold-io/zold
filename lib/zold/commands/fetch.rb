@@ -27,12 +27,12 @@ require 'tempfile'
 require 'slop'
 require 'rainbow'
 require 'concurrent/atomics'
+require 'zold/score'
 require_relative 'args'
 require_relative '../log'
 require_relative '../age'
 require_relative '../http'
 require_relative '../size'
-require_relative '../score'
 require_relative '../json_page'
 require_relative '../copies'
 
@@ -90,12 +90,11 @@ Available options:"
       raise "No nodes out of #{nodes.value} have the wallet #{id}" if done.value.zero? && !opts['quiet-if-absent']
       @log.info("#{done.value} copies of #{id} fetched in #{Age.new(start)} with the total score of \
 #{total.value} from #{nodes.value} nodes")
-      @log.debug("#{cps.all.count} local copies:")
-      cps.all.each do |c|
-        wallet = Wallet.new(c[:path])
-        @log.debug("  #{c[:name]}: #{c[:score]} #{wallet.balance}/#{wallet.txns.count}t/\
-#{wallet.digest[0, 6]}/#{Size.new(File.size(c[:path]))}/#{Age.new(File.mtime(c[:path]))}")
+      list = cps.all.map do |c|
+        "  ##{c[:name]}: #{c[:score]} #{Wallet.new(c[:path]).mnemo} \
+#{Size.new(File.size(c[:path]))}/#{Age.new(File.mtime(c[:path]))}"
       end
+      @log.debug("#{cps.all.count} local copies of #{id}:\n#{list.join("\n")}")
     end
 
     def fetch_one(id, r, cps, opts)
@@ -105,7 +104,9 @@ Available options:"
         return 0
       end
       uri = "/wallet/#{id}"
-      res = r.http(uri).get
+      size = r.http(uri + '/size').get
+      r.assert_code(200, size)
+      res = r.http(uri).get(timeout: 2 + size.body.to_i * 0.01 / 1024)
       raise "Wallet #{id} not found" if res.code == '404'
       r.assert_code(200, res)
       json = JsonPage.new(res.body, uri).to_hash
@@ -128,9 +129,9 @@ Available options:"
           raise "The balance of #{id} is #{wallet.balance} and it's not a root wallet"
         end
         copy = cps.add(IO.read(f), score.host, score.port, score.value)
-        @log.info("#{r} returned #{Size.new(body.length)}/#{wallet.balance}/#{wallet.txns.count}t/\
-#{digest(json)}/#{Age.new(json['mtime'])}/#{json['copies']}c \
-as copy #{copy} of #{id} in #{Age.new(start, limit: 4)}: #{Rainbow(score.value).green} (#{json['version']})")
+        @log.info("#{r} returned #{wallet.mnemo} #{Age.new(json['mtime'])}/#{json['copies']}c \
+as copy ##{copy}/#{cps.all.count} in #{Age.new(start, limit: 4)}: \
+#{Rainbow(score.value).green} (#{json['version']})")
       end
       score.value
     end

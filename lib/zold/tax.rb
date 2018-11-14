@@ -45,7 +45,9 @@ module Zold
     # This is how much we charge per one transaction per hour
     # of storage. A wallet of 4096 transactions will pay
     # approximately 16ZLD per year.
-    FEE_TXN_HOUR = Amount.new(zld: 16.0 / (365 * 24) / 4096)
+    # Here is the formula: 16.0 / (365 * 24) / 4096 = 1915
+    # But I like the 1917 number better.
+    FEE = Amount.new(zents: 1917)
 
     # The maximum debt we can tolerate at the wallet. If the debt
     # is bigger than this threshold, nodes must stop accepting PUSH.
@@ -53,43 +55,51 @@ module Zold
 
     # Text prefix for taxes details
     PREFIX = 'TAXES'
+    private_constant :PREFIX
 
-    def initialize(wallet)
+    def initialize(wallet, ignore_score_weakness: false)
       raise "The wallet must be of type Wallet: #{wallet.class.name}" unless wallet.is_a?(Wallet)
       @wallet = wallet
+      @ignore_score_weakness = ignore_score_weakness
     end
 
     # Check whether this tax payment already exists in the wallet.
     def exists?(details)
-      !@wallet.txns.find { |t| t.details.start_with?("#{Tax::PREFIX} ") && t.details == details }.nil?
+      !@wallet.txns.find { |t| t.details.start_with?("#{PREFIX} ") && t.details == details }.nil?
     end
 
     def details(best)
-      "#{Tax::PREFIX} #{best.reduced(Tax::EXACT_SCORE).to_text}"
+      "#{PREFIX} #{best.reduced(EXACT_SCORE).to_text}"
     end
 
     def pay(pvt, best)
-      @wallet.sub(Tax::MAX_PAYMENT, best.invoice, pvt, details(best))
+      @wallet.sub([MAX_PAYMENT, debt].min, best.invoice, pvt, details(best))
     end
 
     def in_debt?
-      debt > Tax::TRIAL
+      debt > TRIAL
+    end
+
+    def to_text
+      "A=#{@wallet.age.round} hours, F=#{FEE.to_i}z/th, T=#{@wallet.txns.count}t, Paid=#{paid}"
     end
 
     def debt
+      FEE * @wallet.txns.count * @wallet.age - paid
+    end
+
+    def paid
       txns = @wallet.txns
       scored = txns.map do |t|
         pfx, body = t.details.split(' ', 2)
-        next if pfx != Tax::PREFIX || body.nil?
+        next if pfx != PREFIX || body.nil?
         score = Score.parse_text(body)
-        next if !score.valid? || score.value != Tax::EXACT_SCORE
-        next if score.strength < Score::STRENGTH
-        next if t.amount > Tax::MAX_PAYMENT
+        next if !score.valid? || score.value != EXACT_SCORE
+        next if score.strength < Score::STRENGTH && !@ignore_score_weakness
+        next if t.amount > MAX_PAYMENT
         t
       end.compact.uniq(&:details)
-      paid = scored.empty? ? Amount::ZERO : scored.map(&:amount).inject(&:+)
-      owned = Tax::FEE_TXN_HOUR * txns.count * @wallet.age
-      owned - paid
+      scored.empty? ? Amount::ZERO : scored.map(&:amount).inject(&:+) * -1
     end
   end
 end

@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'rainbow'
+require 'monitor'
 
 STDOUT.sync = true
 
@@ -50,12 +51,12 @@ module Zold
     class Sync
       def initialize(log)
         @log = log
-        @mutex = Mutex.new
+        @monitor = Monitor.new
       end
 
       def debug(msg)
         return unless debug?
-        @mutex.synchronize do
+        @monitor.synchronize do
           @log.debug(msg)
         end
       end
@@ -66,7 +67,7 @@ module Zold
 
       def info(msg)
         return unless info?
-        @mutex.synchronize do
+        @monitor.synchronize do
           @log.info(msg)
         end
       end
@@ -76,7 +77,7 @@ module Zold
       end
 
       def error(msg)
-        @mutex.synchronize do
+        @monitor.synchronize do
           @log.error(msg)
         end
       end

@@ -52,7 +52,7 @@ Available options:"
         o.string '--private-key',
           'The location of RSA private key (default: ~/.ssh/id_rsa)',
           require: true,
-          default: '~/.ssh/id_rsa'
+          default: File.expand_path('~/.ssh/id_rsa')
         o.bool '--force',
           'Ignore all validations',
           default: false
@@ -79,7 +79,7 @@ Available options:"
       amount = Amount.new(zld: mine[2].to_f)
       details = mine[3] || '-'
       taxes(id, opts)
-      @wallets.find(id) do |from|
+      @wallets.acq(id, exclusive: true) do |from|
         pay(from, invoice, amount, details, opts)
       end
       return if opts['skip-propagate']
@@ -90,7 +90,7 @@ Available options:"
     private
 
     def taxes(id, opts)
-      debt = @wallets.find(id) do |wallet|
+      debt = @wallets.acq(id) do |wallet|
         raise "Wallet #{id} doesn't exist, do 'zold pull' first" unless wallet.exists?
         Tax.new(wallet).in_debt? && !opts['dont-pay-taxes']
       end
@@ -114,18 +114,10 @@ Available options:"
       @log.debug("#{amount} sent from #{from} to #{txn.bnf}: #{details}")
       @log.debug("Don't forget to do 'zold push #{from}'")
       @log.info(txn.id)
-      notify_of_tax_debt(from)
+      tax = Tax.new(from)
+      @log.info("The tax debt of #{from.mnemo} is #{tax.debt} \
+(#{tax.in_debt? ? 'too high' : 'still acceptable'})")
       txn
-    end
-
-    # @todo #79:40min Extract message cretion into a separate method for easier
-    #  testing. Add tests for when in debt and not. Extract to a
-    #  module, possibly Notify.
-    def notify_of_tax_debt(wallet)
-      tax = Tax.new(wallet)
-      message = "The tax debt of #{wallet} is #{tax.debt}"
-      message += ' (still acceptable)' unless tax.in_debt?
-      @log.info(message)
     end
   end
 end

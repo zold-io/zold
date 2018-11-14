@@ -32,7 +32,7 @@ require_relative '../../../lib/zold/node/entrance.rb'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestSpread < Minitest::Test
+class TestSpread < Zold::Test
   def test_spread_wallets
     FakeHome.new(log: test_log).run do |home|
       5.times { home.create_wallet }

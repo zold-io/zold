@@ -27,7 +27,7 @@ require_relative '../lib/zold/amount'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestAmount < Minitest::Test
+class TestAmount < Zold::Test
   def test_parses_zld
     amount = Zold::Amount.new(zld: 14.95)
     assert(
@@ -52,8 +52,8 @@ class TestAmount < Minitest::Test
     assert(amount != Zold::Amount::ZERO)
   end
 
-  def test_parses_coins
-    amount = Zold::Amount.new(coins: 900_000_000)
+  def test_parses_zents
+    amount = Zold::Amount.new(zents: 900_000_000)
     assert(
       amount.to_s.include?('0.21ZLD'),
       "#{amount} is not equal to '0.21ZLD'"
@@ -61,7 +61,7 @@ class TestAmount < Minitest::Test
   end
 
   def test_compares_amounts
-    amount = Zold::Amount.new(coins: 700_000_000)
+    amount = Zold::Amount.new(zents: 700_000_000)
     assert(
       amount > Zold::Amount::ZERO,
       "#{amount} is not greater than zero"

@@ -34,7 +34,7 @@ require_relative '../lib/zold/verbose_thread'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestRemotes < Minitest::Test
+class TestRemotes < Zold::Test
   def test_adds_remotes
     Dir.mktmpdir do |dir|
       file = File.join(dir, 'remotes')
@@ -42,6 +42,15 @@ class TestRemotes < Minitest::Test
       remotes = Zold::Remotes.new(file: file)
       remotes.add('127.0.0.1')
       assert(1, remotes.all.count)
+    end
+  end
+
+  def test_finds_defaults
+    Dir.mktmpdir do |dir|
+      file = File.join(dir, 'remotes')
+      FileUtils.touch(file)
+      remotes = Zold::Remotes.new(file: file)
+      assert(remotes.default?('b1.zold.io', 80))
     end
   end
 

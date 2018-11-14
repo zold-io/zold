@@ -33,7 +33,7 @@ require_relative 'fake_entrance'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestSpreadEntrance < Minitest::Test
+class TestSpreadEntrance < Zold::Test
   def test_renders_json
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet(Zold::Id.new)

@@ -38,7 +38,7 @@ require_relative '../../lib/zold/commands/diff'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestDiff < Minitest::Test
+class TestDiff < Zold::Test
   def test_diff_with_copies
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet

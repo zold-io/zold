@@ -20,18 +20,35 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# @todo #394:30m/DEV Right now only Score, Http, Zold::Remotes and Zold::Remote
-#  classes have been refactored for using dry-types, even tough the issue has
-#  been boosted refactoring the whole project is very cumbersome. Please refer
-#  to Score and Http class on how to perform all the changes for the project to
-#  adopt dry-types
-require 'dry-types'
-require 'dry-struct'
+require_relative 'log'
+require_relative 'verbose_thread'
+require_relative 'age'
 
-# HTTP page.
+# Endless loop.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Types
-  include Dry::Types.module
+module Zold
+  # Endless loop
+  class Endless
+    def initialize(title, log: Log::Quiet.new)
+      @title = title
+      @log = log
+    end
+
+    def run
+      start = Time.now
+      Thread.current.name = @title
+      Thread.current.abort_on_exception = true
+      begin
+        loop do
+          VerboseThread.new(@log).run(true) do
+            yield
+          end
+        end
+      ensure
+        @log.debug("Endless loop \"#{@title}\" quit after #{Age.new(start)} of work")
+      end
+    end
+  end
 end

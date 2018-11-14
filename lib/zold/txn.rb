@@ -36,9 +36,11 @@ module Zold
   class Txn
     # Regular expression for details
     RE_DETAILS = '[a-zA-Z0-9 @\!\?\*_\-\.:,\']+'
+    private_constant :RE_DETAILS
 
     # Regular expression for prefix
     RE_PREFIX = '[a-zA-Z0-9]+'
+    private_constant :RE_PREFIX
 
     attr_reader :id, :date, :amount, :prefix, :bnf, :details, :sign
     attr_writer :sign, :amount, :bnf
@@ -60,12 +62,12 @@ module Zold
       raise 'Prefix can\'t be NIL' if prefix.nil?
       raise "Prefix is too short: \"#{prefix}\"" if prefix.length < 8
       raise "Prefix is too long: \"#{prefix}\"" if prefix.length > 32
-      raise "Prefix is wrong: \"#{prefix}\" (#{Txn::RE_PREFIX})" unless prefix =~ Regexp.new("^#{Txn::RE_PREFIX}$")
+      raise "Prefix is wrong: \"#{prefix}\" (#{RE_PREFIX})" unless prefix =~ Regexp.new("^#{RE_PREFIX}$")
       @prefix = prefix
       raise 'Details can\'t be NIL' if details.nil?
       raise 'Details can\'t be empty' if details.empty?
       raise "Details are too long: \"#{details}\"" if details.length > 512
-      raise "Wrong details \"#{details}\" (#{Txn::RE_DETAILS})" unless details =~ Regexp.new("^#{Txn::RE_DETAILS}$")
+      raise "Wrong details \"#{details}\" (#{RE_DETAILS})" unless details =~ Regexp.new("^#{RE_DETAILS}$")
       @details = details
     end
 
@@ -115,25 +117,28 @@ module Zold
       t
     end
 
+    # Pattern to match the transaction from text
+    PTN = Regexp.new(
+      '^' + [
+        '(?<id>[0-9a-f]{4})',
+        '(?<date>[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z)',
+        '(?<amount>[0-9a-f]{16})',
+        "(?<prefix>#{RE_PREFIX})",
+        '(?<bnf>[0-9a-f]{16})',
+        "(?<details>#{RE_DETAILS})",
+        '(?<sign>[A-Za-z0-9+/]+={0,3})?'
+      ].join(';') + '$'
+    )
+    private_constant :PTN
+
     def self.parse(line, idx = 0)
-      regex = Regexp.new(
-        '^' + [
-          '(?<id>[0-9a-f]{4})',
-          '(?<date>[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z)',
-          '(?<amount>[0-9a-f]{16})',
-          "(?<prefix>#{Txn::RE_PREFIX})",
-          '(?<bnf>[0-9a-f]{16})',
-          "(?<details>#{Txn::RE_DETAILS})",
-          '(?<sign>[A-Za-z0-9+/]+={0,3})?'
-        ].join(';') + '$'
-      )
       clean = line.strip
-      parts = regex.match(clean)
+      parts = PTN.match(clean)
       raise "Invalid line ##{idx}: #{line.inspect} #{regex}" unless parts
       txn = Txn.new(
         Hexnum.parse(parts[:id]).to_i,
         Time.parse(parts[:date]),
-        Amount.new(coins: Hexnum.parse(parts[:amount]).to_i),
+        Amount.new(zents: Hexnum.parse(parts[:amount]).to_i),
         parts[:prefix],
         Id.new(parts[:bnf]),
         parts[:details]

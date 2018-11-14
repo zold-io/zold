@@ -27,7 +27,7 @@ require_relative '../lib/zold/hexnum'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestHexnum < Minitest::Test
+class TestHexnum < Zold::Test
   def test_prints_and_parses
     [0, 1, 3, 5, 7, 13, 6447, 897_464, -1, -3, -7584, -900_098].each do |n|
       assert_equal(n, Zold::Hexnum.parse(Zold::Hexnum.new(n, 6).to_s).to_i)

@@ -26,6 +26,7 @@ require 'rainbow'
 require 'net/http'
 require 'json'
 require 'time'
+require 'zold/score'
 require_relative 'args'
 require_relative '../node/farm'
 require_relative '../log'
@@ -33,7 +34,6 @@ require_relative '../age'
 require_relative '../json_page'
 require_relative '../http'
 require_relative '../remotes'
-require_relative '../score'
 require_relative '../wallet'
 require_relative '../gem'
 
@@ -87,6 +87,9 @@ Available options:"
         o.array '--ignore-node',
           'Ignore this node and never add it to the list',
           default: []
+        o.bool '--ignore-if-exists',
+          'Ignore the node while adding if it already exists in the list',
+          default: false
         o.integer '--min-score',
           "The minimum score required for winning the election (default: #{Tax::EXACT_SCORE})",
           default: Tax::EXACT_SCORE
@@ -96,6 +99,9 @@ Available options:"
         o.bool '--skip-ping',
           'Don\'t ping back the node when adding it (not recommended)',
           default: false
+        o.integer '--depth',
+          'The amount of update cycles to run, in order to fetch as many nodes as possible (default: 2)',
+          default: 2
         o.string '--network',
           "The name of the network we work in (default: #{Wallet::MAIN_NETWORK}",
           required: true,
@@ -139,7 +145,6 @@ Available options:"
         trim(opts)
       when 'update'
         update(opts)
-        update(opts, false)
       when 'select'
         select(opts)
       else
@@ -152,13 +157,14 @@ Available options:"
     def show
       @remotes.all.each do |r|
         score = Rainbow("/#{r[:score]}").color(r[:score].positive? ? :green : :red)
-        @log.info(r[:host] + Rainbow(":#{r[:port]}").gray + score)
+        @log.info("#{r[:host]}:#{r[:port]}#{score} #{r[:errors]} errors#{r[:default] ? ' default' : ''}")
       end
     end
 
     def clean
+      before = @remotes.all.count
       @remotes.clean
-      @log.debug('All remote nodes deleted')
+      @log.debug("All #{before} remote nodes deleted")
     end
 
     def reset
@@ -176,9 +182,13 @@ Available options:"
         @log.info("#{host}:#{port} won't be added since it's in the --ignore-node list")
         return
       end
+      if opts['ignore-if-exists'] && @remotes.exists?(host, port)
+        @log.debug("#{host}:#{port} already exists, won't add because of --ignore-if-exists")
+        return
+      end
       unless opts['skip-ping']
-        res = Http.new(uri: "http://#{host}:#{port}/version", score: nil, network: opts['network']).get
-        raise "The node #{host}:#{port} is not responding (code is #{res.code})" unless res.code == '200'
+        res = Http.new(uri: "http://#{host}:#{port}/version", network: opts['network']).get
+        raise "The node #{host}:#{port} is not responding, #{res.code}:#{res.message}" unless res.code == '200'
       end
       @remotes.add(host, port)
       @log.info("#{host}:#{port} added to the list, #{@remotes.all.count} total")
@@ -217,44 +227,53 @@ Available options:"
       all = @remotes.all
       all.each do |r|
         next if r[:errors] <= opts['tolerate']
-        remove(r[:host], r[:port], opts)
+        @remotes.remove(r[:host], r[:port])
         @log.info("#{r[:host]}:#{r[:port]} removed because of #{r[:errors]} errors (over #{opts['tolerate']})")
       end
       @log.info("The list of #{all.count} remotes trimmed, #{@remotes.all.count} nodes left there")
     end
 
-    def update(opts, deep = true)
+    def update(opts)
+      st = Time.now
       capacity = []
-      @remotes.iterate(@log, farm: @farm) do |r|
-        start = Time.now
-        uri = '/remotes'
-        res = r.http(uri).get
-        r.assert_code(200, res)
-        json = JsonPage.new(res.body, uri).to_hash
-        score = Score.parse_json(json['score'])
-        r.assert_valid_score(score)
-        r.assert_score_ownership(score)
-        r.assert_score_strength(score) unless opts['ignore-score-weakness']
-        @remotes.rescore(score.host, score.port, score.value)
-        gem = Zold::Gem.new
-        if Semantic::Version.new(VERSION) < Semantic::Version.new(json['version']) ||
-           Semantic::Version.new(VERSION) < Semantic::Version.new(gem.last_version)
-          if opts['reboot']
-            @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, reboot! \
-(use --never-reboot to avoid this from happening)")
-            terminate
+      opts['depth'].times do |cycle|
+        @remotes.iterate(@log, farm: @farm) do |r|
+          start = Time.now
+          uri = '/remotes'
+          res = r.http(uri).get
+          r.assert_code(200, res)
+          json = JsonPage.new(res.body, uri).to_hash
+          score = Score.parse_json(json['score'])
+          r.assert_valid_score(score)
+          r.assert_score_ownership(score)
+          r.assert_score_strength(score) unless opts['ignore-score-weakness']
+          @remotes.rescore(score.host, score.port, score.value)
+          gem = Zold::Gem.new
+          if Semantic::Version.new(VERSION) < Semantic::Version.new(json['version']) ||
+             Semantic::Version.new(VERSION) < Semantic::Version.new(gem.last_version)
+            if opts['reboot']
+              @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, reboot! \
+  (use --never-reboot to avoid this from happening)")
+              terminate
+            end
+            @log.debug("#{r}: their version #{json['version']} is higher than mine #{VERSION}, \
+  it's recommended to reboot, but I don't do it because of --never-reboot")
           end
-          @log.debug("#{r}: their version #{json['version']} is higher than mine #{VERSION}, \
-it's recommended to reboot, but I don't do it because of --never-reboot")
-        end
-        if deep
-          json['all'].each do |s|
-            add(s['host'], s['port'], opts)
-            @log.info("#{s['host']}:#{s['port']} found at #{r} and added")
+          if cycle.positive?
+            json['all'].each do |s|
+              if opts['ignore-node'].include?("#{s['host']}:#{s['port']}")
+                @log.debug("#{s['host']}:#{s['port']}, which is found at #{r} \
+  won't be added since it's in the --ignore-node list")
+                next
+              end
+              next if @remotes.exists?(s['host'], s['port'])
+              @remotes.add(s['host'], s['port'])
+              @log.info("#{s['host']}:#{s['port']} found at #{r} and added to the list of #{@remotes.all.count}")
+            end
           end
+          capacity << { host: score.host, port: score.port, count: json['all'].count }
+          @log.info("#{r}: the score is #{Rainbow(score.value).green} (#{json['version']}) in #{Age.new(start)}")
         end
-        capacity << { host: score.host, port: score.port, count: json['all'].count }
-        @log.info("#{r}: the score is #{Rainbow(score.value).green} (#{json['version']}) in #{Age.new(start)}")
       end
       max_capacity = capacity.map { |c| c[:count] }.max || 0
       capacity.each do |c|
@@ -264,7 +283,7 @@ it's recommended to reboot, but I don't do it because of --never-reboot")
       if total.zero?
         @log.info("The list of remotes is #{Rainbow('empty').red}, run 'zold remote reset'!")
       else
-        @log.info("There are #{total} known remotes")
+        @log.info("There are #{total} known remotes after update in #{Age.new(st)}")
       end
     end
 

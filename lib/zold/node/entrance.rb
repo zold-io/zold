@@ -51,6 +51,7 @@ module Zold
     end
 
     def start
+      raise 'Block must be given to start()' unless block_given?
       yield(self)
     end
 
@@ -90,8 +91,8 @@ module Zold
       @mutex.synchronize do
         @history.shift if @history.length >= 16
         @speed.shift if @speed.length >= 64
-        @wallets.find(id) do |wallet|
-          @history << "#{id}/#{sec}/#{modified.count}/#{wallet.balance.to_zld}/#{wallet.txns.count}t"
+        @wallets.acq(id) do |wallet|
+          @history << "#{sec}/#{modified.count}/#{wallet.mnemo}"
         end
         @speed << sec
       end

@@ -24,9 +24,9 @@ require 'open3'
 require 'slop'
 require 'backtrace'
 require 'concurrent'
+require 'zold/score'
 require_relative '../version'
 require_relative '../age'
-require_relative '../score'
 require_relative '../metronome'
 require_relative '../wallet'
 require_relative '../wallets'
@@ -79,8 +79,8 @@ module Zold
           "The strength of the score (default: #{Score::STRENGTH})",
           default: Score::STRENGTH
         o.integer '--threads',
-          "How many threads to use for scores finding (default: #{Concurrent.processor_count})",
-          default: Concurrent.processor_count
+          "How many threads to use for scores finding (default: #{[Concurrent.processor_count / 2, 2].max})",
+          default: [Concurrent.processor_count / 2, 2].max
         o.bool '--dump-errors',
           'Make HTTP front-end errors visible in the log (false by default)',
           default: false
@@ -124,18 +124,15 @@ module Zold
           default: '~/.ssh/id_rsa'
         o.string '--network',
           "The name of the network (default: #{Wallet::MAIN_NETWORK})",
-          require: true,
           default: Wallet::MAIN_NETWORK
         o.integer '--nohup-max-cycles',
           'Maximum amount of nohup re-starts (-1 by default, which means forever)',
-          require: true,
           default: -1
         o.string '--home',
           "Home directory (default: #{Dir.pwd})",
           default: Dir.pwd
         o.bool '--no-metronome',
           'Don\'t run the metronome',
-          required: true,
           default: false
         o.bool '--disable-push',
           'Prohibit all PUSH requests',
@@ -144,8 +141,7 @@ module Zold
           'Prohibit all FETCH requests',
           default: false
         o.string '--alias',
-          'The alias of the node (default: host:port)',
-          require: false
+          'The alias of the node (default: host:port)'
         o.string '--no-spawn',
           'Don\'t use child processes for the score farm',
           default: false
@@ -168,17 +164,13 @@ module Zold
       Front.set(:logger, @log)
       Front.set(:trace, @log)
       Front.set(:nohup_log, opts['nohup-log']) if opts['nohup-log']
-      Front.set(:version, opts['expose-version'])
       Front.set(:protocol, Zold::PROTOCOL)
       Front.set(:logging, @log.debug?)
-      Front.set(:halt, opts['halt-code'])
-      Front.set(:disable_push, opts['disable-push'])
-      Front.set(:disable_fetch, opts['disable-fetch'])
       home = File.expand_path(opts['home'])
       Front.set(:home, home)
-      @log.info("Time: #{Time.now.utc.iso8601}")
+      @log.info("Time: #{Time.now.utc.iso8601}; CPUs: #{Concurrent.processor_count}")
       @log.info("Home directory: #{home}")
-      @log.info("Ruby version: #{RUBY_VERSION}")
+      @log.info("Ruby version: #{RUBY_VERSION}/#{RUBY_PLATFORM}")
       @log.info("Zold gem version: #{Zold::VERSION}")
       @log.info("Zold protocol version: #{Zold::PROTOCOL}")
       @log.info("Network ID: #{opts['network']}")
@@ -186,7 +178,7 @@ module Zold
       port = opts[:port]
       address = "#{host}:#{port}".downcase
       @log.info("Node location: #{address}")
-      @log.info("Local address: http://localhost:#{opts['bind-port']}/")
+      @log.info("Local address: http://127.0.0.1:#{opts['bind-port']}/")
       @log.info("Remote nodes (#{@remotes.all.count}): \
 #{@remotes.all.map { |r| "#{r[:host]}:#{r[:port]}" }.join(', ')}")
       @log.info("Wallets at: #{@wallets.path}")
@@ -197,16 +189,14 @@ module Zold
         Zold::Remote.new(remotes: @remotes).run(['remote', 'remove', host, port.to_s])
         @log.info("Removed current node (#{address}) from list of remotes")
       end
-      Front.set(:ignore_score_weakness, opts['ignore-score-weakness'])
-      Front.set(:network, opts['network'])
       Front.set(:wallets, @wallets)
       Front.set(:remotes, @remotes)
       Front.set(:copies, @copies)
       Front.set(:address, address)
       Front.set(:root, home)
+      Front.set(:opts, opts)
       Front.set(:dump_errors, opts['dump-errors'])
       Front.set(:port, opts['bind-port'])
-      Front.set(:reboot, !opts['never-reboot'])
       node_alias = opts[:alias] || address
       unless node_alias.eql?(address) || node_alias =~ /^[A-Za-z0-9]{4,16}$/
         raise "Alias should be a 4 to 16 char long alphanumeric string: #{node_alias}"

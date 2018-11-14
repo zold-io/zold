@@ -32,11 +32,11 @@ require_relative 'fake_entrance'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestAsyncEntrance < Minitest::Test
+class TestAsyncEntrance < Zold::Test
   def test_renders_json
     FakeHome.new(log: test_log).run do |home|
       Zold::AsyncEntrance.new(FakeEntrance.new, home.dir, log: test_log).start do |e|
-        assert_equal(true, e.to_json[:'pool.running'])
+        assert_equal(0, e.to_json[:queue])
       end
     end
   end
@@ -66,8 +66,8 @@ class TestAsyncEntrance < Minitest::Test
           wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
           5.times { e.push(wallet.id, IO.read(wallet.path)) }
         end
+        assert_equal_wait(true) { basic.count >= 20 }
       end
-      assert_equal_wait(true) { basic.count >= 20 }
     end
   end
 

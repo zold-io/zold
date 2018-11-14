@@ -45,6 +45,7 @@ module Zold
     end
 
     def start
+      raise 'Block must be given to start()' unless block_given?
       @entrance.start do
         yield(self)
       end
@@ -52,7 +53,7 @@ module Zold
 
     # Always returns an array with a single ID of the pushed wallet
     def push(id, body)
-      Futex.new(File.join(@dir, id), log: @log).open do
+      Futex.new(File.join(@dir, id), log: @log, timeout: 60 * 60).open do
         @entrance.push(id, body)
       end
     end

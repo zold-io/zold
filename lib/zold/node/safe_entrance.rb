@@ -46,6 +46,7 @@ module Zold
     end
 
     def start
+      raise 'Block must be given to start()' unless block_given?
       @entrance.start { yield(self) }
     end
 
@@ -75,7 +76,8 @@ module Zold
         Emission.new(wallet).check
         tax = Tax.new(wallet)
         if tax.in_debt?
-          raise "Taxes are not paid, can't accept the wallet; the debt is #{tax.debt} (#{tax.debt.to_i} zents)"
+          raise "Taxes are not paid, can't accept the wallet #{wallet.mnemo}; the debt is #{tax.debt} \
+(#{tax.debt.to_i} zents); formula ingredients are #{tax.to_text}"
         end
         @entrance.push(id, body)
       end

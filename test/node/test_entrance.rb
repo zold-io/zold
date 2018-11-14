@@ -35,7 +35,7 @@ require_relative '../../lib/zold/commands/pay'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestEntrance < Minitest::Test
+class TestEntrance < Zold::Test
   def test_pushes_wallet
     sid = Zold::Id::ROOT
     tid = Zold::Id.new

@@ -46,7 +46,7 @@ Available options:"
         o.string '--public-key',
           'The location of RSA public key (default: ~/.ssh/id_rsa.pub)',
           require: true,
-          default: '~/.ssh/id_rsa.pub'
+          default: File.expand_path('~/.ssh/id_rsa.pub')
         o.string '--network',
           "The name of the network (default: #{Wallet::MAIN_NETWORK}",
           require: true,
@@ -61,7 +61,7 @@ Available options:"
 
     def create(id, opts)
       key = Zold::Key.new(file: opts['public-key'])
-      @wallets.find(id) do |wallet|
+      @wallets.acq(id, exclusive: true) do |wallet|
         wallet.init(id, key, network: opts['network'])
         @log.debug("Wallet #{Rainbow(wallet).green} created at #{@wallets.path}")
       end

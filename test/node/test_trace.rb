@@ -24,7 +24,7 @@ require 'minitest/autorun'
 require_relative '../test__helper'
 require_relative '../../lib/zold/node/trace'
 
-class TraceTest < Minitest::Test
+class TraceTest < Zold::Test
   def test_records_log_lines
     trace = Zold::Trace.new(test_log, 2)
     trace.error('This should not be visible')

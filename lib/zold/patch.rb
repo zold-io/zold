@@ -33,8 +33,6 @@ module Zold
   # A patch
   class Patch
     def initialize(wallets, log: Log::Quiet.new)
-      raise 'Wallets can\'t be nil' if wallets.nil?
-      raise 'Wallets must implement the contract of Wallets: method #find is required' unless wallets.respond_to?(:find)
       @wallets = wallets
       @txns = []
       @log = log
@@ -71,20 +69,16 @@ module Zold
       end
       wallet.txns.each do |txn|
         next if @txns.find { |t| t == txn }
-        if @txns.find { |t| t.id == txn.id && t.bnf == txn.bnf }
-          @log.error("A transaction with the same ID #{t.id} and BNF #{t.bnf} already exists")
-          next
-        end
         if txn.amount.negative?
           dup = @txns.find { |t| t.id == txn.id && t.amount.negative? }
           if dup
-            @log.error("An attempt to overwrite #{dup.to_text} with this: #{txn.to_text}")
+            @log.error("An attempt to overwrite \"#{dup.to_text}\" with \"#{txn.to_text}\" from #{wallet.mnemo}")
             next
           end
           balance = @txns.map(&:amount).map(&:to_i).inject(&:+).to_i
           if balance < txn.amount.to_i * -1 && !wallet.root?
             @log.error("Transaction ##{txn.id} attempts to make the balance of \
-#{wallet.id}/#{Amount.new(coins: balance).to_zld}/#{@txns.size} negative: #{txn.to_text}")
+#{wallet.id}/#{Amount.new(zents: balance).to_zld}/#{@txns.size} negative: #{txn.to_text}")
             next
           end
           unless Signature.new.valid?(@key, wallet.id, txn)
@@ -92,21 +86,25 @@ module Zold
             next
           end
         else
+          dup = @txns.find { |t| t.id == txn.id && t.bnf == txn.bnf && t.amount.positive? }
+          if dup
+            @log.error("Overwriting \"#{dup.to_text}\" with \"#{txn.to_text}\" from #{wallet.mnemo} (same ID/BNF)")
+            next
+          end
           if !txn.sign.nil? && !txn.sign.empty?
-            @log.error("RSA signature is redundant at ##{txn.id} of #{wallet.id}: #{txn.to_text}")
+            @log.error("RSA signature is redundant at ##{txn.id} of #{wallet.id}: \"#{txn.to_text}\"")
             next
           end
           unless wallet.prefix?(txn.prefix)
-            @log.error("Payment prefix '#{txn.prefix}' doesn't match with the key of #{wallet.id}: #{txn.to_text}")
+            @log.error("Payment prefix '#{txn.prefix}' doesn't match with the key of #{wallet.id}: \"#{txn.to_text}\"")
             next
           end
-          unless @wallets.find(txn.bnf, &:exists?)
+          unless @wallets.acq(txn.bnf, &:exists?)
             @log.error("Paying wallet file is absent: #{txn.to_text}")
             next
           end
-          unless @wallets.find(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
-            @log.error("Paying wallet #{txn.bnf} doesn't have transaction ##{txn.id} \
-among #{payer.txns.count} transactions: #{txn.to_text}")
+          unless @wallets.acq(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
+            @log.error("The beneficiary of #{@id} doesn't have this transaction: \"#{txn.to_text}\"")
             next
           end
         end

@@ -32,7 +32,7 @@ require_relative '../../lib/zold/commands/clean'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestClean < Minitest::Test
+class TestClean < Zold::Test
   def test_cleans_copies
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
@@ -41,6 +41,12 @@ class TestClean < Minitest::Test
       copies.add('a2', 'host-2', 80, 2, Time.now - 26 * 60 * 60)
       Zold::Clean.new(wallets: home.wallets, copies: copies.root, log: test_log).run(['clean', wallet.id.to_s])
       assert(copies.all.empty?)
+    end
+  end
+
+  def test_cleans_empty_wallets
+    FakeHome.new(log: test_log).run do |home|
+      Zold::Clean.new(wallets: home.wallets, copies: File.join(home.dir, 'c'), log: test_log).run(['clean'])
     end
   end
 

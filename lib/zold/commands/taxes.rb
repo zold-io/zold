@@ -23,11 +23,11 @@
 require 'slop'
 require 'json'
 require 'rainbow'
+require 'zold/score'
 require_relative 'args'
 require_relative 'pay'
 require_relative '../log'
 require_relative '../json_page'
-require_relative '../score'
 require_relative '../id'
 require_relative '../tax'
 require_relative '../http'
@@ -86,21 +86,21 @@ Available options:"
       when 'show'
         raise 'At least one wallet ID is required' unless mine[1]
         mine[1..-1].each do |id|
-          @wallets.find(Id.new(id)) do |w|
+          @wallets.acq(Id.new(id)) do |w|
             show(w, opts)
           end
         end
       when 'debt'
         raise 'At least one wallet ID is required' unless mine[1]
         mine[1..-1].each do |id|
-          @wallets.find(Id.new(id)) do |w|
+          @wallets.acq(Id.new(id)) do |w|
             debt(w, opts)
           end
         end
       when 'pay'
         raise 'At least one wallet ID is required' unless mine[1]
         mine[1..-1].each do |id|
-          @wallets.find(Id.new(id)) do |w|
+          @wallets.acq(Id.new(id), exclusive: true) do |w|
             pay(w, opts)
           end
         end
@@ -114,17 +114,27 @@ Available options:"
     def pay(wallet, opts)
       raise 'The wallet is absent' unless wallet.exists?
       tax = Tax.new(wallet)
-      debt = tax.debt
-      @log.info("The current debt of #{wallet.id}/#{wallet.txns.count}t is #{debt} (#{debt.to_i} zents)")
+      debt = total = tax.debt
+      @log.info("The current debt of #{wallet.mnemo} is #{debt} (#{debt.to_i} zents), \
+the balance is #{wallet.balance}: #{tax.to_text}")
       unless tax.in_debt?
         @log.debug("No need to pay taxes yet, while the debt is less than #{Tax::TRIAL} (#{Tax::TRIAL.to_i} zents)")
         return
       end
       top = top_scores(opts)
+      everybody = top.dup
+      paid = 0
       while debt > Tax::TRIAL
         if top.empty?
-          raise 'No acceptable remote nodes, try later' unless opts['ignore-nodes-absence']
-          @log.info('Not enough strong nodes in the network, try later')
+          msg = [
+            "There were #{everybody.count} remote nodes as tax collecting candidates;",
+            "#{paid} payments have been made;",
+            "there was not enough score power to pay the total debt of #{total} for #{wallet.id};",
+            "the residual amount to pay is #{debt} (trial amount is #{Tax::TRIAL});",
+            "the formula ingredients are #{tax.to_text}"
+          ].join(' ')
+          raise msg unless opts['ignore-nodes-absence']
+          @log.info(msg)
           break
         end
         best = top.shift
@@ -134,7 +144,9 @@ Available options:"
         end
         txn = tax.pay(Zold::Key.new(file: opts['private-key']), best)
         debt += txn.amount
-        @log.info("#{txn.amount} of taxes paid to #{txn.bnf}, #{debt} left to pay")
+        paid += 1
+        @log.info("#{txn.amount * -1} of taxes paid from #{wallet.id} to #{txn.bnf} \
+(payment no.#{paid}, txn ##{txn.id}/#{wallet.txns.count}), #{debt} left to pay")
       end
       @log.info('The wallet is in good standing, all taxes paid') unless tax.in_debt?
     end
@@ -143,6 +155,8 @@ Available options:"
       raise 'The wallet is absent' unless wallet.exists?
       tax = Tax.new(wallet)
       @log.info(tax.debt)
+      @log.debug(tax.to_text)
+      @log.debug('Read the White Paper for more details: https://papers.zold.io/wp.pdf')
     end
 
     def show(_, _)
@@ -160,7 +174,7 @@ Available options:"
         r.assert_valid_score(score)
         r.assert_score_strength(score) unless opts['ignore-score-weakness']
         r.assert_score_value(score, Tax::EXACT_SCORE)
-        @log.info("#{r}: #{Rainbow(score.value).green}")
+        @log.info("#{r}: #{Rainbow(score.value).green} to #{score.invoice}")
         best << score
       end
       best.sort_by(&:value).reverse

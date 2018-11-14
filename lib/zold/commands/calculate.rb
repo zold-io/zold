@@ -21,8 +21,8 @@
 # SOFTWARE.
 
 require 'slop'
+require 'zold/score'
 require_relative '../log'
-require_relative '../score'
 
 # SCORE command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

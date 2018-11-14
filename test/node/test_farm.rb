@@ -27,7 +27,7 @@ require_relative '../test__helper'
 require_relative '../../lib/zold/log'
 require_relative '../../lib/zold/node/farm'
 
-class FarmTest < Minitest::Test
+class FarmTest < Zold::Test
   def test_renders_in_json
     Dir.mktmpdir do |dir|
       farm = Zold::Farm.new('NOPREFIX6@ffffffffffffffff', File.join(dir, 'f'), log: test_log)
@@ -45,6 +45,38 @@ class FarmTest < Minitest::Test
       farm = Zold::Farm.new('NOPREFIX7@ffffffffffffffff', File.join(dir, 'f'), log: test_log)
       farm.start('localhost', 80, threads: 2, strength: 1) do
         assert(!farm.to_text.nil?)
+      end
+    end
+  end
+
+  def test_makes_many_scores
+    Dir.mktmpdir do |dir|
+      farm = Zold::Farm.new('NOPREFIX6@ffffffffffffffff', File.join(dir, 'f'),
+        log: test_log, lifetime: 10, farmer: Zold::Farmers::Plain.new)
+      farm.start('localhost', 80, threads: 4, strength: 1) do
+        assert_wait { farm.best.length == 4 }
+      end
+    end
+  end
+
+  # @todo #527:30min This test takes too long. The speed should be less than
+  #  a few milliseconds, however, if you run it a few times, you will see
+  #  that it is over 100ms sometimes. This is way too slow. I can't understand
+  #  what's going on. It seems that IO.read() is taking too long sometimes.
+  #  Try to measure its time of execution in Farm.load() and you will see
+  #  that it's usually a few microseconds, but sometimes over 200ms.
+  def test_reads_scores_at_high_speed
+    Dir.mktmpdir do |dir|
+      farm = Zold::Farm.new('NOPREFIX6@ffffffffffffffff', File.join(dir, 'f'), log: test_log)
+      farm.start('localhost', 80, threads: 4, strength: 4) do
+        assert_wait { !farm.best.empty? && !farm.best[0].value.zero? }
+        cycles = 100
+        speed = (0..cycles - 1).map do
+          start = Time.now
+          farm.best
+          Time.now - start
+        end.inject(&:+) / cycles
+        test_log.debug("Average speed is #{(speed * 1000).round(2)}ms in #{cycles} cycles")
       end
     end
   end
@@ -76,10 +108,12 @@ class FarmTest < Minitest::Test
 
   def test_pre_loads_history
     Dir.mktmpdir do |dir|
-      cache = File.join(dir, 'cache')
+      cache = File.join(dir, 'a/b/c/cache')
       farm = Zold::Farm.new('NOPREFIX3@cccccccccccccccc', cache, log: test_log)
       farm.start('example.com', 8080, threads: 0, strength: 1) do
         score = farm.best[0]
+        assert(!score.nil?, 'The list of best scores can\'t be empty!')
+        assert(File.exist?(cache), 'The cache file has to be created!')
         assert_equal(0, score.value)
         assert(!score.expired?)
         assert_equal('example.com', score.host)
@@ -130,7 +164,7 @@ class FarmTest < Minitest::Test
         end
         farm = Zold::Farm.new('NOPREFIX5@ffffffffffffffff', file, log: log)
         assert_equal(1, farm.best.count)
-        assert(log.msgs.find { |m| m.include?('Invalid score') })
+        assert(log.msgs.find { |m| m.include?('Invalid score') }, log.msgs)
       end
     end
   end

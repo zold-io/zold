@@ -22,11 +22,11 @@
 
 require 'minitest/autorun'
 require 'time'
+require 'zold/score'
 require_relative '../test__helper'
-require_relative '../../lib/zold/score'
 require_relative '../../lib/zold/node/farmers'
 
-class FarmersTest < Minitest::Test
+class FarmersTest < Zold::Test
   def test_calculates_next_score
     before = Zold::Score.new(host: 'some-host', port: 9999, invoice: 'NOPREFIX4@ffffffffffffffff', strength: 3)
     farmer = Zold::Farmers::Spawn.new(log: test_log)
@@ -38,7 +38,7 @@ class FarmersTest < Minitest::Test
   end
 
   def test_calculates_large_score
-    log = TestLogger.new
+    log = TestLogger.new(test_log)
     thread = Thread.start do
       farmer = Zold::Farmers::Spawn.new(log: log)
       farmer.up(Zold::Score.new(host: 'a', port: 1, invoice: 'NOPREFIX4@ffffffffffffffff', strength: 20))
@@ -57,5 +57,22 @@ class FarmersTest < Minitest::Test
     assert(!after.expired?)
     assert_equal('some-host', after.host)
     assert_equal(9999, after.port)
+  end
+
+  def test_avoid_duplicate_processes
+    log = TestLogger.new(test_log)
+    time = Time.now
+    thread = Thread.start do
+      farmer = Zold::Farmers::Spawn.new(log: log)
+      farmer.up(Zold::Score.new(time: time, host: 'a', port: 1, invoice: 'prefixone@ffffffffffffffff', strength: 20))
+    end
+    assert_wait { !log.msgs.find { |m| m.include?('Scoring started') }.nil? }
+    assert_raises do
+      Zold::Farmers::Spawn.new(log: log).up(
+        Zold::Score.new(time: time, host: 'a', port: 1, invoice: 'prefixtwo@ffffffffffffffff', strength: 20)
+      )
+    end
+    thread.kill
+    thread.join
   end
 end

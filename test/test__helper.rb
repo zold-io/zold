@@ -23,7 +23,9 @@
 gem 'openssl'
 require 'openssl'
 require 'minitest/autorun'
+require 'minitest/hooks/test'
 require 'concurrent'
+require 'timeout'
 
 STDOUT.sync = true
 
@@ -36,8 +38,20 @@ if ENV['CI'] == 'true'
   SimpleCov.formatter = SimpleCov::Formatter::Codecov
 end
 
-module Minitest
-  class Test
+module Zold
+  class Test < Minitest::Test
+    include Minitest::Hooks
+
+    # We need this in order to make sure any test is faster than a minute. This
+    # should help spotting tests that hang out sometimes. The number of seconds
+    # to wait can be increased, but try to make it as little as possible,
+    # in order to catch problems ealier.
+    def around
+      Timeout.timeout(120) do
+        super
+      end
+    end
+
     def assert_wait(max: 30)
       assert_equal_wait(true, max: max) { yield }
     end
@@ -64,19 +78,23 @@ module Minitest
 
     class TestLogger
       attr_accessor :msgs
-      def initialize
+      def initialize(log = Zold::Log::Quiet.new)
+        @log = log
         @msgs = []
       end
 
       def info(msg)
+        @log.info(msg)
         @msgs << msg
       end
 
       def debug(msg)
+        @log.debug(msg)
         @msgs << msg
       end
 
       def error(msg)
+        @log.error(msg)
         @msgs << msg
       end
     end

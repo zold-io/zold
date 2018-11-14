@@ -35,7 +35,7 @@ require_relative '../../lib/zold/commands/push'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestPush < Minitest::Test
+class TestPush < Zold::Test
   def test_pushes_wallet
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet

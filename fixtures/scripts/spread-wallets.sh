@@ -5,7 +5,7 @@ function start_node {
   mkdir ${port}
   cd ${port}
   zold node --trace --invoice=SPREADWALLETS@ffffffffffffffff \
-    --host=localhost --port=${port} --bind-port=${port} \
+    --host=127.0.0.1 --port=${port} --bind-port=${port} \
     --threads=0 > log.txt &
   pid=$!
   echo ${pid} > pid
@@ -19,16 +19,16 @@ second=$(start_node)
 trap "halt_nodes ${first} ${second}" EXIT
 
 zold --home=${first} remote clean
-zold --home=${first} remote add localhost ${second}
+zold --home=${first} remote add 127.0.0.1 ${second}
 zold --home=${second} remote clean
-zold --home=${second} remote add localhost ${first}
+zold --home=${second} remote add 127.0.0.1 ${first}
 
 zold --public-key=id_rsa.pub create 0000000000000000
 zold pay --private-key=id_rsa 0000000000000000 NOPREFIX@aaaabbbbccccdddd 4.95 'To help you, dude!'
-zold remote add localhost ${first}
+zold remote add 127.0.0.1 ${first}
 zold push 0000000000000000
 zold remote clean
-zold remote add localhost ${second}
+zold remote add 127.0.0.1 ${second}
 
 i=0
 until zold fetch 0000000000000000 --ignore-score-weakness; do
@@ -42,7 +42,7 @@ until zold fetch 0000000000000000 --ignore-score-weakness; do
   sleep 2
 done
 
-json=$(curl --silent --show-error http://localhost:${first})
+json=$(curl --silent --show-error http://127.0.0.1:${first})
 if [ ! $(echo ${json} | jq -r '.entrance.queue') == "0" ]; then
   echo "The queue is not empty after PUSH, it's a bug"
   exit -1

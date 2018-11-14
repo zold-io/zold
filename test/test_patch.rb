@@ -33,7 +33,7 @@ require_relative '../lib/zold/patch'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestPatch < Minitest::Test
+class TestPatch < Zold::Test
   def test_builds_patch
     FakeHome.new(log: test_log).run do |home|
       first = home.create_wallet
