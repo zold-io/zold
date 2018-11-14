@@ -68,13 +68,13 @@ module Zold
     end
 
     def get(timeout: READ_TIMEOUT + CONNECT_TIMEOUT)
-      base_url = "#{@uri.scheme}://#{@uri.host}:#{@uri.port.to_s}"
-      session = Patron::Session.new({
+      base_url = "#{@uri.scheme}://#{@uri.host}:#{@uri.port}"
+      session = Patron::Session.new(
         timeout: timeout,
         connect_timeout: CONNECT_TIMEOUT,
         base_url: base_url,
         headers: headers
-      })
+      )
       path = @uri.path
       path += '?' + @uri.query if @uri.query
       session.get(path)
@@ -83,8 +83,8 @@ module Zold
     end
 
     def put(body, timeout: READ_TIMEOUT + CONNECT_TIMEOUT)
-      base_url = "#{@uri.scheme}://#{@uri.host}:#{@uri.port.to_s}"
-      session = Patron::Session.new({
+      base_url = "#{@uri.scheme}://#{@uri.host}:#{@uri.port}"
+      session = Patron::Session.new(
         timeout: timeout,
         connect_timeout: CONNECT_TIMEOUT,
         base_url: base_url,
@@ -92,7 +92,7 @@ module Zold
           'Content-Type': 'text/plain',
           'Content-Length': body.length.to_s
         )
-      })
+      )
       path = @uri.path
       path += '?' + @uri.query if @uri.query
       session.put(path, body)
