@@ -6,7 +6,7 @@ install: |
   export GEM_HOME=~/.ruby
   export GEM_PATH=$GEM_HOME:$GEM_PATH
   sudo apt-get -y update
-  sudo apt-get -y install libcurl-dev libcurl4-openssl-dev
+  sudo apt-get -y install libcurl4-openssl-dev
   sudo gem install pdd
 release:
   script: |-
