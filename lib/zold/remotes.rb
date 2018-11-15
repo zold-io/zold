@@ -92,13 +92,14 @@ module Zold
       end
 
       def assert_code(code, response)
-        msg = response.message.strip
-        return if response.code.to_i == code
-        if response.header['X-Zold-Error']
-          raise "Error ##{response.code} \"#{response.header['X-Zold-Error']}\" at #{response.header['X-Zold-Path']}"
+        msg = response.status_line.strip
+        return if response.status.to_i == code
+        if response.headers['X-Zold-Error']
+          raise "Error ##{response.status} \"#{response.headers['X-Zold-Error']}\"
+            at #{response.headers['X-Zold-Path']}"
         end
-        raise "Unexpected HTTP code #{response.code}, instead of #{code}" if msg.empty?
-        raise "#{msg} (HTTP code #{response.code}, instead of #{code})"
+        raise "Unexpected HTTP code #{response.status}, instead of #{code}" if msg.empty?
+        raise "#{msg} (HTTP code #{response.status}, instead of #{code})"
       end
 
       def assert_valid_score(score)
