@@ -274,12 +274,24 @@ in #{Age.new(@start, limit: 1)}")
       fetch { |w| w.age.to_s }
     end
 
-    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/mnemo} do
-      fetch(&:mnemo)
+    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/age} do
+      fetch { |w| w.age.to_s }
+    end
+
+    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/txns} do
+      fetch { |w| w.txns.count.to_s }
+    end
+
+    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/debt} do
+      fetch { |w| Tax.new(w).debt.to_i.to_s }
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/digest} do
       fetch(&:digest)
+    end
+
+    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/mnemo} do
+      fetch(&:mnemo)
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.txt} do
@@ -457,15 +469,9 @@ in #{Age.new(@start, limit: 1)}")
     def fetch(type = 'text/plain')
       error(404, 'FETCH is disabled with --disable-fetch') if settings.opts['disable-fetch']
       id = Id.new(params[:id])
-      copy_of(id) do |wallet|
-        content_type(type)
-        yield wallet
-      end
-    end
-
-    def copy_of(id)
       settings.wallets.acq(id) do |wallet|
         error(404, "Wallet ##{id} doesn't exist on the node") unless wallet.exists?
+        content_type(type)
         yield wallet
       end
     end

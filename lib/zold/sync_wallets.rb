@@ -51,7 +51,7 @@ module Zold
     def acq(id, exclusive: false)
       raise 'The flag can\'t be nil' if exclusive.nil?
       @wallets.acq(id) do |wallet|
-        Futex.new(wallet.path, log: @log).open do
+        Futex.new(wallet.path, log: @log).open(exclusive) do
           yield wallet
         end
       end

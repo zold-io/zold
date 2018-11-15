@@ -159,6 +159,8 @@ class FrontTest < Zold::Test
           "/wallet/#{wallet.id}/size",
           "/wallet/#{wallet.id}/age",
           "/wallet/#{wallet.id}/mnemo",
+          "/wallet/#{wallet.id}/debt",
+          "/wallet/#{wallet.id}/txns",
           "/wallet/#{wallet.id}.bin",
           "/wallet/#{wallet.id}/copies"
         ].each do |u|
@@ -256,15 +258,9 @@ class FrontTest < Zold::Test
 
   def test_gzip
     FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
-      response = Zold::Http.new(uri: URI("http://localhost:#{port}/")).get
-      assert_equal(
-        200, response.status,
-        "Expected HTTP 200 OK: Found #{response.status}"
-      )
-      assert_operator(
-        750, :>, response.body.length.to_i,
-        'Expected the content to be smaller than 600 bytes for gzip'
-      )
+      response = Zold::Http.new(uri: URI("http://localhost:#{port}/version")).get
+      assert_equal(200, response.status, response)
+      assert_operator(300, :>, response.body.length.to_i, 'Expected the content to be small')
     end
   end
 
