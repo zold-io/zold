@@ -443,10 +443,7 @@ in #{Age.new(@start, limit: 1)}")
     end
 
     def pretty(json)
-      json.to_json
-      # There seems to be some issue with memory leakage at this line, that's
-      # why it's disabled for now:
-      # JSON.pretty_generate(json)
+      JSON.pretty_generate(json)
     end
 
     def score
