@@ -49,6 +49,11 @@ and suggests a different architecture for digital wallet maintenance.'
   s.authors = ['Yegor Bugayenko']
   s.email = 'yegor256@gmail.com'
   s.homepage = 'http://github.com/zold-io/zold'
+  s.post_install_message = "Thanks for installing Zold #{Zold::VERSION}!
+Study our White Paper: https://papers.zold.io/wp.pdf
+Read our blog posts: https://blog.zold.io
+Stay in touch with the dev community: https://t.me/zold_io
+Follow us on Twitter: https://twitter.com/0crat"
   s.files = `git ls-files`.split($RS)
   s.executables = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
   s.test_files = s.files.grep(%r{^(test|features)/})
