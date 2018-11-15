@@ -68,6 +68,7 @@ Follow us on Twitter: https://twitter.com/0crat"
   s.add_runtime_dependency 'json', '2.1.0'
   s.add_runtime_dependency 'memory_profiler', '0.9.12'
   s.add_runtime_dependency 'openssl', '2.1.2'
+  s.add_runtime_dependency 'patron', '0.13.1'
   s.add_runtime_dependency 'posix-spawn', '0.3.13'
   s.add_runtime_dependency 'rainbow', '3.0.0'
   s.add_runtime_dependency 'rake', '12.3.1' # has to stay here for Heroku
