@@ -88,7 +88,6 @@ Follow us on Twitter: https://twitter.com/0crat"
   s.add_development_dependency 'minitest', '5.11.3'
   s.add_development_dependency 'minitest-fail-fast', '0.1.0'
   s.add_development_dependency 'minitest-hooks', '1.5.0'
-  s.add_development_dependency 'patron', '0.13.1'
   s.add_development_dependency 'random-port', '0.3.1'
   s.add_development_dependency 'rdoc', '4.3.0'
   s.add_development_dependency 'rspec-rails', '3.8.1'
