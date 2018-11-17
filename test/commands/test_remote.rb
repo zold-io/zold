@@ -166,11 +166,42 @@ class TestRemote < Zold::Test
     end
   end
 
-  # @todo #329:30min Verify that the nodes that are being selected are
-  #  really the strongest ones. The strongest nodes are the ones with
-  #  the highest score.
   def test_select_selects_the_strongest_nodes
-    skip
+    Dir.mktmpdir do |dir|
+      remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.txt'))
+      cmd = Zold::Remote.new(remotes: remotes, log: test_log)
+      suffixes = []
+      (5000..5010).each do |port|
+        score = Zold::Score.new(
+          host: 'example.com',
+          port: port,
+          invoice: 'MYPREFIX@ffffffffffffffff',
+          suffixes: suffixes << '13f7f01'
+        )
+        stub_request(:get, "http://#{score.host}:#{score.port}/remotes").to_return(
+          status: 200,
+          body: {
+            version: Zold::VERSION,
+            score: score.to_h,
+            all: [
+              { host: 'localhost', port: port }
+            ]
+          }.to_json
+        )
+        stub_request(:get, "http://localhost:#{port}/version").to_return(
+          status: 200,
+          body: {
+            version: Zold::VERSION
+          }.to_json
+        )
+        cmd.run(%W[remote add localhost #{port}])
+        remotes.rescore('localhost', port, score)
+      end
+      cmd.run(%w[remote select --max-nodes=5])
+      assert_equal(5, remotes.all.count)
+      scores = remotes.all.map { |r| r[:score] }
+      assert_equal([11, 10, 9, 8, 7], scores)
+    end
   end
 
   def test_select_respects_max_nodes_option
