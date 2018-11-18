@@ -20,7 +20,7 @@ It is recommended to have at least 2 CPUs and 2 Gb RAM.
 
 ```bash
 $ sudo apt update -y
-$ sudo apt install -y ruby-dev rubygems zlib1g-dev libssl-dev make build-essential
+$ sudo apt install -y ruby-dev rubygems zlib1g-dev libssl-dev make build-essential libcurl4-openssl-dev
 $ gem install --no-ri --no-rdoc zold
 ```
 
@@ -28,7 +28,7 @@ $ gem install --no-ri --no-rdoc zold
 
 ```bash
 $ sudo apt-get update -y
-$ sudo apt-get install -y ruby-dev rubygems zlib1g-dev libssl-dev build-essential
+$ sudo apt-get install -y ruby-dev rubygems zlib1g-dev libssl-dev build-essential libcurl4-openssl-dev
 $ gem install --no-ri --no-rdoc zold
 ```
 
@@ -60,7 +60,7 @@ Install [Zold gem](https://rubygems.org/gems/zold) `gem install --no-ri --no-rdo
 As a `root` user:
 
 ```bash
-$ sudo yum install zlib-devel gcc gcc-c++ ruby-devel rubygems ruby
+$ sudo yum install zlib-devel gcc gcc-c++ ruby-devel rubygems ruby curl-devel
 $ gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
 $ curl -sSL https://get.rvm.io | bash -s stable
 $ source /etc/profile.d/rvm.sh
@@ -71,7 +71,7 @@ $ gem install --no-ri --no-rdoc zold
 ## Amazon Linux (AWS EC2 default image)
 
 ```
-$ sudo yum install zlib-devel gcc gcc-c++ ruby-devel rubygems ruby
+$ sudo yum install zlib-devel gcc gcc-c++ ruby-devel rubygems ruby libcurl4-openssl-dev
 $ gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
 $ curl -sSL https://get.rvm.io | bash -s stable
 $ source $HOME/.rvm/scripts/rvm

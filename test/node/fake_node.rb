@@ -66,8 +66,8 @@ class FakeNode
         attempt = 0
         loop do
           ping = Zold::Http.new(uri: uri).get
-          break unless ping.code == '599' && node.alive?
-          @log.debug("Waiting for #{uri} (attempt no.#{attempt}): ##{ping.code}...")
+          break unless ping.status == 599 && node.alive?
+          @log.debug("Waiting for #{uri} (attempt no.#{attempt}): ##{ping.status}...")
           sleep 0.5
           attempt += 1
           break if attempt > 10

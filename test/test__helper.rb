@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 gem 'openssl'
+require 'minitest/fail_fast'
 require 'openssl'
 require 'minitest/autorun'
 require 'minitest/hooks/test'

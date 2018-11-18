@@ -49,6 +49,12 @@ and suggests a different architecture for digital wallet maintenance.'
   s.authors = ['Yegor Bugayenko']
   s.email = 'yegor256@gmail.com'
   s.homepage = 'http://github.com/zold-io/zold'
+  s.post_install_message = "Thanks for installing Zold #{Zold::VERSION}!
+  Study our White Paper: https://papers.zold.io/wp.pdf
+  Read our blog posts: https://blog.zold.io
+  Try online wallet at: https://wts.zold.io
+  Stay in touch with the community: https://t.me/zold_io
+  Follow us on Twitter: https://twitter.com/0crat"
   s.files = `git ls-files`.split($RS)
   s.executables = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
   s.test_files = s.files.grep(%r{^(test|features)/})
@@ -58,11 +64,12 @@ and suggests a different architecture for digital wallet maintenance.'
   s.add_runtime_dependency 'concurrent-ruby', '1.1.2'
   s.add_runtime_dependency 'cucumber', '3.1.2' # has to stay here for Heroku
   s.add_runtime_dependency 'diffy', '3.2.1'
-  s.add_runtime_dependency 'futex', '0.3.1'
+  s.add_runtime_dependency 'futex', '0.4.0'
   s.add_runtime_dependency 'get_process_mem', '0.2.3'
   s.add_runtime_dependency 'json', '2.1.0'
   s.add_runtime_dependency 'memory_profiler', '0.9.12'
   s.add_runtime_dependency 'openssl', '2.1.2'
+  s.add_runtime_dependency 'patron', '0.13.1'
   s.add_runtime_dependency 'posix-spawn', '0.3.13'
   s.add_runtime_dependency 'rainbow', '3.0.0'
   s.add_runtime_dependency 'rake', '12.3.1' # has to stay here for Heroku
@@ -80,6 +87,7 @@ and suggests a different architecture for digital wallet maintenance.'
   s.add_runtime_dependency 'zold-score', '0.2.2'
   s.add_development_dependency 'codecov', '0.1.13'
   s.add_development_dependency 'minitest', '5.11.3'
+  s.add_development_dependency 'minitest-fail-fast', '0.1.0'
   s.add_development_dependency 'minitest-hooks', '1.5.0'
   s.add_development_dependency 'random-port', '0.3.1'
   s.add_development_dependency 'rdoc', '4.3.0'
