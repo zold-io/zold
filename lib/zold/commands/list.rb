@@ -48,7 +48,7 @@ module Zold
         cps = Copies.new(File.join(@copies, id))
         @wallets.acq(id) do |wallet|
           msg = "#{wallet.mnemo} #{cps.all.count}c"
-          msg += " (net:#{wallet.network})" if wallet.network != Wallet::MAIN_NETWORK
+          msg += " (net:#{wallet.network})" if wallet.network != Wallet::MAINET
           txns += wallet.txns.count
           balance += wallet.balance
           size += wallet.size

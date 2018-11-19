@@ -48,9 +48,9 @@ Available options:"
           require: true,
           default: File.expand_path('~/.ssh/id_rsa.pub')
         o.string '--network',
-          "The name of the network (default: #{Wallet::MAIN_NETWORK}",
+          "The name of the network (default: #{Wallet::MAINET}",
           require: true,
-          default: Wallet::MAIN_NETWORK
+          default: Wallet::MAINET
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return

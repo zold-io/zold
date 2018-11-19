@@ -434,18 +434,18 @@ in #{Age.new(@start, limit: 1)}")
     #  takes a lot of time (when the amount of wallets is big, like 40K). However,
     #  we must find a way to count them somehow faster.
     def total_wallets
-      return 256 if settings.opts['network'] == Wallet::MAIN_NETWORK
+      return 256 if settings.opts['network'] == Wallet::MAINET
       settings.wallets.all.count
     end
 
     def all_remotes
-      settings.zache.get(:remotes, lifetime: settings.opts['network'] == Wallet::MAIN_NETWORK ? 60 : 0) do
+      settings.zache.get(:remotes, lifetime: settings.opts['network'] == Wallet::MAINET ? 60 : 0) do
         settings.remotes.all
       end
     end
 
     def processes_count
-      settings.zache.get(:processes, lifetime: settings.opts['network'] == Wallet::MAIN_NETWORK ? 60 : 0) do
+      settings.zache.get(:processes, lifetime: settings.opts['network'] == Wallet::MAINET ? 60 : 0) do
         processes.count
       end
     end
@@ -459,7 +459,7 @@ in #{Age.new(@start, limit: 1)}")
     end
 
     def score
-      settings.zache.get(:score, lifetime: settings.opts['network'] == Wallet::MAIN_NETWORK ? 60 : 0) do
+      settings.zache.get(:score, lifetime: settings.opts['network'] == Wallet::MAINET ? 60 : 0) do
         b = settings.farm.best
         raise 'Score is empty, there is something wrong with the Farm!' if b.empty?
         b[0]

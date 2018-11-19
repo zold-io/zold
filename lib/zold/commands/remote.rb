@@ -103,9 +103,9 @@ Available options:"
           'The amount of update cycles to run, in order to fetch as many nodes as possible (default: 2)',
           default: 2
         o.string '--network',
-          "The name of the network we work in (default: #{Wallet::MAIN_NETWORK}",
+          "The name of the network we work in (default: #{Wallet::MAINET}",
           required: true,
-          default: Wallet::MAIN_NETWORK
+          default: Wallet::MAINET
         o.bool '--reboot',
           'Exit if any node reports version higher than we have',
           default: false

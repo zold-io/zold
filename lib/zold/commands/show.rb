@@ -70,7 +70,7 @@ Available options:"
         @log.info(t.to_text)
       end
       msg = "The balance of #{wallet}: #{balance}"
-      msg += " (net:#{wallet.network})" if wallet.network != Wallet::MAIN_NETWORK
+      msg += " (net:#{wallet.network})" if wallet.network != Wallet::MAINET
       @log.info(msg)
       balance
     end

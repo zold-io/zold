@@ -22,6 +22,7 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
+require_relative 'test__helper'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/id'
 require_relative '../lib/zold/txn'

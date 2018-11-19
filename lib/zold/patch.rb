@@ -81,7 +81,7 @@ module Zold
 #{wallet.id}/#{Amount.new(zents: balance).to_zld}/#{@txns.size} negative: #{txn.to_text}")
             next
           end
-          unless Signature.new.valid?(@key, wallet.id, txn)
+          unless Signature.new(@network).valid?(@key, wallet.id, txn)
             @log.error("Invalid RSA signature at transaction ##{txn.id} of #{wallet.id}: #{txn.to_text}")
             next
           end

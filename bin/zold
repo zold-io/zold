@@ -105,9 +105,9 @@ Available options:"
     "Home directory (default: #{Dir.pwd})",
     default: Dir.pwd
   o.string '--network',
-    "The name of the network we work in (default: #{Zold::Wallet::MAIN_NETWORK})",
+    "The name of the network we work in (default: #{Zold::Wallet::MAINET})",
     required: true,
-    default: Zold::Wallet::MAIN_NETWORK
+    default: Zold::Wallet::MAINET
   o.bool '-h', '--help', 'Show these instructions'
   o.bool '--trace', 'Show full stack trace in case of a problem'
   o.bool '--memory-dump', 'Dump memory snapshot afterwards, to the console', default: false
@@ -182,7 +182,7 @@ else
 end
 copies = File.join(zoldata, 'copies')
 
-log.debug("Network: #{opts['network']} (#{opts['network'] == Zold::Wallet::MAIN_NETWORK ? 'main' : 'test'} net)")
+log.debug("Network: #{opts['network']} (#{opts['network'] == Zold::Wallet::MAINET ? 'main' : 'test'} net)")
 
 cmd = lambda do
   begin

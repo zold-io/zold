@@ -49,7 +49,7 @@ module Zold
   class Wallet
     # The name of the main production network. All other networks
     # must have different names.
-    MAIN_NETWORK = 'zold'
+    MAINET = 'zold'
 
     # The extension of the wallet files
     EXT = '.z'
@@ -136,7 +136,7 @@ module Zold
         details
       )
       txn = txn.signed(pvt, id)
-      raise 'This is not the right private key for this wallet' unless Signature.new.valid?(key, id, txn)
+      raise "Invalid private key for the wallet #{id}" unless Signature.new(network).valid?(key, id, txn)
       add(txn)
       txn
     end

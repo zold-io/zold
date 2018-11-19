@@ -123,8 +123,8 @@ module Zold
           'The location of RSA private key (default: ~/.ssh/id_rsa)',
           default: '~/.ssh/id_rsa'
         o.string '--network',
-          "The name of the network (default: #{Wallet::MAIN_NETWORK})",
-          default: Wallet::MAIN_NETWORK
+          "The name of the network (default: #{Wallet::MAINET})",
+          default: Wallet::MAINET
         o.integer '--nohup-max-cycles',
           'Maximum amount of nohup re-starts (-1 by default, which means forever)',
           default: -1
