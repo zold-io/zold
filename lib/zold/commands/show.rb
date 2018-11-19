@@ -35,8 +35,9 @@ require_relative '../wallet'
 module Zold
   # Show command
   class Show
-    def initialize(wallets:, log: Log::Quiet.new)
+    def initialize(wallets:, copies:, log: Log::Quiet.new)
       @wallets = wallets
+      @copies = copies
       @log = log
     end
 
@@ -49,7 +50,7 @@ Available options:"
       mine = Args.new(opts, @log).take || return
       if mine.empty?
         require_relative 'list'
-        List.new(wallets: @wallets, log: @log).run(args)
+        List.new(wallets: @wallets, copies: @copies, log: @log).run(args)
       else
         total = Amount::ZERO
         mine.map { |i| Id.new(i) }.each do |id|

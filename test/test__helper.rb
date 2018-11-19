@@ -21,12 +21,13 @@
 # SOFTWARE.
 
 gem 'openssl'
-require 'minitest/fail_fast'
 require 'openssl'
 require 'minitest/autorun'
 require 'minitest/hooks/test'
 require 'concurrent'
 require 'timeout'
+
+require 'minitest/fail_fast' if ENV['TEST_QUIET_LOG']
 
 STDOUT.sync = true
 

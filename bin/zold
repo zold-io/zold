@@ -204,10 +204,10 @@ cmd = lambda do
       Zold::Pay.new(wallets: wallets, remotes: remotes, log: log).run(args)
     when 'show'
       require_relative '../lib/zold/commands/show'
-      Zold::Show.new(wallets: wallets, log: log).run(args)
+      Zold::Show.new(wallets: wallets, copies: copies, log: log).run(args)
     when 'list'
       require_relative '../lib/zold/commands/list'
-      Zold::List.new(wallets: wallets, log: log).run(args)
+      Zold::List.new(wallets: wallets, copies: copies, log: log).run(args)
     when 'fetch'
       require_relative '../lib/zold/commands/fetch'
       Zold::Fetch.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)

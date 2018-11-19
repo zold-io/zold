@@ -67,7 +67,7 @@ module Zold
       @network = network
     end
 
-    def get(timeout: READ_TIMEOUT + CONNECT_TIMEOUT)
+    def get(timeout: READ_TIMEOUT)
       base_url = "#{@uri.scheme}://#{@uri.host}:#{@uri.port}"
       session = Patron::Session.new(
         timeout: timeout,
@@ -82,7 +82,7 @@ module Zold
       Error.new(e)
     end
 
-    def put(body, timeout: READ_TIMEOUT + CONNECT_TIMEOUT)
+    def put(body, timeout: READ_TIMEOUT)
       base_url = "#{@uri.scheme}://#{@uri.host}:#{@uri.port}"
       session = Patron::Session.new(
         timeout: timeout,
@@ -109,7 +109,7 @@ module Zold
       end
 
       def to_s
-        "#{code}: #{message}\n#{body}"
+        "#{status}: #{status_line}\n#{body}"
       end
 
       def body
