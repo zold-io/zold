@@ -141,6 +141,29 @@ module Zold
       end
     end
 
+    # ErrorsOnly log
+    class ErrorsOnly
+      def debug(msg)
+        # nothing
+      end
+
+      def debug?
+        false
+      end
+
+      def info(msg)
+        # nothing
+      end
+
+      def info?
+        false
+      end
+
+      def error(msg)
+        puts("#{Rainbow('ERROR').red}: #{msg}")
+      end
+    end
+
     # Log that doesn't log anything
     class Quiet
       def debug(msg)
