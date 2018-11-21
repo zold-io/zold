@@ -22,6 +22,7 @@
 
 require 'slop'
 require 'rainbow'
+require_relative 'thread_badge'
 require_relative 'args'
 require_relative '../id'
 require_relative '../amount'
@@ -34,6 +35,8 @@ require_relative '../log'
 module Zold
   # Money sending command
   class Pay
+    prepend ThreadBadge
+
     def initialize(wallets:, remotes:, log: Log::NULL)
       @wallets = wallets
       @remotes = remotes

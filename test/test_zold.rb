@@ -58,6 +58,7 @@ class TestZold < Zold::Test
         end
       end
       test_log.info("\n\n#{f} done in #{Zold::Age.new(start)}")
+      sleep 1
     end
   end
 

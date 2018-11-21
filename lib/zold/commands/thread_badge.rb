@@ -20,32 +20,28 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative 'thread_badge'
-require_relative '../log'
-require_relative 'fetch'
-require_relative 'merge'
-require_relative 'clean'
-
-# PULL command.
+# Thread badge.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # PULL command
-  class Pull
-    prepend ThreadBadge
-
-    def initialize(wallets:, remotes:, copies:, log: Log::NULL)
-      @wallets = wallets
-      @remotes = remotes
-      @copies = copies
-      @log = log
-    end
-
+  # This module should be included in each command, in order to label
+  # the current Thread correctly, when the command is running. This is mostly
+  # useful for debugging/testing purposes - want to be able to see what's
+  # going on in the thread when it gets stuck with a Futex.
+  #
+  # Since all commands have exactly the same external interface and implement
+  # the method "run," we catch all calls to this method and label the
+  # current thread properly. We label it back when it's over.
+  module ThreadBadge
     def run(args = [])
-      Zold::Clean.new(wallets: @wallets, copies: @copies, log: @log).run(args)
-      Zold::Fetch.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(args)
-      Zold::Merge.new(wallets: @wallets, copies: @copies, log: @log).run(args)
+      before = Thread.current.name || ''
+      Thread.current.name = "#{before}:#{self.class.name.gsub(/^Zold::/, '')}"
+      begin
+        super(args)
+      ensure
+        Thread.current.name = before
+      end
     end
   end
 end

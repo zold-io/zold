@@ -25,6 +25,7 @@ require 'slop'
 require 'backtrace'
 require 'concurrent'
 require 'zold/score'
+require_relative 'thread_badge'
 require_relative '../version'
 require_relative '../age'
 require_relative '../metronome'
@@ -54,6 +55,8 @@ require_relative 'remote'
 module Zold
   # NODE command
   class Node
+    prepend ThreadBadge
+
     def initialize(wallets:, remotes:, copies:, log: Log::NULL)
       @remotes = remotes
       @copies = copies

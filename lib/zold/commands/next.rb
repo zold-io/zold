@@ -22,6 +22,7 @@
 
 require 'slop'
 require 'zold/score'
+require_relative 'thread_badge'
 require_relative '../log'
 
 # NEXT command.
@@ -31,6 +32,8 @@ require_relative '../log'
 module Zold
   # Calculate next score
   class Next
+    prepend ThreadBadge
+
     def initialize(log: Log::NULL)
       @log = log
     end

@@ -22,6 +22,7 @@
 
 require 'slop'
 require 'rainbow'
+require_relative 'thread_badge'
 require_relative 'args'
 require_relative '../wallet'
 require_relative '../log'
@@ -34,6 +35,8 @@ require_relative '../id'
 module Zold
   # Create command
   class Create
+    prepend ThreadBadge
+
     def initialize(wallets:, log: Log::NULL)
       @wallets = wallets
       @log = log

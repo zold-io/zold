@@ -27,6 +27,7 @@ require 'net/http'
 require 'json'
 require 'time'
 require 'zold/score'
+require_relative 'thread_badge'
 require_relative 'args'
 require_relative '../node/farm'
 require_relative '../log'
@@ -44,6 +45,8 @@ require_relative '../gem'
 module Zold
   # Remote command
   class Remote
+    prepend ThreadBadge
+
     def initialize(remotes:, farm: Farm::Empty.new, log: Log::NULL)
       @remotes = remotes
       @farm = farm

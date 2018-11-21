@@ -2,12 +2,15 @@
 
 require 'slop'
 require 'rainbow'
+require_relative 'thread_badge'
 require_relative 'args'
 require_relative '../log'
 
 module Zold
   # Command to set an alias for wallet ID
   class Alias
+    prepend ThreadBadge
+
     def initialize(wallets:, log: Log::NULL)
       @wallets = wallets
       @log = log

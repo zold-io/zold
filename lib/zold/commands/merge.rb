@@ -23,6 +23,7 @@
 require 'slop'
 require 'rainbow'
 require 'backtrace'
+require_relative 'thread_badge'
 require_relative 'args'
 require_relative '../age'
 require_relative '../log'
@@ -37,6 +38,8 @@ require_relative '../patch'
 module Zold
   # MERGE pulling command
   class Merge
+    prepend ThreadBadge
+
     def initialize(wallets:, copies:, log: Log::NULL)
       @wallets = wallets
       @copies = copies

@@ -24,6 +24,7 @@ require 'slop'
 require 'json'
 require 'rainbow'
 require 'zold/score'
+require_relative 'thread_badge'
 require_relative 'args'
 require_relative 'pay'
 require_relative '../log'
@@ -51,6 +52,8 @@ module Zold
   # just selects the most suitable wallet to transfer taxes to and sends
   # the payment. More details you can find in the White Paper.
   class Taxes
+    prepend ThreadBadge
+
     def initialize(wallets:, remotes:, log: Log::NULL)
       @wallets = wallets
       @remotes = remotes

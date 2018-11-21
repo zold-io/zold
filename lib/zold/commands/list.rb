@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require_relative 'thread_badge'
 require_relative '../log'
 require_relative '../amount'
 require_relative '../wallet'
@@ -32,6 +33,8 @@ require_relative '../size'
 module Zold
   # LIST command
   class List
+    prepend ThreadBadge
+
     def initialize(wallets:, copies:, log: Log::NULL)
       @wallets = wallets
       @copies = copies
