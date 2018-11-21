@@ -43,6 +43,7 @@ class FakeNode
     FakeHome.new(log: @log).run do |home|
       RandomPort::Pool::SINGLETON.acquire do |port|
         node = Thread.new do
+          Thread.current.name = 'fake_node'
           Zold::VerboseThread.new(@log).run do
             Thread.current.abort_on_exception = true
             require_relative '../../lib/zold/commands/node'
