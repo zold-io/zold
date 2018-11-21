@@ -108,6 +108,10 @@ Available options:"
     "The name of the network we work in (default: #{Zold::Wallet::MAINET})",
     required: true,
     default: Zold::Wallet::MAINET
+  o.string '--pretty',
+    'Logging format, e.g. short, full, compact (default: short)',
+    required: true,
+    default: 'short'
   o.bool '-h', '--help', 'Show these instructions'
   o.bool '--trace', 'Show full stack trace in case of a problem'
   o.bool '--memory-dump', 'Dump memory snapshot afterwards, to the console', default: false
@@ -123,6 +127,15 @@ Available options:"
     log.info(Zold::VERSION)
     exit
   end
+end
+
+case opts['pretty'].downcase.strip
+when 'short'
+  log.formatter = Zold::Log::SHORT
+when 'compact'
+  log.formatter = Zold::Log::COMPACT
+when 'full'
+  log.formatter = Zold::Log::FULL
 end
 
 log.debug("Gem location: #{File.dirname(File.dirname(__FILE__))}")

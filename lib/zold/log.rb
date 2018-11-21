@@ -45,8 +45,8 @@ module Zold
   # messages. The user turns this mode by using --verbose command line argument.
   #
   module Log
-    # Formatter
-    FMT = proc do |severity, _time, _target, msg|
+    # Compact formatter
+    COMPACT = proc do |severity, _time, _target, msg|
       prefix = ''
       line = msg.to_s.rstrip
       case severity
@@ -62,31 +62,33 @@ module Zold
       prefix + line + "\n"
     end
 
-    # Date/time format
-    TIME_FMT = '%Y-%m-%d %H:%M:%S'
+    # Short formatter
+    SHORT = proc do |_severity, _time, _target, msg|
+      msg.to_s.rstrip + "\n"
+    end
+
+    # Full formatter
+    FULL = proc do |severity, time, _target, msg|
+      "#{time.utc.iso8601} #{severity}: #{msg.to_s.rstrip}"
+    end
 
     # No logging at all
     NULL = Logger.new(STDOUT)
     NULL.level = Logger::UNKNOWN
-    NULL.datetime_format = TIME_FMT
-    NULL.formatter = FMT
 
     # Everything, including debug
     VERBOSE = Logger.new(STDOUT)
     VERBOSE.level = Logger::DEBUG
-    VERBOSE.datetime_format = TIME_FMT
-    VERBOSE.formatter = FMT
+    VERBOSE.formatter = COMPACT
 
     # Info and errors, no debug info
     REGULAR = Logger.new(STDOUT)
     REGULAR.level = Logger::INFO
-    REGULAR.datetime_format = TIME_FMT
-    REGULAR.formatter = FMT
+    REGULAR.formatter = COMPACT
 
     # Errors only
     ERRORS = Logger.new(STDOUT)
     ERRORS.level = Logger::ERROR
-    ERRORS.datetime_format = TIME_FMT
-    ERRORS.formatter = FMT
+    ERRORS.formatter = COMPACT
   end
 end

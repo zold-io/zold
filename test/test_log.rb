@@ -37,4 +37,10 @@ class TestLog < Zold::Test
       test_log.error('This is error')
     end
   end
+
+  def test_prints_with_various_formatters
+    log = Zold::Log::VERBOSE
+    log.formatter = Zold::Log::FULL
+    test_log.info("This is info\nand it is multi\nline")
+  end
 end
