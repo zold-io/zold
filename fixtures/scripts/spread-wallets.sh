@@ -6,7 +6,7 @@ function start_node {
   cd ${port}
   zold node --trace --invoice=SPREADWALLETS@ffffffffffffffff \
     --host=127.0.0.1 --port=${port} --bind-port=${port} \
-    --threads=0 > log.txt &
+    --threads=0 > log.txt 2>&1 &
   pid=$!
   echo ${pid} > pid
   cd ..
