@@ -48,13 +48,18 @@ module Zold
     # Formatter
     FMT = proc do |severity, _time, _target, msg|
       prefix = ''
+      line = msg.to_s.strip
       case severity
       when 'ERROR', 'FATAL'
-        prefix = Rainbow('E:').red + ' '
+        prefix = 'E: '
+        line.gsub!(/\n/, "\n" + (' ' * prefix.length))
+        prefix = Rainbow(prefix).red
       when 'DEBUG'
-        prefix = Rainbow('D:').yellow + ' '
+        prefix = 'D: '
+        line.gsub!(/\n/, "\n" + (' ' * prefix.length))
+        prefix = Rainbow(prefix).yellow
       end
-      prefix + msg.to_s.strip + "\n"
+      prefix + line + "\n"
     end
 
     # Date/time format
