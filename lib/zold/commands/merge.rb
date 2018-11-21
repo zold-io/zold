@@ -51,6 +51,9 @@ Available options:"
         o.bool '--no-baseline',
           'Don\'t trust any remote copies and re-validate all incoming payments against their wallets',
           default: false
+        o.bool '--skip-propagate',
+          'Don\'t propagate after merge',
+          default: false
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
@@ -58,6 +61,7 @@ Available options:"
       (mine.empty? ? @wallets.all : mine.map { |i| Id.new(i) }).each do |id|
         next unless merge(id, Copies.new(File.join(@copies, id)), opts)
         modified << id
+        next if opts['skip-propagate']
         require_relative 'propagate'
         modified += Propagate.new(wallets: @wallets, log: @log).run(args)
       end
