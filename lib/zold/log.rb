@@ -48,7 +48,7 @@ module Zold
     # Formatter
     FMT = proc do |severity, _time, _target, msg|
       prefix = ''
-      line = msg.to_s.strip
+      line = msg.to_s.rstrip
       case severity
       when 'ERROR', 'FATAL'
         prefix = 'E: '

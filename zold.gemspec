@@ -54,7 +54,8 @@ and suggests a different architecture for digital wallet maintenance.'
   Read our blog posts: https://blog.zold.io
   Try online wallet at: https://wts.zold.io
   Stay in touch with the community: https://t.me/zold_io
-  Follow us on Twitter: https://twitter.com/0crat"
+  Follow us on Twitter: https://twitter.com/0crat
+  If you have any issues, report to our GitHub repo: https://github.com/zold-io/zold"
   s.files = `git ls-files`.split($RS)
   s.executables = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
   s.test_files = s.files.grep(%r{^(test|features)/})
