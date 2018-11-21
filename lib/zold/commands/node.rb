@@ -54,7 +54,7 @@ require_relative 'remote'
 module Zold
   # NODE command
   class Node
-    def initialize(wallets:, remotes:, copies:, log: Log::Quiet.new)
+    def initialize(wallets:, remotes:, copies:, log: Log::NULL)
       @remotes = remotes
       @copies = copies
       @log = log

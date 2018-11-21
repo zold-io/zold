@@ -44,7 +44,7 @@ module Zold
 
     # In a child process
     class Spawn
-      def initialize(log: Log::Quiet.new)
+      def initialize(log: Log::NULL)
         @log = log
       end
 

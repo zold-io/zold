@@ -77,7 +77,7 @@ class TestRemotes < Zold::Test
       remotes = Zold::Remotes.new(file: file)
       ips = (0..50)
       ips.each { |i| remotes.add("0.0.0.#{i}", 9999) }
-      remotes.iterate(Zold::Log::Quiet.new) { raise 'Intended' }
+      remotes.iterate(Zold::Log::NULL) { raise 'Intended' }
       ips.each { |i| assert(1, remotes.all[i][:errors]) }
     end
   end

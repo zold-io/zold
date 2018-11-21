@@ -32,7 +32,7 @@ require_relative 'verbose_thread'
 module Zold
   # Metronome
   class Metronome
-    def initialize(log = Log::Quiet.new)
+    def initialize(log = Log::NULL)
       @log = log
       @routines = []
       @threads = []

@@ -75,12 +75,12 @@ module Zold
 
     def test_log
       require_relative '../lib/zold/log'
-      @test_log ||= Zold::Log::Sync.new(ENV['TEST_QUIET_LOG'] ? Zold::Log::Quiet.new : Zold::Log::Verbose.new)
+      @test_log ||= ENV['TEST_QUIET_LOG'] ? Zold::Log::NULL : Zold::Log::VERBOSE
     end
 
     class TestLogger
       attr_accessor :msgs
-      def initialize(log = Zold::Log::Quiet.new)
+      def initialize(log = Zold::Log::NULL)
         @log = log
         @msgs = []
       end

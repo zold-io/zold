@@ -128,7 +128,7 @@ class TestHttp < Zold::Test
           loop do
             line = socket.gets
             break if line.nil?
-            test_log.debug(line.inspect)
+            test_log.info(line.inspect)
             body += line
           end
           socket.print("HTTP/1.1 200 OK\r\n")

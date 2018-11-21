@@ -37,7 +37,7 @@ require_relative '../lib/zold/remotes'
 # License:: MIT
 class FakeHome
   attr_reader :dir
-  def initialize(dir = __dir__, log: Zold::Log::Quiet.new)
+  def initialize(dir = __dir__, log: Zold::Log::NULL)
     @dir = dir
     @log = log
   end

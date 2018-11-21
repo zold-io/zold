@@ -33,7 +33,7 @@ module Zold
   module Routines
     # Spread them
     class Spread
-      def initialize(opts, wallets, remotes, log: Log::Quiet.new)
+      def initialize(opts, wallets, remotes, log: Log::NULL)
         @opts = opts
         @wallets = wallets
         @remotes = remotes

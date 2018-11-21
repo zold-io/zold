@@ -50,7 +50,7 @@ Thread.current.name = 'main'
 Encoding.default_external = Encoding::UTF_8
 Encoding.default_internal = Encoding::UTF_8
 
-log = Zold::Log::Regular.new
+log = Zold::Log::REGULAR
 
 args = []
 unless ENV['RACK_ENV'] == 'test' || ARGV.find { |a| a == '--ignore-global-config' }
@@ -117,15 +117,13 @@ Available options:"
     Rainbow.enabled = false
   end
   o.on '--verbose', 'Enable extra logging information' do
-    log = Zold::Log::Verbose.new
+    log = Zold::Log::VERBOSE
   end
   o.on '-v', '--version', 'Show current version' do
     log.info(Zold::VERSION)
     exit
   end
 end
-
-log = Zold::Log::Sync.new(log)
 
 log.debug("Gem location: #{File.dirname(File.dirname(__FILE__))}")
 

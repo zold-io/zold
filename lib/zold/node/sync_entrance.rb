@@ -33,7 +33,7 @@ require_relative '../verbose_thread'
 module Zold
   # The entrance that makes sure only one thread works with a wallet
   class SyncEntrance
-    def initialize(entrance, dir, timeout: 30, log: Log::Quiet.new)
+    def initialize(entrance, dir, timeout: 30, log: Log::NULL)
       @entrance = entrance
       @dir = dir
       @timeout = timeout

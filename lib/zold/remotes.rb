@@ -74,7 +74,7 @@ module Zold
 
     # One remote.
     class Remote
-      def initialize(host:, port:, score:, idx:, network: 'test', log: Log::Quiet.new)
+      def initialize(host:, port:, score:, idx:, network: 'test', log: Log::NULL)
         @host = host
         @port = port
         @score = score

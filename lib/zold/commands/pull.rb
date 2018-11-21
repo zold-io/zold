@@ -32,7 +32,7 @@ require_relative 'clean'
 module Zold
   # PULL command
   class Pull
-    def initialize(wallets:, remotes:, copies:, log: Log::Quiet.new)
+    def initialize(wallets:, remotes:, copies:, log: Log::NULL)
       @wallets = wallets
       @remotes = remotes
       @copies = copies

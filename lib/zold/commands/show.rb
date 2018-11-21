@@ -35,7 +35,7 @@ require_relative '../wallet'
 module Zold
   # Show command
   class Show
-    def initialize(wallets:, copies:, log: Log::Quiet.new)
+    def initialize(wallets:, copies:, log: Log::NULL)
       @wallets = wallets
       @copies = copies
       @log = log

@@ -34,7 +34,7 @@ require_relative '../log'
 module Zold
   # Money sending command
   class Pay
-    def initialize(wallets:, remotes:, log: Log::Quiet.new)
+    def initialize(wallets:, remotes:, log: Log::NULL)
       @wallets = wallets
       @remotes = remotes
       @log = log

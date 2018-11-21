@@ -57,7 +57,7 @@ module Zold
     # <tt>lifetime</tt> is the amount of seconds for a score to live in the farm, by default
     # it's the entire day, since the Score expires in 24 hours; can be decreased for the
     # purpose of unit testing.
-    def initialize(invoice, cache = File.join(Dir.pwd, 'farm'), log: Log::Quiet.new,
+    def initialize(invoice, cache = File.join(Dir.pwd, 'farm'), log: Log::NULL,
       farmer: Farmers::Plain.new, lifetime: 24 * 60 * 60)
       @log = log
       @cache = File.expand_path(cache)

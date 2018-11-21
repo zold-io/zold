@@ -44,7 +44,7 @@ require_relative '../gem'
 module Zold
   # Remote command
   class Remote
-    def initialize(remotes:, farm: Farm::Empty.new, log: Log::Quiet.new)
+    def initialize(remotes:, farm: Farm::Empty.new, log: Log::NULL)
       @remotes = remotes
       @farm = farm
       @log = log

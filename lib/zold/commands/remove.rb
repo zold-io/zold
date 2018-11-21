@@ -32,7 +32,7 @@ require_relative '../log'
 module Zold
   # REMOVE command
   class Remove
-    def initialize(wallets:, log: Log::Quiet.new)
+    def initialize(wallets:, log: Log::NULL)
       @wallets = wallets
       @log = log
     end

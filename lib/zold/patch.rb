@@ -32,7 +32,7 @@ require_relative 'signature'
 module Zold
   # A patch
   class Patch
-    def initialize(wallets, log: Log::Quiet.new)
+    def initialize(wallets, log: Log::NULL)
       @wallets = wallets
       @txns = []
       @log = log

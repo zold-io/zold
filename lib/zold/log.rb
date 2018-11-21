@@ -20,10 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'logger'
 require 'rainbow'
-require 'monitor'
-
-STDOUT.sync = true
 
 # Zold module.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -47,144 +45,43 @@ module Zold
   # messages. The user turns this mode by using --verbose command line argument.
   #
   module Log
-    # Synchronized
-    class Sync
-      def initialize(log)
-        @log = log
-        @monitor = Monitor.new
+    # Formatter
+    FMT = proc do |severity, _time, _target, msg|
+      prefix = ''
+      case severity
+      when 'ERROR', 'FATAL'
+        prefix = Rainbow('E:').red + ' '
+      when 'DEBUG'
+        prefix = Rainbow('D:').yellow + ' '
       end
-
-      def debug(msg)
-        return unless debug?
-        @monitor.synchronize do
-          @log.debug(msg)
-        end
-      end
-
-      def debug?
-        @log.debug?
-      end
-
-      def info(msg)
-        return unless info?
-        @monitor.synchronize do
-          @log.info(msg)
-        end
-      end
-
-      def info?
-        @log.info?
-      end
-
-      def error(msg)
-        @monitor.synchronize do
-          @log.error(msg)
-        end
-      end
+      prefix + msg.to_s.strip + "\n"
     end
 
-    # Extra verbose log
-    class Verbose
-      def debug(msg)
-        print(msg)
-      end
+    # Date/time format
+    TIME_FMT = '%Y-%m-%d %H:%M:%S'
 
-      def debug?
-        true
-      end
+    # No logging at all
+    NULL = Logger.new(STDOUT)
+    NULL.level = Logger::UNKNOWN
+    NULL.datetime_format = TIME_FMT
+    NULL.formatter = FMT
 
-      def info(msg)
-        print(msg)
-      end
+    # Everything, including debug
+    VERBOSE = Logger.new(STDOUT)
+    VERBOSE.level = Logger::DEBUG
+    VERBOSE.datetime_format = TIME_FMT
+    VERBOSE.formatter = FMT
 
-      def info?
-        true
-      end
+    # Info and errors, no debug info
+    REGULAR = Logger.new(STDOUT)
+    REGULAR.level = Logger::INFO
+    REGULAR.datetime_format = TIME_FMT
+    REGULAR.formatter = FMT
 
-      def error(msg)
-        print("#{Rainbow('ERROR').red}: #{msg}")
-      end
-
-      private
-
-      def print(text)
-        puts(text)
-      end
-    end
-
-    # Regular log
-    class Regular
-      def debug(msg)
-        # nothing
-      end
-
-      def debug?
-        false
-      end
-
-      def info(msg)
-        print(msg)
-      end
-
-      def info?
-        true
-      end
-
-      def error(msg)
-        print("#{Rainbow('ERROR').red}: #{msg}")
-      end
-
-      private
-
-      def print(text)
-        puts(text)
-      end
-    end
-
-    # ErrorsOnly log
-    class ErrorsOnly
-      def debug(msg)
-        # nothing
-      end
-
-      def debug?
-        false
-      end
-
-      def info(msg)
-        # nothing
-      end
-
-      def info?
-        false
-      end
-
-      def error(msg)
-        puts("#{Rainbow('ERROR').red}: #{msg}")
-      end
-    end
-
-    # Log that doesn't log anything
-    class Quiet
-      def debug(msg)
-        # nothing to do here
-      end
-
-      def debug?
-        false
-      end
-
-      def info(msg)
-        # nothing to do here
-      end
-
-      def info?
-        false
-      end
-
-      def error(msg)
-        # nothing to do here
-      end
-    end
+    # Errors only
+    ERRORS = Logger.new(STDOUT)
+    ERRORS.level = Logger::ERROR
+    ERRORS.datetime_format = TIME_FMT
+    ERRORS.formatter = FMT
   end
 end

@@ -311,7 +311,7 @@ For example, `Zold::Log::Verbose` will print a lot of information to the console
 
 ```ruby
 require 'zold/commands/push'
-Zold::Push.new(wallets: wallets, remotes: remotes, log: Zold::Log::Verbose.new).run(['push'])
+Zold::Push.new(wallets: wallets, remotes: remotes, log: Zold::Log::VERBOSE).run(['push'])
 ```
 
 Also, all commands by default assume that you are working in a `test` network.

@@ -32,7 +32,7 @@ require_relative '../size'
 module Zold
   # LIST command
   class List
-    def initialize(wallets:, copies:, log: Log::Quiet.new)
+    def initialize(wallets:, copies:, log: Log::NULL)
       @wallets = wallets
       @copies = copies
       @log = log

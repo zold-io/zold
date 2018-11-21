@@ -36,7 +36,7 @@ require_relative '../prefixes'
 module Zold
   # PROPAGATE pulling command
   class Propagate
-    def initialize(wallets:, log: Log::Quiet.new)
+    def initialize(wallets:, log: Log::NULL)
       @wallets = wallets
       @log = log
     end

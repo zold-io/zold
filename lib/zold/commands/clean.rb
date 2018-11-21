@@ -41,7 +41,7 @@ require_relative '../copies'
 module Zold
   # CLEAN command
   class Clean
-    def initialize(wallets:, copies:, log: Log::Quiet.new)
+    def initialize(wallets:, copies:, log: Log::NULL)
       @wallets = wallets
       @copies = copies
       @log = log

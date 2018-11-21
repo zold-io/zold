@@ -34,7 +34,7 @@ require_relative '../id'
 module Zold
   # Create command
   class Create
-    def initialize(wallets:, log: Log::Quiet.new)
+    def initialize(wallets:, log: Log::NULL)
       @wallets = wallets
       @log = log
     end

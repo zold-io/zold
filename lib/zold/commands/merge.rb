@@ -37,7 +37,7 @@ require_relative '../patch'
 module Zold
   # MERGE pulling command
   class Merge
-    def initialize(wallets:, copies:, log: Log::Quiet.new)
+    def initialize(wallets:, copies:, log: Log::NULL)
       @wallets = wallets
       @copies = copies
       @log = log

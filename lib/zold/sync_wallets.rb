@@ -30,7 +30,7 @@ require_relative 'log'
 module Zold
   # Synchronized collection of wallets
   class SyncWallets
-    def initialize(wallets, timeout: 30, log: Log::Quiet.new)
+    def initialize(wallets, timeout: 30, log: Log::NULL)
       @wallets = wallets
       @log = log
       @timeout = timeout

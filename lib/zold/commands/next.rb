@@ -31,7 +31,7 @@ require_relative '../log'
 module Zold
   # Calculate next score
   class Next
-    def initialize(log: Log::Quiet.new)
+    def initialize(log: Log::NULL)
       @log = log
     end
 

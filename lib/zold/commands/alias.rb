@@ -8,7 +8,7 @@ require_relative '../log'
 module Zold
   # Command to set an alias for wallet ID
   class Alias
-    def initialize(wallets:, log: Log::Quiet.new)
+    def initialize(wallets:, log: Log::NULL)
       @wallets = wallets
       @log = log
     end

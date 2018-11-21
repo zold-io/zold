@@ -39,7 +39,7 @@ require_relative '../json_page'
 module Zold
   # Wallet pushing command
   class Push
-    def initialize(wallets:, remotes:, log: Log::Quiet.new)
+    def initialize(wallets:, remotes:, log: Log::NULL)
       @wallets = wallets
       @remotes = remotes
       @log = log

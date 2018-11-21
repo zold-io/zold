@@ -51,7 +51,7 @@ module Zold
   # just selects the most suitable wallet to transfer taxes to and sends
   # the payment. More details you can find in the White Paper.
   class Taxes
-    def initialize(wallets:, remotes:, log: Log::Quiet.new)
+    def initialize(wallets:, remotes:, log: Log::NULL)
       @wallets = wallets
       @remotes = remotes
       @log = log

@@ -32,7 +32,9 @@ require_relative '../lib/zold/log'
 class TestLog < Zold::Test
   def test_prints_from_many_threads
     Threads.new(20).assert do
-      test_log.debug('How are you?')
+      test_log.debug('This is debug')
+      test_log.info('This is info')
+      test_log.error('This is error')
     end
   end
 end

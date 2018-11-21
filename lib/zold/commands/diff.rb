@@ -36,7 +36,7 @@ require_relative '../wallet'
 module Zold
   # DIFF pulling command
   class Diff
-    def initialize(wallets:, copies:, log: Log::Quiet.new)
+    def initialize(wallets:, copies:, log: Log::NULL)
       @wallets = wallets
       @copies = copies
       @log = log

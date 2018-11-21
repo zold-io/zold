@@ -26,7 +26,7 @@ require_relative 'log'
 module Zold
   # Read and write .zoldata/version.
   class VersionFile
-    def initialize(path, log: Log::Verbose.new)
+    def initialize(path, log: Log::VERBOSE)
       @path = path
       @log = log
     end

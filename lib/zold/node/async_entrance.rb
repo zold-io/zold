@@ -36,7 +36,7 @@ require_relative '../dir_items'
 module Zold
   # The entrance
   class AsyncEntrance
-    def initialize(entrance, dir, log: Log::Quiet.new, threads: [Concurrent.processor_count, 4].max)
+    def initialize(entrance, dir, log: Log::NULL, threads: [Concurrent.processor_count, 4].max)
       @entrance = entrance
       @dir = File.expand_path(dir)
       @log = log
