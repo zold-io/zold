@@ -74,7 +74,12 @@ module Zold
 
     # Full formatter
     FULL = proc do |severity, time, _target, msg|
-      "#{time.utc.iso8601} #{colored(severity, severity)} #{msg.to_s.rstrip}\n"
+      format(
+        "%<time>s %<severity>5s %<msg>s\n",
+        time: time.utc.iso8601,
+        severity: colored(severity, severity),
+        msg: msg.to_s.rstrip
+      )
     end
 
     # No logging at all

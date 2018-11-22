@@ -103,7 +103,7 @@ in #{Age.new(start, limit: 0.05)}: #{uuid}")
       FileUtils.rm_f(item[:file])
       @entrance.push(item[:id], body)
       @log.debug("Pushed #{item[:id]}/#{Size.new(body.length)} to #{@entrance.class.name} \
-in #{Age.new(start, limit: 0.1)} (#{@queue.size} still in the queue)")
+in #{Age.new(start, limit: 0.1)}#{@queue.size.zero? ? '' : "(#{@queue.size} still in the queue)"}")
     end
   end
 end

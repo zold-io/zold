@@ -43,5 +43,7 @@ class TestLog < Zold::Test
     log.formatter = Zold::Log::FULL
     log.debug("This is info\nand it is multi\nline")
     log.debug('Works fine?')
+    log.debug(true)
+    log.debug(1)
   end
 end
