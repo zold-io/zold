@@ -73,4 +73,26 @@ class TestFetch < Zold::Test
       assert_equal(0, copies.all[0][:score])
     end
   end
+
+  def test_fetches_multiple_wallets
+    log = TestLogger.new(test_log)
+    FakeHome.new(log: log).run do |home|
+      wallet_a = home.create_wallet
+      stub_request(:get, "http://localhost:81/wallet/#{wallet_a.id}/size").to_return(status: 404)
+      wallet_b = home.create_wallet
+      stub_request(:get, "http://localhost:81/wallet/#{wallet_b.id}/size").to_return(status: 404)
+      remotes = home.remotes
+      remotes.add('localhost', 81)
+      copies = home.copies(wallet_a)
+      begin
+        Zold::Fetch.new(wallets: home.wallets, copies: copies.root, remotes: remotes, log: log).run(
+          ['fetch', '--ignore-score-weakness', '--threads 2', wallet_a.id.to_s, wallet_b.id.to_s]
+        )
+      rescue StandardError => _
+        sleep 1
+        retry if (retries += 1) < 3
+      end
+      assert(log.msgs.find { |m| m.include?('Worker: 1 has fetched') })
+    end
+  end
 end

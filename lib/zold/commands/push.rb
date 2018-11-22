@@ -24,6 +24,8 @@ require 'rainbow'
 require 'slop'
 require 'json'
 require 'net/http'
+require 'concurrent'
+require 'parallel'
 require_relative 'thread_badge'
 require_relative 'args'
 require_relative '../age'
@@ -58,12 +60,16 @@ Available options:"
         o.array '--ignore-node',
           'Ignore this node and don\'t push to it',
           default: []
+        o.integer '--threads',
+          "How many threads to use for pushing wallets (default: #{[Concurrent.processor_count / 2, 2].max})",
+          default: [Concurrent.processor_count / 2, 2].max
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
-      (mine.empty? ? @wallets.all : mine.map { |i| Id.new(i) }).each do |id|
+      Parallel.map((mine.empty? ? @wallets.all : mine.map { |i| Id.new(i) }), in_threads: opts[:threads] ) { |id|
         push(id, opts)
-      end
+        @log.debug("Worker: #{Parallel.worker_number} has pushed wallet #{id}")
+      }
     end
 
     private
