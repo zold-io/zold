@@ -181,7 +181,8 @@ wallets = Zold::SyncWallets.new(
   Zold::CachedWallets.new(
     command == 'node' ? Zold::TreeWallets.new(home) : Zold::Wallets.new(home)
   ),
-  log: log
+  log: log,
+  dir: File.join(zoldata, 'locks')
 )
 fremotes = File.join(zoldata, 'remotes')
 remotes = Zold::Remotes.new(file: fremotes, network: opts['network'])
