@@ -36,8 +36,8 @@ require_relative '../lib/zold/amount'
 # License:: MIT
 class TestCachedWallets < Zold::Test
   def test_adds_wallet
-    FakeHome.new(log: test_log).run do |home|
-      wallets = Zold::CachedWallets.new(home.wallets)
+    Dir.mktmpdir do |dir|
+      wallets = Zold::CachedWallets.new(Zold::Wallets.new(dir))
       id = Zold::Id.new
       first = nil
       wallets.acq(id, exclusive: true) do |wallet|
@@ -48,6 +48,26 @@ class TestCachedWallets < Zold::Test
       wallets.acq(id) do |wallet|
         assert_equal(first, wallet)
       end
+    end
+  end
+
+  def test_flushes_correctly
+    Dir.mktmpdir do |dir|
+      wallets = Zold::CachedWallets.new(Zold::Wallets.new(dir))
+      id = Zold::Id.new
+      key = Zold::Key.new(file: 'fixtures/id_rsa')
+      body = wallets.acq(id, exclusive: true) do |wallet|
+        wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+        IO.read(wallet.path)
+      end
+      wallets.acq(id, exclusive: true) do |wallet|
+        wallet.sub(Zold::Amount.new(zld: 1.0), "NOPREFIX@#{Zold::Id.new}", key)
+      end
+      assert_equal(1, wallets.acq(id, &:txns).count)
+      wallets.acq(id, exclusive: true) do |wallet|
+        IO.write(wallet.path, body)
+      end
+      assert_equal(0, wallets.acq(id, &:txns).count)
     end
   end
 end

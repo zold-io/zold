@@ -475,9 +475,5 @@ in #{Age.new(@start, limit: 1)}")
         yield wallet
       end
     end
-
-    def running_server
-      false
-    end
   end
 end

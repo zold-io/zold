@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
+require_relative 'test__helper'
 require_relative 'fake_home'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/age'
@@ -182,6 +183,25 @@ class TestWallet < Zold::Test
         )
       )
       assert_equal(hours, wallet.age.round)
+    end
+  end
+
+  def test_flushes_and_reads_again
+    FakeHome.new(log: test_log).run do |home|
+      wallet = home.create_wallet
+      wallet.add(
+        Zold::Txn.new(
+          1,
+          Time.now,
+          Zold::Amount.new(zld: 1.99),
+          'NOPREFIX', Zold::Id.new, '-'
+        )
+      )
+      assert_equal(1, wallet.txns.count)
+      assert_equal('test', wallet.network)
+      wallet.flush
+      assert_equal(1, wallet.txns.count)
+      assert_equal('test', wallet.network)
     end
   end
 

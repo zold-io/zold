@@ -87,7 +87,7 @@ module Zold
         IO.write(file, body)
         @queue << { id: id, file: file }
         @log.debug("Added #{id}/#{Size.new(body.length)} to the queue at pos.#{@queue.size} \
-in #{Age.new(start, limit: 0.05)}: #{uuid}")
+in #{Age.new(start, limit: 0.05)}")
         break
       end
       [id]
