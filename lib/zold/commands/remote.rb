@@ -176,7 +176,9 @@ Available options:"
     end
 
     def defaults
-      @remotes.defaults
+      @remotes.defaults do |host, port|
+        !opts['ignore-node'].include?("#{host}:#{port}")
+      end
       @log.debug("Default remote nodes were added to the list, #{@remotes.all.count} total")
     end
 

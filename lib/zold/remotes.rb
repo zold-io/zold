@@ -144,6 +144,9 @@ module Zold
 
     def defaults
       DEFS.each do |r|
+        if block_given?
+          next unless yield(r[0], r[1].to_i)
+        end
         add(r[0], r[1].to_i)
       end
     end
