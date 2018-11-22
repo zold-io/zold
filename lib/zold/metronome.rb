@@ -86,10 +86,10 @@ module Zold
       begin
         yield(self)
       ensure
+        start = Time.now
         unless @threads.empty?
           alive = false
           @log.info("Stopping the metronome with #{@threads.count} threads: #{@threads.map(&:name).join(', ')}")
-          start = Time.now
           @threads.each do |t|
             tstart = Time.now
             if t.join(60)

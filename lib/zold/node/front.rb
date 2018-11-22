@@ -476,7 +476,7 @@ in #{Age.new(@start, limit: 1)}")
       end
     end
 
-    def running_server?
+    def running_server
       false
     end
   end
