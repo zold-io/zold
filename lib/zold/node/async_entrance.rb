@@ -36,12 +36,14 @@ require_relative '../dir_items'
 module Zold
   # The entrance
   class AsyncEntrance
-    def initialize(entrance, dir, log: Log::NULL, threads: [Concurrent.processor_count, 4].max)
+    def initialize(entrance, dir, log: Log::NULL,
+      threads: [Concurrent.processor_count, 8].max, queue_limit: 8)
       @entrance = entrance
       @dir = File.expand_path(dir)
       @log = log
       @total = threads
       @queue = Queue.new
+      @queue_limit = queue_limit
     end
 
     def to_json
@@ -78,7 +80,7 @@ module Zold
 
     # Always returns an array with a single ID of the pushed wallet
     def push(id, body)
-      raise "Queue is too long (#{@queue.size} wallets), try again later" if @queue.size > 256
+      raise "Queue is too long (#{@queue.size} wallets), try again later" if @queue.size > @queue_limit
       start = Time.now
       loop do
         uuid = SecureRandom.uuid
