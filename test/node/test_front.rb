@@ -112,7 +112,7 @@ class FrontTest < Zold::Test
   end
 
   def test_updates_list_of_remotes
-    FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
+    FakeNode.new(log: test_log).run(['--ignore-score-weakness', '--no-cache']) do |port|
       score = Zold::Score.new(
         host: 'localhost', port: port, invoice: 'NOPREFIX@ffffffffffffffff', strength: 1
       ).next.next.next.next
@@ -128,7 +128,7 @@ class FrontTest < Zold::Test
   end
 
   def test_increments_score
-    FakeNode.new(log: test_log).run(['--threads=1', '--strength=1', '--no-metronome']) do |port|
+    FakeNode.new(log: test_log).run(['--threads=1', '--strength=1', '--no-metronome', '--no-cache']) do |port|
       3.times do |i|
         assert_equal_wait(true) do
           response = Zold::Http.new(uri: "http://localhost:#{port}/").get

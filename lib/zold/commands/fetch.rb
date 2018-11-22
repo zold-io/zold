@@ -28,6 +28,7 @@ require 'slop'
 require 'rainbow'
 require 'concurrent/atomics'
 require 'zold/score'
+require_relative 'thread_badge'
 require_relative 'args'
 require_relative '../log'
 require_relative '../age'
@@ -43,7 +44,9 @@ require_relative '../copies'
 module Zold
   # FETCH pulling command
   class Fetch
-    def initialize(wallets:, remotes:, copies:, log: Log::Quiet.new)
+    prepend ThreadBadge
+
+    def initialize(wallets:, remotes:, copies:, log: Log::NULL)
       @wallets = wallets
       @remotes = remotes
       @copies = copies

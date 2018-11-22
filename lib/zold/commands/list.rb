@@ -20,9 +20,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require_relative 'thread_badge'
 require_relative '../log'
 require_relative '../amount'
 require_relative '../wallet'
+require_relative '../size'
 
 # LIST command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -31,26 +33,32 @@ require_relative '../wallet'
 module Zold
   # LIST command
   class List
-    def initialize(wallets:, log: Log::Quiet.new)
+    prepend ThreadBadge
+
+    def initialize(wallets:, copies:, log: Log::NULL)
       @wallets = wallets
+      @copies = copies
       @log = log
     end
 
     def run(_ = [])
       total = 0
       txns = 0
+      size = 0
       balance = Amount::ZERO
       @wallets.all.sort.each do |id|
         total += 1
+        cps = Copies.new(File.join(@copies, id))
         @wallets.acq(id) do |wallet|
-          msg = wallet.mnemo
-          msg += " (net:#{wallet.network})" if wallet.network != Wallet::MAIN_NETWORK
+          msg = "#{wallet.mnemo} #{cps.all.count}c"
+          msg += " (net:#{wallet.network})" if wallet.network != Wallet::MAINET
           txns += wallet.txns.count
           balance += wallet.balance
+          size += wallet.size
           @log.info(msg)
         end
       end
-      @log.info("#{total} wallets, #{txns} transactions, #{balance} in total")
+      @log.info("#{total} wallets, #{txns} transactions, #{Size.new(size)}, #{balance} in total")
     end
   end
 end

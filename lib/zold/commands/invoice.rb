@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'slop'
+require_relative 'thread_badge'
 require_relative 'args'
 require_relative '../log'
 require_relative '../prefixes'
@@ -32,7 +33,9 @@ require_relative '../prefixes'
 module Zold
   # Generate invoice
   class Invoice
-    def initialize(wallets:, remotes:, copies:, log: Log::Quiet.new)
+    prepend ThreadBadge
+
+    def initialize(wallets:, remotes:, copies:, log: Log::NULL)
       @wallets = wallets
       @remotes = remotes
       @copies = copies

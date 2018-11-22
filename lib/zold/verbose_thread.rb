@@ -30,7 +30,7 @@ require_relative 'log'
 module Zold
   # Verbose thread
   class VerboseThread
-    def initialize(log = Log::Quiet.new)
+    def initialize(log = Log::NULL)
       @log = log
     end
 

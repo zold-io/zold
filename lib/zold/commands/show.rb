@@ -22,6 +22,7 @@
 
 require 'slop'
 require 'rainbow'
+require_relative 'thread_badge'
 require_relative 'args'
 require_relative '../log'
 require_relative '../id'
@@ -35,8 +36,11 @@ require_relative '../wallet'
 module Zold
   # Show command
   class Show
-    def initialize(wallets:, log: Log::Quiet.new)
+    prepend ThreadBadge
+
+    def initialize(wallets:, copies:, log: Log::NULL)
       @wallets = wallets
+      @copies = copies
       @log = log
     end
 
@@ -49,7 +53,7 @@ Available options:"
       mine = Args.new(opts, @log).take || return
       if mine.empty?
         require_relative 'list'
-        List.new(wallets: @wallets, log: @log).run(args)
+        List.new(wallets: @wallets, copies: @copies, log: @log).run(args)
       else
         total = Amount::ZERO
         mine.map { |i| Id.new(i) }.each do |id|
@@ -69,7 +73,7 @@ Available options:"
         @log.info(t.to_text)
       end
       msg = "The balance of #{wallet}: #{balance}"
-      msg += " (net:#{wallet.network})" if wallet.network != Wallet::MAIN_NETWORK
+      msg += " (net:#{wallet.network})" if wallet.network != Wallet::MAINET
       @log.info(msg)
       balance
     end

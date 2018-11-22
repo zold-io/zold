@@ -40,7 +40,7 @@ require_relative '../commands/clean'
 module Zold
   # The entrance
   class SpreadEntrance
-    def initialize(entrance, wallets, remotes, address, log: Log::Quiet.new, ignore_score_weakeness: false)
+    def initialize(entrance, wallets, remotes, address, log: Log::NULL, ignore_score_weakeness: false)
       @entrance = entrance
       @wallets = wallets
       @remotes = remotes

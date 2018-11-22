@@ -22,6 +22,7 @@
 
 require 'slop'
 require 'rainbow'
+require_relative 'thread_badge'
 require_relative 'args'
 require_relative '../log'
 require_relative '../age'
@@ -36,7 +37,9 @@ require_relative '../prefixes'
 module Zold
   # PROPAGATE pulling command
   class Propagate
-    def initialize(wallets:, log: Log::Quiet.new)
+    prepend ThreadBadge
+
+    def initialize(wallets:, log: Log::NULL)
       @wallets = wallets
       @log = log
     end

@@ -33,6 +33,10 @@ require_relative 'txn'
 module Zold
   # A signature
   class Signature
+    def initialize(network = 'test')
+      @network = network
+    end
+
     # Sign the trasnsaction and return the signature.
     # +pvt+:: Private RSA key
     # +id+:: Paying wallet ID
@@ -52,7 +56,7 @@ module Zold
       raise 'pub must be of type Key' unless pub.is_a?(Key)
       raise 'id must be of type Id' unless id.is_a?(Id)
       raise 'txn must be of type Txn' unless txn.is_a?(Txn)
-      pub.verify(txn.sign, body(id, txn))
+      pub.verify(txn.sign, body(id, txn)) && (@network != Wallet::MAINET || id != Id::ROOT || pub == Key::ROOT)
     end
 
     private

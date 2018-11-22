@@ -38,7 +38,7 @@ require_relative '../commands/push'
 module Zold
   # The entrance
   class Entrance
-    def initialize(wallets, remotes, copies, address, log: Log::Quiet.new, network: 'test')
+    def initialize(wallets, remotes, copies, address, log: Log::NULL, network: 'test')
       @wallets = wallets
       @remotes = remotes
       @copies = copies

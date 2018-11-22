@@ -31,7 +31,7 @@ require_relative 'age'
 module Zold
   # Endless loop
   class Endless
-    def initialize(title, log: Log::Quiet.new)
+    def initialize(title, log: Log::NULL)
       @title = title
       @log = log
     end

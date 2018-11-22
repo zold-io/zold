@@ -34,7 +34,7 @@ require_relative '../../lib/zold/node/front'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class FakeNode
-  def initialize(log: Zold::Log::Quiet.new)
+  def initialize(log: Zold::Log::NULL)
     @log = log
   end
 
@@ -43,6 +43,7 @@ class FakeNode
     FakeHome.new(log: @log).run do |home|
       RandomPort::Pool::SINGLETON.acquire do |port|
         node = Thread.new do
+          Thread.current.name = 'fake_node'
           Zold::VerboseThread.new(@log).run do
             Thread.current.abort_on_exception = true
             require_relative '../../lib/zold/commands/node'
@@ -67,7 +68,7 @@ class FakeNode
         loop do
           ping = Zold::Http.new(uri: uri).get
           break unless ping.status == 599 && node.alive?
-          @log.debug("Waiting for #{uri} (attempt no.#{attempt}): ##{ping.status}...")
+          @log.info("Waiting for #{uri} (attempt no.#{attempt}): ##{ping.status}...")
           sleep 0.5
           attempt += 1
           break if attempt > 10

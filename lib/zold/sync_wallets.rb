@@ -30,7 +30,7 @@ require_relative 'log'
 module Zold
   # Synchronized collection of wallets
   class SyncWallets
-    def initialize(wallets, timeout: 30, log: Log::Quiet.new)
+    def initialize(wallets, timeout: 30, log: Log::NULL)
       @wallets = wallets
       @log = log
       @timeout = timeout
@@ -49,8 +49,7 @@ module Zold
     end
 
     def acq(id, exclusive: false)
-      raise 'The flag can\'t be nil' if exclusive.nil?
-      @wallets.acq(id) do |wallet|
+      @wallets.acq(id, exclusive: exclusive) do |wallet|
         Futex.new(wallet.path, log: @log).open(exclusive) do
           yield wallet
         end

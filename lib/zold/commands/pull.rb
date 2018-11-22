@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require_relative 'thread_badge'
 require_relative '../log'
 require_relative 'fetch'
 require_relative 'merge'
@@ -32,7 +33,9 @@ require_relative 'clean'
 module Zold
   # PULL command
   class Pull
-    def initialize(wallets:, remotes:, copies:, log: Log::Quiet.new)
+    prepend ThreadBadge
+
+    def initialize(wallets:, remotes:, copies:, log: Log::NULL)
       @wallets = wallets
       @remotes = remotes
       @copies = copies

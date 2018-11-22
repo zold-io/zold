@@ -20,10 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'logger'
 require 'rainbow'
-require 'monitor'
-
-STDOUT.sync = true
 
 # Zold module.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -47,121 +45,64 @@ module Zold
   # messages. The user turns this mode by using --verbose command line argument.
   #
   module Log
-    # Synchronized
-    class Sync
-      def initialize(log)
-        @log = log
-        @monitor = Monitor.new
+    def self.colored(text, severity)
+      case severity
+      when 'ERROR', 'FATAL'
+        return Rainbow(text).red
+      when 'DEBUG'
+        return Rainbow(text).yellow
       end
-
-      def debug(msg)
-        return unless debug?
-        @monitor.synchronize do
-          @log.debug(msg)
-        end
-      end
-
-      def debug?
-        @log.debug?
-      end
-
-      def info(msg)
-        return unless info?
-        @monitor.synchronize do
-          @log.info(msg)
-        end
-      end
-
-      def info?
-        @log.info?
-      end
-
-      def error(msg)
-        @monitor.synchronize do
-          @log.error(msg)
-        end
-      end
+      text
     end
 
-    # Extra verbose log
-    class Verbose
-      def debug(msg)
-        print(msg)
+    # Compact formatter
+    COMPACT = proc do |severity, _time, _target, msg|
+      prefix = ''
+      case severity
+      when 'ERROR', 'FATAL'
+        prefix = 'E: '
+      when 'DEBUG'
+        prefix = 'D: '
       end
-
-      def debug?
-        true
-      end
-
-      def info(msg)
-        print(msg)
-      end
-
-      def info?
-        true
-      end
-
-      def error(msg)
-        print("#{Rainbow('ERROR').red}: #{msg}")
-      end
-
-      private
-
-      def print(text)
-        puts(text)
-      end
+      colored(prefix, severity) + msg.to_s.rstrip.gsub(/\n/, "\n" + (' ' * prefix.length)) + "\n"
     end
 
-    # Regular log
-    class Regular
-      def debug(msg)
-        # nothing
-      end
-
-      def debug?
-        false
-      end
-
-      def info(msg)
-        print(msg)
-      end
-
-      def info?
-        true
-      end
-
-      def error(msg)
-        print("#{Rainbow('ERROR').red}: #{msg}")
-      end
-
-      private
-
-      def print(text)
-        puts(text)
-      end
+    # Short formatter
+    SHORT = proc do |_severity, _time, _target, msg|
+      msg.to_s.rstrip + "\n"
     end
 
-    # Log that doesn't log anything
-    class Quiet
-      def debug(msg)
-        # nothing to do here
-      end
-
-      def debug?
-        false
-      end
-
-      def info(msg)
-        # nothing to do here
-      end
-
-      def info?
-        false
-      end
-
-      def error(msg)
-        # nothing to do here
-      end
+    # Full formatter
+    FULL = proc do |severity, time, _target, msg|
+      format(
+        "%<time>s %<severity>5s %<msg>s\n",
+        time: time.utc.iso8601,
+        severity: colored(severity, severity),
+        msg: msg.to_s.rstrip
+      )
     end
+
+    # No logging at all
+    NULL = Logger.new(STDOUT)
+    NULL.level = Logger::UNKNOWN
+    NULL.freeze
+
+    # Everything, including debug
+    VERBOSE = Logger.new(STDOUT)
+    VERBOSE.level = Logger::DEBUG
+    VERBOSE.formatter = COMPACT
+    VERBOSE.freeze
+
+    # Info and errors, no debug info
+    REGULAR = Logger.new(STDOUT)
+    REGULAR.level = Logger::INFO
+    REGULAR.formatter = COMPACT
+    REGULAR.freeze
+
+    # Errors only
+    ERRORS = Logger.new(STDOUT)
+    ERRORS.level = Logger::ERROR
+    ERRORS.formatter = COMPACT
+    ERRORS.freeze
   end
 end

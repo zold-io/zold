@@ -55,9 +55,9 @@ class TestEntrance < Zold::Test
       target = home.create_wallet(tid)
       e = Zold::Entrance.new(home.wallets, home.remotes, home.copies(source).root, 'x', log: test_log)
       modified = e.push(source.id, body)
+      assert_equal(2, modified.count)
       assert_equal(Zold::Amount.new(zld: -19.99), source.balance)
       assert_equal(Zold::Amount.new(zld: 19.99), target.balance)
-      assert_equal(2, modified.count)
       assert(modified.include?(sid))
       assert(modified.include?(tid))
     end

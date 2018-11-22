@@ -23,6 +23,7 @@
 require 'minitest/autorun'
 require 'tmpdir'
 require 'openssl'
+require_relative 'test__helper'
 require_relative '../lib/zold/key'
 
 # Key test.
@@ -42,6 +43,12 @@ class TestKey < Zold::Test
     key = Zold::Key.new(file: 'fixtures/id_rsa')
     assert(key.to_pub.start_with?('MIIJJ'))
     assert(key.to_pub.end_with?('Sg=='))
+  end
+
+  def test_reads_public_root_rsa
+    key = Zold::Key::ROOT
+    assert(key.to_pub.start_with?('MIICIjANBgkqhkiG9'))
+    assert(key.to_pub.end_with?('3Tp1UCAwEAAQ=='))
   end
 
   def test_signs_and_verifies

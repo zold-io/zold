@@ -23,8 +23,10 @@
 require 'open3'
 require 'slop'
 require 'backtrace'
+require 'zache'
 require 'concurrent'
 require 'zold/score'
+require_relative 'thread_badge'
 require_relative '../version'
 require_relative '../age'
 require_relative '../metronome'
@@ -54,7 +56,9 @@ require_relative 'remote'
 module Zold
   # NODE command
   class Node
-    def initialize(wallets:, remotes:, copies:, log: Log::Quiet.new)
+    prepend ThreadBadge
+
+    def initialize(wallets:, remotes:, copies:, log: Log::NULL)
       @remotes = remotes
       @copies = copies
       @log = log
@@ -116,6 +120,9 @@ module Zold
         o.bool '--routine-immediately',
           'Run all routines immediately, without waiting between executions (for testing mostly)',
           default: false
+        o.bool '--no-cache',
+          'Skip caching of front JSON pages (will seriously slow down, mostly useful for testing)',
+          default: false
         o.string '--expose-version',
           "The version of the software to expose in JSON (default: #{VERSION})",
           default: VERSION
@@ -123,8 +130,8 @@ module Zold
           'The location of RSA private key (default: ~/.ssh/id_rsa)',
           default: '~/.ssh/id_rsa'
         o.string '--network',
-          "The name of the network (default: #{Wallet::MAIN_NETWORK})",
-          default: Wallet::MAIN_NETWORK
+          "The name of the network (default: #{Wallet::MAINET})",
+          default: Wallet::MAINET
         o.integer '--nohup-max-cycles',
           'Maximum amount of nohup re-starts (-1 by default, which means forever)',
           default: -1
@@ -174,6 +181,7 @@ module Zold
       @log.info("Zold gem version: #{Zold::VERSION}")
       @log.info("Zold protocol version: #{Zold::PROTOCOL}")
       @log.info("Network ID: #{opts['network']}")
+      @log.info('Front caching is disabled via --no-cache') if opts['no-cache']
       host = opts[:host] || ip
       port = opts[:port]
       address = "#{host}:#{port}".downcase
@@ -189,6 +197,7 @@ module Zold
         Zold::Remote.new(remotes: @remotes).run(['remote', 'remove', host, port.to_s])
         @log.info("Removed current node (#{address}) from list of remotes")
       end
+      Front.set(:zache, Zache.new)
       Front.set(:wallets, @wallets)
       Front.set(:remotes, @remotes)
       Front.set(:copies, @copies)

@@ -72,6 +72,24 @@ class TestHttp < Zold::Test
     assert_equal(200, res.status)
   end
 
+  def test_terminates_on_timeout
+    WebMock.allow_net_connect!
+    RandomPort::Pool::SINGLETON.acquire do |port|
+      thread = Thread.start do
+        Zold::VerboseThread.new(test_log).run do
+          server = TCPServer.new(port)
+          server.accept
+          sleep 400
+        end
+      end
+      sleep 0.25
+      res = Zold::Http.new(uri: "http://127.0.0.1:#{port}/").get(timeout: 0.1)
+      assert_equal(599, res.status, res)
+      thread.kill
+      thread.join
+    end
+  end
+
   def test_doesnt_terminate_on_long_call
     WebMock.allow_net_connect!
     RandomPort::Pool::SINGLETON.acquire do |port|
@@ -93,19 +111,39 @@ class TestHttp < Zold::Test
     end
   end
 
-  def test_terminates_on_timeout
+  # @todo #444:30min It's obvious that the test works (I can see that in
+  #  the console, but for some weird reason it doesn't work in Minitest. Try
+  #  to run it: ruby test/test_http.rb -n test_sends_correct_http_headers
+  #  If fails because of PUT HTTP request timeout. Let's find the problem,
+  #  fix it, and un-skip the test.
+  def test_sends_correct_http_headers
+    skip
     WebMock.allow_net_connect!
+    body = ''
     RandomPort::Pool::SINGLETON.acquire do |port|
       thread = Thread.start do
         Zold::VerboseThread.new(test_log).run do
           server = TCPServer.new(port)
-          server.accept
-          sleep 400
+          socket = server.accept
+          loop do
+            line = socket.gets
+            break if line.nil?
+            test_log.info(line.inspect)
+            body += line
+          end
+          socket.print("HTTP/1.1 200 OK\r\n")
+          socket.print("Content-Length: 4\r\n")
+          socket.print("\r\n")
+          socket.print('Done')
+          socket.close
         end
       end
-      sleep 0.25
-      res = Zold::Http.new(uri: "http://127.0.0.1:#{port}/").get(timeout: 0.1)
-      assert_equal(599, res.status, res)
+      res = Zold::Http.new(uri: "http://127.0.0.1:#{port}/").put('how are you?')
+      assert_equal(200, res.status, res)
+      assert(body.include?('Content-Length: 12'), body)
+      assert(body.include?('Content-Type: text/plain'))
+      headers = body.split("\n").select { |t| t =~ /^[a-zA-Z-]+:.+$/ }
+      assert_equal(headers.count, headers.uniq.count)
       thread.kill
       thread.join
     end

@@ -23,6 +23,7 @@
 require 'slop'
 require 'rainbow'
 require 'backtrace'
+require_relative 'thread_badge'
 require_relative 'args'
 require_relative '../age'
 require_relative '../log'
@@ -37,7 +38,9 @@ require_relative '../patch'
 module Zold
   # MERGE pulling command
   class Merge
-    def initialize(wallets:, copies:, log: Log::Quiet.new)
+    prepend ThreadBadge
+
+    def initialize(wallets:, copies:, log: Log::NULL)
       @wallets = wallets
       @copies = copies
       @log = log
@@ -51,6 +54,9 @@ Available options:"
         o.bool '--no-baseline',
           'Don\'t trust any remote copies and re-validate all incoming payments against their wallets',
           default: false
+        o.bool '--skip-propagate',
+          'Don\'t propagate after merge',
+          default: false
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
@@ -58,6 +64,7 @@ Available options:"
       (mine.empty? ? @wallets.all : mine.map { |i| Id.new(i) }).each do |id|
         next unless merge(id, Copies.new(File.join(@copies, id)), opts)
         modified << id
+        next if opts['skip-propagate']
         require_relative 'propagate'
         modified += Propagate.new(wallets: @wallets, log: @log).run(args)
       end
@@ -76,24 +83,23 @@ Available options:"
         merge_one(opts, patch, wallet, name)
         score += c[:score]
       end
-      @wallets.acq(id, exclusive: true) do |wallet|
-        start = Time.now
-        if wallet.exists?
-          merge_one(opts, patch, wallet, 'localhost')
+      start = Time.now
+      @wallets.acq(id) do |w|
+        if w.exists?
+          merge_one(opts, patch, w, 'localhost')
           @log.debug("Local copy of #{id} merged in #{Age.new(start)}: #{patch}")
         else
           @log.debug("Local copy of #{id} is absent, nothing to merge")
         end
-        modified = patch.save(wallet.path, overwrite: true)
-        wallet.flush
-        if modified
-          @log.info("#{cps.count} copies with the total score of #{score} successfully merged \
-into #{wallet.mnemo} in #{Age.new(start, limit: 0.1 + cps.count * 0.01)}")
-        else
-          @log.info("Nothing changed in #{wallet.id} after merge of #{cps.count} copies")
-        end
-        modified
       end
+      modified = @wallets.acq(id, exclusive: true) { |w| patch.save(w.path, overwrite: true) }
+      if modified
+        @log.info("#{cps.count} copies with the total score of #{score} successfully merged \
+into #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 0.1 + cps.count * 0.01)}")
+      else
+        @log.info("Nothing changed in #{id} after merge of #{cps.count} copies")
+      end
+      modified
     end
 
     def merge_one(opts, patch, wallet, name)

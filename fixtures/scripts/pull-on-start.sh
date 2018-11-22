@@ -5,7 +5,7 @@ mkdir server
 cd server
 zold node --trace --invoice=PULLONSTART@ffffffffffffffff --no-metronome \
   --host=127.0.0.1 --port=${port} --bind-port=${port} \
-  --threads=0 --standalone &
+  --threads=0 --standalone --pretty=full 2>&1 &
 cd ..
 
 wait_for_port ${port}

@@ -54,11 +54,11 @@ module Zold
     PROTOCOL_HEADER = 'X-Zold-Protocol'
 
     # Read timeout in seconds
-    READ_TIMEOUT = 1
+    READ_TIMEOUT = 2
     private_constant :READ_TIMEOUT
 
     # Connect timeout in seconds
-    CONNECT_TIMEOUT = 0.4
+    CONNECT_TIMEOUT = 0.8
     private_constant :CONNECT_TIMEOUT
 
     def initialize(uri:, score: Score::ZERO, network: 'test')
@@ -67,7 +67,7 @@ module Zold
       @network = network
     end
 
-    def get(timeout: READ_TIMEOUT + CONNECT_TIMEOUT)
+    def get(timeout: READ_TIMEOUT)
       base_url = "#{@uri.scheme}://#{@uri.host}:#{@uri.port}"
       session = Patron::Session.new(
         timeout: timeout,
@@ -82,7 +82,7 @@ module Zold
       Error.new(e)
     end
 
-    def put(body, timeout: READ_TIMEOUT + CONNECT_TIMEOUT)
+    def put(body, timeout: READ_TIMEOUT)
       base_url = "#{@uri.scheme}://#{@uri.host}:#{@uri.port}"
       session = Patron::Session.new(
         timeout: timeout,
@@ -109,7 +109,7 @@ module Zold
       end
 
       def to_s
-        "#{code}: #{message}\n#{body}"
+        "#{status}: #{status_line}\n#{body}"
       end
 
       def body

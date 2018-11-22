@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require_relative 'thread_badge'
 require 'tempfile'
 require 'slop'
 require 'diffy'
@@ -36,7 +37,9 @@ require_relative '../wallet'
 module Zold
   # DIFF pulling command
   class Diff
-    def initialize(wallets:, copies:, log: Log::Quiet.new)
+    prepend ThreadBadge
+
+    def initialize(wallets:, copies:, log: Log::NULL)
       @wallets = wallets
       @copies = copies
       @log = log

@@ -6,7 +6,7 @@ mkdir server
 cd server
 zold node --trace --invoice=PUSHNPULL@ffffffffffffffff \
   --host=127.0.0.1 --port=${port} --bind-port=${port} \
-  --threads=0 --standalone &
+  --threads=0 --standalone 2>&1 &
 pid=$!
 trap "halt_nodes ${port}" EXIT
 cd ..

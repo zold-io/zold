@@ -76,7 +76,7 @@ class FarmTest < Zold::Test
           farm.best
           Time.now - start
         end.inject(&:+) / cycles
-        test_log.debug("Average speed is #{(speed * 1000).round(2)}ms in #{cycles} cycles")
+        test_log.info("Average speed is #{(speed * 1000).round(2)}ms in #{cycles} cycles")
       end
     end
   end

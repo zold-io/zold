@@ -39,7 +39,7 @@ module Zold
     # Extension for copy files
     EXT = '.zc'
 
-    def initialize(dir, log: Log::Quiet.new)
+    def initialize(dir, log: Log::NULL)
       @dir = dir
       @log = log
     end

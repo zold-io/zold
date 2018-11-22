@@ -32,7 +32,18 @@ require_relative '../lib/zold/log'
 class TestLog < Zold::Test
   def test_prints_from_many_threads
     Threads.new(20).assert do
-      test_log.debug('How are you?')
+      test_log.debug("This is debug\nand it is multi\nline")
+      test_log.info('This is info')
+      test_log.error('This is error')
     end
+  end
+
+  def test_prints_with_various_formatters
+    log = Zold::Log::VERBOSE.dup
+    log.formatter = Zold::Log::FULL
+    log.debug("This is info\nand it is multi\nline")
+    log.debug('Works fine?')
+    log.debug(true)
+    log.debug(1)
   end
 end

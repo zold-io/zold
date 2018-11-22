@@ -31,7 +31,7 @@ require_relative '../lib/zold/verbose_thread'
 class TestVerboseThread < Zold::Test
   def test_exceptions_are_logged
     assert_raises RuntimeError do
-      Zold::VerboseThread.new(Zold::Log::Quiet.new).run do
+      Zold::VerboseThread.new(Zold::Log::NULL).run do
         raise 'Intentional'
       end
     end
@@ -39,7 +39,7 @@ class TestVerboseThread < Zold::Test
 
   def test_syntax_exceptions_are_logged
     assert_raises NoMethodError do
-      Zold::VerboseThread.new(Zold::Log::Quiet.new).run do
+      Zold::VerboseThread.new(Zold::Log::NULL).run do
         this_method_doesnt_exist(1)
       end
     end
@@ -47,7 +47,7 @@ class TestVerboseThread < Zold::Test
 
   def test_grammar_exceptions_are_logged
     assert_raises NameError do
-      Zold::VerboseThread.new(Zold::Log::Quiet.new).run do
+      Zold::VerboseThread.new(Zold::Log::NULL).run do
         the syntax is broken here
       end
     end

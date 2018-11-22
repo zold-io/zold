@@ -33,7 +33,7 @@ require_relative '../wallet'
 module Zold
   # The safe entrance
   class NoDupEntrance
-    def initialize(entrance, wallets, log: Log::Quiet.new)
+    def initialize(entrance, wallets, log: Log::NULL)
       @entrance = entrance
       @wallets = wallets
       @log = log

@@ -24,6 +24,7 @@ require 'rainbow'
 require 'slop'
 require 'json'
 require 'net/http'
+require_relative 'thread_badge'
 require_relative 'args'
 require_relative '../age'
 require_relative '../size'
@@ -39,7 +40,9 @@ require_relative '../json_page'
 module Zold
   # Wallet pushing command
   class Push
-    def initialize(wallets:, remotes:, log: Log::Quiet.new)
+    prepend ThreadBadge
+
+    def initialize(wallets:, remotes:, log: Log::NULL)
       @wallets = wallets
       @remotes = remotes
       @log = log

@@ -25,7 +25,7 @@ require_relative 'log'
 module Zold
   # Class to manage data upgrades (when zold itself upgrades).
   class Upgrades
-    def initialize(version, directory, log: Log::Verbose.new)
+    def initialize(version, directory, log: Log::VERBOSE)
       @version = version
       @directory = directory
       @log = log

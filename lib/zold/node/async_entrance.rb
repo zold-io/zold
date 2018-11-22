@@ -36,7 +36,7 @@ require_relative '../dir_items'
 module Zold
   # The entrance
   class AsyncEntrance
-    def initialize(entrance, dir, log: Log::Quiet.new, threads: [Concurrent.processor_count, 4].max)
+    def initialize(entrance, dir, log: Log::NULL, threads: [Concurrent.processor_count, 4].max)
       @entrance = entrance
       @dir = File.expand_path(dir)
       @log = log
@@ -87,7 +87,7 @@ module Zold
         IO.write(file, body)
         @queue << { id: id, file: file }
         @log.debug("Added #{id}/#{Size.new(body.length)} to the queue at pos.#{@queue.size} \
-in #{Age.new(start, limit: 0.05)}: #{uuid}")
+in #{Age.new(start, limit: 0.05)}")
         break
       end
       [id]
@@ -103,7 +103,7 @@ in #{Age.new(start, limit: 0.05)}: #{uuid}")
       FileUtils.rm_f(item[:file])
       @entrance.push(item[:id], body)
       @log.debug("Pushed #{item[:id]}/#{Size.new(body.length)} to #{@entrance.class.name} \
-in #{Age.new(start, limit: 0.1)} (#{@queue.size} still in the queue)")
+in #{Age.new(start, limit: 0.1)}#{@queue.size.zero? ? '' : "(#{@queue.size} still in the queue)"}")
     end
   end
 end

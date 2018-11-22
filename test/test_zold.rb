@@ -36,7 +36,7 @@ class TestZold < Zold::Test
   Dir.new('fixtures/scripts').select { |f| f =~ /\.sh$/ && !f.start_with?('_') }.each do |f|
     define_method("test_#{f.gsub(/\.sh$/, '').gsub(/[^a-z]/, '_')}") do
       start = Time.now
-      test_log.debug("\n\n#{f} running...")
+      test_log.info("\n\n#{f} running...")
       Dir.mktmpdir do |dir|
         FileUtils.cp('fixtures/id_rsa.pub', dir)
         FileUtils.cp('fixtures/id_rsa', dir)
@@ -49,7 +49,7 @@ class TestZold < Zold::Test
             stdin.close
             until stdout.eof?
               line = stdout.gets
-              test_log.debug(line)
+              test_log.info(line)
               out << line
             end
             code = thr.value.to_i
@@ -57,7 +57,8 @@ class TestZold < Zold::Test
           end
         end
       end
-      test_log.debug("\n\n#{f} done in #{Zold::Age.new(start)}")
+      test_log.info("\n\n#{f} done in #{Zold::Age.new(start)}")
+      sleep 1
     end
   end
 

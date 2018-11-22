@@ -74,7 +74,7 @@ module Zold
 
     # One remote.
     class Remote
-      def initialize(host:, port:, score:, idx:, network: 'test', log: Log::Quiet.new)
+      def initialize(host:, port:, score:, idx:, network: 'test', log: Log::NULL)
         @host = host
         @port = port
         @score = score
@@ -144,6 +144,9 @@ module Zold
 
     def defaults
       DEFS.each do |r|
+        if block_given?
+          next unless yield(r[0], r[1].to_i)
+        end
         add(r[0], r[1].to_i)
       end
     end

@@ -32,7 +32,7 @@ module Zold
   module Routines
     # Reconnect to the network
     class Reconnect
-      def initialize(opts, remotes, farm = Farm::Empty.new, network: 'test', log: Log::Quiet.new)
+      def initialize(opts, remotes, farm = Farm::Empty.new, network: 'test', log: Log::NULL)
         @opts = opts
         @remotes = remotes
         @farm = farm

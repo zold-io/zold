@@ -22,6 +22,7 @@
 
 require 'slop'
 require 'rainbow'
+require_relative 'thread_badge'
 require_relative 'args'
 require_relative '../wallet'
 require_relative '../log'
@@ -34,7 +35,9 @@ require_relative '../id'
 module Zold
   # Create command
   class Create
-    def initialize(wallets:, log: Log::Quiet.new)
+    prepend ThreadBadge
+
+    def initialize(wallets:, log: Log::NULL)
       @wallets = wallets
       @log = log
     end
@@ -48,9 +51,9 @@ Available options:"
           require: true,
           default: File.expand_path('~/.ssh/id_rsa.pub')
         o.string '--network',
-          "The name of the network (default: #{Wallet::MAIN_NETWORK}",
+          "The name of the network (default: #{Wallet::MAINET}",
           require: true,
-          default: Wallet::MAIN_NETWORK
+          default: Wallet::MAINET
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return

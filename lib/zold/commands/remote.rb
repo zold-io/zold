@@ -27,6 +27,7 @@ require 'net/http'
 require 'json'
 require 'time'
 require 'zold/score'
+require_relative 'thread_badge'
 require_relative 'args'
 require_relative '../node/farm'
 require_relative '../log'
@@ -44,7 +45,9 @@ require_relative '../gem'
 module Zold
   # Remote command
   class Remote
-    def initialize(remotes:, farm: Farm::Empty.new, log: Log::Quiet.new)
+    prepend ThreadBadge
+
+    def initialize(remotes:, farm: Farm::Empty.new, log: Log::NULL)
       @remotes = remotes
       @farm = farm
       @log = log
@@ -103,9 +106,9 @@ Available options:"
           'The amount of update cycles to run, in order to fetch as many nodes as possible (default: 2)',
           default: 2
         o.string '--network',
-          "The name of the network we work in (default: #{Wallet::MAIN_NETWORK}",
+          "The name of the network we work in (default: #{Wallet::MAINET}",
           required: true,
-          default: Wallet::MAIN_NETWORK
+          default: Wallet::MAINET
         o.bool '--reboot',
           'Exit if any node reports version higher than we have',
           default: false
@@ -173,7 +176,9 @@ Available options:"
     end
 
     def defaults
-      @remotes.defaults
+      @remotes.defaults do |host, port|
+        !opts['ignore-node'].include?("#{host}:#{port}")
+      end
       @log.debug("Default remote nodes were added to the list, #{@remotes.all.count} total")
     end
 

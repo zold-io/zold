@@ -32,7 +32,7 @@ require_relative 'verbose_thread'
 module Zold
   # Metronome
   class Metronome
-    def initialize(log = Log::Quiet.new)
+    def initialize(log = Log::NULL)
       @log = log
       @routines = []
       @threads = []
@@ -86,16 +86,18 @@ module Zold
       begin
         yield(self)
       ensure
-        alive = false
-        @log.info("Stopping the metronome with #{@threads.count} threads: #{@threads.map(&:name).join(', ')}")
         start = Time.now
-        @threads.each do |t|
-          tstart = Time.now
-          if t.join(60)
-            @log.info("Thread #{t.name} finished in #{Age.new(tstart)}")
-          else
-            t.exit
-            @log.info("Thread #{t.name} killed in #{Age.new(tstart)}")
+        unless @threads.empty?
+          alive = false
+          @log.info("Stopping the metronome with #{@threads.count} threads: #{@threads.map(&:name).join(', ')}")
+          @threads.each do |t|
+            tstart = Time.now
+            if t.join(60)
+              @log.info("Thread #{t.name} finished in #{Age.new(tstart)}")
+            else
+              t.exit
+              @log.info("Thread #{t.name} killed in #{Age.new(tstart)}")
+            end
           end
         end
         @log.info("Metronome stopped in #{Age.new(start)}, #{@failures.count} failures")

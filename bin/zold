@@ -50,7 +50,7 @@ Thread.current.name = 'main'
 Encoding.default_external = Encoding::UTF_8
 Encoding.default_internal = Encoding::UTF_8
 
-log = Zold::Log::Regular.new
+log = Zold::Log::REGULAR.dup
 
 args = []
 unless ENV['RACK_ENV'] == 'test' || ARGV.find { |a| a == '--ignore-global-config' }
@@ -105,9 +105,13 @@ Available options:"
     "Home directory (default: #{Dir.pwd})",
     default: Dir.pwd
   o.string '--network',
-    "The name of the network we work in (default: #{Zold::Wallet::MAIN_NETWORK})",
+    "The name of the network we work in (default: #{Zold::Wallet::MAINET})",
     required: true,
-    default: Zold::Wallet::MAIN_NETWORK
+    default: Zold::Wallet::MAINET
+  o.string '--pretty',
+    'Logging format, e.g. short, full, compact (default: short)',
+    required: true,
+    default: 'short'
   o.bool '-h', '--help', 'Show these instructions'
   o.bool '--trace', 'Show full stack trace in case of a problem'
   o.bool '--memory-dump', 'Dump memory snapshot afterwards, to the console', default: false
@@ -117,7 +121,7 @@ Available options:"
     Rainbow.enabled = false
   end
   o.on '--verbose', 'Enable extra logging information' do
-    log = Zold::Log::Verbose.new
+    log = Zold::Log::VERBOSE.dup
   end
   o.on '-v', '--version', 'Show current version' do
     log.info(Zold::VERSION)
@@ -125,7 +129,14 @@ Available options:"
   end
 end
 
-log = Zold::Log::Sync.new(log)
+case opts['pretty'].downcase.strip
+when 'short'
+  log.formatter = Zold::Log::SHORT
+when 'compact'
+  log.formatter = Zold::Log::COMPACT
+when 'full'
+  log.formatter = Zold::Log::FULL
+end
 
 log.debug("Gem location: #{File.dirname(File.dirname(__FILE__))}")
 
@@ -182,7 +193,7 @@ else
 end
 copies = File.join(zoldata, 'copies')
 
-log.debug("Network: #{opts['network']} (#{opts['network'] == Zold::Wallet::MAIN_NETWORK ? 'main' : 'test'} net)")
+log.debug("Network: #{opts['network']} (#{opts['network'] == Zold::Wallet::MAINET ? 'main' : 'test'} net)")
 
 cmd = lambda do
   begin
@@ -204,10 +215,10 @@ cmd = lambda do
       Zold::Pay.new(wallets: wallets, remotes: remotes, log: log).run(args)
     when 'show'
       require_relative '../lib/zold/commands/show'
-      Zold::Show.new(wallets: wallets, log: log).run(args)
+      Zold::Show.new(wallets: wallets, copies: copies, log: log).run(args)
     when 'list'
       require_relative '../lib/zold/commands/list'
-      Zold::List.new(wallets: wallets, log: log).run(args)
+      Zold::List.new(wallets: wallets, copies: copies, log: log).run(args)
     when 'fetch'
       require_relative '../lib/zold/commands/fetch'
       Zold::Fetch.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)

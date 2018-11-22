@@ -51,6 +51,9 @@ module Zold
       end
     end
 
+    # Public key of the root wallet
+    ROOT = Key.new(file: File.expand_path(File.join(File.dirname(__FILE__), '../../resources/root.pub')))
+
     def ==(other)
       to_s == other.to_s
     end

@@ -46,7 +46,7 @@ class TestDirItems < Zold::Test
         File.open(file, 'w+') do |f|
           f.write('test')
         end
-        test_log.debug("Saved in #{Zold::Age.new(start)}")
+        test_log.info("Saved in #{Zold::Age.new(start)}")
         sleep 1
       end
       back.kill

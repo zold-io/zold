@@ -22,6 +22,7 @@
 
 require 'slop'
 require 'rainbow'
+require_relative 'thread_badge'
 require_relative 'args'
 require_relative '../log'
 
@@ -32,7 +33,9 @@ require_relative '../log'
 module Zold
   # REMOVE command
   class Remove
-    def initialize(wallets:, log: Log::Quiet.new)
+    prepend ThreadBadge
+
+    def initialize(wallets:, log: Log::NULL)
       @wallets = wallets
       @log = log
     end

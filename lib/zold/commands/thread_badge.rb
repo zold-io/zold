@@ -20,22 +20,28 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'semantic'
-require_relative 'log'
-
+# Thread badge.
+# Author:: Yegor Bugayenko (yegor256@gmail.com)
+# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# License:: MIT
 module Zold
-  # Read and write .zoldata/version.
-  class VersionFile
-    def initialize(path, log: Log::VERBOSE)
-      @path = path
-      @log = log
-    end
-
-    # @todo #285:30min Replace this stub with functionality.
-    #  We need to run the script (`yield`) if the version of
-    #  the script is between the saved version and the current one.
-    def apply(version)
-      @log.info("Version #{version} doesn't need to be applied.")
+  # This module should be included in each command, in order to label
+  # the current Thread correctly, when the command is running. This is mostly
+  # useful for debugging/testing purposes - want to be able to see what's
+  # going on in the thread when it gets stuck with a Futex.
+  #
+  # Since all commands have exactly the same external interface and implement
+  # the method "run," we catch all calls to this method and label the
+  # current thread properly. We label it back when it's over.
+  module ThreadBadge
+    def run(args = [])
+      before = Thread.current.name || ''
+      Thread.current.name = "#{before}:#{self.class.name.gsub(/^Zold::/, '')}"
+      begin
+        super(args)
+      ensure
+        Thread.current.name = before
+      end
     end
   end
 end
