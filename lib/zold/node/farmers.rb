@@ -142,40 +142,18 @@ for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}")
           Shellwords.escape(score)
         ].join(' ')
         read, write = IO.pipe
-        Process.fork {
-          Open3.popen2e(cmd) do |stdin, stdout, thr|
-            Thread.current.thread_variable_set(:pid, thr.pid.to_s)
-            at_exit { kill(thr.pid, start) }
-            @log.debug("Scoring started in proc ##{thr.pid} \
-  for #{score.value}/#{score.strength} at #{score.host}:#{score.port}")
-            begin
-              stdin.close
-              buffer = +''
-              loop do
-                begin
-                  buffer << stdout.read_nonblock(16 * 1024)
-                  # rubocop:disable Lint/HandleExceptions
-                rescue IO::WaitReadable => _
-                  # rubocop:enable Lint/HandleExceptions
-                  # nothing to do here
-                rescue StandardError => e
-                  @log.error(buffer)
-                  raise e
-                end
-                break if buffer.end_with?("\n") && thr.value.to_i.zero?
-                if stdout.closed?
-                  raise "Failed to calculate the score (##{thr.value}): #{buffer}" unless thr.value.to_i.zero?
-                  break
-                end
-                sleep(1)
-                Thread.current.thread_variable_set(:buffer, buffer.length.to_s)
-              end
-              write.puts  "#{buffer.strip}\n#{thr.pid}"
-            ensure
-              kill(thr.pid, start)
-            end
+        Process.fork do
+          buffer = POSIX::Spawn::Child.new(cmd).out
+          Thread.current.thread_variable_set(:pid, Process.pid.to_s)
+          at_exit { kill(Process.pid, start) }
+          @log.debug("Scoring started in proc ##{Process.pid} \
+for #{score.value}/#{score.strength} at #{score.host}:#{score.port}")
+          begin
+            write.puts "#{buffer.strip}\n#{Process.pid}"
+          ensure
+            kill(Process.pid, start)
           end
-        }
+        end
         Process.wait
         write.close
         output = read.read
