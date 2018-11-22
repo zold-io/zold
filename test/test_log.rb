@@ -39,8 +39,9 @@ class TestLog < Zold::Test
   end
 
   def test_prints_with_various_formatters
-    log = Zold::Log::VERBOSE
+    log = Zold::Log::VERBOSE.dup
     log.formatter = Zold::Log::FULL
-    test_log.info("This is info\nand it is multi\nline")
+    log.debug("This is info\nand it is multi\nline")
+    log.debug('Works fine?')
   end
 end

@@ -45,21 +45,26 @@ module Zold
   # messages. The user turns this mode by using --verbose command line argument.
   #
   module Log
+    def self.colored(text, severity)
+      case severity
+      when 'ERROR', 'FATAL'
+        return Rainbow(text).red
+      when 'DEBUG'
+        return Rainbow(text).yellow
+      end
+      text
+    end
+
     # Compact formatter
     COMPACT = proc do |severity, _time, _target, msg|
       prefix = ''
-      line = msg.to_s.rstrip
       case severity
       when 'ERROR', 'FATAL'
         prefix = 'E: '
-        line.gsub!(/\n/, "\n" + (' ' * prefix.length))
-        prefix = Rainbow(prefix).red
       when 'DEBUG'
         prefix = 'D: '
-        line.gsub!(/\n/, "\n" + (' ' * prefix.length))
-        prefix = Rainbow(prefix).yellow
       end
-      prefix + line + "\n"
+      colored(prefix, severity) + msg.to_s.rstrip.gsub(/\n/, "\n" + (' ' * prefix.length)) + "\n"
     end
 
     # Short formatter
@@ -69,26 +74,30 @@ module Zold
 
     # Full formatter
     FULL = proc do |severity, time, _target, msg|
-      "#{time.utc.iso8601} #{severity}: #{msg.to_s.rstrip}"
+      "#{time.utc.iso8601} #{colored(severity, severity)} #{msg.to_s.rstrip}\n"
     end
 
     # No logging at all
     NULL = Logger.new(STDOUT)
     NULL.level = Logger::UNKNOWN
+    NULL.freeze
 
     # Everything, including debug
     VERBOSE = Logger.new(STDOUT)
     VERBOSE.level = Logger::DEBUG
     VERBOSE.formatter = COMPACT
+    VERBOSE.freeze
 
     # Info and errors, no debug info
     REGULAR = Logger.new(STDOUT)
     REGULAR.level = Logger::INFO
     REGULAR.formatter = COMPACT
+    REGULAR.freeze
 
     # Errors only
     ERRORS = Logger.new(STDOUT)
     ERRORS.level = Logger::ERROR
     ERRORS.formatter = COMPACT
+    ERRORS.freeze
   end
 end
