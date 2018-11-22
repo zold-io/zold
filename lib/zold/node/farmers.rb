@@ -46,30 +46,49 @@ module Zold
       end
     end
 
-    # In a child process
-    class Spawn
-      def initialize(log: Log::NULL)
-        @log = log
-      end
-
-      def up(score)
+    class MultiThreaded
+      def check_existing_processes(score)
         if POSIX::Spawn::Child.new('ps', 'ax').out.include?(score.to_s.split(' ').take(4).join(' '))
           raise "We are farming the score already: #{score}"
         end
-        start = Time.now
+      end
+
+      def get_command(score, thread_name)
         bin = File.expand_path(File.join(File.dirname(__FILE__), '../../../bin/zold'))
         raise "Zold binary not found at #{bin}" unless File.exist?(bin)
-        cmd = [
+        [
           'ruby',
           Shellwords.escape(bin),
           '--skip-upgrades',
           "--info-tid=#{Thread.current.thread_variable_get(:tid)}",
-          "--info-thread=#{Shellwords.escape(Thread.current.name)}",
+          "--info-thread=#{Shellwords.escape(thread_name)}",
           "--info-start=#{Time.now.utc.iso8601}",
           '--low-priority',
           'next',
           Shellwords.escape(score)
         ].join(' ')
+      end
+
+      private
+
+      def kill(pid, start)
+        Process.kill('KILL', pid)
+        @log.debug("Process ##{pid} killed after #{Age.new(start)} of activity")
+      rescue StandardError => e
+        @log.debug("No need to kill process ##{pid} since it's dead already: #{e.message}")
+      end
+    end
+
+    # In a child process
+    class Spawn < MultiThreaded
+      def initialize(log: Log::NULL)
+        @log = log
+      end
+
+      def up(score)
+        check_existing_processes(score)
+        start = Time.now
+        cmd = get_command(score, Thread.current.name)
         Open3.popen2e(cmd) do |stdin, stdout, thr|
           Thread.current.thread_variable_set(:pid, thr.pid.to_s)
           at_exit { kill(thr.pid, start) }
@@ -106,41 +125,18 @@ for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}")
           end
         end
       end
-
-      private
-
-      def kill(pid, start)
-        Process.kill('KILL', pid)
-        @log.debug("Process ##{pid} killed after #{Age.new(start)} of activity")
-      rescue StandardError => e
-        @log.debug("No need to kill process ##{pid} since it's dead already: #{e.message}")
-      end
     end
 
     # In a child process using fork
-    class Fork
+    class Fork < MultiThreaded
       def initialize(log: Log::NULL)
         @log = log
       end
 
       def up(score)
-        if POSIX::Spawn::Child.new('ps', 'ax').out.include?(score.to_s.split(' ').take(4).join(' '))
-          raise "We are farming the score already: #{score}"
-        end
+        check_existing_processes(score)
         start = Time.now
-        bin = File.expand_path(File.join(File.dirname(__FILE__), '../../../bin/zold'))
-        raise "Zold binary not found at #{bin}" unless File.exist?(bin)
-        cmd = [
-          'ruby',
-          Shellwords.escape(bin),
-          '--skip-upgrades',
-          "--info-tid=#{Thread.current.thread_variable_get(:tid)}",
-          "--info-thread=#{Shellwords.escape(Thread.current.name)}",
-          "--info-start=#{Time.now.utc.iso8601}",
-          '--low-priority',
-          'next',
-          Shellwords.escape(score)
-        ].join(' ')
+        cmd = get_command(score, Thread.current.name)
         read, write = IO.pipe
         Process.fork do
           buffer = POSIX::Spawn::Child.new(cmd).out
@@ -164,15 +160,6 @@ for #{score.value}/#{score.strength} at #{score.host}:#{score.port}")
         @log.debug("Next score #{after.value}/#{after.strength} found in proc ##{proc_pid} \
 for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}")
         after
-      end
-
-      private
-
-      def kill(pid, start)
-        Process.kill('KILL', pid)
-        @log.debug("Process ##{pid} killed after #{Age.new(start)} of activity")
-      rescue StandardError => e
-        @log.debug("No need to kill process ##{pid} since it's dead already: #{e.message}")
       end
     end
   end
