@@ -46,11 +46,11 @@ module Zold
       end
     end
 
+    # Class containing common methods for Fork and Spawn classes
     class MultiThreaded
       def check_existing_processes(score)
-        if POSIX::Spawn::Child.new('ps', 'ax').out.include?(score.to_s.split(' ').take(4).join(' '))
-          raise "We are farming the score already: #{score}"
-        end
+        raise "We are farming the score already: #{score}" if
+          POSIX::Spawn::Child.new('ps', 'ax').out.include?(score.to_s.split(' ').take(4).join(' '))
       end
 
       def get_command(score, thread_name)
