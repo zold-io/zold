@@ -64,7 +64,7 @@ Available options:"
       deleted = cps.clean
       list = cps.all.map do |c|
         wallet = Wallet.new(c[:path])
-        "  #{c[:name]}: #{c[:score]} #{wallet.mnemo} \
+        "#{c[:name]}: #{c[:score]} #{wallet.mnemo} \
 #{Size.new(File.size(c[:path]))}/#{Age.new(File.mtime(c[:path]))}"
       end
       @log.debug(

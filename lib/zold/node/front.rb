@@ -72,7 +72,7 @@ module Zold
       set :remotes, nil # to be injected at node.rb
       set :copies, nil # to be injected at node.rb
       set :node_alias, nil # to be injected at node.rb
-      set :zache, Zache.new
+      set :zache, nil # to be injected at node.rb
     end
     use Rack::Deflater
 
@@ -435,17 +435,19 @@ in #{Age.new(@start, limit: 1)}")
     #  we must find a way to count them somehow faster.
     def total_wallets
       return 256 if settings.opts['network'] == Wallet::MAINET
-      settings.wallets.all.count
+      settings.zache.get(:wallets, lifetime: settings.opts['no-cache'] ? 0 : 60) do
+        settings.wallets.all.count
+      end
     end
 
     def all_remotes
-      settings.zache.get(:remotes, lifetime: settings.opts['network'] == Wallet::MAINET ? 60 : 0) do
+      settings.zache.get(:remotes, lifetime: settings.opts['no-cache'] ? 0 : 60) do
         settings.remotes.all
       end
     end
 
     def processes_count
-      settings.zache.get(:processes, lifetime: settings.opts['network'] == Wallet::MAINET ? 60 : 0) do
+      settings.zache.get(:processes, lifetime: settings.opts['no-cache'] ? 0 : 60) do
         processes.count
       end
     end
@@ -459,7 +461,7 @@ in #{Age.new(@start, limit: 1)}")
     end
 
     def score
-      settings.zache.get(:score, lifetime: settings.opts['network'] == Wallet::MAINET ? 60 : 0) do
+      settings.zache.get(:score, lifetime: settings.opts['no-cache'] ? 0 : 60) do
         b = settings.farm.best
         raise 'Score is empty, there is something wrong with the Farm!' if b.empty?
         b[0]

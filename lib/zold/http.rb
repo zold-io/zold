@@ -54,11 +54,11 @@ module Zold
     PROTOCOL_HEADER = 'X-Zold-Protocol'
 
     # Read timeout in seconds
-    READ_TIMEOUT = 1
+    READ_TIMEOUT = 2
     private_constant :READ_TIMEOUT
 
     # Connect timeout in seconds
-    CONNECT_TIMEOUT = 0.4
+    CONNECT_TIMEOUT = 0.8
     private_constant :CONNECT_TIMEOUT
 
     def initialize(uri:, score: Score::ZERO, network: 'test')
