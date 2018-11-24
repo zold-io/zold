@@ -68,34 +68,21 @@ module Zold
     end
 
     def get(timeout: READ_TIMEOUT)
-      base_url = "#{@uri.scheme}://#{@uri.host}:#{@uri.port}"
-      session = Patron::Session.new(
-        timeout: timeout,
-        connect_timeout: CONNECT_TIMEOUT,
-        base_url: base_url,
-        headers: headers
-      )
-      path = @uri.path
-      path += '?' + @uri.query if @uri.query
-      session.get(path)
+      build_session(timeout: timeout)
+        .get(path)
     rescue StandardError => e
       Error.new(e)
     end
 
     def put(body, timeout: READ_TIMEOUT)
-      base_url = "#{@uri.scheme}://#{@uri.host}:#{@uri.port}"
-      session = Patron::Session.new(
+      build_session(
         timeout: timeout,
-        connect_timeout: CONNECT_TIMEOUT,
-        base_url: base_url,
-        headers: headers.merge(
+        additional_header: {
           'Content-Type': 'text/plain',
           'Content-Length': body.length.to_s
-        )
+        }
       )
-      path = @uri.path
-      path += '?' + @uri.query if @uri.query
-      session.put(path, body)
+        .put(path, body)
     rescue StandardError => e
       Error.new(e)
     end
@@ -127,6 +114,26 @@ module Zold
       def headers
         {}
       end
+    end
+
+    def build_session(timeout:, additional_header: {})
+      Patron::Session.new(
+        timeout: timeout,
+        connect_timeout: CONNECT_TIMEOUT,
+        base_url: base_url,
+        headers: headers.merge(additional_header)
+      )
+    end
+
+    def base_url
+      "#{@uri.scheme}://#{@uri.host}:#{@uri.port}"
+    end
+
+    def path
+      path = @uri.path
+      path += '?' + @uri.query if @uri.query
+
+      path
     end
 
     def headers
