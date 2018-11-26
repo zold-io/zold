@@ -215,12 +215,10 @@ at #{host}:#{port}, strength is #{strength}")
       return [] unless File.exist?(@cache)
       Futex.new(@cache).open do |f|
         IO.read(f).split(/\n/).map do |t|
-          begin
-            Score.parse(t)
-          rescue StandardError => e
-            @log.error(Backtrace.new(e).to_s)
-            nil
-          end
+          Score.parse(t)
+        rescue StandardError => e
+          @log.error(Backtrace.new(e).to_s)
+          nil
         end.compact
       end
     end
