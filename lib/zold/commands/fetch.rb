@@ -77,10 +77,10 @@ Available options:"
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
-      Parallel.map((mine.empty? ? @wallets.all : mine.map { |i| Id.new(i) }), in_threads: opts[:threads] ) { |id|
+      Parallel.map((mine.empty? ? @wallets.all : mine.map { |i| Id.new(i) }), in_threads: opts[:threads]) do |id|
         fetch(id, Copies.new(File.join(@copies, id)), opts)
         @log.debug("Worker: #{Parallel.worker_number} has fetched wallet #{id}")
-      }
+      end
     end
 
     private
