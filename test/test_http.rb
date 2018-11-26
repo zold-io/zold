@@ -84,7 +84,7 @@ class TestHttp < Zold::Test
       end
       sleep 0.25
       res = Zold::Http.new(uri: "http://127.0.0.1:#{port}/").get(timeout: 0.1)
-      assert_equal(599, res.status, res)
+      assert_equal(0, res.status, res)
       thread.kill
       thread.join
     end

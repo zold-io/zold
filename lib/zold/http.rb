@@ -23,7 +23,6 @@
 require 'rainbow'
 require 'uri'
 require 'backtrace'
-require 'patron'
 require 'zold/score'
 require_relative 'version'
 
@@ -34,6 +33,12 @@ require_relative 'version'
 module Zold
   # Http page
   class Http
+    # Some clients waits for status method in respons
+    class Response < SimpleDelegator
+      def status
+        code
+      end
+    end
     # HTTP header we add to each HTTP request, in order to inform
     # the other node about the score. If the score is big enough,
     # the remote node will add us to its list of remote nodes.
@@ -68,34 +73,24 @@ module Zold
     end
 
     def get(timeout: READ_TIMEOUT)
-      base_url = "#{@uri.scheme}://#{@uri.host}:#{@uri.port}"
-      session = Patron::Session.new(
-        timeout: timeout,
-        connect_timeout: CONNECT_TIMEOUT,
-        base_url: base_url,
-        headers: headers
+      Response.new Typhoeus::Request.get(
+        @uri,
+        headers: headers,
+        connecttimeout: CONNECT_TIMEOUT,
+        timeout: timeout
       )
-      path = @uri.path
-      path += '?' + @uri.query if @uri.query
-      session.get(path)
     rescue StandardError => e
       Error.new(e)
     end
 
     def put(body, timeout: READ_TIMEOUT)
-      base_url = "#{@uri.scheme}://#{@uri.host}:#{@uri.port}"
-      session = Patron::Session.new(
-        timeout: timeout,
-        connect_timeout: CONNECT_TIMEOUT,
-        base_url: base_url,
-        headers: headers.merge(
-          'Content-Type': 'text/plain',
-          'Content-Length': body.length.to_s
-        )
+      Response.new Typhoeus::Request.put(
+        @uri,
+        body: body,
+        headers: headers.merge('Content-Type': 'text/plain'),
+        connecttimeout: CONNECT_TIMEOUT,
+        timeout: timeout
       )
-      path = @uri.path
-      path += '?' + @uri.query if @uri.query
-      session.put(path, body)
     rescue StandardError => e
       Error.new(e)
     end

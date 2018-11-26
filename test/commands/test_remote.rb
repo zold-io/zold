@@ -234,4 +234,13 @@ class TestRemote < Zold::Test
       assert_equal(5, remotes.all.count)
     end
   end
+
+  def test_sets_defaults
+    Dir.mktmpdir do |dir|
+      remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.txt'))
+      cmd = Zold::Remote.new(remotes: remotes, log: test_log)
+      cmd.run(%w[remote defaults])
+      assert(!remotes.all.empty?)
+    end
+  end
 end
