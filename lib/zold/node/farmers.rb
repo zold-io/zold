@@ -46,49 +46,29 @@ module Zold
       end
     end
 
-    # Class containing common methods for Fork and Spawn classes
-    class MultiThreaded
-      def check_existing_processes(score)
-        raise "We are farming the score already: #{score}" if
-          POSIX::Spawn::Child.new('ps', 'ax').out.include?(score.to_s.split(' ').take(4).join(' '))
-      end
-
-      def get_command(score, thread_name)
-        bin = File.expand_path(File.join(File.dirname(__FILE__), '../../../bin/zold'))
-        raise "Zold binary not found at #{bin}" unless File.exist?(bin)
-        [
-          'ruby',
-          Shellwords.escape(bin),
-          '--skip-upgrades',
-          "--info-tid=#{Thread.current.thread_variable_get(:tid)}",
-          "--info-thread=#{Shellwords.escape(thread_name)}",
-          "--info-start=#{Time.now.utc.iso8601}",
-          '--low-priority',
-          'next',
-          Shellwords.escape(score)
-        ].join(' ')
-      end
-
-      private
-
-      def kill(pid, start)
-        Process.kill('KILL', pid)
-        @log.debug("Process ##{pid} killed after #{Age.new(start)} of activity")
-      rescue StandardError => e
-        @log.debug("No need to kill process ##{pid} since it's dead already: #{e.message}")
-      end
-    end
-
     # In a child process
-    class Spawn < MultiThreaded
+    class Spawn
       def initialize(log: Log::NULL)
         @log = log
       end
 
       def up(score)
-        check_existing_processes(score)
+        raise "We are farming the score already: #{score}" if
+          POSIX::Spawn::Child.new('ps', 'ax').out.include?(score.to_s.split(' ').take(4).join(' '))
         start = Time.now
-        cmd = get_command(score, Thread.current.name)
+        bin = File.expand_path(File.join(File.dirname(__FILE__), '../../../bin/zold'))
+        raise "Zold binary not found at #{bin}" unless File.exist?(bin)
+        cmd = [
+          'ruby',
+          Shellwords.escape(bin),
+          '--skip-upgrades',
+          "--info-tid=#{Thread.current.thread_variable_get(:tid)}",
+          "--info-thread=#{Shellwords.escape(Thread.current.name)}",
+          "--info-start=#{Time.now.utc.iso8601}",
+          '--low-priority',
+          'next',
+          Shellwords.escape(score)
+        ].join(' ')
         Open3.popen2e(cmd) do |stdin, stdout, thr|
           Thread.current.thread_variable_set(:pid, thr.pid.to_s)
           at_exit { kill(thr.pid, start) }
@@ -125,39 +105,38 @@ for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}")
           end
         end
       end
+
+      private
+
+      def kill(pid, start)
+        Process.kill('KILL', pid)
+        @log.debug("Process ##{pid} killed after #{Age.new(start)} of activity")
+      rescue StandardError => e
+        @log.debug("No need to kill process ##{pid} since it's dead already: #{e.message}")
+      end
     end
 
     # In a child process using fork
-    class Fork < MultiThreaded
+    class Fork
       def initialize(log: Log::NULL)
         @log = log
       end
 
       def up(score)
-        check_existing_processes(score)
         start = Time.now
-        cmd = get_command(score, Thread.current.name)
         read, write = IO.pipe
         Process.fork do
-          buffer = POSIX::Spawn::Child.new(cmd).out
-          Thread.current.thread_variable_set(:pid, Process.pid.to_s)
-          at_exit { kill(Process.pid, start) }
-          @log.debug("Scoring started in proc ##{Process.pid} \
-for #{score.value}/#{score.strength} at #{score.host}:#{score.port}")
-          begin
-            write.puts "#{buffer.strip}\n#{Process.pid}"
-          ensure
-            kill(Process.pid, start)
-          end
+          score = score.next
+          write.puts "#{score.to_s}|#{Process.pid}"
         end
         Process.wait
         write.close
         output = read.read
-        buffer = output.split('\n')[0]
-        proc_pid = output.split('\n')[1]
+        buffer = output.split('|')[0]
+        proc_pid = output.split('|')[1]
+        after = Score.parse(buffer.strip)
         read.close
-        after = Score.parse(buffer)
-        @log.debug("Next score #{after.value}/#{after.strength} found in proc ##{proc_pid} \
+        @log.debug("Next score #{after.value}/#{after.strength} found in proc ##{proc_pid.strip} \
 for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}")
         after
       end
