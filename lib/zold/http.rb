@@ -130,10 +130,8 @@ module Zold
     end
 
     def path
-      path = @uri.path
-      path += '?' + @uri.query if @uri.query
-
-      path
+      return @uri.path + '?' + @uri.query if @uri.query
+      @uri.path
     end
 
     def headers
