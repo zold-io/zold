@@ -60,7 +60,6 @@ class TestPush < Zold::Test
       Zold::Push.new(wallets: home.wallets, remotes: remotes, log: log).run(
         ['--ignore-this-stupid-option --threads 2', 'push', wallet_a.id.to_s, wallet_b.id.to_s]
       )
-      assert(log.msgs.find { |m| m.include?('Worker: 1 has pushed') })
     end
   end
 end
