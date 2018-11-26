@@ -25,6 +25,11 @@ install:
         # RubyInstaller2; openssl package seems to be installed already
         $Env:openssl_dir = "C:\msys64\mingw64"
       }
+
+      appveyor DownloadFile http://www.dlldownloader.com/libcurl-dll/download/926e6b36f389ef68ec7806c865803780/ curl-win32-mingw.7z
+      7z e curl-win32-mingw.7z
+      dir
+
   - bundle config --local path vendor/bundle
   - bundle config build.openssl --with-openssl-dir=%openssl_dir%
   - ruby -v
