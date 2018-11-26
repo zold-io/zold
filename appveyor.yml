@@ -25,8 +25,15 @@ install:
         # RubyInstaller2; openssl package seems to be installed already
         $Env:openssl_dir = "C:\msys64\mingw64"
       }
+
+      # Install libcurl for patron
+      appveyor DownloadFile https://curl.haxx.se/windows/dl-7.62.0_1/curl-7.62.0_1-win64-mingw.zip
+      7z x -y -oC:\Ruby${Env:ruby_version} curl-7.62.0_1-win64-mingw.zip
+      $Env:curl_dir = "C:\Ruby${Env:ruby_version}\curl-7.62.0-win64-mingw"
+
   - bundle config --local path vendor/bundle
   - bundle config build.openssl --with-openssl-dir=%openssl_dir%
+  - bundle config build.patron --with-curl-dir=%curl_dir%
   - ruby -v
   - bundle -v
 build_script:
