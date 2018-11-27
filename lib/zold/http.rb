@@ -24,6 +24,7 @@ require 'rainbow'
 require 'uri'
 require 'backtrace'
 require 'zold/score'
+require 'typhoeus'
 require_relative 'version'
 
 # HTTP page.
@@ -33,12 +34,6 @@ require_relative 'version'
 module Zold
   # Http page
   class Http
-    # Some clients waits for status method in respons
-    class Response < SimpleDelegator
-      def status
-        code
-      end
-    end
     # HTTP header we add to each HTTP request, in order to inform
     # the other node about the score. If the score is big enough,
     # the remote node will add us to its list of remote nodes.
@@ -97,14 +92,25 @@ module Zold
 
     private
 
-    # The error, if connection fails
-    class Error
-      def initialize(ex)
-        @ex = ex
+    # Some clients waits for status method in respons
+    class Response < SimpleDelegator
+      def status
+        code == 0 ? 599 : code
+      end
+
+      def status_line
+        status_message
       end
 
       def to_s
         "#{status}: #{status_line}\n#{body}"
+      end
+    end
+
+    # The error, if connection fails
+    class Error < Response
+      def initialize(ex)
+        @ex = ex
       end
 
       def body
