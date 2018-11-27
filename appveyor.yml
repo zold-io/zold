@@ -9,8 +9,6 @@ branches:
 os: Windows Server 2012
 environment:
   matrix:
-    - ruby_version: "23-x64"
-    - ruby_version: "24-x64"
     - ruby_version: "25-x64"
 install:
   - ps: |
