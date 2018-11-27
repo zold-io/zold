@@ -23,6 +23,7 @@
 require 'open3'
 require 'slop'
 require 'backtrace'
+require 'zache'
 require 'concurrent'
 require 'zold/score'
 require_relative 'thread_badge'
@@ -119,6 +120,12 @@ module Zold
         o.bool '--routine-immediately',
           'Run all routines immediately, without waiting between executions (for testing mostly)',
           default: false
+        o.bool '--no-cache',
+          'Skip caching of front JSON pages (will seriously slow down, mostly useful for testing)',
+          default: false
+        o.integer '--queue-limit',
+          'The maximum number of wallets to be accepted via PUSH and stored in the queue (default: 4096)',
+          default: 4096
         o.string '--expose-version',
           "The version of the software to expose in JSON (default: #{VERSION})",
           default: VERSION
@@ -177,6 +184,7 @@ module Zold
       @log.info("Zold gem version: #{Zold::VERSION}")
       @log.info("Zold protocol version: #{Zold::PROTOCOL}")
       @log.info("Network ID: #{opts['network']}")
+      @log.info('Front caching is disabled via --no-cache') if opts['no-cache']
       host = opts[:host] || ip
       port = opts[:port]
       address = "#{host}:#{port}".downcase
@@ -192,6 +200,7 @@ module Zold
         Zold::Remote.new(remotes: @remotes).run(['remote', 'remove', host, port.to_s])
         @log.info("Removed current node (#{address}) from list of remotes")
       end
+      Front.set(:zache, Zache.new)
       Front.set(:wallets, @wallets)
       Front.set(:remotes, @remotes)
       Front.set(:copies, @copies)
@@ -229,7 +238,9 @@ module Zold
               log: @log,
               ignore_score_weakeness: opts['ignore-score-weakness']
             ),
-            File.join(home, '.zoldata/async-entrance'), log: @log
+            File.join(home, '.zoldata/async-entrance'),
+            log: @log,
+            queue_limit: opts['queue-limit']
           ),
           @wallets
         ),

@@ -58,7 +58,7 @@ class TestAsyncEntrance < Zold::Test
   def test_sends_through
     FakeHome.new(log: test_log).run do |home|
       basic = CountingEntrance.new
-      Zold::AsyncEntrance.new(basic, File.join(home.dir, 'a/b/c'), log: test_log).start do |e|
+      Zold::AsyncEntrance.new(basic, File.join(home.dir, 'a/b/c'), log: test_log, queue_limit: 1000).start do |e|
         Threads.new(20).assert do
           wallet = home.create_wallet
           amount = Zold::Amount.new(zld: 39.99)

@@ -47,4 +47,19 @@ class TestPush < Zold::Test
       )
     end
   end
+
+  def test_pushes_multiple_wallets
+    log = TestLogger.new(test_log)
+    FakeHome.new(log: log).run do |home|
+      wallet_a = home.create_wallet
+      wallet_b = home.create_wallet
+      remotes = home.remotes
+      remotes.add('localhost', 80)
+      stub_request(:put, "http://localhost:80/wallet/#{wallet_a.id}").to_return(status: 304)
+      stub_request(:put, "http://localhost:80/wallet/#{wallet_b.id}").to_return(status: 304)
+      Zold::Push.new(wallets: home.wallets, remotes: remotes, log: log).run(
+        ['--ignore-this-stupid-option --threads 2', 'push', wallet_a.id.to_s, wallet_b.id.to_s]
+      )
+    end
+  end
 end

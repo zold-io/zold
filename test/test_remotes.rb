@@ -200,8 +200,12 @@ class TestRemotes < Zold::Test
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'xx.csv'))
       remotes.clean
-      Threads.new(10).assert(100) do |_, r|
-        remotes.add('127.0.0.1', 8080 + r)
+      host = '127.0.0.1'
+      Threads.new(2).assert(100) do |_, r|
+        port = 8080 + r
+        remotes.add(host, port)
+        remotes.error(host, port)
+        assert(remotes.all.find { |x| x[:port] == port })
       end
       assert_equal(100, remotes.all.count)
     end

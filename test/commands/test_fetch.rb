@@ -73,4 +73,51 @@ class TestFetch < Zold::Test
       assert_equal(0, copies.all[0][:score])
     end
   end
+
+  def test_fetches_multiple_wallets
+    log = TestLogger.new(test_log)
+    FakeHome.new(log: log).run do |home|
+      wallet_a = home.create_wallet
+      stub_request(:get, "http://localhost:4096/wallet/#{wallet_a.id}/size")
+        .to_return(status: 200, body: wallet_a.size.to_s)
+      stub_request(:get, "http://localhost:4096/wallet/#{wallet_a.id}").to_return(
+        status: 200,
+        body: {
+          'score': Zold::Score::ZERO.to_h,
+          'body': IO.read(wallet_a.path),
+          'mtime': Time.now.utc.iso8601
+        }.to_json
+      )
+      wallet_b = home.create_wallet
+      stub_request(:get, "http://localhost:4096/wallet/#{wallet_b.id}/size")
+        .to_return(status: 200, body: wallet_b.size.to_s)
+      stub_request(:get, "http://localhost:4096/wallet/#{wallet_b.id}").to_return(
+        status: 200,
+        body: {
+          'score': Zold::Score::ZERO.to_h,
+          'body': IO.read(wallet_b.path),
+          'mtime': Time.now.utc.iso8601
+        }.to_json
+      )
+      remotes = home.remotes
+      remotes.add('localhost', 4096)
+      copies_a = home.copies(wallet_a)
+      copies_b = home.copies(wallet_b)
+      begin
+        retries ||= 0
+        Zold::Fetch.new(wallets: home.wallets, copies: copies_a.root, remotes: remotes, log: log).run(
+          ['fetch', '--ignore-score-weakness', '--threads 2', wallet_a.id.to_s, wallet_b.id.to_s]
+        )
+      rescue StandardError => _
+        sleep 1
+        retry if (retries += 1) < 3
+      end
+      assert_equal(1, copies_a.all.count)
+      assert_equal('1', copies_a.all[0][:name])
+      assert_equal(0, copies_a.all[0][:score])
+      assert_equal(1, copies_b.all.count)
+      assert_equal('1', copies_b.all[0][:name])
+      assert_equal(0, copies_b.all[0][:score])
+    end
+  end
 end

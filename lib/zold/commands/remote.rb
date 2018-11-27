@@ -137,7 +137,7 @@ Available options:"
       when 'reset'
         reset
       when 'defaults'
-        defaults
+        defaults(opts)
       when 'add'
         add(mine[1], mine[2] ? mine[2].to_i : Remotes::PORT, opts)
       when 'remove'
@@ -175,8 +175,10 @@ Available options:"
       defaults
     end
 
-    def defaults
-      @remotes.defaults
+    def defaults(opts)
+      @remotes.defaults do |host, port|
+        !opts['ignore-node'].include?("#{host}:#{port}")
+      end
       @log.debug("Default remote nodes were added to the list, #{@remotes.all.count} total")
     end
 

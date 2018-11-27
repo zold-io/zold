@@ -30,10 +30,11 @@ require_relative 'log'
 module Zold
   # Synchronized collection of wallets
   class SyncWallets
-    def initialize(wallets, timeout: 30, log: Log::NULL)
+    def initialize(wallets, timeout: 30, log: Log::NULL, dir: wallets.path)
       @wallets = wallets
       @log = log
       @timeout = timeout
+      @dir = dir
     end
 
     def to_s
@@ -50,7 +51,7 @@ module Zold
 
     def acq(id, exclusive: false)
       @wallets.acq(id, exclusive: exclusive) do |wallet|
-        Futex.new(wallet.path, log: @log).open(exclusive) do
+        Futex.new(wallet.path, log: @log, lock: File.join(@dir, "#{id}.lock")).open(exclusive) do
           yield wallet
         end
       end
