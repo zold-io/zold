@@ -124,19 +124,18 @@ for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}")
 
       def up(score)
         start = Time.now
-        read, write = IO.pipe
+        stdin, stdout = IO.pipe
         Process.fork do
           score = score.next
-          write.puts "#{score.to_s}|#{Process.pid}"
+          stdout.puts "#{score.to_s}|#{Process.pid}"
         end
         Process.wait
-        write.close
-        output = read.read
-        buffer = output.split('|')[0]
-        proc_pid = output.split('|')[1]
+        stdout.close
+        output = stdin.read
+        buffer, pid = output.split('|')
         after = Score.parse(buffer.strip)
-        read.close
-        @log.debug("Next score #{after.value}/#{after.strength} found in proc ##{proc_pid.strip} \
+        stdin.close
+        @log.debug("Next score #{after.value}/#{after.strength} found in proc ##{pid.strip} \
 for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}")
         after
       end
