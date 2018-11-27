@@ -37,6 +37,10 @@ module Zold
   module Farmers
     # Plain and simple
     class Plain
+      def initialize(log: Log::NULL)
+        @log = log
+      end
+
       def up(score)
         score.next
       end
@@ -49,9 +53,8 @@ module Zold
       end
 
       def up(score)
-        if POSIX::Spawn::Child.new('ps', 'ax').out.include?(score.to_s.split(' ').take(4).join(' '))
-          raise "We are farming the score already: #{score}"
-        end
+        raise "We are farming the score already: #{score}" if
+          POSIX::Spawn::Child.new('ps', 'ax').out.include?(score.to_s.split(' ').take(4).join(' '))
         start = Time.now
         bin = File.expand_path(File.join(File.dirname(__FILE__), '../../../bin/zold'))
         raise "Zold binary not found at #{bin}" unless File.exist?(bin)
@@ -110,6 +113,31 @@ for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}")
         @log.debug("Process ##{pid} killed after #{Age.new(start)} of activity")
       rescue StandardError => e
         @log.debug("No need to kill process ##{pid} since it's dead already: #{e.message}")
+      end
+    end
+
+    # In a child process using fork
+    class Fork
+      def initialize(log: Log::NULL)
+        @log = log
+      end
+
+      def up(score)
+        start = Time.now
+        stdin, stdout = IO.pipe
+        Process.fork do
+          score = score.next
+          stdout.puts "#{score}|#{Process.pid}"
+        end
+        Process.wait
+        stdout.close
+        output = stdin.read
+        buffer, pid = output.split('|')
+        after = Score.parse(buffer.strip)
+        stdin.close
+        @log.debug("Next score #{after.value}/#{after.strength} found in proc ##{pid.strip} \
+for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}")
+        after
       end
     end
   end
