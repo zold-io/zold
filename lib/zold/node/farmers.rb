@@ -127,7 +127,7 @@ for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}")
         stdin, stdout = IO.pipe
         Process.fork do
           score = score.next
-          stdout.puts "#{score.to_s}|#{Process.pid}"
+          stdout.puts "#{score}|#{Process.pid}"
         end
         Process.wait
         stdout.close
