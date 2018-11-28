@@ -57,7 +57,6 @@ class TestDirItems < Zold::Test
   #  mission critical, since we don't have spaces in our paths, mostly. But
   #  still, would be great to fix it.
   def test_lists_empty_dir
-    skip
     Dir.mktmpdir do |dir|
       d = File.join(dir, 'path с пробелами')
       FileUtils.mkdir_p(d)
