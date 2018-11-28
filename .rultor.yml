@@ -19,8 +19,8 @@ release:
     git add lib/zold/version.rb
     git commit -m "version set to ${tag}"
     gem build zold.gemspec
-    curl -sSL https://get.rvm.io | bash -s stable --ruby
     gem install ./zold-0.0.0.gem
+    zold --version | grep -vq '0.0.0' && exit 1
     zold remote update
     chmod 0600 ../rubygems.yml
     gem push *.gem --config-file ../rubygems.yml
