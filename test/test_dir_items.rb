@@ -53,9 +53,6 @@ class TestDirItems < Zold::Test
     end
   end
 
-  # @todo #507:30min I don't understand why this test doesn't work. It's not
-  #  mission critical, since we don't have spaces in our paths, mostly. But
-  #  still, would be great to fix it.
   def test_lists_empty_dir
     Dir.mktmpdir do |dir|
       d = File.join(dir, 'path с пробелами')
