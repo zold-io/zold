@@ -34,9 +34,15 @@ install:
         cp dmd2\windows\lib64\curl.lib C:\Ruby${Env:ruby_version}\bin
 
   - bundle config build.openssl --with-openssl-dir=%openssl_dir%
+  - bundle config build.eventmachine --use-system-libraries --with-ssl-dir=%openssl_dir%
   - ruby -v
   - bundle -v
 build_script:
+  # Support pure ruby eventmachine for windows
+  # https://github.com/eventmachine/eventmachine/issues/820
+  # https://github.com/eventmachine/eventmachine/issues/800
+  #
+  - gem install eventmachine --platform ruby
   - bundle update
   - bundle install
 test_script:
