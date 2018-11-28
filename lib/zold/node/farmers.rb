@@ -35,6 +35,14 @@ require_relative '../age'
 module Zold
   # Farmer
   module Farmers
+    # Kill a process
+    def self.kill(log, pid, start)
+      Process.kill('KILL', pid)
+      log.debug("Process ##{pid} killed after #{Age.new(start)} of activity")
+    rescue StandardError => e
+      log.debug("No need to kill process ##{pid} since it's dead already: #{e.message}")
+    end
+
     # Plain and simple
     class Plain
       def initialize(log: Log::NULL)
@@ -71,7 +79,7 @@ module Zold
         ].join(' ')
         Open3.popen2e(cmd) do |stdin, stdout, thr|
           Thread.current.thread_variable_set(:pid, thr.pid.to_s)
-          at_exit { kill(thr.pid, start) }
+          at_exit { Farmers.kill(@log, thr.pid, start) }
           @log.debug("Scoring started in proc ##{thr.pid} \
 for #{score.value}/#{score.strength} at #{score.host}:#{score.port}")
           begin
@@ -101,18 +109,9 @@ for #{score.value}/#{score.strength} at #{score.host}:#{score.port}")
 for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}")
             after
           ensure
-            kill(thr.pid, start)
+            Farmers.kill(@log, thr.pid, start)
           end
         end
-      end
-
-      private
-
-      def kill(pid, start)
-        Process.kill('KILL', pid)
-        @log.debug("Process ##{pid} killed after #{Age.new(start)} of activity")
-      rescue StandardError => e
-        @log.debug("No need to kill process ##{pid} since it's dead already: #{e.message}")
       end
     end
 
@@ -128,7 +127,7 @@ for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}")
         pid = Process.fork do
           stdout.puts(score.next)
         end
-        at_exit { Process.kill('KILL', pid) }
+        at_exit { Farmers.kill(@log, pid, start) }
         Process.wait
         stdout.close
         after = Score.parse(stdin.read.strip)
