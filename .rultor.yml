@@ -12,6 +12,10 @@ release:
   script: |-
     export RUBYOPT="-W0"
     [[ "${tag}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || exit -1
+    gem build zold.gemspec
+    gem install ./zold-0.0.0.gem
+    zold --version | grep -vq '0.0.0' && exit 1
+    zold remote update
     rm -rf *.gem
     sed -i "s/0\.0\.0/${tag}/g" lib/zold/version.rb
     bundle install --no-color
@@ -19,9 +23,6 @@ release:
     git add lib/zold/version.rb
     git commit -m "version set to ${tag}"
     gem build zold.gemspec
-    gem install ./zold-0.0.0.gem
-    zold --version | grep -vq '0.0.0' && exit 1
-    zold remote update
     chmod 0600 ../rubygems.yml
     gem push *.gem --config-file ../rubygems.yml
     git remote add heroku git@heroku.com:zold.git
