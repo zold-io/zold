@@ -247,7 +247,7 @@ module Zold
         network: opts['network']
       ).start do |entrance|
         Front.set(:entrance, entrance)
-        farmer = opts['no-spawn'] ? Farmers::Plain.new : Farmers::Spawn.new(log: @log)
+        farmer = opts['no-spawn'] ? Farmers::Plain.new : Farmers::Fork.new(log: @log)
         Farm.new(invoice, File.join(home, 'farm'), log: @log, farmer: farmer)
           .start(host, opts[:port], threads: opts[:threads], strength: opts[:strength]) do |farm|
           Front.set(:farm, farm)

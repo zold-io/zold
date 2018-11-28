@@ -25,6 +25,7 @@ require 'time'
 require 'zold/score'
 require_relative '../test__helper'
 require_relative '../../lib/zold/node/farmers'
+require_relative '../../lib/zold/verbose_thread'
 
 class FarmersTest < Zold::Test
   def test_calculates_next_score
@@ -51,6 +52,20 @@ class FarmersTest < Zold::Test
     thread.kill
     thread.join
     assert(log.msgs.find { |m| m.include?('killed') })
+  end
+
+  def test_kills_farmer
+    [Zold::Farmers::Plain, Zold::Farmers::Spawn, Zold::Farmers::Fork].each do |type|
+      farmer = type.new(log: test_log)
+      thread = Thread.start do
+        Zold::VerboseThread.new(test_log).run do
+          farmer.up(Zold::Score.new(host: 'some-host', invoice: 'NOPREFIX4@ffffffffffffffff', strength: 32))
+        end
+      end
+      sleep(1)
+      thread.kill
+      thread.join
+    end
   end
 
   def test_avoid_duplicate_processes
