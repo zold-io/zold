@@ -68,23 +68,29 @@ module Zold
     end
 
     def get(timeout: READ_TIMEOUT)
-      Response.new Typhoeus::Request.get(
-        @uri,
-        headers: headers,
-        connecttimeout: CONNECT_TIMEOUT,
-        timeout: timeout
+      Response.new(
+        Typhoeus::Request.get(
+          @uri,
+          accept_encoding: 'gzip',
+          headers: headers,
+          connecttimeout: CONNECT_TIMEOUT,
+          timeout: timeout
+        )
       )
     rescue StandardError => e
       Error.new(e)
     end
 
     def put(body, timeout: READ_TIMEOUT)
-      Response.new Typhoeus::Request.put(
-        @uri,
-        body: body,
-        headers: headers.merge('Content-Type': 'text/plain'),
-        connecttimeout: CONNECT_TIMEOUT,
-        timeout: timeout
+      Response.new(
+        Typhoeus::Request.put(
+          @uri,
+          accept_encoding: 'gzip',
+          body: body,
+          headers: headers.merge('Content-Type': 'text/plain'),
+          connecttimeout: CONNECT_TIMEOUT,
+          timeout: timeout
+        )
       )
     rescue StandardError => e
       Error.new(e)
