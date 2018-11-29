@@ -23,8 +23,8 @@
 require 'rainbow'
 require 'uri'
 require 'backtrace'
-require 'patron'
 require 'zold/score'
+require 'typhoeus'
 require_relative 'version'
 
 # HTTP page.
@@ -68,48 +68,55 @@ module Zold
     end
 
     def get(timeout: READ_TIMEOUT)
-      base_url = "#{@uri.scheme}://#{@uri.host}:#{@uri.port}"
-      session = Patron::Session.new(
-        timeout: timeout,
-        connect_timeout: CONNECT_TIMEOUT,
-        base_url: base_url,
-        headers: headers
+      Response.new(
+        Typhoeus::Request.get(
+          @uri,
+          accept_encoding: 'gzip',
+          headers: headers,
+          connecttimeout: CONNECT_TIMEOUT,
+          timeout: timeout
+        )
       )
-      path = @uri.path
-      path += '?' + @uri.query if @uri.query
-      session.get(path)
     rescue StandardError => e
       Error.new(e)
     end
 
     def put(body, timeout: READ_TIMEOUT)
-      base_url = "#{@uri.scheme}://#{@uri.host}:#{@uri.port}"
-      session = Patron::Session.new(
-        timeout: timeout,
-        connect_timeout: CONNECT_TIMEOUT,
-        base_url: base_url,
-        headers: headers.merge(
-          'Content-Type': 'text/plain',
-          'Content-Length': body.length.to_s
+      Response.new(
+        Typhoeus::Request.put(
+          @uri,
+          accept_encoding: 'gzip',
+          body: body,
+          headers: headers.merge('Content-Type': 'text/plain'),
+          connecttimeout: CONNECT_TIMEOUT,
+          timeout: timeout
         )
       )
-      path = @uri.path
-      path += '?' + @uri.query if @uri.query
-      session.put(path, body)
     rescue StandardError => e
       Error.new(e)
     end
 
     private
 
-    # The error, if connection fails
-    class Error
-      def initialize(ex)
-        @ex = ex
+    # Some clients waits for status method in respons
+    class Response < SimpleDelegator
+      def status
+        code.zero? ? 599 : code
+      end
+
+      def status_line
+        status_message
       end
 
       def to_s
         "#{status}: #{status_line}\n#{body}"
+      end
+    end
+
+    # The error, if connection fails
+    class Error < Response
+      def initialize(ex)
+        @ex = ex
       end
 
       def body

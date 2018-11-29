@@ -42,7 +42,7 @@ module Zold
     def fetch(recursive: true)
       spawn = POSIX::Spawn::Child.new(
         'find',
-        *([Shellwords.escape(@dir), '-type', 'f', '-print'] + (recursive ? [] : ['-maxdepth', '1']))
+        *([@dir, '-type', 'f', '-print'] + (recursive ? [] : ['-maxdepth', '1']))
       )
       raise spawn.err unless spawn.status.success?
       spawn.out

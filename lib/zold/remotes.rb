@@ -128,7 +128,7 @@ module Zold
     end
 
     def all
-      list = load
+      list = Futex.new(@file).open(false) { load }
       max_score = list.map { |r| r[:score] }.max || 0
       max_score = 1 if max_score.zero?
       max_errors = list.map { |r| r[:errors] }.max || 0
@@ -155,7 +155,8 @@ module Zold
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
       raise 'Host can\'t be nil' if host.nil?
       raise 'Port can\'t be nil' if port.nil?
-      !load.find { |r| r[:host] == host.downcase && r[:port] == port }.nil?
+      list = Futex.new(@file).open(false) { load }
+      !list.find { |r| r[:host] == host.downcase && r[:port] == port }.nil?
     end
 
     def add(host, port = PORT)
@@ -243,8 +244,20 @@ module Zold
     private
 
     def modify
-      Futex.new(@file).open do
-        save(yield(load))
+      FileUtils.mkdir_p(File.dirname(@file))
+      Futex.new(@file).open(true) do
+        list = yield(load)
+        IO.write(
+          @file,
+          list.uniq { |r| "#{r[:host]}:#{r[:port]}" }.map do |r|
+            [
+              r[:host],
+              r[:port],
+              r[:score],
+              r[:errors]
+            ].join(',')
+          end.join("\n")
+        )
       end
     end
 
@@ -275,21 +288,6 @@ module Zold
       else
         []
       end
-    end
-
-    def save(list)
-      FileUtils.mkdir_p(File.dirname(@file))
-      IO.write(
-        @file,
-        list.uniq { |r| "#{r[:host]}:#{r[:port]}" }.map do |r|
-          [
-            r[:host],
-            r[:port],
-            r[:score],
-            r[:errors]
-          ].join(',')
-        end.join("\n")
-      )
     end
   end
 end

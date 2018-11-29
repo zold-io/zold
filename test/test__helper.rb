@@ -50,6 +50,7 @@ module Zold
     # in order to catch problems ealier.
     def around
       Timeout.timeout(120) do
+        Thread.current.name = 'test'
         super
       end
     end

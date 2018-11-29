@@ -40,7 +40,7 @@ module Zold
       raise 'JSON is empty, can\'t parse' + (@uri.empty? ? '' : " at #{@uri}") if @text.empty?
       JSON.parse(@text)
     rescue JSON::ParserError => e
-      raise "Failed to parse JSON #{@uri.empty? ? '' : "at #{@uri}"} (#{e.message}): #{@text}"
+      raise "Failed to parse JSON #{@uri.empty? ? '' : "at #{@uri}"} (#{e.message}): #{@text.inspect}"
     end
   end
 end

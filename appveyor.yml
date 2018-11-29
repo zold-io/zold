@@ -9,8 +9,6 @@ branches:
 os: Windows Server 2012
 environment:
   matrix:
-    - ruby_version: "23-x64"
-    - ruby_version: "24-x64"
     - ruby_version: "25-x64"
 install:
   - ps: |
@@ -26,11 +24,25 @@ install:
         $Env:openssl_dir = "C:\msys64\mingw64"
       }
   - bundle config --local path vendor/bundle
+
+  # Download & extract libcurl
+  # Copy libcurl.{dll,lib} and add to PATH, so that libcurl.dll is found during the tests
+  - ps: |
+        appveyor DownloadFile "https://dl.dropboxusercontent.com/s/jxwohqax4e2avyt/libcurl-7.48.0-WinSSL-zlib-x86-x64.zip?dl=0" -FileName libcurl.zip
+        7z x libcurl.zip
+        cp dmd2\windows\bin64\libcurl.dll C:\Ruby${Env:ruby_version}\bin
+        cp dmd2\windows\lib64\curl.lib C:\Ruby${Env:ruby_version}\bin
+
   - bundle config build.openssl --with-openssl-dir=%openssl_dir%
+  - bundle config build.eventmachine --use-system-libraries --with-ssl-dir=%openssl_dir%
   - ruby -v
   - bundle -v
 build_script:
-  - bundle update
+  # Support pure ruby eventmachine for windows
+  # https://github.com/eventmachine/eventmachine/issues/820
+  # https://github.com/eventmachine/eventmachine/issues/800
+  #
+  - gem install eventmachine --platform ruby
   - bundle install
 test_script:
   - bundle exec rake --quiet

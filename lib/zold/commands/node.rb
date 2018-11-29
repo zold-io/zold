@@ -123,6 +123,9 @@ module Zold
         o.bool '--no-cache',
           'Skip caching of front JSON pages (will seriously slow down, mostly useful for testing)',
           default: false
+        o.integer '--queue-limit',
+          'The maximum number of wallets to be accepted via PUSH and stored in the queue (default: 4096)',
+          default: 4096
         o.string '--expose-version',
           "The version of the software to expose in JSON (default: #{VERSION})",
           default: VERSION
@@ -235,14 +238,16 @@ module Zold
               log: @log,
               ignore_score_weakeness: opts['ignore-score-weakness']
             ),
-            File.join(home, '.zoldata/async-entrance'), log: @log
+            File.join(home, '.zoldata/async-entrance'),
+            log: @log,
+            queue_limit: opts['queue-limit']
           ),
           @wallets
         ),
         network: opts['network']
       ).start do |entrance|
         Front.set(:entrance, entrance)
-        farmer = opts['no-spawn'] ? Farmers::Plain.new : Farmers::Spawn.new(log: @log)
+        farmer = opts['no-spawn'] ? Farmers::Plain.new : Farmers::Fork.new(log: @log)
         Farm.new(invoice, File.join(home, 'farm'), log: @log, farmer: farmer)
           .start(host, opts[:port], threads: opts[:threads], strength: opts[:strength]) do |farm|
           Front.set(:farm, farm)

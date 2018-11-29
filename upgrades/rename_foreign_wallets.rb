@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'rainbow'
 require_relative '../lib/zold/version'
 require_relative '../lib/zold/wallet'
 
@@ -38,7 +39,8 @@ module Zold
         f = File.join(@home, path)
         wallet = Wallet.new(f)
         next if wallet.network == @network
-        @log.info("Wallet #{wallet.id} renamed, since it's in #{wallet.network}, while we are in #{@network} network")
+        @log.info("Wallet #{wallet.id} #{Rainbow(renamed).red}, \
+since it's in \"#{wallet.network}\", while we are in \"#{@network}\" network")
         File.rename(f, f + '-old')
       end
     end

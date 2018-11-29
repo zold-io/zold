@@ -61,13 +61,13 @@ class FrontTest < Zold::Test
       assert_equal(Zold::VERSION, json['version'])
       assert_equal(Zold::PROTOCOL, json['protocol'])
       assert_equal('foo', json['network'])
-      assert(json['pid'].positive?)
-      assert(json['cpus'].positive?)
-      assert(json['memory'].positive?)
-      assert(json['load'].positive?)
-      assert(json['wallets'].positive?)
-      assert(json['remotes'].zero?)
-      assert(json['nscore'].zero?)
+      assert(json['pid'].positive?, json)
+      assert(json['cpus'].positive?, json)
+      assert(json['memory'].positive?, json)
+      assert(!json['load'].negative?, json)
+      assert(json['wallets'].positive?, json)
+      assert(json['remotes'].zero?, json)
+      assert(json['nscore'].zero?, json)
     end
   end
 
