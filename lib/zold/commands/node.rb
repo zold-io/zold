@@ -251,8 +251,8 @@ module Zold
       ).start do |entrance|
         Front.set(:entrance, entrance)
         farmer = opts['no-spawn'] ? Farmers::Plain.new : Farmers::Fork.new(log: @log)
-        Farm.new(invoice, File.join(home, 'farm'), log: @log, farmer: farmer)
-          .start(host, opts[:port], threads: opts[:threads], strength: opts[:strength]) do |farm|
+        Farm.new(invoice, File.join(home, 'farm'), log: @log, farmer: farmer, strength: opts[:strength])
+          .start(host, opts[:port], threads: opts[:threads]) do |farm|
           Front.set(:farm, farm)
           metronome(farm, opts).start do |metronome|
             Front.set(:metronome, metronome)

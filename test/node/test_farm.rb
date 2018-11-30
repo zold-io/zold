@@ -30,8 +30,8 @@ require_relative '../../lib/zold/node/farm'
 class FarmTest < Zold::Test
   def test_renders_in_json
     Dir.mktmpdir do |dir|
-      farm = Zold::Farm.new('NOPREFIX6@ffffffffffffffff', File.join(dir, 'f'), log: test_log)
-      farm.start('localhost', 80, threads: 2, strength: 2) do
+      farm = Zold::Farm.new('NOPREFIX6@ffffffffffffffff', File.join(dir, 'f'), log: test_log, strength: 2)
+      farm.start('localhost', 80, threads: 2) do
         assert_wait { !farm.best.empty? && !farm.best[0].value.zero? }
         count = 0
         100.times { count += farm.to_json[:best].length }
@@ -42,8 +42,8 @@ class FarmTest < Zold::Test
 
   def test_renders_in_text
     Dir.mktmpdir do |dir|
-      farm = Zold::Farm.new('NOPREFIX7@ffffffffffffffff', File.join(dir, 'f'), log: test_log)
-      farm.start('localhost', 80, threads: 2, strength: 1) do
+      farm = Zold::Farm.new('NOPREFIX7@ffffffffffffffff', File.join(dir, 'f'), log: test_log, strength: 1)
+      farm.start('localhost', 80, threads: 2) do
         assert(!farm.to_text.nil?)
       end
     end
@@ -52,8 +52,8 @@ class FarmTest < Zold::Test
   def test_makes_many_scores
     Dir.mktmpdir do |dir|
       farm = Zold::Farm.new('NOPREFIX6@ffffffffffffffff', File.join(dir, 'f'),
-        log: test_log, lifetime: 10, farmer: Zold::Farmers::Plain.new)
-      farm.start('localhost', 80, threads: 4, strength: 1) do
+        log: test_log, lifetime: 10, farmer: Zold::Farmers::Plain.new, strength: 1)
+      farm.start('localhost', 80, threads: 4) do
         assert_wait { farm.best.length == 4 }
       end
     end
@@ -67,8 +67,8 @@ class FarmTest < Zold::Test
   #  that it's usually a few microseconds, but sometimes over 200ms.
   def test_reads_scores_at_high_speed
     Dir.mktmpdir do |dir|
-      farm = Zold::Farm.new('NOPREFIX6@ffffffffffffffff', File.join(dir, 'f'), log: test_log)
-      farm.start('localhost', 80, threads: 4, strength: 4) do
+      farm = Zold::Farm.new('NOPREFIX6@ffffffffffffffff', File.join(dir, 'f'), log: test_log, strength: 4)
+      farm.start('localhost', 80, threads: 4) do
         assert_wait { !farm.best.empty? && !farm.best[0].value.zero? }
         cycles = 100
         speed = (0..cycles - 1).map do
@@ -83,8 +83,8 @@ class FarmTest < Zold::Test
 
   def test_makes_best_score_in_background
     Dir.mktmpdir do |dir|
-      farm = Zold::Farm.new('NOPREFIX1@ffffffffffffffff', File.join(dir, 'f'), log: test_log)
-      farm.start('localhost', 80, threads: 1, strength: 3) do
+      farm = Zold::Farm.new('NOPREFIX1@ffffffffffffffff', File.join(dir, 'f'), log: test_log, strength: 3)
+      farm.start('localhost', 80, threads: 1) do
         assert_wait { !farm.best.empty? && farm.best[0].value >= 3 }
         score = farm.best[0]
         assert(!score.expired?)
@@ -95,8 +95,8 @@ class FarmTest < Zold::Test
 
   def test_correct_score_from_empty_farm
     Dir.mktmpdir do |dir|
-      farm = Zold::Farm.new('NOPREFIX2@cccccccccccccccc', File.join(dir, 'f'), log: test_log)
-      farm.start('example.com', 8080, threads: 0, strength: 1) do
+      farm = Zold::Farm.new('NOPREFIX2@cccccccccccccccc', File.join(dir, 'f'), log: test_log, strength: 1)
+      farm.start('example.com', 8080, threads: 0) do
         score = farm.best[0]
         assert(!score.expired?)
         assert_equal(0, score.value)
@@ -109,8 +109,8 @@ class FarmTest < Zold::Test
   def test_pre_loads_history
     Dir.mktmpdir do |dir|
       cache = File.join(dir, 'a/b/c/cache')
-      farm = Zold::Farm.new('NOPREFIX3@cccccccccccccccc', cache, log: test_log)
-      farm.start('example.com', 8080, threads: 0, strength: 1) do
+      farm = Zold::Farm.new('NOPREFIX3@cccccccccccccccc', cache, log: test_log, strength: 1)
+      farm.start('example.com', 8080, threads: 0) do
         score = farm.best[0]
         assert(!score.nil?, 'The list of best scores can\'t be empty!')
         assert(File.exist?(cache), 'The cache file has to be created!')
@@ -132,8 +132,8 @@ class FarmTest < Zold::Test
         strength: 6
       )
       IO.write(cache, score.to_s)
-      farm = Zold::Farm.new('NOPREFIX4@ffffffffffffffff', cache, log: test_log)
-      farm.start(score.host, score.port, threads: 1, strength: score.strength) do
+      farm = Zold::Farm.new('NOPREFIX4@ffffffffffffffff', cache, log: test_log, strength: score.strength)
+      farm.start(score.host, score.port, threads: 1) do
         100.times do
           sleep(0.1)
           b = farm.best[0]
@@ -170,7 +170,7 @@ class FarmTest < Zold::Test
   end
 
   def test_terminates_farm_entirely
-    Zold::Farm.new('NOPREFIX4@ffffffffffffffff', log: test_log).start('localhost', 4096, threads: 1, strength: 10) do
+    Zold::Farm.new('NOPREFIX4@ffffffffffffffff', log: test_log, strength: 10).start('localhost', 4096, threads: 1) do
       sleep 1
     end
   end
