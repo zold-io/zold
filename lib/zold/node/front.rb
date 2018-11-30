@@ -198,7 +198,12 @@ in #{Age.new(@start, limit: 1)}")
         end,
         memory: settings.zache.get(:memory, lifetime: 5 * 60) do
           require 'get_process_mem'
-          GetProcessMem.new.bytes.to_i
+          mem = GetProcessMem.new.bytes.to_i
+          if mem > 256 * 1024 * 1024 && !settings.opts['skip-oom']
+            settings.log.error('We are too big in memory, quitting; use --skip-oom to never quit')
+            Front.stop!
+          end
+          mem
         end,
         platform: RUBY_PLATFORM,
         load: settings.zache.get(:load, lifetime: 5 * 60) do

@@ -123,6 +123,9 @@ module Zold
         o.bool '--no-cache',
           'Skip caching of front JSON pages (will seriously slow down, mostly useful for testing)',
           default: false
+        o.bool '--skip-oom',
+          'Skip Out Of Memory check and never exit, no matter how much RAM is consumed',
+          default: false
         o.integer '--queue-limit',
           'The maximum number of wallets to be accepted via PUSH and stored in the queue (default: 4096)',
           default: 4096
