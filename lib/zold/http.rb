@@ -105,7 +105,7 @@ module Zold
       end
 
       def status_line
-        status_message
+        status_message || ''
       end
 
       def to_s
@@ -128,7 +128,7 @@ module Zold
       end
 
       def status_line
-        @ex.message
+        @ex.message || ''
       end
 
       def headers
