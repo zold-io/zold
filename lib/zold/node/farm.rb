@@ -213,7 +213,7 @@ at #{host}:#{port}, strength is #{strength}")
 
     def load
       return [] unless File.exist?(@cache)
-      Futex.new(@cache).open do |f|
+      Futex.new(@cache).open(false) do |f|
         IO.read(f).split(/\n/).map do |t|
           Score.parse(t)
         rescue StandardError => e

@@ -57,10 +57,11 @@ module Zold
     PREFIX = 'TAXES'
     private_constant :PREFIX
 
-    def initialize(wallet, ignore_score_weakness: false)
+    def initialize(wallet, ignore_score_weakness: false, strength: Score::STRENGTH)
       raise "The wallet must be of type Wallet: #{wallet.class.name}" unless wallet.is_a?(Wallet)
       @wallet = wallet
       @ignore_score_weakness = ignore_score_weakness
+      @strength = strength
     end
 
     # Check whether this tax payment already exists in the wallet.
@@ -95,7 +96,7 @@ module Zold
         next if pfx != PREFIX || body.nil?
         score = Score.parse_text(body)
         next if !score.valid? || score.value != EXACT_SCORE
-        next if score.strength < Score::STRENGTH && !@ignore_score_weakness
+        next if score.strength < @strength && !@ignore_score_weakness
         next if t.amount > MAX_PAYMENT
         t
       end.compact.uniq(&:details)

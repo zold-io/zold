@@ -453,7 +453,10 @@ in #{Age.new(@start, limit: 1)}")
     end
 
     def processes
-      POSIX::Spawn::Child.new('ps', 'ax').out.split("\n").select { |t| t.include?('zold') }
+      []
+      # This is temporarily disabled. We suspect that this line causes
+      # memory leakage.
+      # POSIX::Spawn::Child.new('ps', 'ax').out.split("\n").select { |t| t.include?('zold') }
     end
 
     def pretty(json)

@@ -245,7 +245,7 @@ module Zold
 
     def modify
       FileUtils.mkdir_p(File.dirname(@file))
-      Futex.new(@file).open(true) do
+      Futex.new(@file).open do
         list = yield(load)
         IO.write(
           @file,

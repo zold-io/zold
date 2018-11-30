@@ -129,7 +129,7 @@ module Zold
     end
 
     def all
-      Futex.new(file, log: @log).open do
+      Futex.new(file, log: @log).open(false) do
         load.group_by { |s| s[:name] }.map do |name, scores|
           {
             name: name,

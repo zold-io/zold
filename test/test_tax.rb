@@ -105,7 +105,7 @@ class TestTax < Zold::Test
 386d4a ec9eae 306e3d 119d073 1c00dba 1376703 203589 5b55f7"
         )
       )
-      tax = Zold::Tax.new(wallet)
+      tax = Zold::Tax.new(wallet, strength: 6)
       assert_equal(amount, tax.paid)
       assert(tax.debt < Zold::Amount::ZERO, tax.debt)
     end
