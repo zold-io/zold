@@ -159,7 +159,7 @@ module Zold
           default: false
         o.string '--alias',
           'The alias of the node (default: host:port)'
-        o.string '--no-spawn',
+        o.boolean '--no-spawn',
           'Don\'t use child processes for the score farm',
           default: false
         o.bool '--help', 'Print instructions'
@@ -259,8 +259,7 @@ module Zold
         network: opts['network']
       ).start do |entrance|
         Front.set(:entrance, entrance)
-        farmer = opts['no-spawn'] ? Farmers::Plain.new : Farmers::Fork.new(log: @log)
-        Farm.new(invoice, File.join(home, 'farm'), log: @log, farmer: farmer, strength: opts[:strength])
+        Farm.new(invoice, File.join(home, 'farm'), log: @log, farmer: farmer(opts), strength: opts[:strength])
           .start(host, opts[:port], threads: opts[:threads]) do |farm|
           Front.set(:farm, farm)
           metronome(farm, opts).start do |metronome|
@@ -275,6 +274,14 @@ module Zold
     end
 
     private
+
+    def farmer(opts)
+      if opts['no-spawn']
+        @log.debug('Plain farmer is used, only one CPU will be utilized')
+        return Farmers::Plain.new
+      end
+      Farmers::Fork.new(log: @log)
+    end
 
     # Returns exit code
     def exec(cmd, nohup_log)

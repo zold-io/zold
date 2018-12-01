@@ -266,7 +266,7 @@ class FrontTest < Zold::Test
 
   def test_performance
     times = Queue.new
-    FakeNode.new(log: test_log).run(['--threads=4', '--strength=6', '--no-metronome', '--farmer=ruby-proc']) do |port|
+    FakeNode.new(log: test_log).run(['--threads=4', '--strength=6', '--no-metronome']) do |port|
       Threads.new(10).assert(100) do
         start = Time.now
         Zold::Http.new(uri: URI("http://localhost:#{port}/")).get
@@ -276,6 +276,19 @@ class FrontTest < Zold::Test
     all = []
     all << times.pop(true) until times.empty?
     test_log.info("Average response time is #{all.inject(&:+) / all.count}")
+  end
+
+  # The score exposed via the HTTP header must be reduced to the value of 16.
+  # We need this in order to optimize the amount of data we transfer in each
+  # HTTP request. This value is enough to identify a valueable node, and filter
+  # out those that are too weak.
+  def test_score_is_reduced
+    FakeNode.new(log: test_log).run(['--threads=1', '--strength=1', '--no-metronome', '--no-spawn']) do |port|
+      res = Zold::Http.new(uri: URI("http://localhost:#{port}/")).get
+      assert_wait { Zold::Score.parse(res.headers[Zold::Http::SCORE_HEADER]).value > 15 }
+      sleep(1)
+      assert_equal_wait(16) { Zold::Score.parse(res.headers[Zold::Http::SCORE_HEADER]).value }
+    end
   end
 
   def test_headers_are_being_set_correctly
