@@ -31,7 +31,7 @@ require_relative '../wallet'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # The safe entrance
+  # The entrance that ignores dups
   class NoDupEntrance
     def initialize(entrance, wallets, log: Log::NULL)
       @entrance = entrance
@@ -53,10 +53,10 @@ module Zold
       before = @wallets.acq(id) { |w| w.exists? ? w.digest : '' }
       after = OpenSSL::Digest::SHA256.new(body).hexdigest
       if before == after
-        @log.debug("Duplicate of #{id} ignored (#{Size.new(body.length)} bytes)")
+        @log.debug("Duplicate of #{id} ignored #{Size.new(body.length)}")
         return []
       end
-      @log.debug("New content for #{id} arrived (#{Size.new(body.length)} bytes)")
+      @log.debug("New content for #{id} arrived #{Size.new(body.length)}")
       @entrance.push(id, body)
     end
   end

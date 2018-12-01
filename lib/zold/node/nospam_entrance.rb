@@ -20,60 +20,51 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'open3'
-require 'backtrace'
-require 'zold/score'
-require 'shellwords'
+require 'tempfile'
+require 'openssl'
+require 'zache'
 require_relative '../log'
-require_relative '../age'
+require_relative '../size'
 
-# Farmers.
+# The entrance that ignores something we've seen already.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # Farmer
-  module Farmers
-    # Kill a process
-    def self.kill(log, pid, start)
-      Process.kill('KILL', pid)
-      log.debug("Process ##{pid} killed after #{Age.new(start)} of activity")
-    rescue StandardError => e
-      log.debug("No need to kill process ##{pid} since it's dead already: #{e.message}")
+  # The no-spam entrance
+  class NoSpamEntrance
+    def initialize(entrance, period: 60 * 60, log: Log::NULL)
+      @entrance = entrance
+      @log = log
+      @period = period
+      @zache = Zache.new
     end
 
-    # Plain and simple
-    class Plain
-      def initialize(log: Log::NULL)
-        @log = log
-      end
-
-      def up(score)
-        score.next
-      end
+    def start
+      raise 'Block must be given to start()' unless block_given?
+      @entrance.start { yield(self) }
     end
 
-    # In a child process using fork
-    class Fork
-      def initialize(log: Log::NULL)
-        @log = log
-      end
+    def to_json
+      @entrance.to_json
+    end
 
-      def up(score)
-        start = Time.now
-        stdin, stdout = IO.pipe
-        pid = Process.fork do
-          stdout.puts(score.next)
-        end
-        at_exit { Farmers.kill(@log, pid, start) }
-        Process.wait
-        stdout.close
-        after = Score.parse(stdin.read.strip)
-        stdin.close
-        @log.debug("Next score #{after.value}/#{after.strength} found in proc ##{pid} \
-for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}")
-        after
+    # Returns a list of modifed wallets (as Zold::Id)
+    def push(id, body)
+      before = @zache.get(id.to_s, lifetime: @period) { '' }
+      after = hash(id, body)
+      if before == after
+        @log.debug("Spam of #{id} ignored #{Size.new(body.length)}")
+        return []
       end
+      @zache.put(id.to_s, after)
+      @entrance.push(id, body)
+    end
+
+    private
+
+    def hash(id, body)
+      OpenSSL::Digest::SHA256.new(id.to_s + ' ' + body).hexdigest
     end
   end
 end

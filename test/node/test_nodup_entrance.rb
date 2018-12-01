@@ -31,7 +31,7 @@ require_relative 'fake_entrance'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestAsyncEntrance < Zold::Test
+class TestNoDupEntrance < Zold::Test
   def test_ignores_dup
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet

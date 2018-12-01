@@ -20,60 +20,30 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'open3'
-require 'backtrace'
-require 'zold/score'
-require 'shellwords'
-require_relative '../log'
-require_relative '../age'
+require 'minitest/autorun'
+require_relative '../test__helper'
+require_relative '../../lib/zold/id'
+require_relative '../../lib/zold/node/nospam_entrance'
+require_relative 'fake_entrance'
 
-# Farmers.
+# NoSpamEntrance test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # Farmer
-  module Farmers
-    # Kill a process
-    def self.kill(log, pid, start)
-      Process.kill('KILL', pid)
-      log.debug("Process ##{pid} killed after #{Age.new(start)} of activity")
-    rescue StandardError => e
-      log.debug("No need to kill process ##{pid} since it's dead already: #{e.message}")
+class TestNoSpamEntrance < Zold::Test
+  def test_ignores_spam
+    Zold::NoSpamEntrance.new(RealEntrance.new, log: test_log).start do |e|
+      id = Zold::Id.new
+      content = 'hello'
+      assert(!e.push(id, content).empty?)
+      assert(e.push(id, content).empty?)
+      assert(e.push(id, content).empty?)
     end
+  end
 
-    # Plain and simple
-    class Plain
-      def initialize(log: Log::NULL)
-        @log = log
-      end
-
-      def up(score)
-        score.next
-      end
-    end
-
-    # In a child process using fork
-    class Fork
-      def initialize(log: Log::NULL)
-        @log = log
-      end
-
-      def up(score)
-        start = Time.now
-        stdin, stdout = IO.pipe
-        pid = Process.fork do
-          stdout.puts(score.next)
-        end
-        at_exit { Farmers.kill(@log, pid, start) }
-        Process.wait
-        stdout.close
-        after = Score.parse(stdin.read.strip)
-        stdin.close
-        @log.debug("Next score #{after.value}/#{after.strength} found in proc ##{pid} \
-for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}")
-        after
-      end
+  class RealEntrance < FakeEntrance
+    def push(id, _)
+      [id]
     end
   end
 end

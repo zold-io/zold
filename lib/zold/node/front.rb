@@ -29,7 +29,6 @@ require 'sinatra/base'
 require 'concurrent'
 require 'backtrace'
 require 'zache'
-require 'posix/spawn'
 require_relative '../version'
 require_relative '../size'
 require_relative '../wallet'
@@ -313,7 +312,7 @@ in #{Age.new(@start, limit: 1)}")
           "Balance: #{wallet.balance.to_zld(8)} ZLD (#{wallet.balance.to_i} zents)",
           "Transactions: #{wallet.txns.count}",
           "Taxes: #{Tax.new(wallet).paid} paid, the debt is #{Tax.new(wallet).debt}",
-          "File size: #{wallet.size} bytes (#{Copies.new(File.join(settings.copies, wallet.id)).all.count} copies)",
+          "File size: #{Size.new(wallet.size)}, #{Copies.new(File.join(settings.copies, wallet.id)).all.count} copies",
           "Modified: #{wallet.mtime.utc.iso8601} (#{Age.new(wallet.mtime.utc.iso8601)} ago)",
           "Digest: #{wallet.digest}"
         ].join("\n")
@@ -458,10 +457,7 @@ in #{Age.new(@start, limit: 1)}")
     end
 
     def processes
-      []
-      # This is temporarily disabled. We suspect that this line causes
-      # memory leakage.
-      # POSIX::Spawn::Child.new('ps', 'ax').out.split("\n").select { |t| t.include?('zold') }
+      `ps ax`.split("\n").select { |t| t.include?('zold') }
     end
 
     def pretty(json)

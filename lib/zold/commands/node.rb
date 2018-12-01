@@ -41,6 +41,7 @@ require_relative '../node/spread_entrance'
 require_relative '../node/async_entrance'
 require_relative '../node/sync_entrance'
 require_relative '../node/nodup_entrance'
+require_relative '../node/nospam_entrance'
 require_relative '../node/front'
 require_relative '../node/trace'
 require_relative '../node/farm'
@@ -122,6 +123,9 @@ module Zold
           default: false
         o.bool '--no-cache',
           'Skip caching of front JSON pages (will seriously slow down, mostly useful for testing)',
+          default: false
+        o.bool '--allow-spam',
+          'Don\'t filter the incoming spam via PUT requests (duplicate wallets)',
           default: false
         o.bool '--skip-oom',
           'Skip Out Of Memory check and never exit, no matter how much RAM is consumed',
@@ -225,27 +229,32 @@ module Zold
         ).run(['invoice', invoice, "--network=#{opts['network']}"])
       end
       SafeEntrance.new(
-        NoDupEntrance.new(
-          AsyncEntrance.new(
-            SpreadEntrance.new(
-              SyncEntrance.new(
-                Entrance.new(
-                  @wallets,
-                  @remotes, @copies, address,
-                  log: @log, network: opts['network']
+        NoSpamEntrance.new(
+          NoDupEntrance.new(
+            AsyncEntrance.new(
+              SpreadEntrance.new(
+                SyncEntrance.new(
+                  Entrance.new(
+                    @wallets,
+                    @remotes, @copies, address,
+                    log: @log, network: opts['network']
+                  ),
+                  File.join(home, '.zoldata/sync-entrance'),
+                  log: @log
                 ),
-                File.join(home, '.zoldata/sync-entrance'),
-                log: @log
+                @wallets, @remotes, address,
+                log: @log,
+                ignore_score_weakeness: opts['ignore-score-weakness']
               ),
-              @wallets, @remotes, address,
+              File.join(home, '.zoldata/async-entrance'),
               log: @log,
-              ignore_score_weakeness: opts['ignore-score-weakness']
+              queue_limit: opts['queue-limit']
             ),
-            File.join(home, '.zoldata/async-entrance'),
-            log: @log,
-            queue_limit: opts['queue-limit']
+            @wallets,
+            log: @log
           ),
-          @wallets
+          period: opts['allow-spam'] ? 0 : 60 * 60,
+          log: @log
         ),
         network: opts['network']
       ).start do |entrance|

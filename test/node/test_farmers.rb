@@ -30,7 +30,7 @@ require_relative '../../lib/zold/verbose_thread'
 class FarmersTest < Zold::Test
   def test_calculates_next_score
     before = Zold::Score.new(host: 'some-host', port: 9999, invoice: 'NOPREFIX4@ffffffffffffffff', strength: 3)
-    [Zold::Farmers::Plain, Zold::Farmers::Spawn, Zold::Farmers::Fork].each do |farmer_class|
+    [Zold::Farmers::Plain, Zold::Farmers::Fork].each do |farmer_class|
       farmer = farmer_class.new(log: test_log)
       after = farmer.up(before)
       assert_equal(1, after.value)
@@ -41,21 +41,20 @@ class FarmersTest < Zold::Test
   end
 
   def test_calculates_large_score
-    log = TestLogger.new(test_log)
-    thread = Thread.start do
-      [Zold::Farmers::Spawn, Zold::Farmers::Fork].each do |farmer_class|
-        farmer = farmer_class.new(log: log)
+    [Zold::Farmers::Plain, Zold::Farmers::Fork].each do |type|
+      log = TestLogger.new(test_log)
+      thread = Thread.start do
+        farmer = type.new(log: log)
         farmer.up(Zold::Score.new(host: 'a', port: 1, invoice: 'NOPREFIX4@ffffffffffffffff', strength: 20))
       end
+      sleep(0.1)
+      thread.kill
+      thread.join
     end
-    assert_wait { !log.msgs.find { |m| m.include?('Scoring started') }.nil? }
-    thread.kill
-    thread.join
-    assert(log.msgs.find { |m| m.include?('killed') })
   end
 
   def test_kills_farmer
-    [Zold::Farmers::Plain, Zold::Farmers::Spawn, Zold::Farmers::Fork].each do |type|
+    [Zold::Farmers::Plain, Zold::Farmers::Fork].each do |type|
       farmer = type.new(log: test_log)
       thread = Thread.start do
         Zold::VerboseThread.new(test_log).run do
@@ -66,26 +65,5 @@ class FarmersTest < Zold::Test
       thread.kill
       thread.join
     end
-  end
-
-  def test_avoid_duplicate_processes
-    log = TestLogger.new(test_log)
-    time = Time.now
-    thread = Thread.start do
-      [Zold::Farmers::Spawn, Zold::Farmers::Fork].each do |farmer_class|
-        farmer = farmer_class.new(log: log)
-        farmer.up(Zold::Score.new(time: time, host: 'a', port: 1, invoice: 'prefixone@ffffffffffffffff', strength: 20))
-      end
-    end
-    assert_wait { !log.msgs.find { |m| m.include?('Scoring started') }.nil? }
-    assert_raises do
-      [Zold::Farmers::Spawn, Zold::Farmers::Fork].each do |farmer_class|
-        farmer_class.new(log: log).up(
-          Zold::Score.new(time: time, host: 'a', port: 1, invoice: 'prefixtwo@ffffffffffffffff', strength: 20)
-        )
-      end
-    end
-    thread.kill
-    thread.join
   end
 end
