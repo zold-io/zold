@@ -46,6 +46,10 @@ require_relative '../http'
 module Zold
   # Web front
   class Front < Sinatra::Base
+    # The minimum score required in order to recongnize a requestor
+    # as a valuable node and add it to the list of remotes.
+    MIN_SCORE = 16
+
     configure do
       Thread.current.name = 'sinatra'
       set :bind, '0.0.0.0'
@@ -101,7 +105,7 @@ while #{settings.address} is in '#{settings.opts['network']}'")
           s = Score.parse_text(header)
           error(400, 'The score is invalid') unless s.valid?
           error(400, 'The score is weak') if s.strength < Score::STRENGTH && !settings.opts['ignore-score-weakness']
-          return if s.value < 16 && !settings.opts['ignore-score-weakness']
+          return if s.value < Front::MIN_SCORE && !settings.opts['ignore-score-weakness']
           if settings.address == "#{s.host}:#{s.port}" && !settings.opts['ignore-score-weakness']
             error(400, 'Self-requests are prohibited')
           end
@@ -124,7 +128,7 @@ while #{settings.address} is in '#{settings.opts['network']}'")
       headers['X-Zold-Version'] = settings.opts['expose-version']
       headers[Http::PROTOCOL_HEADER] = settings.protocol.to_s
       headers['Access-Control-Allow-Origin'] = '*'
-      headers[Http::SCORE_HEADER] = score.reduced(16).to_s
+      headers[Http::SCORE_HEADER] = score.reduced(Front::MIN_SCORE).to_s
       headers['X-Zold-Thread'] = Thread.current.object_id.to_s
       unless @start.nil?
         if Time.now - @start > 1
