@@ -101,6 +101,7 @@ while #{settings.address} is in '#{settings.opts['network']}'")
           s = Score.parse_text(header)
           error(400, 'The score is invalid') unless s.valid?
           error(400, 'The score is weak') if s.strength < Score::STRENGTH && !settings.opts['ignore-score-weakness']
+          return if s.value < 16 && !settings.opts['ignore-score-weakness']
           if settings.address == "#{s.host}:#{s.port}" && !settings.opts['ignore-score-weakness']
             error(400, 'Self-requests are prohibited')
           end
