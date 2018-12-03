@@ -49,7 +49,8 @@ module Zold
     def to_json
       @entrance.to_json.merge(
         'queue': @queue.size,
-        'threads': @threads.count
+        'threads': @threads.count,
+        'queue_limit': @queue_limit
       )
     end
 
@@ -80,7 +81,9 @@ module Zold
 
     # Always returns an array with a single ID of the pushed wallet
     def push(id, body)
-      raise "Queue is too long (#{@queue.size} wallets), try again later" if @queue.size > @queue_limit
+      if @queue.size > @queue_limit
+        raise "Queue is too long (#{@queue.size} wallets), can't add #{id}/#{Size.new(body.length)}, try again later"
+      end
       start = Time.now
       loop do
         uuid = SecureRandom.uuid

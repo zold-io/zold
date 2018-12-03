@@ -61,15 +61,17 @@ module Zold
 
       def up(score)
         start = Time.now
-        stdin, stdout = IO.pipe
+        stdout, stdin = IO.pipe
         pid = Process.fork do
-          stdout.puts(score.next)
+          stdin.puts(score.next)
         end
         at_exit { Farmers.kill(@log, pid, start) }
         Process.wait
-        stdout.close
-        after = Score.parse(stdin.read.strip)
         stdin.close
+        text = stdout.read.strip
+        stdout.close
+        raise 'No score was calculated' if text.empty?
+        after = Score.parse(text)
         @log.debug("Next score #{after.value}/#{after.strength} found in proc ##{pid} \
 for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}")
         after
