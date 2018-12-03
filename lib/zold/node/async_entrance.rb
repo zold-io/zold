@@ -28,6 +28,7 @@ require_relative '../size'
 require_relative '../id'
 require_relative '../endless'
 require_relative '../dir_items'
+require_relative 'soft_error'
 
 # The async entrance of the web front.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -82,7 +83,10 @@ module Zold
     # Always returns an array with a single ID of the pushed wallet
     def push(id, body)
       if @queue.size > @queue_limit
-        raise "Queue is too long (#{@queue.size} wallets), can't add #{id}/#{Size.new(body.length)}, try again later"
+        raise(
+          SoftError,
+          "Queue is too long (#{@queue.size} wallets), can't add #{id}/#{Size.new(body.length)}, try again later"
+        )
       end
       start = Time.now
       loop do

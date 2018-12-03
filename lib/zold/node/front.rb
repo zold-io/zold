@@ -38,6 +38,7 @@ require_relative '../log'
 require_relative '../tax'
 require_relative '../id'
 require_relative '../http'
+require_relative 'soft_error'
 
 # The web front of the node.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -126,6 +127,7 @@ while #{settings.address} is in '#{settings.opts['network']}'")
     #  Currently there are no tests at all that would verify the headers.
     after do
       headers['Cache-Control'] = 'no-cache'
+      headers['X-Zold-Path'] = request.url
       headers['X-Zold-Version'] = settings.opts['expose-version']
       headers[Http::PROTOCOL_HEADER] = settings.protocol.to_s
       headers['Access-Control-Allow-Origin'] = '*'
@@ -426,8 +428,7 @@ in #{Age.new(@start, limit: 1)}")
       e = env['sinatra.error']
       content_type 'text/plain'
       headers['X-Zold-Error'] = e.message
-      headers['X-Zold-Path'] = request.url
-      settings.log.error(Backtrace.new(e).to_s)
+      settings.log.error(Backtrace.new(e).to_s) unless e.is_a?(SoftError)
       Backtrace.new(e).to_s
     end
 
