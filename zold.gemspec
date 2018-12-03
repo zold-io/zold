@@ -65,7 +65,7 @@ and suggests a different architecture for digital wallet maintenance.'
   s.add_runtime_dependency 'concurrent-ruby', '1.1.3'
   s.add_runtime_dependency 'cucumber', '3.1.2' # has to stay here for Heroku
   s.add_runtime_dependency 'diffy', '3.2.1'
-  s.add_runtime_dependency 'futex', '0.6.0'
+  s.add_runtime_dependency 'futex', '0.6.1'
   s.add_runtime_dependency 'get_process_mem', '0.2.3'
   s.add_runtime_dependency 'json', '2.1.0'
   s.add_runtime_dependency 'memory_profiler', '0.9.12'
