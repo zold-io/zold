@@ -196,33 +196,28 @@ at #{host}:#{port}, strength is #{@strength}")
     def save(threads, list = [])
       scores = load + list
       period = @lifetime / [threads, 1].max
-      Futex.new(@cache).open do |f|
-        IO.write(
-          f,
-          scores.select(&:valid?)
-            .reject(&:expired?)
-            .reject { |s| s.strength < @strength }
-            .sort_by(&:value)
-            .reverse
-            .uniq(&:time)
-            .uniq { |s| (s.age / period).round }
-            .map(&:to_s)
-            .uniq
-            .join("\n")
-        )
-      end
+      body = scores.select(&:valid?)
+        .reject(&:expired?)
+        .reject { |s| s.strength < @strength }
+        .sort_by(&:value)
+        .reverse
+        .uniq(&:time)
+        .uniq { |s| (s.age / period).round }
+        .map(&:to_s)
+        .uniq
+        .join("\n")
+      Futex.new(@cache).open { |f| IO.write(f, body) }
     end
 
     def load
       return [] unless File.exist?(@cache)
-      Futex.new(@cache).open(false) do |f|
-        IO.read(f).split(/\n/).reject(&:empty?).map do |t|
-          Score.parse(t)
-        rescue StandardError => e
-          @log.error(Backtrace.new(e).to_s)
-          nil
-        end.compact
-      end
+      body = Futex.new(@cache).open(false) { |f| IO.read(f) }
+      body.split(/\n/).reject(&:empty?).map do |t|
+        Score.parse(t)
+      rescue StandardError => e
+        @log.error(Backtrace.new(e).to_s)
+        nil
+      end.compact
     end
   end
 end

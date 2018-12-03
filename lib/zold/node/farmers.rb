@@ -70,7 +70,7 @@ module Zold
         stdin.close
         text = stdout.read.strip
         stdout.close
-        raise 'No score was calculated' if text.empty?
+        raise "No score was calculated in process #{pid} in #{Age.new(start)}" if text.empty?
         after = Score.parse(text)
         @log.debug("Next score #{after.value}/#{after.strength} found in proc ##{pid} \
 for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}")
