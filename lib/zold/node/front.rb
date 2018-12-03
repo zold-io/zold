@@ -80,6 +80,7 @@ module Zold
     use Rack::Deflater
 
     before do
+      Thread.current.name = "#{request.request_method}:#{request.url}"
       Thread.current.thread_variable_set(:uri, request.url)
       Thread.current.thread_variable_set(:ip, request.ip)
       @start = Time.now
