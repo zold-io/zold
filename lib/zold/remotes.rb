@@ -104,21 +104,21 @@ module Zold
 
       def assert_valid_score(score)
         raise "Invalid score #{score}" unless score.valid?
-        raise "Expired score (#{Age.new(score.time)}) #{score.reduce(4)}" if score.expired?
+        raise "Expired score (#{Age.new(score.time)}) #{score.reduced(4)}" if score.expired?
       end
 
       def assert_score_ownership(score)
-        raise "Masqueraded host #{@host} as #{score.host}: #{score.reduce(4)}" if @host != score.host
-        raise "Masqueraded port #{@port} as #{score.port}: #{score.reduce(4)}" if @port != score.port
+        raise "Masqueraded host #{@host} as #{score.host}: #{score.reduced(4)}" if @host != score.host
+        raise "Masqueraded port #{@port} as #{score.port}: #{score.reduced(4)}" if @port != score.port
       end
 
       def assert_score_strength(score)
         return if score.strength >= Score::STRENGTH
-        raise "Score #{score.strength} is too weak (<#{Score::STRENGTH}): #{score.reduce(4)}"
+        raise "Score #{score.strength} is too weak (<#{Score::STRENGTH}): #{score.reduced(4)}"
       end
 
       def assert_score_value(score, min)
-        raise "Score #{score.value} is too small (<#{min}): #{score.reduce(4)}" if score.value < min
+        raise "Score #{score.value} is too small (<#{min}): #{score.reduced(4)}" if score.value < min
       end
     end
 
