@@ -192,8 +192,12 @@ Available options:"
         return
       end
       ping(host, port, opts) unless opts['skip-ping']
-      @remotes.add(host, port)
-      @log.info("#{host}:#{port} added to the list, #{@remotes.all.count} total")
+      if @remotes.exists?(host, port)
+        @log.info("#{host}:#{port} already exists among #{@remotes.all.count} others")
+      else
+        @remotes.add(host, port)
+        @log.info("#{host}:#{port} added to the list, #{@remotes.all.count} total")
+      end
     end
 
     def remove(host, port, _)
@@ -263,15 +267,8 @@ it's recommended to reboot, but I don't do it because of --never-reboot")
           end
           if cycle.positive?
             json['all'].each do |s|
-              if opts['ignore-node'].include?("#{s['host']}:#{s['port']}")
-                @log.debug("#{s['host']}:#{s['port']}, which is found at #{r} \
-won't be added since it's in the --ignore-node list")
-                next
-              end
               next if @remotes.exists?(s['host'], s['port'])
-              ping(s['host'], s['port'], opts) unless opts['skip-ping']
-              @remotes.add(s['host'], s['port'])
-              @log.info("#{s['host']}:#{s['port']} found at #{r} and added to the list of #{@remotes.all.count}")
+              add(s['host'], s['port'], opts)
             end
           end
           capacity << { host: score.host, port: score.port, count: json['all'].count }
