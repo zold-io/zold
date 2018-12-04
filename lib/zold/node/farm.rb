@@ -99,7 +99,8 @@ module Zold
           "#{t.name}/#{t.status}/#{t.alive? ? 'alive' : 'dead'}"
         end.join(', '),
         pipeline: @pipeline.size,
-        best: best.map(&:to_mnemo).join(', ')
+        best: best.map(&:to_mnemo).join(', '),
+        farmer: @farmer.class.name
       }
     end
 
