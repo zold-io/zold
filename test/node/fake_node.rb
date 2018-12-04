@@ -79,7 +79,6 @@ class FakeNode
         ensure
           Zold::Front.stop!
           node.join
-          sleep(0.25)
         end
       end
     end

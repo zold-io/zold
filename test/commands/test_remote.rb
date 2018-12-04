@@ -129,6 +129,13 @@ class TestRemote < Zold::Test
     end
   end
 
+  def test_resets_remotes
+    Dir.mktmpdir do |dir|
+      remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.txt'))
+      Zold::Remote.new(remotes: remotes, log: test_log).run(%w[remote reset])
+    end
+  end
+
   def test_remote_trim_with_tolerate
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.txt'))

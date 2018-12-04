@@ -138,7 +138,7 @@ Available options:"
       when 'clean'
         clean
       when 'reset'
-        reset
+        reset(opts)
       when 'defaults'
         defaults(opts)
       when 'add'
@@ -173,9 +173,9 @@ Available options:"
       @log.debug("All #{before} remote nodes deleted")
     end
 
-    def reset
+    def reset(opts)
       clean
-      defaults
+      defaults(opts)
     end
 
     def defaults(opts)
