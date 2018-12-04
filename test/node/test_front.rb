@@ -311,18 +311,13 @@ class FrontTest < Zold::Test
   def test_alias_parameter
     name = SecureRandom.hex(4)
     FakeNode.new(log: test_log).run(['--ignore-score-weakness', "--alias=#{name}"]) do |port|
-      [
-        '/',
-        '/remotes'
-      ].each do |path|
-        uri = URI("http://localhost:#{port}#{path}")
-        response = Zold::Http.new(uri: uri).get
-        assert_match(
-          name,
-          Zold::JsonPage.new(response.body).to_hash['alias'].to_s,
-          response.body
-        )
-      end
+      uri = URI("http://localhost:#{port}/")
+      response = Zold::Http.new(uri: uri).get
+      assert_match(
+        name,
+        Zold::JsonPage.new(response.body).to_hash['alias'].to_s,
+        response.body
+      )
     end
   end
 

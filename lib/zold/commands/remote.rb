@@ -194,7 +194,7 @@ Available options:"
         @log.debug("#{host}:#{port} already exists, won't add because of --ignore-if-exists")
         return
       end
-      ping(host, port, opts)
+      return unless ping(host, port, opts)
       if @remotes.exists?(host, port)
         @log.info("#{host}:#{port} already exists among #{@remotes.all.count} others")
       else
@@ -304,11 +304,12 @@ it's recommended to reboot, but I don't do it because of --never-reboot")
     end
 
     def ping(host, port, opts)
-      return if opts['skip-ping']
+      return true if opts['skip-ping']
       res = Http.new(uri: "http://#{host}:#{port}/version", network: opts['network']).get
-      return if res.status == 200
+      return true if res.status == 200
       raise "The node #{host}:#{port} is not responding, #{res.status}:#{res.status_line}" unless opts['ignore-ping']
       @log.error("The node #{host}:#{port} is not responding, #{res.status}:#{res.status_line}")
+      false
     end
   end
 end
