@@ -191,10 +191,7 @@ Available options:"
         @log.debug("#{host}:#{port} already exists, won't add because of --ignore-if-exists")
         return
       end
-      unless opts['skip-ping']
-        res = Http.new(uri: "http://#{host}:#{port}/version", network: opts['network']).get
-        raise "The node #{host}:#{port} is not responding, #{res.status}:#{res.status_line}" unless res.status == 200
-      end
+      ping(host, port, opts) unless opts['skip-ping']
       @remotes.add(host, port)
       @log.info("#{host}:#{port} added to the list, #{@remotes.all.count} total")
     end
@@ -258,20 +255,21 @@ Available options:"
              Semantic::Version.new(VERSION) < Semantic::Version.new(gem.last_version)
             if opts['reboot']
               @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, reboot! \
-  (use --never-reboot to avoid this from happening)")
+(use --never-reboot to avoid this from happening)")
               terminate
             end
             @log.debug("#{r}: their version #{json['version']} is higher than mine #{VERSION}, \
-  it's recommended to reboot, but I don't do it because of --never-reboot")
+it's recommended to reboot, but I don't do it because of --never-reboot")
           end
           if cycle.positive?
             json['all'].each do |s|
               if opts['ignore-node'].include?("#{s['host']}:#{s['port']}")
                 @log.debug("#{s['host']}:#{s['port']}, which is found at #{r} \
-  won't be added since it's in the --ignore-node list")
+won't be added since it's in the --ignore-node list")
                 next
               end
               next if @remotes.exists?(s['host'], s['port'])
+              ping(s['host'], s['port'], opts) unless opts['skip-ping']
               @remotes.add(s['host'], s['port'])
               @log.info("#{s['host']}:#{s['port']} found at #{r} and added to the list of #{@remotes.all.count}")
             end
@@ -303,6 +301,11 @@ Available options:"
       @log.info("All threads before exit: #{Thread.list.map { |t| "#{t.name}/#{t.status}" }.join(', ')}")
       require_relative '../node/front'
       Front.stop!
+    end
+
+    def ping(host, port, opts)
+      res = Http.new(uri: "http://#{host}:#{port}/version", network: opts['network']).get
+      raise "The node #{host}:#{port} is not responding, #{res.status}:#{res.status_line}" unless res.status == 200
     end
   end
 end
