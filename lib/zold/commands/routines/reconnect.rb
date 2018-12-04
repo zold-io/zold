@@ -43,7 +43,7 @@ module Zold
       def exec(_ = 0)
         sleep(60) unless @opts['routine-immediately']
         cmd = Remote.new(remotes: @remotes, log: @log, farm: @farm)
-        args = ['remote', "--network=#{@opts['network']}"]
+        args = ['remote', "--network=#{@opts['network']}", '--ignore-ping']
         score = @farm.best[0]
         args << "--ignore-node=#{score.host}:#{score.port}" if score
         cmd.run(args + ['defaults']) unless @opts['routine-immediately']

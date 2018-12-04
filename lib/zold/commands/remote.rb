@@ -102,6 +102,9 @@ Available options:"
         o.bool '--skip-ping',
           'Don\'t ping back the node when adding it (not recommended)',
           default: false
+        o.bool '--ignore-ping',
+          'Don\'t fail if ping fails, just report the problem in the log',
+          default: false
         o.integer '--depth',
           'The amount of update cycles to run, in order to fetch as many nodes as possible (default: 2)',
           default: 2
@@ -191,7 +194,7 @@ Available options:"
         @log.debug("#{host}:#{port} already exists, won't add because of --ignore-if-exists")
         return
       end
-      ping(host, port, opts) unless opts['skip-ping']
+      ping(host, port, opts)
       if @remotes.exists?(host, port)
         @log.info("#{host}:#{port} already exists among #{@remotes.all.count} others")
       else
@@ -301,8 +304,11 @@ it's recommended to reboot, but I don't do it because of --never-reboot")
     end
 
     def ping(host, port, opts)
+      return if opts['skip-ping']
       res = Http.new(uri: "http://#{host}:#{port}/version", network: opts['network']).get
-      raise "The node #{host}:#{port} is not responding, #{res.status}:#{res.status_line}" unless res.status == 200
+      return if res.status == 200
+      raise "The node #{host}:#{port} is not responding, #{res.status}:#{res.status_line}" unless opts['ignore-ping']
+      @log.error("The node #{host}:#{port} is not responding, #{res.status}:#{res.status_line}")
     end
   end
 end

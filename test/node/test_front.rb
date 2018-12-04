@@ -286,8 +286,8 @@ class FrontTest < Zold::Test
     FakeNode.new(log: test_log).run(['--threads=1', '--strength=1', '--no-metronome', '--farmer=plain']) do |port|
       res = Zold::Http.new(uri: URI("http://localhost:#{port}/")).get
       assert_wait { Zold::Score.parse(res.headers[Zold::Http::SCORE_HEADER]).value > Zold::Front::MIN_SCORE - 1 }
-      sleep(1)
-      assert_equal_wait(Zold::Front::MIN_SCORE) do
+      sleep(3)
+      assert_equal_wait(Zold::Front::MIN_SCORE, max: 60) do
         Zold::Score.parse(res.headers[Zold::Http::SCORE_HEADER]).value
       end
     end
