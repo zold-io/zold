@@ -160,8 +160,8 @@ module Zold
         o.string '--alias',
           'The alias of the node (default: host:port)'
         o.string '--farmer',
-          'The name of the farmer, e.g. "plain", "spawn", "fork"',
-          default: 'fork'
+          'The name of the farmer, e.g. "plain", "spawn", "fork" (default: "plain")',
+          default: 'plain'
         o.bool '--help', 'Print instructions'
       end
       if opts.help?
