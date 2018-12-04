@@ -77,5 +77,64 @@ for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}")
         after
       end
     end
+
+    # In a child process
+    class Spawn
+      def initialize(log: Log::NULL)
+        @log = log
+      end
+
+      def up(score)
+        start = Time.now
+        bin = File.expand_path(File.join(File.dirname(__FILE__), '../../../bin/zold'))
+        raise "Zold binary not found at #{bin}" unless File.exist?(bin)
+        cmd = [
+          'ruby',
+          Shellwords.escape(bin),
+          '--skip-upgrades',
+          "--info-tid=#{Thread.current.thread_variable_get(:tid)}",
+          "--info-thread=#{Shellwords.escape(Thread.current.name)}",
+          "--info-start=#{Time.now.utc.iso8601}",
+          '--low-priority',
+          'next',
+          Shellwords.escape(score)
+        ].join(' ')
+        Open3.popen2e(cmd) do |stdin, stdout, thr|
+          Thread.current.thread_variable_set(:pid, thr.pid.to_s)
+          at_exit { Farmers.kill(@log, thr.pid, start) }
+          @log.debug("Scoring started in proc ##{thr.pid} \
+for #{score.value}/#{score.strength} at #{score.host}:#{score.port}")
+          begin
+            stdin.close
+            buffer = +''
+            loop do
+              begin
+                buffer << stdout.read_nonblock(16 * 1024)
+                # rubocop:disable Lint/HandleExceptions
+              rescue IO::WaitReadable => _
+                # rubocop:enable Lint/HandleExceptions
+                # nothing to do here
+              rescue StandardError => e
+                @log.error(buffer)
+                raise e
+              end
+              break if buffer.end_with?("\n") && thr.value.to_i.zero?
+              if stdout.closed?
+                raise "Failed to calculate the score (##{thr.value}): #{buffer}" unless thr.value.to_i.zero?
+                break
+              end
+              sleep(1)
+              Thread.current.thread_variable_set(:buffer, buffer.length.to_s)
+            end
+            after = Score.parse(buffer.strip)
+            @log.debug("Next score #{after.value}/#{after.strength} found in proc ##{thr.pid} \
+for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}")
+            after
+          ensure
+            Farmers.kill(@log, thr.pid, start)
+          end
+        end
+      end
+    end
   end
 end

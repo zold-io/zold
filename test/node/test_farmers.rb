@@ -28,9 +28,16 @@ require_relative '../../lib/zold/node/farmers'
 require_relative '../../lib/zold/verbose_thread'
 
 class FarmersTest < Zold::Test
+  # Types to test
+  TYPES = [
+    Zold::Farmers::Plain,
+    Zold::Farmers::Spawn,
+    Zold::Farmers::Fork
+  ].freeze
+
   def test_calculates_next_score
     before = Zold::Score.new(host: 'some-host', port: 9999, invoice: 'NOPREFIX4@ffffffffffffffff', strength: 3)
-    [Zold::Farmers::Plain, Zold::Farmers::Fork].each do |farmer_class|
+    TYPES.each do |farmer_class|
       farmer = farmer_class.new(log: test_log)
       after = farmer.up(before)
       assert_equal(1, after.value)
@@ -41,7 +48,7 @@ class FarmersTest < Zold::Test
   end
 
   def test_calculates_large_score
-    [Zold::Farmers::Plain, Zold::Farmers::Fork].each do |type|
+    TYPES.each do |type|
       log = TestLogger.new(test_log)
       thread = Thread.start do
         farmer = type.new(log: log)
@@ -54,7 +61,7 @@ class FarmersTest < Zold::Test
   end
 
   def test_kills_farmer
-    [Zold::Farmers::Plain, Zold::Farmers::Fork].each do |type|
+    TYPES.each do |type|
       farmer = type.new(log: test_log)
       thread = Thread.start do
         Zold::VerboseThread.new(test_log).run do

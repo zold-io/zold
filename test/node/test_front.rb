@@ -283,7 +283,7 @@ class FrontTest < Zold::Test
   # HTTP request. This value is enough to identify a valueable node, and filter
   # out those that are too weak.
   def test_score_is_reduced
-    FakeNode.new(log: test_log).run(['--threads=1', '--strength=1', '--no-metronome', '--no-spawn']) do |port|
+    FakeNode.new(log: test_log).run(['--threads=1', '--strength=1', '--no-metronome', '--farmer=plain']) do |port|
       res = Zold::Http.new(uri: URI("http://localhost:#{port}/")).get
       assert_wait { Zold::Score.parse(res.headers[Zold::Http::SCORE_HEADER]).value > Zold::Front::MIN_SCORE - 1 }
       sleep(1)

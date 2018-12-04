@@ -159,9 +159,9 @@ module Zold
           default: false
         o.string '--alias',
           'The alias of the node (default: host:port)'
-        o.boolean '--no-spawn',
-          'Don\'t use child processes for the score farm',
-          default: false
+        o.string '--farmer',
+          'The name of the farmer, e.g. "plain", "spawn", "fork"',
+          default: 'fork'
         o.bool '--help', 'Print instructions'
       end
       if opts.help?
@@ -276,11 +276,19 @@ module Zold
     private
 
     def farmer(opts)
-      if opts['no-spawn']
-        @log.debug('Plain farmer is used, only one CPU will be utilized')
-        return Farmers::Plain.new
+      case opts['farmer'].downcase.strip
+      when 'plain'
+        @log.debug('"Plain" farmer is used, only one CPU will be utilized')
+        Farmers::Plain.new
+      when 'fork'
+        @log.debug('"Fork" farmer is used')
+        Farmers::Fork.new(log: @log)
+      when 'spawn'
+        @log.debug('"Spawn" farmer is used')
+        Farmers::Spawn.new(log: @log)
+      else
+        raise "Farmer name is not recognized: #{opts['farmer']}"
       end
-      Farmers::Fork.new(log: @log)
     end
 
     # Returns exit code
