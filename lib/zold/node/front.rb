@@ -51,6 +51,7 @@ module Zold
     # as a valuable node and add it to the list of remotes.
     MIN_SCORE = 16
 
+    # @todo #140:30min Need add Nginx to build so we can handle http and https same port.
     configure do
       Thread.current.name = 'sinatra'
       set :bind, '0.0.0.0'
