@@ -52,6 +52,21 @@ module Zold
     MIN_SCORE = 16
 
     # @todo #140:30min Need add Nginx to build so we can handle http and https same port.
+    #server {
+    #  listen 7000 ssl;
+    #  ssl_certificate /path/to/ssl_certificate.cer;
+    #  ssl_certificate_key /path/to/ssl_certificate_key.key;
+    #  ssl_client_certificate /path/to/ssl_client_certificate.cer;
+    #  error_page 497 301 =307 https://89.89.89.89:7000$request_uri;
+    #  location / {
+    #      proxy_pass http://89.89.89.89:3000/;
+    #      proxy_pass_header Server;
+    #      proxy_set_header Host $http_host;
+    #      proxy_redirect off;
+    #      proxy_set_header X-Real-IP $remote_addr;
+    #      proxy_set_header X-Forwarded-Protocol $scheme;
+    #    }
+    #  }
     configure do
       Thread.current.name = 'sinatra'
       set :bind, '0.0.0.0'
