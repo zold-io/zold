@@ -130,6 +130,9 @@ module Zold
         o.bool '--skip-oom',
           'Skip Out Of Memory check and never exit, no matter how much RAM is consumed',
           default: false
+        o.integer '--oom-limit',
+          'Maximum amount of memory we can consume, quit if we take more than that, in Mb (default: 512)',
+          default: 512
         o.integer '--queue-limit',
           'The maximum number of wallets to be accepted via PUSH and stored in the queue (default: 4096)',
           default: 4096
@@ -228,7 +231,7 @@ module Zold
           wallets: @wallets, remotes: @remotes, copies: @copies, log: @log
         ).run(['invoice', invoice, "--network=#{opts['network']}"])
       end
-      SafeEntrance.new(
+      entrance = SafeEntrance.new(
         NoSpamEntrance.new(
           NoDupEntrance.new(
             AsyncEntrance.new(
@@ -257,12 +260,13 @@ module Zold
           log: @log
         ),
         network: opts['network']
-      ).start do |entrance|
-        Front.set(:entrance, entrance)
-        Farm.new(invoice, File.join(home, 'farm'), log: @log, farmer: farmer(opts), strength: opts[:strength])
-          .start(host, opts[:port], threads: opts[:threads]) do |farm|
-          Front.set(:farm, farm)
-          metronome(farm, opts).start do |metronome|
+      )
+      entrance.start do |ent|
+        Front.set(:entrance, ent)
+        farm = Farm.new(invoice, File.join(home, 'farm'), log: @log, farmer: farmer(opts), strength: opts[:strength])
+        farm.start(host, opts[:port], threads: opts[:threads]) do |f|
+          Front.set(:farm, f)
+          metronome(f, opts).start do |metronome|
             Front.set(:metronome, metronome)
             @log.info("Starting up the web front at http://#{host}:#{opts[:port]}...")
             Front.run!

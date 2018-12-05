@@ -23,6 +23,7 @@
 STDOUT.sync = true
 
 require 'eventmachine'
+require 'get_process_mem'
 require 'thin'
 require 'json'
 require 'sinatra/base'
@@ -204,9 +205,8 @@ in #{Age.new(@start, limit: 1)}")
           Concurrent.processor_count
         end,
         memory: settings.zache.get(:memory, lifetime: 5 * 60) do
-          require 'get_process_mem'
           mem = GetProcessMem.new.bytes.to_i
-          if mem > 1024 * 1024 * 1024 && !settings.opts['skip-oom']
+          if mem > settings.opts['oom-limit'] * 1024 * 1024 && !settings.opts['skip-oom']
             settings.log.error("We are too big in memory (#{Size.new(mem)}), quitting; use --skip-oom to never quit")
             Front.stop!
           end
@@ -429,6 +429,11 @@ in #{Age.new(@start, limit: 1)}")
       content_type 'text/plain'
       headers['X-Zold-Error'] = e.message
       settings.log.error(Backtrace.new(e).to_s) unless e.is_a?(SoftError)
+      if e.is_a?(Errno::ENOMEM) && !settings.opts['skip-oom']
+        settings.log.error("We are running out of memory (#{Size.new(GetProcessMem.new.bytes.to_i)}), \
+time to stop; use --skip-oom to never quit")
+        Front.stop!
+      end
       Backtrace.new(e).to_s
     end
 

@@ -82,7 +82,8 @@ module Zold
         ensure
           @log.info('Waiting for spread entrance to finish...')
           @modified.clear
-          @push.exit
+          @push.kill
+          @push.join
           @log.info('Spread entrance finished, thread killed')
         end
       end
