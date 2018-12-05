@@ -189,7 +189,7 @@ module Zold
       return if list.empty?
       best = farm.best[0]
       score = best.nil? ? Score::ZERO : best
-      idx = 0
+      idx = Concurrent::AtomicFixnum.new
       pool = Concurrent::FixedThreadPool.new([list.count, Concurrent.processor_count * 4].min, max_queue: 0)
       list.each do |r|
         pool.post do
@@ -201,7 +201,7 @@ module Zold
               host: r[:host],
               port: r[:port],
               score: score,
-              idx: idx,
+              idx: idx.increment - 1,
               log: log,
               network: @network
             )
@@ -213,7 +213,6 @@ module Zold
             remove(r[:host], r[:port]) if errors > TOLERANCE
           end
         end
-        idx += 1
       end
       pool.shutdown
       pool.kill unless pool.wait_for_termination(5 * 60)

@@ -428,7 +428,11 @@ from #{request.ip} in #{Age.new(@start, limit: 1)}")
       e = env['sinatra.error']
       content_type 'text/plain'
       headers['X-Zold-Error'] = e.message
-      settings.log.error(Backtrace.new(e).to_s) unless e.is_a?(SoftError)
+      if e.is_a?(SoftError)
+        settings.log.info("#{request.ip}:#{request.request_method}:#{request.url}: #{e.message}")
+      else
+        settings.log.error(Backtrace.new(e).to_s)
+      end
       if e.is_a?(Errno::ENOMEM) && !settings.opts['skip-oom']
         settings.log.error("We are running out of memory (#{Size.new(GetProcessMem.new.bytes.to_i)}), \
 time to stop; use --skip-oom to never quit")
