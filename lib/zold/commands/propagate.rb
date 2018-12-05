@@ -75,7 +75,7 @@ Available options:"
         end
         @wallets.acq(t.bnf, exclusive: true) do |target|
           unless target.exists?
-            @log.debug("#{t.amount * -1} to #{t.bnf}: wallet is absent")
+            @log.debug("#{t.amount * -1} from #{id} to #{t.bnf}: wallet is absent")
             next
           end
           unless target.network == network
