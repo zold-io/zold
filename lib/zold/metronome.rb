@@ -62,17 +62,16 @@ module Zold
     end
 
     def start
-      alive = true
       @routines.each_with_index do |r, idx|
         @threads << Thread.start do
           Thread.current.abort_on_exception = true
           Thread.current.name = "#{r.class.name}-#{idx}"
           step = 0
-          while alive
+          loop do
             @starts[Thread.current] = Time.now
             begin
               r.exec(step)
-              @log.info("Routine #{r.class.name} ##{step} done in #{Age.new(@starts[Thread.current])}")
+              @log.debug("Routine #{r.class.name} ##{step} done in #{Age.new(@starts[Thread.current])}")
             rescue StandardError => e
               @failures[r.class.name] = Time.now.utc.iso8601 + "\n" + Backtrace.new(e).to_s
               @log.error("Routine #{r.class.name} ##{step} failed in #{Age.new(@starts[Thread.current])}")
@@ -88,16 +87,10 @@ module Zold
       ensure
         start = Time.now
         unless @threads.empty?
-          alive = false
           @log.info("Stopping the metronome with #{@threads.count} threads: #{@threads.map(&:name).join(', ')}")
           @threads.each do |t|
-            tstart = Time.now
-            if t.join(60)
-              @log.info("Thread #{t.name} finished in #{Age.new(tstart)}")
-            else
-              t.exit
-              @log.info("Thread #{t.name} killed in #{Age.new(tstart)}")
-            end
+            t.kill
+            t.join
           end
         end
         @log.info("Metronome stopped in #{Age.new(start)}, #{@failures.count} failures")

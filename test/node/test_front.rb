@@ -284,14 +284,13 @@ class FrontTest < Zold::Test
   # out those that are too weak.
   def test_score_is_reduced
     FakeNode.new(log: test_log).run(['--threads=1', '--strength=1', '--no-metronome', '--farmer=plain']) do |port|
-      res = Zold::Http.new(uri: URI("http://localhost:#{port}/")).get
-      assert_wait(max: 60) do
-        Zold::Score.parse(res.headers[Zold::Http::SCORE_HEADER]).value > Zold::Front::MIN_SCORE - 1
+      scores = []
+      50.times do
+        res = Zold::Http.new(uri: URI("http://localhost:#{port}/")).get
+        scores << Zold::Score.parse(res.headers[Zold::Http::SCORE_HEADER]).value
+        sleep(0.1)
       end
-      sleep(3)
-      assert_equal_wait(Zold::Front::MIN_SCORE, max: 60) do
-        Zold::Score.parse(res.headers[Zold::Http::SCORE_HEADER]).value
-      end
+      assert(scores.uniq.sort.reverse[0] <= Zold::Front::MIN_SCORE)
     end
   end
 

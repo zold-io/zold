@@ -286,7 +286,8 @@ it's recommended to reboot, but I don't do it because of --never-reboot")
       if total.zero?
         @log.info("The list of remotes is #{Rainbow('empty').red}, run 'zold remote reset'!")
       else
-        @log.info("There are #{total} known remotes after update in #{Age.new(st)}")
+        @log.info("There are #{total} known remotes with the overall score of \
+#{@remotes.all.map { |r| r[:score] }.inject(&:+)}, after update in #{Age.new(st)}")
       end
     end
 
