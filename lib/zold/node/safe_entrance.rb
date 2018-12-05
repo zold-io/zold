@@ -23,6 +23,7 @@
 require 'concurrent'
 require 'tempfile'
 require_relative 'emission'
+require_relative 'soft_error'
 require_relative '../log'
 require_relative '../remotes'
 require_relative '../copies'
@@ -64,19 +65,19 @@ module Zold
         wallet = Wallet.new(f.path)
         wallet.refurbish
         unless wallet.protocol == Zold::PROTOCOL
-          raise "Protocol mismatch, #{wallet.id} is in '#{wallet.protocol}', we are in '#{Zold::PROTOCOL}'"
+          raise SoftError, "Protocol mismatch, #{wallet.id} is in '#{wallet.protocol}', we are in '#{Zold::PROTOCOL}'"
         end
         unless wallet.network == @network
-          raise "Network name mismatch, #{wallet.id} is in '#{wallet.network}', we are in '#{@network}'"
+          raise SoftError, "Network name mismatch, #{wallet.id} is in '#{wallet.network}', we are in '#{@network}'"
         end
         balance = wallet.balance
         if balance.negative? && !wallet.root?
-          raise "The balance #{balance} of #{wallet.id} is negative and it's not a root wallet"
+          raise SoftError, "The balance #{balance} of #{wallet.id} is negative and it's not a root wallet"
         end
         Emission.new(wallet).check
         tax = Tax.new(wallet)
         if tax.in_debt?
-          raise "Taxes are not paid, can't accept the wallet #{wallet.mnemo}; the debt is #{tax.debt} \
+          raise SoftError, "Taxes are not paid, can't accept the wallet #{wallet.mnemo}; the debt is #{tax.debt} \
 (#{tax.debt.to_i} zents); formula ingredients are #{tax.to_text}"
         end
         @entrance.push(id, body)

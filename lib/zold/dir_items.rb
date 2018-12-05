@@ -39,7 +39,7 @@ module Zold
     end
 
     def fetch(recursive: true)
-      `find #{([@dir, '-type', 'f', '-print'] + (recursive ? [] : ['-maxdepth', '1'])).join(' ')}`
+      `find #{([@dir] + (recursive ? [] : ['-maxdepth', '1']) + ['-type', 'f', '-print']).join(' ')}`
         .strip
         .split(' ')
         .select { |f| f.start_with?(@dir) && f.length > @dir.length }

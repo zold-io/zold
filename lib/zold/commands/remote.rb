@@ -187,7 +187,7 @@ Available options:"
 
     def add(host, port, opts)
       if opts['ignore-node'].include?("#{host}:#{port}")
-        @log.info("#{host}:#{port} won't be added since it's in the --ignore-node list")
+        @log.debug("#{host}:#{port} won't be added since it's in the --ignore-node list")
         return
       end
       if opts['ignore-if-exists'] && @remotes.exists?(host, port)

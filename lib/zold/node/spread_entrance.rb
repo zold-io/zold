@@ -66,7 +66,9 @@ module Zold
           Endless.new('push', log: @log).run do
             id = @modified.pop
             if @remotes.all.empty?
-              @log.info("There are no remotes, won\'t spread #{id}")
+              @log.info("There are no remotes, won't spread #{id}")
+            elsif @wallets.acq(id) { |w| Tax.new(w).in_debt? }
+              @log.info("The wallet #{id} is in debt, won't spread")
             else
               Thread.current.thread_variable_set(:wallet, id.to_s)
               Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(

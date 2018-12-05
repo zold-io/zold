@@ -52,7 +52,7 @@ module Zold
         cmd.run(args + ['trim'])
         cmd.run(args + ['select'])
         @log.info("Reconnected, there are #{@remotes.all.count} remote notes: \
-#{@remotes.all.map { |r| "#{r[:host]}:#{r[:port]}" }.join(', ')}")
+#{@remotes.all.map { |r| "#{r[:host]}:#{r[:port]}/#{r[:score]}/#{r[:errors]}" }.join(', ')}")
       end
     end
   end
