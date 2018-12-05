@@ -253,7 +253,7 @@ class TestRemote < Zold::Test
 
   def test_remotes_baner
     log = TestLogger.new
-    Zold::Remote.new(remotes: '',  log: log).run(['remote', '--help'])
+    Zold::Remote.new(remotes: '', log: log).run(['remote', '--help'])
     assert(!(log.msgs.first =~ /remote add(.*?)Available options:(.*?)remote remove/m).nil?)
     assert(!(log.msgs.first =~ /remote elect(.*?)Available options:(.*?)remote trim/m).nil?)
     assert(!(log.msgs.first =~ /remote trim(.*?)Available options:(.*?)remote select/m).nil?)

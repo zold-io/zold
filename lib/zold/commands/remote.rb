@@ -117,6 +117,9 @@ Available commands:
         #{o.bool '--reboot',
           'Exit if any node reports version higher than we have',
           default: false}
+        #{o.integer '--depth',
+          'The amount of update cycles to run, in order to fetch as many nodes as possible (default: 2)',
+          default: 2}
     #{o.bool '--help', 'Print instructions'}"
       end
       mine = Args.new(opts, @log).take || return
