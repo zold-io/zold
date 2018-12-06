@@ -23,17 +23,19 @@
 require 'futex'
 require_relative 'log'
 
-# Sync collection of wallets.
+# Synchronized collection of wallets.
+#
+# This is a decorator for the Wallets class.
+#
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
   # Synchronized collection of wallets
   class SyncWallets
-    def initialize(wallets, timeout: 30, log: Log::NULL, dir: wallets.path)
+    def initialize(wallets, log: Log::NULL, dir: wallets.path)
       @wallets = wallets
       @log = log
-      @timeout = timeout
       @dir = dir
     end
 

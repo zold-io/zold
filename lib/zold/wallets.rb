@@ -25,6 +25,9 @@ require_relative 'wallet'
 require_relative 'dir_items'
 
 # The local collection of wallets.
+#
+# This class is not thread-safe!
+#
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
