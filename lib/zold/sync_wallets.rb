@@ -51,6 +51,10 @@ module Zold
       @wallets.all
     end
 
+    def count
+      @wallets.count
+    end
+
     def acq(id, exclusive: false)
       @wallets.acq(id, exclusive: exclusive) do |wallet|
         Futex.new(wallet.path, log: @log, lock: File.join(@dir, "#{id}.lock")).open(exclusive) do
