@@ -70,5 +70,14 @@ module Zold
       raise "Id must be of type Id, #{id.class.name} instead" unless id.is_a?(Id)
       yield Wallet.new(File.join(path, id.to_s + Wallet::EXT))
     end
+
+    def count
+      begin
+        # Dir.entries returns 2 additional files ('.' and '..')
+        Dir.entries(@dir).count - 2
+      rescue SystemCallError
+        []
+      end
+    end
   end
 end

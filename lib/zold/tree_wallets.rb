@@ -65,5 +65,9 @@ module Zold
         File.join(path, (id.to_s.split('', 5).take(4) + [id.to_s]).join('/') + Wallet::EXT)
       )
     end
+
+    def count
+      `find . -name "*.z" | wc -l`.strip.to_i
+    end
   end
 end

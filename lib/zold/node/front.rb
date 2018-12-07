@@ -456,7 +456,7 @@ time to stop; use --skip-oom to never quit")
     def total_wallets
       return 256 if settings.opts['network'] == Wallet::MAINET
       settings.zache.get(:wallets, lifetime: settings.opts['no-cache'] ? 0 : 60) do
-        settings.wallets.all.count
+        settings.wallets.count
       end
     end
 

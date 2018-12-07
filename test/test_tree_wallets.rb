@@ -57,4 +57,17 @@ class TestTreeWallets < Zold::Test
       assert_equal(10, wallets.all.count)
     end
   end
+
+  def test_count_tree_wallets
+    Dir.mktmpdir do |dir|
+      Dir.chdir(dir) do
+        5.times { |i| FileUtils.touch("wallet_#{i}.z") }
+        Dir.mktmpdir(nil, dir) do |subdir|
+          5.times { |i| FileUtils.touch("#{subdir}/wallet_#{i}.z") }
+          wallets = Zold::TreeWallets.new(Dir.pwd)
+          assert_equal(10, wallets.count)
+        end
+      end
+    end
+  end
 end

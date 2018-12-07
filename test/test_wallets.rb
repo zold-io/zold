@@ -67,4 +67,14 @@ class TestWallets < Zold::Test
       end
     end
   end
+
+  def test_count_wallets
+    Dir.mktmpdir do |dir|
+      Dir.chdir(dir) do
+        5.times { |i| FileUtils.touch("wallet_#{i}") }
+        wallets = Zold::Wallets.new(Dir.pwd)
+        assert_equal(5, wallets.count)
+      end
+    end
+  end
 end
