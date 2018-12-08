@@ -72,10 +72,7 @@ module Zold
     end
 
     def count
-      # Dir.entries returns 2 additional files ('.' and '..')
-      Dir.entries(@dir).count - 2
-    rescue SystemCallError
-      []
+      Zold::DirItems.new(@dir).fetch(recursive: false).count
     end
   end
 end
