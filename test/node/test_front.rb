@@ -295,17 +295,15 @@ class FrontTest < Zold::Test
   end
 
   def test_headers_are_being_set_correctly
-    Time.stub :now, Time.at(0) do
-      FakeNode.new(log: test_log).run(['--expose-version=9.9.9', '--no-metronome', '--threads=0']) do |port|
-        response = Zold::Http.new(uri: URI("http://localhost:#{port}/")).get
-        assert_equal('no-cache', response.headers['Cache-Control'])
-        assert_equal('close', response.headers['Connection'])
-        assert_equal('9.9.9', response.headers['X-Zold-Version'])
-        assert_equal(app.settings.protocol.to_s, response.headers[Zold::Http::PROTOCOL_HEADER])
-        assert_equal('*', response.headers['Access-Control-Allow-Origin'])
-        assert(response.headers['X-Zold-Milliseconds'])
-        assert(!response.headers[Zold::Http::SCORE_HEADER].nil?)
-      end
+    FakeNode.new(log: test_log).run(['--expose-version=9.9.9', '--no-metronome', '--threads=0']) do |port|
+      response = Zold::Http.new(uri: URI("http://localhost:#{port}/")).get
+      assert_equal('no-cache', response.headers['Cache-Control'])
+      assert_equal('close', response.headers['Connection'])
+      assert_equal('9.9.9', response.headers['X-Zold-Version'])
+      assert_equal(app.settings.protocol.to_s, response.headers[Zold::Http::PROTOCOL_HEADER])
+      assert_equal('*', response.headers['Access-Control-Allow-Origin'])
+      assert(response.headers['X-Zold-Milliseconds'])
+      assert(!response.headers[Zold::Http::SCORE_HEADER].nil?)
     end
   end
 

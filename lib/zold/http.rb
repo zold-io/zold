@@ -145,7 +145,7 @@ module Zold
       headers[Http::VERSION_HEADER] = Zold::VERSION
       headers[Http::PROTOCOL_HEADER] = Zold::PROTOCOL.to_s
       headers[Http::NETWORK_HEADER] = @network
-      headers[Http::SCORE_HEADER] = @score.reduced(4).to_text if @score.valid? && !@score.expired? && @score.value > 3
+      headers[Http::SCORE_HEADER] = @score.reduced(4).to_s if @score.valid? && !@score.expired? && @score.value > 3
       headers
     end
   end

@@ -57,6 +57,14 @@ module Zold
     PREFIX = 'TAXES'
     private_constant :PREFIX
 
+    # When score strengths were updated. The numbers here indicate the
+    # strengths we accepted before these dates.
+    MILESTONES = {
+      Time.parse('30-11-2018') => 6,
+      Time.parse('09-12-2018') => 7
+    }.freeze
+    private_constant :MILESTONES
+
     def initialize(wallet, ignore_score_weakness: false, strength: Score::STRENGTH)
       raise "The wallet must be of type Wallet: #{wallet.class.name}" unless wallet.is_a?(Wallet)
       @wallet = wallet
@@ -70,7 +78,7 @@ module Zold
     end
 
     def details(best)
-      "#{PREFIX} #{best.reduced(EXACT_SCORE).to_text}"
+      "#{PREFIX} #{best.reduced(EXACT_SCORE)}"
     end
 
     def pay(pvt, best)
@@ -94,9 +102,11 @@ module Zold
       scored = txns.map do |t|
         pfx, body = t.details.split(' ', 2)
         next if pfx != PREFIX || body.nil?
-        score = Score.parse_text(body)
+        score = Score.parse(body)
         next if !score.valid? || score.value != EXACT_SCORE
-        next if score.strength < @strength && !@ignore_score_weakness
+        if score.strength < @strength && !@ignore_score_weakness
+          next unless MILESTONES.find { |d, s| t.date < d && score.strength >= s }
+        end
         next if t.amount > MAX_PAYMENT
         t
       end.compact.uniq(&:details)

@@ -35,7 +35,7 @@ module Zold
   # A single transaction
   class Txn
     # Regular expression for details
-    RE_DETAILS = '[a-zA-Z0-9 @\!\?\*_\-\.:,\']+'
+    RE_DETAILS = '[a-zA-Z0-9 @\!\?\*_\-\.:,\'/]+'
     private_constant :RE_DETAILS
 
     # Regular expression for prefix

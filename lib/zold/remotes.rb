@@ -230,6 +230,7 @@ module Zold
       raise 'Port can\'t be nil' if port.nil?
       raise 'Score can\'t be nil' if score.nil?
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
+      raise 'Score has to be of type Integer' unless score.is_a?(Integer)
       if_present(host, port) { |r| r[:score] = score }
     end
 

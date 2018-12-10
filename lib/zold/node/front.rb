@@ -105,7 +105,7 @@ while #{settings.address} is in '#{settings.opts['network']}'")
         if settings.opts['standalone']
           settings.log.debug("#{request.url}: we are in standalone mode, won't update remotes")
         else
-          s = Score.parse_text(header)
+          s = Score.parse(header)
           error(400, 'The score is invalid') unless s.valid?
           error(400, 'The score is weak') if s.strength < Score::STRENGTH && !settings.opts['ignore-score-weakness']
           return if s.value < Front::MIN_SCORE && !settings.opts['ignore-score-weakness']
@@ -136,7 +136,7 @@ while #{settings.address} is in '#{settings.opts['network']}'")
       headers['X-Zold-Thread'] = Thread.current.object_id.to_s
       unless @start.nil?
         if Time.now - @start > 1
-          settings.log.info("Slow response to #{request.request_method} #{request.url}
+          settings.log.info("Slow response to #{request.request_method} #{request.url} \
 from #{request.ip} in #{Age.new(@start, limit: 1)}")
         end
         headers['X-Zold-Milliseconds'] = ((Time.now - @start) * 1000).round.to_s

@@ -227,7 +227,7 @@ Available options:"
       if scores.empty?
         @log.info("No winners elected out of #{@remotes.all.count} remotes")
       else
-        scores.each { |s| @log.info("Elected: #{s}") }
+        scores.each { |s| @log.info("Elected: #{s.reduced(4)}") }
       end
       scores
     end
@@ -295,7 +295,9 @@ it's recommended to reboot, but I don't do it because of --never-reboot")
       selected = @remotes.all.sort_by { |r| r[:score] }.reverse.first(opts['max-nodes'])
       (@remotes.all - selected).each do |r|
         @remotes.remove(r[:host], r[:port])
+        @log.info("Remote #{r[:host]}:#{r[:port]}/#{r[:score]} removed from the list, #{@remotes.all.count} left")
       end
+      @log.info("#{opts['max-nodes']} remote nodes left in the list")
     end
 
     def terminate
