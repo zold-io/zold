@@ -144,10 +144,9 @@ class FrontTest < Zold::Test
   def test_renders_wallet_pages
     FakeHome.new(log: test_log).run do |home|
       FakeNode.new(log: test_log).run(['--ignore-score-weakness', '--standalone']) do |port|
-        wallet = home.create_wallet
+        wallet = home.create_wallet(txns: 2)
         base = "http://localhost:#{port}"
-        response = Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}")
-          .put(IO.read(wallet.path))
+        response = Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").put(IO.read(wallet.path))
         assert_equal(200, response.status, response.body)
         assert_equal_wait(200) { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").get.status }
         [

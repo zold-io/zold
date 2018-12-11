@@ -308,7 +308,7 @@ from #{request.ip} in #{Age.new(@start, limit: 1)}")
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/txns.json} do
-      fetch { |w| w.txns.map(&:to_json) }
+      fetch { |w| pretty(w.txns.map(&:to_json)) }
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.txt} do

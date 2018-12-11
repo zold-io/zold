@@ -53,11 +53,20 @@ class FakeHome
     Zold::SyncWallets.new(Zold::CachedWallets.new(Zold::Wallets.new(@dir)), log: @log)
   end
 
-  def create_wallet(id = Zold::Id.new, dir = @dir)
+  def create_wallet(id = Zold::Id.new, dir = @dir, txns: 0)
     target = Zold::Wallet.new(File.join(dir, id.to_s + Zold::Wallet::EXT))
     wallets.acq(id, exclusive: true) do |w|
       w.init(id, Zold::Key.new(file: File.expand_path(File.join(__dir__, '../fixtures/id_rsa.pub'))))
       IO.write(target.path, IO.read(w.path))
+      txns.times do |i|
+        w.add(
+          Zold::Txn.new(
+            1, Time.now,
+            Zold::Amount.new(zld: (i + 1).to_f),
+            'NOPREFIX', Zold::Id.new, '-'
+          )
+        )
+      end
     end
     target
   end
