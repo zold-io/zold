@@ -194,6 +194,7 @@ from #{request.ip} in #{Age.new(@start, limit: 1)}")
     get '/' do
       content_type('application/json')
       pretty(
+        repo: 'zold-io/zold',
         version: settings.opts['expose-version'],
         alias: settings.node_alias,
         network: settings.opts['network'],

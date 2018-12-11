@@ -61,6 +61,7 @@ class FrontTest < Zold::Test
       assert_equal(Zold::VERSION, json['version'])
       assert_equal(Zold::PROTOCOL, json['protocol'])
       assert_equal('foo', json['network'])
+      assert_equal('zold-io/zold', json['repo'])
       assert(json['pid'].positive?, json)
       assert(json['cpus'].positive?, json)
       assert(json['memory'].positive?, json)

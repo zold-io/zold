@@ -103,7 +103,7 @@ module Zold
       end
 
       def assert_valid_score(score)
-        raise "Invalid score #{score}" unless score.valid?
+        raise "Invalid score #{score.reduced(4)}" unless score.valid?
         raise "Expired score (#{Age.new(score.time)}) #{score.reduced(4)}" if score.expired?
       end
 

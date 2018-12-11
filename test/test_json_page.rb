@@ -20,28 +20,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'json'
+require 'minitest/autorun'
+require_relative 'test__helper'
+require_relative '../lib/zold/json_page'
 
-# JSON page.
+# JsonPage test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # JSON page
-  class JsonPage
-    def initialize(text, uri = '')
-      raise 'JSON text can\'t be nil' if text.nil?
-      raise 'JSON must be of type String' unless text.is_a?(String)
-      @text = text
-      @uri = uri
-    end
+class TestJsonPage < Zold::Test
+  def test_parses_json_page
+    assert_equal(1, Zold::JsonPage.new('{"x": 1}').to_hash['x'])
+  end
 
-    def to_hash
-      raise 'JSON is empty, can\'t parse' + (@uri.empty? ? '' : " at #{@uri}") if @text.empty?
-      JSON.parse(@text)
-    rescue JSON::ParserError => e
-      raise "Failed to parse JSON #{@uri.empty? ? '' : "at #{@uri}"} (#{e.message}): \
-#{@text.inspect.gsub(/^.{200,}$/, '\1...')}"
+  def test_parses_broken_json_page
+    assert_raises do
+      Zold::JsonPage.new('not json').to_hash
     end
   end
 end
