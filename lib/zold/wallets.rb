@@ -72,7 +72,10 @@ module Zold
     end
 
     def count
-      Zold::DirItems.new(@dir).fetch(recursive: false).count
+      Zold::DirItems.new(@dir)
+        .fetch(recursive: false)
+        .select { |f| f.end_with?(Wallet::EXT) }
+        .count
     end
   end
 end

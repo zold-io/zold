@@ -136,6 +136,9 @@ module Zold
         o.integer '--queue-limit',
           'The maximum number of wallets to be accepted via PUSH and stored in the queue (default: 4096)',
           default: 4096
+        o.integer '--gc-age',
+          'Maximum time in seconds to keep an empty and unused wallet on the disk',
+          default: 60 * 60 * 24 * 10
         o.string '--expose-version',
           "The version of the software to expose in JSON (default: #{VERSION})",
           default: VERSION
@@ -360,12 +363,10 @@ module Zold
         @log.info('Metronome hasn\'t been started because of --no-metronome')
         return metronome
       end
-      # This was a good idea to spread wallets among other nodes,
-      # but with the growing number of wallets it's obvious that this
-      # doesn't make a lot of sense. We better focus of HungryWallets
-      # implementation, where wallets are being pulled if they are missed.
-      # require_relative 'routines/spread'
-      # metronome.add(Routines::Spread.new(opts, @wallets, @remotes, log: @log))
+      require_relative 'routines/spread'
+      metronome.add(Routines::Spread.new(opts, @wallets, @remotes, log: @log))
+      require_relative 'routines/gc'
+      metronome.add(Routines::Gc.new(opts, @wallets, log: @log))
       unless opts['standalone']
         require_relative 'routines/reconnect'
         metronome.add(Routines::Reconnect.new(opts, @remotes, farm, network: opts['network'], log: @log))

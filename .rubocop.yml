@@ -16,7 +16,7 @@ Layout/MultilineMethodCallIndentation:
 Metrics/AbcSize:
   Enabled: false
 Metrics/BlockLength:
-  Max: 100
+  Max: 120
 Metrics/ClassLength:
   Max: 400
 Layout/EndOfLine:

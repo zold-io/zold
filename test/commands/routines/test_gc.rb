@@ -21,64 +21,49 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
-require 'tmpdir'
-require_relative 'test__helper'
-require_relative 'fake_home'
-require_relative '../lib/zold/key'
-require_relative '../lib/zold/id'
-require_relative '../lib/zold/wallets'
-require_relative '../lib/zold/amount'
+require_relative '../../test__helper'
+require_relative '../../fake_home'
+require_relative '../../../lib/zold/wallets'
+require_relative '../../../lib/zold/commands/routines/gc.rb'
 
-# Wallets test.
+# Gc test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestWallets < Zold::Test
-  def test_adds_wallet
-    FakeHome.new(log: test_log).run do |home|
-      wallets = home.wallets
-      id = Zold::Id.new
-      wallets.acq(id) do |wallet|
-        wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-        assert_equal(1, wallets.all.count)
-      end
-    end
-  end
-
-  def test_lists_wallets_and_ignores_garbage
-    FakeHome.new(log: test_log).run do |home|
-      wallets = home.wallets
-      FileUtils.touch(File.join(home.dir, '0xaaaaaaaaaaaaaaaaaaahello'))
-      FileUtils.mkdir_p(File.join(home.dir, 'a/b/c'))
-      FileUtils.touch(File.join(home.dir, 'a/b/c/0000111122223333.z'))
-      id = Zold::Id.new
-      wallets.acq(id) do |wallet|
-        wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-        assert_equal(1, wallets.all.count)
-      end
-    end
-  end
-
-  def test_substracts_dir_path_from_full_path
-    Dir.mktmpdir do |dir|
-      Dir.chdir(dir) do
-        wallets = Zold::Wallets.new(Dir.pwd)
-        assert_equal('.', wallets.to_s)
-      end
-    end
-  end
-
-  def test_count_wallets
-    Dir.mktmpdir do |dir|
-      Dir.chdir(dir) do
-        5.times { |i| FileUtils.touch("wallet_#{i}#{Zold::Wallet::EXT}") }
-        wallets = Zold::Wallets.new(Dir.pwd)
-        assert_equal(5, wallets.count)
-      end
-    end
+class TestGc < Zold::Test
+  def test_collects_garbage
     FakeHome.new(log: test_log).run do |home|
       wallets = home.wallets
       home.create_wallet
+      opts = { 'routine-immediately' => true, 'gc-age' => 0 }
+      assert_equal(1, wallets.count)
+      routine = Zold::Routines::Gc.new(opts, wallets, log: test_log)
+      routine.exec
+      assert_equal(0, wallets.count)
+    end
+  end
+
+  def test_doesnt_touch_non_empty_wallets
+    FakeHome.new(log: test_log).run do |home|
+      wallets = home.wallets
+      wallet = home.create_wallet
+      amount = Zold::Amount.new(zld: 39.99)
+      key = Zold::Key.new(file: 'fixtures/id_rsa')
+      wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
+      opts = { 'routine-immediately' => true, 'gc-age' => 0 }
+      routine = Zold::Routines::Gc.new(opts, wallets, log: test_log)
+      routine.exec
+      assert_equal(1, wallets.count)
+    end
+  end
+
+  def test_doesnt_touch_fresh_wallets
+    FakeHome.new(log: test_log).run do |home|
+      wallets = home.wallets
+      home.create_wallet
+      opts = { 'routine-immediately' => true, 'gc-age' => 60 * 60 }
+      routine = Zold::Routines::Gc.new(opts, wallets, log: test_log)
+      routine.exec
       assert_equal(1, wallets.count)
     end
   end
