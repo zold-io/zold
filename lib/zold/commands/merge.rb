@@ -74,16 +74,10 @@ Available options:"
     private
 
     def merge(id, cps, opts)
+      start = Time.now
       cps = cps.all.sort_by { |c| c[:score] }.reverse
       patch = Patch.new(@wallets, log: @log)
       score = 0
-      cps.each_with_index do |c, idx|
-        wallet = Wallet.new(c[:path])
-        name = "#{c[:name]}/#{idx}/#{c[:score]}"
-        merge_one(opts, patch, wallet, name)
-        score += c[:score]
-      end
-      start = Time.now
       @wallets.acq(id) do |w|
         if w.exists?
           merge_one(opts, patch, w, 'localhost')
@@ -91,6 +85,12 @@ Available options:"
         else
           @log.debug("Local copy of #{id} is absent, nothing to merge")
         end
+      end
+      cps.each_with_index do |c, idx|
+        wallet = Wallet.new(c[:path])
+        name = "#{c[:name]}/#{idx}/#{c[:score]}"
+        merge_one(opts, patch, wallet, name)
+        score += c[:score]
       end
       modified = @wallets.acq(id, exclusive: true) { |w| patch.save(w.path, overwrite: true) }
       if modified
