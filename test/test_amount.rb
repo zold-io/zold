@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
+require_relative 'test__helper'
 require_relative '../lib/zold/amount'
 
 # Amount test.

@@ -100,7 +100,7 @@ module Zold
         date: @date.utc.iso8601,
         amount: @amount.to_i,
         prefix: @prefix,
-        bfn: @bnf,
+        bnf: @bnf.to_s,
         details: @details,
         sign: @sign
       }

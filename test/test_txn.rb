@@ -23,6 +23,7 @@
 require 'minitest/autorun'
 require 'tmpdir'
 require 'time'
+require_relative 'test__helper'
 require_relative '../lib/zold/id'
 require_relative '../lib/zold/txn'
 require_relative '../lib/zold/amount'
@@ -44,6 +45,21 @@ class TestTxn < Zold::Test
     assert_equal(123, txn.id)
     assert_equal('-99.95', txn.amount.to_zld)
     assert_equal('NOPREFIX', txn.prefix)
+  end
+
+  def test_converts_to_json
+    time = Time.now
+    txn = Zold::Txn.new(
+      123, time, Zold::Amount.new(zld: -99.95),
+      'NOPREFIX', Zold::Id.new('0123012301230123'),
+      'Some details to see'
+    )
+    json = txn.to_json
+    assert_equal(123, json[:id])
+    assert_equal(-429_281_981_235, json[:amount])
+    assert_equal('NOPREFIX', json[:prefix])
+    assert_equal('0123012301230123', json[:bnf])
+    assert_equal('Some details to see', json[:details])
   end
 
   def test_accepts_text_as_details
