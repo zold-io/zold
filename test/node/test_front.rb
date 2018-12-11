@@ -162,6 +162,7 @@ class FrontTest < Zold::Test
           "/wallet/#{wallet.id}/mnemo",
           "/wallet/#{wallet.id}/debt",
           "/wallet/#{wallet.id}/txns",
+          "/wallet/#{wallet.id}/txns.json",
           "/wallet/#{wallet.id}.bin",
           "/wallet/#{wallet.id}/copies"
         ].each do |u|

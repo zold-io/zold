@@ -94,6 +94,18 @@ module Zold
       ].join(';')
     end
 
+    def to_json
+      {
+        id: @id,
+        date: @date.utc.iso8601,
+        amount: @amount.to_i,
+        prefix: @prefix,
+        bfn: @bnf,
+        details: @details,
+        sign: @sign
+      }
+    end
+
     def to_text
       start = @amount.negative? ? "##{@id}" : '-'
       "#{start} #{@date.utc.iso8601} #{@amount} #{@bnf} #{@details}"
