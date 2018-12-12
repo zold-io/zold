@@ -130,6 +130,7 @@ while #{settings.address} is in '#{settings.opts['network']}'")
       headers['Cache-Control'] = 'no-cache'
       headers['X-Zold-Path'] = request.url
       headers['X-Zold-Version'] = settings.opts['expose-version']
+      headers['X-Zold-Repo'] = Zold::REPO
       headers[Http::PROTOCOL_HEADER] = settings.protocol.to_s
       headers['Access-Control-Allow-Origin'] = '*'
       headers[Http::SCORE_HEADER] = score.reduced(Front::MIN_SCORE).to_s
@@ -194,7 +195,7 @@ from #{request.ip} in #{Age.new(@start, limit: 1)}")
     get '/' do
       content_type('application/json')
       pretty(
-        repo: 'zold-io/zold',
+        repo: Zold::REPO,
         version: settings.opts['expose-version'],
         alias: settings.node_alias,
         network: settings.opts['network'],

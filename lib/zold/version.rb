@@ -27,4 +27,5 @@
 module Zold
   VERSION = '0.0.0'
   PROTOCOL = 2
+  REPO = 'zold-io/zold'
 end
