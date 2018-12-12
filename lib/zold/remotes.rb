@@ -194,7 +194,7 @@ module Zold
       list.each do |r|
         pool.post do
           Thread.current.abort_on_exception = true
-          Thread.current.name = "remotes-#{idx}@#{r[:host]}:#{r[:port]}"
+          Thread.current.name = "remotes-#{idx.value}@#{r[:host]}:#{r[:port]}"
           start = Time.now
           begin
             yield Remotes::Remote.new(
