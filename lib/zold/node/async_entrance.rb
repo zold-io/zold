@@ -75,7 +75,10 @@ module Zold
         begin
           yield(self)
         ensure
+          @log.info("AsyncEntrance stopping and killing #{@threads.count} threads...")
           @threads.each(&:kill)
+          @threads.each(&:join)
+          @log.info("AsyncEntrance stopped, #{@threads.count} threads killed")
         end
       end
     end

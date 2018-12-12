@@ -93,11 +93,10 @@ module Zold
       ].flatten.join("\n\n")
     end
 
+    # Renders the Farm into JSON to show for the end-user in front.rb.
     def to_json
       {
-        threads: @threads.map do |t|
-          "#{t.name}/#{t.status}/#{t.alive? ? 'alive' : 'dead'}"
-        end.join(', '),
+        threads: @threads.map { |t| "#{t.name}/#{t.status}/#{t.alive? ? 'alive' : 'dead'}" }.join(', '),
         pipeline: @pipeline.size,
         best: best.map(&:to_mnemo).join(', '),
         farmer: @farmer.class.name
@@ -123,7 +122,7 @@ module Zold
         @log.info("#{best.size} scores pre-loaded from #{@cache}, the best is: #{best[0]}")
       end
       @threads = (1..threads).map do |t|
-        Thread.new do
+        Thread.start do
           Thread.current.thread_variable_set(:tid, t.to_s)
           Endless.new("f#{t}", log: @log).run do
             cycle(host, port, threads)
@@ -132,7 +131,7 @@ module Zold
       end
       unless threads.zero?
         ready = false
-        @threads << Thread.new do
+        @threads << Thread.start do
           Endless.new('cleanup', log: @log).run do
             cleanup(host, port, threads)
             ready = true
@@ -151,8 +150,10 @@ at #{host}:#{port}, strength is #{@strength}")
       begin
         yield(self)
       ensure
+        @log.info("Farm stopping with #{threads} threads...")
         @threads.each(&:kill)
-        @log.info("Farm stopped (threads=#{threads}, strength=#{@strength})")
+        @threads.each(&:join)
+        @log.info("Farm stopped, #{threads} threads killed")
       end
     end
 

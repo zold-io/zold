@@ -274,10 +274,10 @@ module Zold
             @log.info("Starting up the web front at http://#{host}:#{opts[:port]}...")
             Front.run!
             @log.info("The web front stopped at http://#{host}:#{opts[:port]}")
-            @log.info('Thanks for helping Zold network!')
           end
         end
       end
+      @log.info('Thanks for helping Zold network!')
     end
 
     private

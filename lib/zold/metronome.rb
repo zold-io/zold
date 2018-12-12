@@ -87,11 +87,10 @@ module Zold
       ensure
         start = Time.now
         unless @threads.empty?
-          @log.info("Stopping the metronome with #{@threads.count} threads: #{@threads.map(&:name).join(', ')}")
-          @threads.each do |t|
-            t.kill
-            t.join
-          end
+          @log.info("Stopping the metronome with #{@threads.count} threads...")
+          @threads.each(&:kill)
+          @threads.each(&:join)
+          @log.info("Metronome #{@threads.count} threads killed")
         end
         @log.info("Metronome stopped in #{Age.new(start)}, #{@failures.count} failures")
       end
