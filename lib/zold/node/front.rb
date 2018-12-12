@@ -107,6 +107,7 @@ while #{settings.address} is in '#{settings.opts['network']}'")
         else
           s = Score.parse(header)
           error(400, 'The score is invalid') unless s.valid?
+          error(400, 'The score is expired') if s.expired?
           error(400, 'The score is weak') if s.strength < Score::STRENGTH && !settings.opts['ignore-score-weakness']
           return if s.value < Front::MIN_SCORE && !settings.opts['ignore-score-weakness']
           if settings.address == "#{s.host}:#{s.port}" && !settings.opts['ignore-score-weakness']
