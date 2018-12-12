@@ -27,6 +27,7 @@ require_relative '../../lib/zold/wallet'
 require_relative '../../lib/zold/id'
 require_relative '../../lib/zold/key'
 require_relative '../../lib/zold/node/safe_entrance'
+require_relative '../../lib/zold/node/soft_error'
 require_relative 'fake_entrance'
 
 # SafeEntrance test.
@@ -40,7 +41,7 @@ class TestSafeEntrance < Zold::Test
       amount = Zold::Amount.new(zld: 39.99)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
-      assert_raises StandardError do
+      assert_raises Zold::SoftError do
         Zold::SafeEntrance.new(FakeEntrance.new).push(wallet.id, IO.read(wallet.path))
       end
     end

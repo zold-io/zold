@@ -26,7 +26,7 @@
 # License:: MIT
 module Zold
   # Soft error
-  module SoftError
+  class SoftError < StandardError
     # Nothing special
   end
 end
