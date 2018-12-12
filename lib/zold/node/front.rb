@@ -455,11 +455,7 @@ time to stop; use --skip-oom to never quit")
       yield header
     end
 
-    # @todo #513:30min This method is temporarily disabled since it
-    #  takes a lot of time (when the amount of wallets is big, like 40K). However,
-    #  we must find a way to count them somehow faster.
     def total_wallets
-      return 256 if settings.opts['network'] == Wallet::MAINET
       settings.zache.get(:wallets, lifetime: settings.opts['no-cache'] ? 0 : 60) do
         settings.wallets.count
       end
