@@ -363,8 +363,6 @@ module Zold
         @log.info('Metronome hasn\'t been started because of --no-metronome')
         return metronome
       end
-      require_relative 'routines/spread'
-      metronome.add(Routines::Spread.new(opts, @wallets, @remotes, log: @log))
       require_relative 'routines/gc'
       metronome.add(Routines::Gc.new(opts, @wallets, log: @log))
       unless opts['standalone']
