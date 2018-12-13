@@ -52,6 +52,17 @@ class TestThreadPool < Zold::Test
     assert_equal(threads, idx.value)
   end
 
+  def test_runs_with_index
+    idx = Concurrent::AtomicFixnum.new
+    indexes = Set.new
+    Zold::ThreadPool.new('test', log: test_log).run(10, %w[a b c]) do |_, i|
+      idx.increment
+      indexes << i
+    end
+    assert_equal(3, idx.value)
+    assert_equal('0 1 2', indexes.to_a.sort.join(' '))
+  end
+
   def test_adds_and_stops
     pool = Zold::ThreadPool.new('test', log: test_log)
     pool.add do

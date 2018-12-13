@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 gem 'openssl'
+require 'eventmachine'
 require 'openssl'
 require 'minitest/autorun'
 require 'minitest/hooks/test'

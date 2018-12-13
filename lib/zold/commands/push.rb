@@ -28,6 +28,7 @@ require 'concurrent'
 require 'parallel'
 require_relative 'thread_badge'
 require_relative 'args'
+require_relative '../thread_pool'
 require_relative '../age'
 require_relative '../size'
 require_relative '../log'
@@ -66,9 +67,9 @@ Available options:"
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
-      Parallel.map((mine.empty? ? @wallets.all : mine.map { |i| Id.new(i) }), in_threads: opts[:threads]) do |id|
+      list = mine.empty? ? @wallets.all : mine.map { |i| Id.new(i) }
+      ThreadPool.new('push', log: @log).run(opts['threads'], list) do |id|
         push(id, opts)
-        @log.debug("Worker: #{Parallel.worker_number} has pushed wallet #{id}")
       end
     end
 

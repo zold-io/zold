@@ -32,6 +32,7 @@ require 'concurrent'
 require 'parallel'
 require_relative 'thread_badge'
 require_relative 'args'
+require_relative '../thread_pool'
 require_relative '../log'
 require_relative '../age'
 require_relative '../http'
@@ -77,9 +78,9 @@ Available options:"
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
-      Parallel.map((mine.empty? ? @wallets.all : mine.map { |i| Id.new(i) }), in_threads: opts[:threads]) do |id|
+      list = mine.empty? ? @wallets.all : mine.map { |i| Id.new(i) }
+      ThreadPool.new('fetch', log: @log).run(opts['threads'], list) do |id|
         fetch(id, Copies.new(File.join(@copies, id)), opts)
-        @log.debug("Worker: #{Parallel.worker_number} has fetched wallet #{id}")
       end
     end
 

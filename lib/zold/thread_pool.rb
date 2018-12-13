@@ -39,11 +39,19 @@ module Zold
     end
 
     # Run this code in many threads
-    def run(threads)
-      threads.times do
+    def run(threads, set = (0..threads - 1).to_a)
+      raise "Number of threads #{threads} has to be positive" unless threads.positive?
+      raise 'Set of data can\'t be empty' if set.empty?
+      idx = Concurrent::AtomicFixnum.new
+      mutex = Mutex.new
+      list = set.dup
+      [threads, set.count].min.times do
         add do
-          Thread.current.abort_on_exception = true
-          yield
+          loop do
+            r = mutex.synchronize { list.pop }
+            break if r.nil?
+            yield(r, idx.increment - 1)
+          end
         end
       end
       @threads.each(&:join)
@@ -61,6 +69,10 @@ module Zold
         end
       end
       latch.wait
+      Thread.current.thread_variable_set(
+        :kids,
+        (Thread.current.thread_variable_get(:kids) || []) + [thread]
+      )
       @threads << thread
     end
 
@@ -74,8 +86,10 @@ module Zold
 #{@threads.map { |t| "#{t.name}/#{t.status}" }.join(', ')}...")
       start = Time.new
       @threads.each do |t|
+        (t.thread_variable_get(:kids) || []).each(&:kill)
         t.kill
         raise "Failed to join the thread \"#{t.name}\" in \"#{@title}\" pool" unless t.join(0.1)
+        (Thread.current.thread_variable_get(:kids) || []).delete(t)
       end
       @log.info("Thread pool \"#{@title}\" terminated all threads in #{Age.new(start)}, \
 it was alive for #{Age.new(@start)}: #{@threads.map { |t| "#{t.name}/#{t.status}" }.join(', ')}")
