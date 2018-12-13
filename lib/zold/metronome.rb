@@ -24,6 +24,7 @@ require 'backtrace'
 require_relative 'log'
 require_relative 'age'
 require_relative 'verbose_thread'
+require_relative 'thread_pool'
 
 # Background routines.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -35,8 +36,7 @@ module Zold
     def initialize(log = Log::NULL)
       @log = log
       @routines = []
-      @threads = []
-      @starts = {}
+      @threads = ThreadPool.new('metronome', log: log)
       @failures = {}
     end
 
@@ -44,13 +44,7 @@ module Zold
       [
         Time.now.utc.iso8601,
         'Current threads:',
-        @threads.map do |t|
-          [
-            "#{t.name}: status=#{t.status}; alive=#{t.alive?}",
-            "Most recent start: #{Age.new(@starts[t])} ago",
-            t.backtrace.nil? ? 'NO BACKTRACE' : "  #{t.backtrace.join("\n  ")}"
-          ].join("\n")
-        end,
+        @threads.to_s,
         'Failures:',
         @failures.map { |r, f| "#{r}\n#{f}\n" }
       ].flatten.join("\n\n")
@@ -63,18 +57,19 @@ module Zold
 
     def start
       @routines.each_with_index do |r, idx|
-        @threads << Thread.start do
-          Thread.current.abort_on_exception = true
+        @threads.add do
           Thread.current.name = "#{r.class.name}-#{idx}"
           step = 0
           loop do
-            @starts[Thread.current] = Time.now
+            Thread.current.thread_variable_set(:start, Time.now)
             begin
               r.exec(step)
-              @log.debug("Routine #{r.class.name} ##{step} done in #{Age.new(@starts[Thread.current])}")
+              @log.debug("Routine #{r.class.name} ##{step} done \
+in #{Age.new(Thread.current.thread_variable_get(:start))}")
             rescue StandardError => e
               @failures[r.class.name] = Time.now.utc.iso8601 + "\n" + Backtrace.new(e).to_s
-              @log.error("Routine #{r.class.name} ##{step} failed in #{Age.new(@starts[Thread.current])}")
+              @log.error("Routine #{r.class.name} ##{step} failed \
+in #{Age.new(Thread.current.thread_variable_get(:start))}")
               @log.error(Backtrace.new(e).to_s)
             end
             step += 1
@@ -85,14 +80,7 @@ module Zold
       begin
         yield(self)
       ensure
-        start = Time.now
-        unless @threads.empty?
-          @log.info("Stopping the metronome with #{@threads.count} threads...")
-          @threads.each(&:kill)
-          @threads.each(&:join)
-          @log.info("Metronome #{@threads.count} threads killed")
-        end
-        @log.info("Metronome stopped in #{Age.new(start)}, #{@failures.count} failures")
+        @threads.kill
       end
     end
   end

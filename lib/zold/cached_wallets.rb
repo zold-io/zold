@@ -22,6 +22,7 @@
 
 require 'zache'
 require_relative 'endless'
+require_relative 'thread_pool'
 
 # Cached collection of wallets.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -33,7 +34,8 @@ module Zold
     def initialize(wallets)
       @wallets = wallets
       @zache = Zache.new
-      @clean = Thread.start do
+      @clean = ThreadPool.new('cached-wallets')
+      @clean.add do
         Endless.new('cached_wallets').run do
           sleep 60
           @zache.clean

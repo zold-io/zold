@@ -28,6 +28,7 @@ require 'concurrent'
 require 'json'
 require 'zold/score'
 require_relative '../log'
+require_relative '../thread_pool'
 require_relative '../age'
 require_relative '../endless'
 require_relative 'farmers'
@@ -64,7 +65,7 @@ module Zold
       @invoice = invoice
       @pipeline = Queue.new
       @farmer = farmer
-      @threads = []
+      @threads = ThreadPool.new('farm')
       @lifetime = lifetime
       @strength = strength
     end
@@ -82,21 +83,14 @@ module Zold
         "Current time: #{Time.now.utc.iso8601}",
         "Ruby processes: #{`ps ax | grep zold | wc -l`}",
         JSON.pretty_generate(to_json),
-        @threads.map do |t|
-          trace = t.backtrace || []
-          [
-            "#{t.name}: status=#{t.status}; alive=#{t.alive?}",
-            'Vars: ' + t.thread_variables.map { |v| "#{v}=\"#{t.thread_variable_get(v)}\"" }.join('; '),
-            "  #{trace.join("\n  ")}"
-          ].join("\n")
-        end
+        @threads.to_s
       ].flatten.join("\n\n")
     end
 
     # Renders the Farm into JSON to show for the end-user in front.rb.
     def to_json
       {
-        threads: @threads.map { |t| "#{t.name}/#{t.status}/#{t.alive? ? 'alive' : 'dead'}" }.join(', '),
+        threads: @threads.to_json,
         pipeline: @pipeline.size,
         best: best.map(&:to_mnemo).join(', '),
         farmer: @farmer.class.name
@@ -121,8 +115,8 @@ module Zold
       else
         @log.info("#{best.size} scores pre-loaded from #{@cache}, the best is: #{best[0]}")
       end
-      @threads = (1..threads).map do |t|
-        Thread.start do
+      (1..threads).map do |t|
+        @threads.add do
           Thread.current.thread_variable_set(:tid, t.to_s)
           Endless.new("f#{t}", log: @log).run do
             cycle(host, port, threads)
@@ -131,7 +125,7 @@ module Zold
       end
       unless threads.zero?
         ready = false
-        @threads << Thread.start do
+        @threads.add do
           Endless.new('cleanup', log: @log).run do
             cleanup(host, port, threads)
             ready = true
@@ -140,7 +134,7 @@ module Zold
         end
         loop { break if ready }
       end
-      if @threads.empty?
+      if threads.zero?
         cleanup(host, port, threads)
         @log.info("Farm started with no threads (there will be no score) at #{host}:#{port}")
       else
@@ -150,10 +144,7 @@ at #{host}:#{port}, strength is #{@strength}")
       begin
         yield(self)
       ensure
-        @log.info("Farm stopping with #{threads} threads...")
-        @threads.each(&:kill)
-        @threads.each(&:join)
-        @log.info("Farm stopped, #{threads} threads killed")
+        @threads.kill
       end
     end
 
@@ -164,11 +155,11 @@ at #{host}:#{port}, strength is #{@strength}")
       before = scores.map(&:value).max.to_i
       save(threads, [Score.new(host: host, port: port, invoice: @invoice, strength: @strength)])
       scores = load
-      free = scores.reject { |s| @threads.find { |t| t.name == s.to_mnemo } }
+      free = scores.reject { |s| @threads.exists?(s.to_mnemo) }
       @pipeline << free[0] if @pipeline.size.zero? && !free.empty?
       after = scores.map(&:value).max.to_i
       return unless before != after && !after.zero?
-      @log.debug("#{Thread.current.name}: best score of #{scores.count} is #{scores[0]}")
+      @log.debug("#{Thread.current.name}: best score of #{scores.count} is #{scores[0].reduced(4)}")
     end
 
     def cycle(host, port, threads)

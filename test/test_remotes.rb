@@ -82,13 +82,46 @@ class TestRemotes < Zold::Test
     end
   end
 
-  def test_iterates_them_all
+  def test_iterates_all_failures
+    Dir.mktmpdir do |dir|
+      file = File.join(dir, 'remotes')
+      FileUtils.touch(file)
+      remotes = Zold::Remotes.new(file: file)
+      5.times { |i| remotes.add("0.0.0.#{i}", 9999) }
+      total = 0
+      remotes.iterate(Zold::Log::NULL) do
+        total += 1
+        raise 'Intended'
+      end
+      assert_equal(5, total)
+    end
+  end
+
+  def test_closes_threads_carefully
+    Dir.mktmpdir do |dir|
+      file = File.join(dir, 'remotes')
+      FileUtils.touch(file)
+      remotes = Zold::Remotes.new(file: file)
+      5.times { |i| remotes.add("0.0.0.#{i}", 9999) }
+      total = 0
+      remotes.iterate(Zold::Log::NULL) do
+        sleep 0.25
+        total += 1
+      end
+      assert_equal(5, total)
+    end
+  end
+
+  def test_iterates_them_all_even_with_delays
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'rrr.csv'))
       remotes.clean
       5.times { |i| remotes.add("0.0.0.#{i}", 8080) }
       total = 0
-      remotes.iterate(test_log) { total += 1 }
+      remotes.iterate(test_log) do
+        sleep 0.25
+        total += 1
+      end
       assert_equal(5, total)
     end
   end

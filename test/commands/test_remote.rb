@@ -43,6 +43,7 @@ class TestRemote < Zold::Test
       zero = Zold::Score::ZERO
       stub_request(:get, "http://#{zero.host}:#{zero.port}/remotes").to_return(
         status: 200,
+        headers: {},
         body: {
           version: Zold::VERSION,
           score: zero.to_h,
@@ -63,6 +64,7 @@ class TestRemote < Zold::Test
       )
       stub_request(:get, 'https://rubygems.org/api/v1/versions/zold/latest.json').to_return(
         status: 200,
+        headers: {},
         body: '{"version": "0.0.0"}'
       )
       cmd = Zold::Remote.new(remotes: remotes, log: test_log)

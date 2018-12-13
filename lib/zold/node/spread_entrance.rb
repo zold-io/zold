@@ -28,6 +28,7 @@ require_relative '../remotes'
 require_relative '../copies'
 require_relative '../endless'
 require_relative '../tax'
+require_relative '../thread_pool'
 require_relative '../commands/merge'
 require_relative '../commands/fetch'
 require_relative '../commands/push'
@@ -48,12 +49,13 @@ module Zold
       @log = log
       @ignore_score_weakeness = ignore_score_weakeness
       @mutex = Mutex.new
+      @push = ThreadPool.new('spread-entrance')
     end
 
     def to_json
       @entrance.to_json.merge(
         'modified': @modified.size,
-        'push': @push.status
+        'push': @push.to_json
       )
     end
 
@@ -62,7 +64,7 @@ module Zold
       @entrance.start do
         @seen = Set.new
         @modified = Queue.new
-        @push = Thread.start do
+        @push.add do
           Endless.new('push', log: @log).run do
             id = @modified.pop
             if @remotes.all.empty?
@@ -82,11 +84,8 @@ module Zold
         begin
           yield(self)
         ensure
-          @log.info('Waiting for spread entrance to finish...')
           @modified.clear
-          @push.kill
-          @push.join
-          @log.info('Spread entrance finished, thread killed')
+          @push.close(5)
         end
       end
     end

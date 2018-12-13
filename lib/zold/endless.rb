@@ -39,7 +39,6 @@ module Zold
     def run
       start = Time.now
       Thread.current.name = @title
-      Thread.current.abort_on_exception = true
       begin
         loop do
           VerboseThread.new(@log).run(true) do

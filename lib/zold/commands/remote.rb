@@ -229,7 +229,7 @@ Available options:"
       else
         scores.each { |s| @log.info("Elected: #{s.reduced(4)}") }
       end
-      scores
+      scores.sort_by(&:value).reverse
     end
 
     def trim(opts)
@@ -257,15 +257,22 @@ Available options:"
           r.assert_score_ownership(score)
           r.assert_score_strength(score) unless opts['ignore-score-weakness']
           @remotes.rescore(score.host, score.port, score.value)
-          gem = Zold::Gem.new
-          if Semantic::Version.new(VERSION) < Semantic::Version.new(json['version']) ||
-             Semantic::Version.new(VERSION) < Semantic::Version.new(gem.last_version)
+          if Semantic::Version.new(VERSION) < Semantic::Version.new(json['version'])
             if opts['reboot']
               @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, reboot! \
 (use --never-reboot to avoid this from happening)")
               terminate
             end
             @log.debug("#{r}: their version #{json['version']} is higher than mine #{VERSION}, \
+it's recommended to reboot, but I don't do it because of --never-reboot")
+          end
+          if Semantic::Version.new(VERSION) < Semantic::Version.new(Zold::Gem.new.last_version)
+            if opts['reboot']
+              @log.info("#{r}: the version of the gem is higher than mine #{VERSION}, reboot! \
+(use --never-reboot to avoid this from happening)")
+              terminate
+            end
+            @log.debug("#{r}: gem version is higher than mine #{VERSION}, \
 it's recommended to reboot, but I don't do it because of --never-reboot")
           end
           if cycle.positive?

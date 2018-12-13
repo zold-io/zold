@@ -98,7 +98,7 @@ module Zold
 
     private
 
-    # Some clients waits for status method in respons
+    # Some clients waits for status method in response
     class Response < SimpleDelegator
       def status
         code.zero? ? 599 : code

@@ -20,39 +20,59 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative '../../log'
-require_relative '../remove'
+require 'minitest/autorun'
+require 'concurrent'
+require_relative 'test__helper'
+require_relative '../lib/zold/thread_pool'
 
-# Gargage collecting. It goes through the list of all wallets and removes
-# those that are older than 10 days and don't have any transactions inside.
+# ThreadPool test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # Routines module
-  module Routines
-    # Garbage collector
-    class Gc
-      def initialize(opts, wallets, log: Log::NULL)
-        @opts = opts
-        @wallets = wallets
-        @log = log
-      end
-
-      def exec(_ = 0)
-        sleep(60) unless @opts['routine-immediately']
-        cmd = Remove.new(wallets: @wallets, log: @log)
-        args = ['remove']
-        seen = 0
-        removed = 0
-        @wallets.all.each do |id|
-          seen += 1
-          next unless @wallets.acq(id) { |w| w.exists? && w.txns.empty? && w.mtime < Time.now - @opts['gc-age'] }
-          cmd.run(args + [id.to_s])
-          removed += 1
-        end
-        @log.info("Removed #{removed} empty+old wallets out of #{seen} total") unless removed.zero?
+class TestThreadPool < Zold::Test
+  def test_closes_all_threads_right
+    pool = Zold::ThreadPool.new('test', log: test_log)
+    idx = Concurrent::AtomicFixnum.new
+    threads = 50
+    threads.times do
+      pool.add do
+        idx.increment
       end
     end
+    pool.close(1)
+    assert_equal(threads, idx.value)
+  end
+
+  def test_adds_and_stops
+    pool = Zold::ThreadPool.new('test', log: test_log)
+    pool.add do
+      sleep 60 * 60
+    end
+    pool.kill
+  end
+
+  def test_stops_stuck_threads
+    pool = Zold::ThreadPool.new('test', log: test_log)
+    pool.add do
+      loop do
+        # forever
+      end
+    end
+    pool.kill
+  end
+
+  def test_stops_empty_pool
+    pool = Zold::ThreadPool.new('test', log: test_log)
+    pool.close
+  end
+
+  def test_prints_to_json
+    pool = Zold::ThreadPool.new('test', log: test_log)
+    assert(pool.to_json.is_a?(Array))
+  end
+
+  def test_prints_to_text
+    pool = Zold::ThreadPool.new('test', log: test_log)
+    assert(!pool.to_s.nil?)
   end
 end

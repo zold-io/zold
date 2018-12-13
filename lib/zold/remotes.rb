@@ -31,6 +31,7 @@ require 'backtrace'
 require 'zold/score'
 require_relative 'age'
 require_relative 'http'
+require_relative 'thread_pool'
 require_relative 'node/farm'
 
 # The list of remotes.
@@ -94,7 +95,7 @@ module Zold
       def assert_code(code, response)
         msg = response.status_line.strip
         return if response.status.to_i == code
-        if response.headers['X-Zold-Error']
+        if response.headers && response.headers['X-Zold-Error']
           raise "Error ##{response.status} \"#{response.headers['X-Zold-Error']}\"
             at #{response.headers['X-Zold-Path']}"
         end
@@ -182,40 +183,43 @@ module Zold
       end
     end
 
+    # Go through the list of remotes and call a provided block for each
+    # of them. See how it's used, for example, in fetch.rb.
     def iterate(log, farm: Farm::Empty.new)
       raise 'Log can\'t be nil' if log.nil?
       raise 'Farm can\'t be nil' if farm.nil?
-      list = all
-      return if list.empty?
-      best = farm.best[0]
-      score = best.nil? ? Score::ZERO : best
+      list = all.dup
+      mutex = Mutex.new
       idx = Concurrent::AtomicFixnum.new
-      pool = Concurrent::FixedThreadPool.new([list.count, Concurrent.processor_count * 4].min, max_queue: 0)
-      list.each do |r|
-        pool.post do
-          Thread.current.abort_on_exception = true
-          Thread.current.name = "remotes-#{idx.value}@#{r[:host]}:#{r[:port]}"
-          start = Time.now
-          begin
-            yield Remotes::Remote.new(
-              host: r[:host],
-              port: r[:port],
-              score: score,
-              idx: idx.increment - 1,
-              log: log,
-              network: @network
-            )
-            raise 'Took too long to execute' if (Time.now - start).round > @timeout
-          rescue StandardError => e
-            error(r[:host], r[:port])
-            log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message} in #{Age.new(start)}")
-            log.debug(Backtrace.new(e).to_s)
-            remove(r[:host], r[:port]) if errors > TOLERANCE
+      pool = ThreadPool.new('remotes', log: log)
+      [list.count, Concurrent.processor_count * 4].min.times do
+        pool.add do
+          loop do
+            r = mutex.synchronize { list.pop }
+            break if r.nil?
+            Thread.current.name = "remotes-#{idx.value}@#{r[:host]}:#{r[:port]}"
+            start = Time.now
+            best = farm.best[0]
+            begin
+              yield Remotes::Remote.new(
+                host: r[:host],
+                port: r[:port],
+                score: best.nil? ? Score::ZERO : best,
+                idx: idx.increment - 1,
+                log: log,
+                network: @network
+              )
+              raise 'Took too long to execute' if (Time.now - start).round > @timeout
+            rescue StandardError => e
+              error(r[:host], r[:port])
+              log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message} in #{Age.new(start)}")
+              log.debug(Backtrace.new(e).to_s)
+              remove(r[:host], r[:port]) if r[:errors] > TOLERANCE
+            end
           end
         end
       end
-      pool.shutdown
-      pool.kill unless pool.wait_for_termination(5 * 60)
+      pool.close
     end
 
     def error(host, port = PORT)

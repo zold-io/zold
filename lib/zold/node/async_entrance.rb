@@ -27,6 +27,7 @@ require_relative '../age'
 require_relative '../size'
 require_relative '../id'
 require_relative '../endless'
+require_relative '../thread_pool'
 require_relative '../dir_items'
 require_relative 'soft_error'
 
@@ -42,7 +43,8 @@ module Zold
       @entrance = entrance
       @dir = File.expand_path(dir)
       @log = log
-      @total = threads
+      @threads = threads
+      @pool = ThreadPool.new('async-entrance', log: log)
       @queue = Queue.new
       @queue_limit = queue_limit
     end
@@ -50,7 +52,7 @@ module Zold
     def to_json
       @entrance.to_json.merge(
         'queue': @queue.size,
-        'threads': @threads.count,
+        'threads': @pool.count,
         'queue_limit': @queue_limit
       )
     end
@@ -65,8 +67,8 @@ module Zold
       end
       @log.info("#{@queue.size} wallets pre-loaded into async_entrace from #{@dir}") unless @queue.size.zero?
       @entrance.start do
-        @threads = (0..@total - 1).map do |i|
-          Thread.start do
+        (0..@threads).map do |i|
+          @pool.add do
             Endless.new("async-e##{i}", log: @log).run do
               take
             end
@@ -75,10 +77,7 @@ module Zold
         begin
           yield(self)
         ensure
-          @log.info("AsyncEntrance stopping and killing #{@threads.count} threads...")
-          @threads.each(&:kill)
-          @threads.each(&:join)
-          @log.info("AsyncEntrance stopped, #{@threads.count} threads killed")
+          @pool.close(5)
         end
       end
     end
