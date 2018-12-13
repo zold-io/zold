@@ -77,7 +77,7 @@ module Zold
         begin
           yield(self)
         ensure
-          @pool.close(5)
+          @pool.kill
         end
       end
     end

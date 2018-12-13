@@ -85,7 +85,7 @@ module Zold
           yield(self)
         ensure
           @modified.clear
-          @push.close(5)
+          @push.kill
         end
       end
     end

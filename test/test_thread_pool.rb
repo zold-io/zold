@@ -39,7 +39,16 @@ class TestThreadPool < Zold::Test
         idx.increment
       end
     end
-    pool.close(1)
+    pool.kill
+    assert_equal(threads, idx.value)
+  end
+
+  def test_runs_in_many_threads
+    idx = Concurrent::AtomicFixnum.new
+    threads = 50
+    Zold::ThreadPool.new('test', log: test_log).run(threads) do
+      idx.increment
+    end
     assert_equal(threads, idx.value)
   end
 
@@ -63,7 +72,7 @@ class TestThreadPool < Zold::Test
 
   def test_stops_empty_pool
     pool = Zold::ThreadPool.new('test', log: test_log)
-    pool.close
+    pool.kill
   end
 
   def test_prints_to_json

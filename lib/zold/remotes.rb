@@ -191,35 +191,31 @@ module Zold
       list = all.dup
       mutex = Mutex.new
       idx = Concurrent::AtomicFixnum.new
-      pool = ThreadPool.new('remotes', log: log)
-      [list.count, Concurrent.processor_count * 4].min.times do
-        pool.add do
-          loop do
-            r = mutex.synchronize { list.pop }
-            break if r.nil?
-            Thread.current.name = "remotes-#{idx.value}@#{r[:host]}:#{r[:port]}"
-            start = Time.now
-            best = farm.best[0]
-            begin
-              yield Remotes::Remote.new(
-                host: r[:host],
-                port: r[:port],
-                score: best.nil? ? Score::ZERO : best,
-                idx: idx.increment - 1,
-                log: log,
-                network: @network
-              )
-              raise 'Took too long to execute' if (Time.now - start).round > @timeout
-            rescue StandardError => e
-              error(r[:host], r[:port])
-              log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message} in #{Age.new(start)}")
-              log.debug(Backtrace.new(e).to_s)
-              remove(r[:host], r[:port]) if r[:errors] > TOLERANCE
-            end
+      ThreadPool.new('remotes', log: log).run([list.count, Concurrent.processor_count * 4].min) do
+        loop do
+          r = mutex.synchronize { list.pop }
+          break if r.nil?
+          Thread.current.name = "remotes-#{idx.value}@#{r[:host]}:#{r[:port]}"
+          start = Time.now
+          best = farm.best[0]
+          begin
+            yield Remotes::Remote.new(
+              host: r[:host],
+              port: r[:port],
+              score: best.nil? ? Score::ZERO : best,
+              idx: idx.increment - 1,
+              log: log,
+              network: @network
+            )
+            raise 'Took too long to execute' if (Time.now - start).round > @timeout
+          rescue StandardError => e
+            error(r[:host], r[:port])
+            log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message} in #{Age.new(start)}")
+            log.debug(Backtrace.new(e).to_s)
+            remove(r[:host], r[:port]) if r[:errors] > TOLERANCE
           end
         end
       end
-      pool.close
     end
 
     def error(host, port = PORT)

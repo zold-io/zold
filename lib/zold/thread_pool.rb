@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'concurrent'
 require_relative 'age'
 require_relative 'verbose_thread'
 
@@ -37,6 +38,18 @@ module Zold
       @start = Time.now
     end
 
+    # Run this code in many threads
+    def run(threads)
+      threads.times do
+        add do
+          Thread.current.abort_on_exception = true
+          yield
+        end
+      end
+      @threads.each(&:join)
+      @threads.clear
+    end
+
     # Add a new thread
     def add
       raise 'Block must be given to start()' unless block_given?
@@ -49,26 +62,6 @@ module Zold
       end
       latch.wait
       @threads << thread
-    end
-
-    # Wait for all of them to finish and then close
-    def close(timeout = 30)
-      if @threads.empty?
-        @log.debug("Thread pool \"#{@title}\" stopped with no threads")
-        return
-      end
-      @log.debug("Closing \"#{@title}\" thread pool with #{@threads.count} threads: \
-#{@threads.map { |t| "#{t.name}/#{t.status}" }.join(', ')}...")
-      start = Time.new
-      @threads.each do |t|
-        next if t.join(timeout)
-        t.kill
-        raise "Failed to close the thread \"#{t.name}\" in \"#{@title}\" pool" unless t.join(0.1)
-        @log.error("Thread \"#{t.name}\" refused to stop in #{Age.new(start)} and was killed")
-      end
-      @log.debug("Thread pool \"#{@title}\" stopped all threads in #{Age.new(start)}, \
-it was alive for #{Age.new(@start)}: #{@threads.map { |t| "#{t.name}/#{t.status}" }.join(', ')}")
-      @threads.clear
     end
 
     # Kill them all immediately and close the pool
