@@ -41,7 +41,6 @@ module Zold
     # Run this code in many threads
     def run(threads, set = (0..threads - 1).to_a)
       raise "Number of threads #{threads} has to be positive" unless threads.positive?
-      raise 'Set of data can\'t be empty' if set.empty?
       idx = Concurrent::AtomicFixnum.new
       mutex = Mutex.new
       list = set.dup
