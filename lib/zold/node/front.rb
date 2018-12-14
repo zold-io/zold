@@ -50,7 +50,7 @@ module Zold
   class Front < Sinatra::Base
     # The minimum score required in order to recongnize a requestor
     # as a valuable node and add it to the list of remotes.
-    MIN_SCORE = 16
+    MIN_SCORE = 4
 
     configure do
       Thread.current.name = 'sinatra'
