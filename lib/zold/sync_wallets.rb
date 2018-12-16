@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'futex'
+require 'delegate'
 require_relative 'log'
 
 # Synchronized collection of wallets.
@@ -32,27 +33,12 @@ require_relative 'log'
 # License:: MIT
 module Zold
   # Synchronized collection of wallets
-  class SyncWallets
+  class SyncWallets < SimpleDelegator
     def initialize(wallets, log: Log::NULL, dir: wallets.path)
       @wallets = wallets
       @log = log
       @dir = dir
-    end
-
-    def to_s
-      @wallets.to_s
-    end
-
-    def path
-      @wallets.path
-    end
-
-    def all
-      @wallets.all
-    end
-
-    def count
-      @wallets.count
+      super(wallets)
     end
 
     def acq(id, exclusive: false)

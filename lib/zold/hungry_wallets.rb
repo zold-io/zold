@@ -21,14 +21,29 @@
 # SOFTWARE.
 
 require 'delegate'
+require_relative 'log'
 
+# Wallets that PULL what's missing, in the background.
+#
+# Author:: Yegor Bugayenko (yegor256@gmail.com)
+# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# License:: MIT
 module Zold
   # Wallets decorator that adds missing wallets to the queue to be pulled later.
   class HungryWallets < SimpleDelegator
-    # @todo #280:30min Add to the queue. Once in there, try
-    #  to pull it as soon as possible as is described in #280.
+    def initialize(wallets, remotes, copies, log: Log::NULL)
+      @wallets = wallets
+      @remotes = remotes
+      @copies = copies
+      @log = log
+      super(wallets)
+    end
+
     def acq(id, exclusive: false)
-      yield super(id, exclusive: exclusive)
+      @wallets.acq(id, exclusive: exclusive) do |wallet|
+        @log.info("Would be great to pull #{id} since it's absent") unless wallet.exists?
+        yield wallet
+      end
     end
   end
 end

@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'zache'
+require 'delegate'
 require_relative 'endless'
 require_relative 'thread_pool'
 
@@ -30,7 +31,7 @@ require_relative 'thread_pool'
 # License:: MIT
 module Zold
   # Collection of local wallets
-  class CachedWallets
+  class CachedWallets < SimpleDelegator
     def initialize(wallets)
       @wallets = wallets
       @zache = Zache.new
@@ -41,22 +42,7 @@ module Zold
           @zache.clean
         end
       end
-    end
-
-    def to_s
-      @wallets.to_s
-    end
-
-    def path
-      @wallets.path
-    end
-
-    def all
-      @wallets.all
-    end
-
-    def count
-      @wallets.count
+      super(wallets)
     end
 
     def acq(id, exclusive: false)
