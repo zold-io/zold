@@ -134,8 +134,8 @@ module Zold
           'Maximum amount of memory we can consume, quit if we take more than that, in Mb (default: 512)',
           default: 512
         o.integer '--queue-limit',
-          'The maximum number of wallets to be accepted via PUSH and stored in the queue (default: 4096)',
-          default: 4096
+          'The maximum number of wallets to be accepted via PUSH and stored in the queue (default: 256)',
+          default: 256
         o.integer '--gc-age',
           'Maximum time in seconds to keep an empty and unused wallet on the disk',
           default: 60 * 60 * 24 * 10
