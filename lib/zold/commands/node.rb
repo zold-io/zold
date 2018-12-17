@@ -98,7 +98,7 @@ module Zold
           'Ignore score weakness of incoming requests and register those nodes anyway',
           default: false
         o.bool '--tolerate-edges',
-          'Don\'t fail if only "edge" (not default ones) nodes accepted/have the wallet',
+          'Don\'t fail if only "edge" (not "master" ones) nodes accepted/have the wallet',
           default: false
         o.boolean '--nohup',
           'Run it in background, rebooting when a higher version is available in the network',

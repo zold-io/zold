@@ -46,7 +46,7 @@ module Zold
         args = ['remote', "--network=#{@opts['network']}", '--ignore-ping']
         score = @farm.best[0]
         args << "--ignore-node=#{score.host}:#{score.port}" if score
-        cmd.run(args + ['defaults']) unless @opts['routine-immediately']
+        cmd.run(args + ['masters']) unless @opts['routine-immediately']
         return if @opts['routine-immediately'] && @remotes.all.empty?
         cmd.run(args + ['update'] + (@opts['never-reboot'] ? [] : ['--reboot']))
         cmd.run(args + ['trim'])

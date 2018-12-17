@@ -45,12 +45,12 @@ class TestRemotes < Zold::Test
     end
   end
 
-  def test_finds_defaults
+  def test_finds_masters
     Dir.mktmpdir do |dir|
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
       remotes = Zold::Remotes.new(file: file)
-      assert(remotes.default?('b1.zold.io', 80))
+      assert(remotes.master?('b1.zold.io', 80))
     end
   end
 
@@ -166,8 +166,8 @@ class TestRemotes < Zold::Test
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes'))
       remotes.clean
-      remotes.defaults
-      remotes.defaults
+      remotes.masters
+      remotes.masters
       assert(!remotes.all.empty?)
     end
   end

@@ -59,7 +59,7 @@ Available options:"
           'Don\'t complain when their score is too weak',
           default: false
         o.bool '--tolerate-edges',
-          'Don\'t fail if only "edge" (not default ones) nodes accepted the wallet',
+          'Don\'t fail if only "edge" (not "master" ones) nodes accepted the wallet',
           default: false
         o.bool '--quiet-if-missed',
           'Don\'t fail if the wallet wasn\'t delivered to any remotes',
@@ -85,22 +85,22 @@ Available options:"
       total = Concurrent::AtomicFixnum.new
       nodes = Concurrent::AtomicFixnum.new
       done = Concurrent::AtomicFixnum.new
-      defaults = Concurrent::AtomicFixnum.new
+      masters = Concurrent::AtomicFixnum.new
       start = Time.now
       @remotes.iterate(@log) do |r|
         nodes.increment
         total.increment(push_one(id, r, opts))
-        defaults.increment if r.default?
+        masters.increment if r.master?
         done.increment
       end
       raise "There are no remote nodes, run 'zold remote reset'" if nodes.value.zero?
       unless opts['quiet-if-missed']
         raise "No nodes out of #{nodes} accepted the wallet #{id}" if done.value.zero?
-        if defaults.value.zero? && !opts['tolerate-edges']
+        if masters.value.zero? && !opts['tolerate-edges']
           raise "There are only edge nodes, run 'zold remote reset' or use --tolerate-edges"
         end
       end
-      @log.info("Push finished to #{done.value} nodes (#{defaults.value} defaults) \
+      @log.info("Push finished to #{done.value} nodes (#{masters.value} master nodes) \
 out of #{nodes.value} in #{Age.new(start)}, total score for #{id} is #{total.value}")
     end
 

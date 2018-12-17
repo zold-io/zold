@@ -51,8 +51,8 @@ module Zold
     MAX_NODES = 16
 
     # Default nodes and their ports
-    DEFS = CSV.read(File.expand_path(File.join(File.dirname(__FILE__), '../../resources/remotes')))
-    private_constant :DEFS
+    MASTERS = CSV.read(File.expand_path(File.join(File.dirname(__FILE__), '../../resources/masters')))
+    private_constant :MASTERS
 
     # Empty, for standalone mode
     class Empty
@@ -88,8 +88,8 @@ module Zold
         Http.new(uri: "http://#{@host}:#{@port}#{path}", score: @score, network: @network)
       end
 
-      def default?
-        !DEFS.find { |r| r[0] == @host && r[1].to_i == @port }.nil?
+      def master?
+        !MASTERS.find { |r| r[0] == @host && r[1].to_i == @port }.nil?
       end
 
       def to_s
@@ -148,8 +148,8 @@ module Zold
       modify { [] }
     end
 
-    def defaults
-      DEFS.each do |r|
+    def masters
+      MASTERS.each do |r|
         if block_given?
           next unless yield(r[0], r[1].to_i)
         end
@@ -235,8 +235,8 @@ module Zold
       File.exist?(@file) ? File.mtime(@file) : Time.now
     end
 
-    def default?(host, port)
-      !DEFS.find { |r| r[0] == host && r[1].to_i == port }.nil?
+    def master?(host, port)
+      !MASTERS.find { |r| r[0] == host && r[1].to_i == port }.nil?
     end
 
     private
@@ -276,7 +276,7 @@ module Zold
             port: row[1].to_i,
             score: row[2].to_i,
             errors: row[3].to_i,
-            default: default?(row[0], row[1].to_i)
+            master: master?(row[0], row[1].to_i)
           }
         end
         raw.reject { |r| !r[:host] || r[:port].zero? }.map do |r|

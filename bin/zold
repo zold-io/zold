@@ -177,7 +177,7 @@ remotes = Zold::Remotes.new(file: fremotes, network: opts['network'])
 if File.exist?(fremotes)
   log.debug("Remote nodes: #{remotes.all.count} total")
 else
-  remotes.defaults
+  remotes.masters
   log.debug("Default remotes have been set: #{remotes.all.count} total")
 end
 copies = File.join(zoldata, 'copies')

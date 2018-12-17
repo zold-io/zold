@@ -193,7 +193,7 @@ class TestRemote < Zold::Test
   def test_select_respects_max_nodes_option
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.txt'))
-      remotes.defaults
+      remotes.masters
       zero = Zold::Score::ZERO
       cmd = Zold::Remote.new(remotes: remotes, log: test_log)
       (5000..5010).each do |port|
@@ -215,17 +215,17 @@ class TestRemote < Zold::Test
         )
         cmd.run(%W[remote add localhost #{port}])
       end
-      assert_equal(11 + File.readlines('resources/remotes').count, remotes.all.count)
+      assert_equal(11 + File.readlines('resources/masters').count, remotes.all.count)
       cmd.run(%w[remote select --max-nodes=5])
       assert_equal(5, remotes.all.count)
     end
   end
 
-  def test_sets_defaults
+  def test_sets_masters
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.txt'))
       cmd = Zold::Remote.new(remotes: remotes, log: test_log)
-      cmd.run(%w[remote defaults])
+      cmd.run(%w[remote masters])
       assert(!remotes.all.empty?)
     end
   end

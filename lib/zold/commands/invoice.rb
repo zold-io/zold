@@ -52,7 +52,7 @@ Available options:"
           'The length of the invoice prefix (default: 8)',
           default: 8
         o.bool '--tolerate-edges',
-          'Don\'t fail if only "edge" (not default ones) nodes have the wallet',
+          'Don\'t fail if only "edge" (not "master" ones) nodes have the wallet',
           default: false
         o.string '--network',
           'The name of the network we work in',
