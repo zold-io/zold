@@ -118,17 +118,16 @@ class TestHttp < Zold::Test
   #  If fails because of PUT HTTP request timeout. Let's find the problem,
   #  fix it, and un-skip the test.
   def test_sends_correct_http_headers
-    skip
     WebMock.allow_net_connect!
     body = ''
     RandomPort::Pool::SINGLETON.acquire do |port|
       thread = Thread.start do
         Zold::VerboseThread.new(test_log).run do
-          server = TCPServer.new(port)
+          server = TCPServer.new("127.0.0.1", port)
           socket = server.accept
           loop do
             line = socket.gets
-            break if line.nil?
+            break if line.eql?("\r\n")
             test_log.info(line.inspect)
             body += line
           end
