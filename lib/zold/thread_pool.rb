@@ -44,17 +44,21 @@ module Zold
       idx = Concurrent::AtomicFixnum.new
       mutex = Mutex.new
       list = set.dup
-      [threads, set.count].min.times do
+      total = [threads, set.count].min
+      latch = Concurrent::CountDownLatch.new(total)
+      total.times do
         add do
           loop do
             r = mutex.synchronize { list.pop }
             break if r.nil?
             yield(r, idx.increment - 1)
           end
+        ensure
+          latch.count_down
         end
       end
-      @threads.each(&:join)
-      @threads.clear
+      latch.wait
+      kill
     end
 
     # Add a new thread
@@ -75,6 +79,10 @@ module Zold
       @threads << thread
     end
 
+    def join(sec)
+      @threads.each { |t| t.join(sec) }
+    end
+
     # Kill them all immediately and close the pool
     def kill
       if @threads.empty?
@@ -88,7 +96,10 @@ module Zold
         (t.thread_variable_get(:kids) || []).each(&:kill)
         t.kill
         raise "Failed to join the thread \"#{t.name}\" in \"#{@title}\" pool" unless t.join(0.1)
-        (Thread.current.thread_variable_get(:kids) || []).delete(t)
+        Thread.current.thread_variable_set(
+          :kids,
+          (Thread.current.thread_variable_get(:kids) || []) - [t]
+        )
       end
       @log.info("Thread pool \"#{@title}\" terminated all threads in #{Age.new(start)}, \
 it was alive for #{Age.new(@start)}: #{@threads.map { |t| "#{t.name}/#{t.status}" }.join(', ')}")

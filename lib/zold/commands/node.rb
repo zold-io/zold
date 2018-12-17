@@ -30,8 +30,10 @@ require_relative 'thread_badge'
 require_relative '../version'
 require_relative '../age'
 require_relative '../metronome'
+require_relative '../thread_pool'
 require_relative '../wallet'
 require_relative '../wallets'
+require_relative '../hungry_wallets'
 require_relative '../remotes'
 require_relative '../verbose_thread'
 require_relative '../node/farmers'
@@ -213,8 +215,10 @@ module Zold
         Zold::Remote.new(remotes: @remotes).run(['remote', 'remove', host, port.to_s])
         @log.info("Removed current node (#{address}) from list of remotes")
       end
+      hungry = Zold::ThreadPool.new('hungry', log: @log)
+      wts = Zold::HungryWallets.new(@wallets, @remotes, @copies, hungry, log: @log, network: opts['network'])
       Front.set(:zache, Zache.new)
-      Front.set(:wallets, @wallets)
+      Front.set(:wallets, wts)
       Front.set(:remotes, @remotes)
       Front.set(:copies, @copies)
       Front.set(:address, address)
@@ -222,18 +226,7 @@ module Zold
       Front.set(:opts, opts)
       Front.set(:dump_errors, opts['dump-errors'])
       Front.set(:port, opts['bind-port'])
-      node_alias = opts[:alias] || address
-      unless node_alias.eql?(address) || node_alias =~ /^[A-Za-z0-9]{4,16}$/
-        raise "Alias should be a 4 to 16 char long alphanumeric string: #{node_alias}"
-      end
-      Front.set(:node_alias, node_alias)
-      invoice = opts[:invoice]
-      unless invoice.include?('@')
-        require_relative 'invoice'
-        invoice = Invoice.new(
-          wallets: @wallets, remotes: @remotes, copies: @copies, log: @log
-        ).run(['invoice', invoice, "--network=#{opts['network']}"])
-      end
+      Front.set(:node_alias, node_alias(opts, address))
       entrance = SafeEntrance.new(
         NoSpamEntrance.new(
           NoDupEntrance.new(
@@ -241,14 +234,13 @@ module Zold
               SpreadEntrance.new(
                 SyncEntrance.new(
                   Entrance.new(
-                    @wallets,
-                    @remotes, @copies, address,
+                    wts, @remotes, @copies, address,
                     log: @log, network: opts['network']
                   ),
                   File.join(home, '.zoldata/sync-entrance'),
                   log: @log
                 ),
-                @wallets, @remotes, address,
+                wts, @remotes, address,
                 log: @log,
                 ignore_score_weakeness: opts['ignore-score-weakness']
               ),
@@ -256,7 +248,7 @@ module Zold
               log: @log,
               queue_limit: opts['queue-limit']
             ),
-            @wallets,
+            wts,
             log: @log
           ),
           period: opts['allow-spam'] ? 0 : 60 * 60,
@@ -266,7 +258,10 @@ module Zold
       )
       entrance.start do |ent|
         Front.set(:entrance, ent)
-        farm = Farm.new(invoice, File.join(home, 'farm'), log: @log, farmer: farmer(opts), strength: opts[:strength])
+        farm = Farm.new(
+          invoice(opts), File.join(home, 'farm'),
+          log: @log, farmer: farmer(opts), strength: opts[:strength]
+        )
         farm.start(host, opts[:port], threads: opts[:threads]) do |f|
           Front.set(:farm, f)
           metronome(f, opts).start do |metronome|
@@ -277,10 +272,30 @@ module Zold
           end
         end
       end
+      hungry.kill
       @log.info('Thanks for helping Zold network!')
     end
 
     private
+
+    def invoice(opts)
+      invoice = opts['invoice']
+      unless invoice.include?('@')
+        require_relative 'invoice'
+        invoice = Invoice.new(
+          wallets: @wallets, remotes: @remotes, copies: @copies, log: @log
+        ).run(['invoice', invoice, "--network=#{opts['network']}"])
+      end
+      invoice
+    end
+
+    def node_alias(opts, address)
+      a = opts[:alias] || address
+      unless a.eql?(address) || a =~ /^[A-Za-z0-9]{4,16}$/
+        raise "Alias should be a 4 to 16 char long alphanumeric string: #{a}"
+      end
+      a
+    end
 
     def farmer(opts)
       case opts['farmer'].downcase.strip

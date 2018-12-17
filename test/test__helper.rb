@@ -63,10 +63,14 @@ module Zold
     def assert_equal_wait(expected, max: 30)
       start = Time.now
       loop do
-        actual = yield
-        if expected == actual
-          assert_equal(expected, actual)
-          break
+        begin
+          actual = yield
+          if expected == actual
+            assert_equal(expected, actual)
+            break
+          end
+        rescue StandardError => e
+          test_log.debug(e.message)
         end
         sleep 1
         sec = Time.now - start

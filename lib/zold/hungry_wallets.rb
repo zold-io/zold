@@ -22,6 +22,8 @@
 
 require 'delegate'
 require_relative 'log'
+require_relative 'thread_pool'
+require_relative 'commands/pull'
 
 # Wallets that PULL what's missing, in the background.
 #
@@ -31,17 +33,29 @@ require_relative 'log'
 module Zold
   # Wallets decorator that adds missing wallets to the queue to be pulled later.
   class HungryWallets < SimpleDelegator
-    def initialize(wallets, remotes, copies, log: Log::NULL)
+    def initialize(wallets, remotes, copies, pool,
+      log: Log::NULL, network: 'test')
       @wallets = wallets
       @remotes = remotes
       @copies = copies
       @log = log
+      @network = network
+      @pool = pool
+      @queue = Queue.new
+      @pool.add do
+        Endless.new('hungry', log: log).run do
+          id = @queue.pop
+          Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
+            ['pull', id.to_s, "--network=#{@network}"]
+          )
+        end
+      end
       super(wallets)
     end
 
     def acq(id, exclusive: false)
       @wallets.acq(id, exclusive: exclusive) do |wallet|
-        @log.info("Would be great to pull #{id} since it's absent") unless wallet.exists?
+        @queue << id unless wallet.exists?
         yield wallet
       end
     end

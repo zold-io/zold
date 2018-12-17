@@ -20,26 +20,34 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'backtrace'
-require_relative 'log'
+require 'minitest/autorun'
+require 'webmock/minitest'
+require_relative 'test__helper'
+require_relative 'fake_home'
+require_relative '../lib/zold/key'
+require_relative '../lib/zold/thread_pool'
+require_relative '../lib/zold/wallets'
+require_relative '../lib/zold/hungry_wallets'
 
-# Verbose thread.
+# HungryWallets test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # Verbose thread
-  class VerboseThread
-    def initialize(log = Log::NULL)
-      @log = log
-    end
-
-    def run(safe = false)
-      Thread.current.report_on_exception = false
-      yield
-    rescue StandardError => e
-      @log.error(Backtrace.new(e).to_s)
-      raise e unless safe
+class TestHungryWallets < Zold::Test
+  def test_pulls_wallet
+    FakeHome.new(log: test_log).run do |home|
+      id = Zold::Id.new
+      get = stub_request(:get, "http://localhost:4096/wallet/#{id}/size").to_return(status: 404)
+      remotes = home.remotes
+      remotes.add('localhost', 4096)
+      pool = Zold::ThreadPool.new('test', log: test_log)
+      wallets = Zold::HungryWallets.new(
+        home.wallets, remotes, File.join(home.dir, 'copies'),
+        pool, log: test_log
+      )
+      wallets.acq(id) { |w| assert(!w.exists?) }
+      pool.join(1)
+      assert_requested(get)
     end
   end
 end

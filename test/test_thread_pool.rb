@@ -69,6 +69,14 @@ class TestThreadPool < Zold::Test
     assert_equal('0 1 2', indexes.to_a.sort.join(' '))
   end
 
+  def test_runs_with_exceptions
+    assert_raises do
+      Zold::ThreadPool.new('test', log: test_log).run(1) do
+        raise 'intended'
+      end
+    end
+  end
+
   def test_adds_and_stops
     pool = Zold::ThreadPool.new('test', log: test_log)
     pool.add do
