@@ -104,7 +104,8 @@ module Zold
             next
           end
           unless @wallets.acq(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
-            @log.error("The beneficiary of #{@id} doesn't have this transaction: \"#{txn.to_text}\"")
+            @log.error("The beneficiary #{@wallets.acq(txn.bnf, &:mnemo)} of #{@id} \
+doesn't have this transaction: \"#{txn.to_text}\"")
             next
           end
         end

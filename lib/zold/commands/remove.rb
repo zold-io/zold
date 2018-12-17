@@ -44,6 +44,9 @@ module Zold
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = "Usage: zold remove [ID...] [options]
 Available options:"
+        o.bool '--force',
+          'Don\'t report any errors if the wallet doesn\'t exist',
+          default: false
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
@@ -52,10 +55,14 @@ Available options:"
       end
     end
 
-    def remove(id, _)
+    def remove(id, opts)
       @wallets.acq(id, exclusive: true) do |w|
-        raise "Wallet #{id} doesn't exist in #{w.path}" unless w.exists?
-        File.delete(w.path)
+        if w.exists?
+          File.delete(w.path)
+        else
+          raise "Wallet #{id} doesn't exist in #{w.path}" unless opts['force']
+          @log.info("Wallet #{id} file not found in #{w.path}")
+        end
       end
       @log.info("Wallet #{id} removed")
     end

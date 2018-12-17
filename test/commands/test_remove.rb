@@ -54,4 +54,13 @@ class TestRemove < Zold::Test
       assert(home.wallets.all.empty?)
     end
   end
+
+  def test_removes_absent_wallets
+    FakeHome.new(log: test_log).run do |home|
+      Zold::Remove.new(wallets: home.wallets, log: test_log).run(
+        ['remove', '7654321076543210', '--force']
+      )
+      assert(home.wallets.all.empty?)
+    end
+  end
 end
