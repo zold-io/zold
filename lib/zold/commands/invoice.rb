@@ -51,6 +51,9 @@ Available options:"
         o.integer '--length',
           'The length of the invoice prefix (default: 8)',
           default: 8
+        o.bool '--tolerate-edges',
+          'Don\'t fail if only "edge" (not default ones) nodes have the wallet',
+          default: false
         o.string '--network',
           'The name of the network we work in',
           default: 'test'
@@ -67,7 +70,8 @@ Available options:"
       unless @wallets.acq(id, &:exists?)
         require_relative 'pull'
         Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-          ['pull', id.to_s, "--network=#{opts['network']}"]
+          ['pull', id.to_s, "--network=#{opts['network']}"] +
+          (opts['tolerate-edges'] ? ['--tolerate-edges'] : [])
         )
       end
       inv = @wallets.acq(id) do |wallet|

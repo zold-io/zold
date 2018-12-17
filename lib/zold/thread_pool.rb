@@ -46,8 +46,9 @@ module Zold
       list = set.dup
       total = [threads, set.count].min
       latch = Concurrent::CountDownLatch.new(total)
-      total.times do
+      total.times do |i|
         add do
+          Thread.current.name = "#{@title}-#{i}"
           loop do
             r = mutex.synchronize { list.pop }
             break if r.nil?
@@ -66,6 +67,7 @@ module Zold
       raise 'Block must be given to start()' unless block_given?
       latch = Concurrent::CountDownLatch.new(1)
       thread = Thread.start do
+        Thread.current.name = @title
         VerboseThread.new(@log).run do
           latch.count_down
           yield
@@ -89,7 +91,7 @@ module Zold
         @log.debug("Thread pool \"#{@title}\" terminated with no threads")
         return
       end
-      @log.info("Stopping \"#{@title}\" thread pool with #{@threads.count} threads: \
+      @log.debug("Stopping \"#{@title}\" thread pool with #{@threads.count} threads: \
 #{@threads.map { |t| "#{t.name}/#{t.status}" }.join(', ')}...")
       start = Time.new
       @threads.each do |t|
@@ -101,7 +103,7 @@ module Zold
           (Thread.current.thread_variable_get(:kids) || []) - [t]
         )
       end
-      @log.info("Thread pool \"#{@title}\" terminated all threads in #{Age.new(start)}, \
+      @log.debug("Thread pool \"#{@title}\" terminated all threads in #{Age.new(start)}, \
 it was alive for #{Age.new(@start)}: #{@threads.map { |t| "#{t.name}/#{t.status}" }.join(', ')}")
       @threads.clear
     end

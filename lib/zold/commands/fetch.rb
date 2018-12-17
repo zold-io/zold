@@ -66,6 +66,9 @@ Available options:"
         o.array '--ignore-node',
           'Ignore this node and don\'t fetch from it',
           default: []
+        o.bool '--tolerate-edges',
+          'Don\'t fail if only "edge" (not default ones) nodes accepted the wallet',
+          default: false
         o.bool '--quiet-if-absent',
           'Don\'t fail if the wallet is absent in all remote nodes',
           default: false
@@ -91,15 +94,22 @@ Available options:"
       total = Concurrent::AtomicFixnum.new
       nodes = Concurrent::AtomicFixnum.new
       done = Concurrent::AtomicFixnum.new
+      defaults = Concurrent::AtomicFixnum.new
       @remotes.iterate(@log) do |r|
         nodes.increment
         total.increment(fetch_one(id, r, cps, opts))
+        defaults.increment if r.default?
         done.increment
       end
       raise "There are no remote nodes, run 'zold remote reset'" if nodes.value.zero?
-      raise "No nodes out of #{nodes.value} have the wallet #{id}" if done.value.zero? && !opts['quiet-if-absent']
+      unless opts['quiet-if-absent']
+        raise "No nodes out of #{nodes.value} have the wallet #{id}" if done.value.zero?
+        if defaults.value.zero? && !opts['tolerate-edges']
+          raise "There are only edge nodes, run 'zold remote reset' or use --tolerate-edges"
+        end
+      end
       @log.info("#{done.value} copies of #{id} fetched in #{Age.new(start)} with the total score of \
-#{total.value} from #{nodes.value} nodes")
+#{total.value} from #{nodes.value} nodes (#{defaults.value} defaults)")
       list = cps.all.map do |c|
         "  ##{c[:name]}: #{c[:score]} #{Wallet.new(c[:path]).mnemo} \
 #{Size.new(File.size(c[:path]))}/#{Age.new(File.mtime(c[:path]))}"

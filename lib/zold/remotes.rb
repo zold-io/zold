@@ -88,6 +88,10 @@ module Zold
         Http.new(uri: "http://#{@host}:#{@port}#{path}", score: @score, network: @network)
       end
 
+      def default?
+        !DEFS.find { |r| r[0] == @host && r[1].to_i == @port }.nil?
+      end
+
       def to_s
         "#{@host}:#{@port}/#{@idx}"
       end

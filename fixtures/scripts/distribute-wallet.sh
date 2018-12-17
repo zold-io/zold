@@ -4,7 +4,7 @@ function start_node {
   port=$(reserve_port)
   mkdir ${port}
   cd ${port}
-  zold node --trace --invoice=DISTRWALLET@ffffffffffffffff \
+  zold node --trace --invoice=DISTRWALLET@ffffffffffffffff --tolerate-edges \
     --host=127.0.0.1 --port=${port} --bind-port=${port} \
     --threads=0 --routine-immediately --never-reboot > log.txt 2>&1 &
   pid=$!
@@ -36,7 +36,7 @@ zold --public-key=id_rsa.pub create 0000000000000000
 zold pay --private-key=id_rsa 0000000000000000 NOPREFIX@aaaabbbbccccdddd 4.95 'For the book'
 zold remote clean
 zold remote add 127.0.0.1 ${first}
-zold push 0000000000000000
+zold push 0000000000000000 --tolerate-edges
 zold remote clean
 zold remote add 127.0.0.1 ${second}
 
@@ -45,7 +45,7 @@ zold remote add 127.0.0.1 ${second}
 # delay between them, in order to give the first node a chance to distribute
 # the wallet.
 i=0
-until zold fetch 0000000000000000 --ignore-score-weakness; do
+until zold fetch 0000000000000000 --ignore-score-weakness --tolerate-edges; do
   echo 'Failed to fetch, let us try again'
   ((i++)) || sleep 0
   if ((i==5)); then
@@ -73,7 +73,7 @@ fi
 # have the wallet very soon.
 rm -f ${second}/**/*.z
 i=0
-until zold fetch 0000000000000000 --ignore-score-weakness; do
+until zold fetch 0000000000000000 --ignore-score-weakness --tolerate-edges; do
   echo 'Failed to fetch, let us try again'
   ((i++)) || sleep 0
   if ((i==5)); then

@@ -58,6 +58,12 @@ Available options:"
         o.bool '--ignore-score-weakness',
           'Don\'t complain when their score is too weak',
           default: false
+        o.bool '--tolerate-edges',
+          'Don\'t fail if only "edge" (not default ones) nodes accepted the wallet',
+          default: false
+        o.bool '--quiet-if-missed',
+          'Don\'t fail if the wallet wasn\'t delivered to any remotes',
+          default: false
         o.array '--ignore-node',
           'Ignore this node and don\'t push to it',
           default: []
@@ -76,19 +82,26 @@ Available options:"
     private
 
     def push(id, opts)
-      total = 0
-      nodes = 0
-      done = 0
+      total = Concurrent::AtomicFixnum.new
+      nodes = Concurrent::AtomicFixnum.new
+      done = Concurrent::AtomicFixnum.new
+      defaults = Concurrent::AtomicFixnum.new
       start = Time.now
       @remotes.iterate(@log) do |r|
-        nodes += 1
-        total += push_one(id, r, opts)
-        done += 1
+        nodes.increment
+        total.increment(push_one(id, r, opts))
+        defaults.increment if r.default?
+        done.increment
       end
-      raise "There are no remote nodes, run 'zold remote reset'" if nodes.zero?
-      raise "No nodes out of #{nodes} accepted the wallet #{id}" if done.zero?
-      @log.info("Push finished to #{done} nodes out of #{nodes} in #{Age.new(start)}, \
-total score for #{id} is #{total}")
+      raise "There are no remote nodes, run 'zold remote reset'" if nodes.value.zero?
+      unless opts['quiet-if-missed']
+        raise "No nodes out of #{nodes} accepted the wallet #{id}" if done.value.zero?
+        if defaults.value.zero? && !opts['tolerate-edges']
+          raise "There are only edge nodes, run 'zold remote reset' or use --tolerate-edges"
+        end
+      end
+      @log.info("Push finished to #{done.value} nodes (#{defaults.value} defaults) \
+out of #{nodes.value} in #{Age.new(start)}, total score for #{id} is #{total.value}")
     end
 
     def push_one(id, r, opts)

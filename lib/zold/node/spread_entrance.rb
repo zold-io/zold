@@ -41,13 +41,15 @@ require_relative '../commands/clean'
 module Zold
   # The entrance
   class SpreadEntrance
-    def initialize(entrance, wallets, remotes, address, log: Log::NULL, ignore_score_weakeness: false)
+    def initialize(entrance, wallets, remotes, address, log: Log::NULL,
+      ignore_score_weakeness: false, tolerate_edges: false)
       @entrance = entrance
       @wallets = wallets
       @remotes = remotes
       @address = address
       @log = log
       @ignore_score_weakeness = ignore_score_weakeness
+      @tolerate_edges = tolerate_edges
       @mutex = Mutex.new
       @push = ThreadPool.new('spread-entrance')
     end
@@ -75,7 +77,8 @@ module Zold
               Thread.current.thread_variable_set(:wallet, id.to_s)
               Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
                 ['push', "--ignore-node=#{@address}", id.to_s] +
-                (@ignore_score_weakeness ? ['--ignore-score-weakness'] : [])
+                (@ignore_score_weakeness ? ['--ignore-score-weakness'] : []) +
+                (@tolerate_edges ? ['--tolerate-edges'] : [])
               )
             end
             @mutex.synchronize { @seen.delete(id) }

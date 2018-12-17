@@ -4,7 +4,7 @@ port=$(reserve_port)
 
 mkdir server
 cd server
-zold node --trace --invoice=PUSHNPULL@ffffffffffffffff \
+zold node --trace --invoice=PUSHNPULL@ffffffffffffffff --tolerate-edges \
   --host=127.0.0.1 --port=${port} --bind-port=${port} \
   --threads=0 --standalone 2>&1 &
 pid=$!
@@ -29,13 +29,13 @@ zold show 0000000000000000
 zold taxes debt 0000000000000000
 
 zold remote show
-zold push
-zold push 0000000000000000
-until zold fetch 0000000000000000 --ignore-score-weakness; do
+zold push --tolerate-edges
+zold push 0000000000000000 --tolerate-edges
+until zold fetch 0000000000000000 --ignore-score-weakness --tolerate-edges; do
   echo 'Failed to fetch, let us try again'
   sleep 1
 done
-zold fetch
+zold fetch --tolerate-edges
 zold diff 0000000000000000
 zold merge
 zold merge 0000000000000000

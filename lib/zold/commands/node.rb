@@ -97,6 +97,9 @@ module Zold
         o.bool '--ignore-score-weakness',
           'Ignore score weakness of incoming requests and register those nodes anyway',
           default: false
+        o.bool '--tolerate-edges',
+          'Don\'t fail if only "edge" (not default ones) nodes accepted/have the wallet',
+          default: false
         o.boolean '--nohup',
           'Run it in background, rebooting when a higher version is available in the network',
           default: false
@@ -242,7 +245,8 @@ module Zold
                 ),
                 wts, @remotes, address,
                 log: @log,
-                ignore_score_weakeness: opts['ignore-score-weakness']
+                ignore_score_weakeness: opts['ignore-score-weakness'],
+                tolerate_edges: opts['tolerate-edges']
               ),
               File.join(home, '.zoldata/async-entrance'),
               log: @log,
@@ -282,9 +286,10 @@ module Zold
       invoice = opts['invoice']
       unless invoice.include?('@')
         require_relative 'invoice'
-        invoice = Invoice.new(
-          wallets: @wallets, remotes: @remotes, copies: @copies, log: @log
-        ).run(['invoice', invoice, "--network=#{opts['network']}"])
+        invoice = Invoice.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
+          ['invoice', invoice, "--network=#{opts['network']}"] +
+          (opts['tolerate-edges'] ? ['--tolerate-edges'] : [])
+        )
       end
       invoice
     end

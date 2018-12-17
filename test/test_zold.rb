@@ -34,9 +34,10 @@ require_relative '../lib/zold/age'
 # License:: MIT
 class TestZold < Zold::Test
   Dir.new('fixtures/scripts').select { |f| f =~ /\.sh$/ && !f.start_with?('_') }.each do |f|
-    define_method("test_#{f.gsub(/\.sh$/, '').gsub(/[^a-z]/, '_')}") do
+    method = "test_#{f.gsub(/\.sh$/, '').gsub(/[^a-z]/, '_')}"
+    define_method(method) do
       start = Time.now
-      test_log.info("\n\n#{f} running...")
+      test_log.info("\n\n#{method} running (script at #{f})...")
       Dir.mktmpdir do |dir|
         FileUtils.cp('fixtures/id_rsa.pub', dir)
         FileUtils.cp('fixtures/id_rsa', dir)
