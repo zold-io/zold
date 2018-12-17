@@ -84,6 +84,7 @@ module Zold
     before do
       Thread.current.name = "#{request.request_method}:#{request.url}"
       Thread.current.thread_variable_set(:uri, request.url)
+      error(400, 'Can\'t detect your IP') if request.ip.nil? || request.ip.empty?
       Thread.current.thread_variable_set(:ip, request.ip)
       @start = Time.now
       if !settings.opts['halt-code'].empty? && params[:halt] && params[:halt] == settings.opts['halt-code']
