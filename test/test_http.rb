@@ -123,7 +123,7 @@ class TestHttp < Zold::Test
     RandomPort::Pool::SINGLETON.acquire do |port|
       thread = Thread.start do
         Zold::VerboseThread.new(test_log).run do
-          server = TCPServer.new("127.0.0.1", port)
+          server = TCPServer.new('127.0.0.1', port)
           socket = server.accept
           loop do
             line = socket.gets
