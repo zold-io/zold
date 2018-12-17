@@ -125,7 +125,7 @@ it was alive for #{Age.new(@start)}: #{@threads.map { |t| "#{t.name}/#{t.status}
           name: t.name,
           status: t.status,
           alive: t.alive?,
-          vars: t.thread_variables.map { |v| { v.to_s => t.thread_variable_get(v) } }
+          vars: Hash[t.thread_variables.map { |v| [v.to_s, t.thread_variable_get(v)] }]
         }
       end
     end

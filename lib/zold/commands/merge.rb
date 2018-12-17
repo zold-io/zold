@@ -92,6 +92,7 @@ Available options:"
           @log.debug("Local copy of #{id} is absent, nothing to merge")
         end
       end
+      raise "There are no copies of #{id}, nothing to merge" if patch.empty?
       modified = @wallets.acq(id, exclusive: true) { |w| patch.save(w.path, overwrite: true) }
       if modified
         @log.info("#{cps.count} copies with the total score of #{score} successfully merged \

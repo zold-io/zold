@@ -113,9 +113,13 @@ module Zold
       end
     end
 
+    def empty?
+      @id.nil?
+    end
+
     # Returns TRUE if the file was actually modified
     def save(file, overwrite: false)
-      raise 'You have to join at least one wallet in' if @id.nil?
+      raise 'You have to join at least one wallet in' if empty?
       before = ''
       before = IO.read(file) if File.exist?(file)
       wallet = Wallet.new(file)
