@@ -49,4 +49,20 @@ class TestPull < Zold::Test
       end
     end
   end
+
+  def test_fails_when_only_edge_nodes
+    FakeHome.new(log: test_log).run do |home|
+      remotes = home.remotes
+      remotes.add('localhost', 4096)
+      json = home.create_wallet_json
+      id = Zold::JsonPage.new(json).to_hash['id']
+      stub_request(:get, "http://localhost:4096/wallet/#{id}/size").to_return(status: 200, body: '10000')
+      stub_request(:get, "http://localhost:4096/wallet/#{id}").to_return(status: 200, body: json)
+      assert_raises Zold::Fetch::EdgesOnly do
+        Zold::Pull.new(wallets: home.wallets, remotes: remotes, copies: home.copies.root.to_s, log: test_log).run(
+          ['--ignore-this-stupid-option', 'pull', id.to_s]
+        )
+      end
+    end
+  end
 end
