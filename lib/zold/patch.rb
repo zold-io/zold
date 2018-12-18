@@ -72,17 +72,18 @@ module Zold
         if txn.amount.negative?
           dup = @txns.find { |t| t.id == txn.id && t.amount.negative? }
           if dup
-            @log.error("An attempt to overwrite \"#{dup.to_text}\" with \"#{txn.to_text}\" from #{wallet.mnemo}")
+            @log.error("An attempt to overwrite existing transaction \"#{dup.to_text}\" \
+with a new one \"#{txn.to_text}\" from #{wallet.mnemo}")
             next
           end
           balance = @txns.map(&:amount).map(&:to_i).inject(&:+).to_i
           if balance < txn.amount.to_i * -1 && !wallet.root?
-            @log.error("Transaction ##{txn.id} attempts to make the balance of \
-#{wallet.id}/#{Amount.new(zents: balance).to_zld}/#{@txns.size} negative: #{txn.to_text}")
+            @log.error("The transaction ##{txn.id} attempts to make the balance of \
+#{wallet.id}/#{Amount.new(zents: balance).to_zld}/#{@txns.size} negative: \"#{txn.to_text}\"")
             next
           end
           unless Signature.new(@network).valid?(@key, wallet.id, txn)
-            @log.error("Invalid RSA signature at transaction ##{txn.id} of #{wallet.id}: #{txn.to_text}")
+            @log.error("Invalid RSA signature at the transaction ##{txn.id} of #{wallet.id}: \"#{txn.to_text}\"")
             next
           end
         else
@@ -103,7 +104,7 @@ module Zold
             if block_given?
               yield(txn.bnf)
               unless @wallets.acq(txn.bnf, &:exists?)
-                @log.error("Paying wallet #{txn.bnf} file is absent even after PULL: #{txn.to_text}")
+                @log.error("Paying wallet #{txn.bnf} file is absent even after PULL: \"#{txn.to_text}\"")
                 next
               end
             else

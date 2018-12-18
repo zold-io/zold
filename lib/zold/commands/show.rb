@@ -77,6 +77,7 @@ Available options:"
       end
       @log.info(
         [
+          '',
           "The balance of #{wallet}: #{balance} (#{balance.to_i} zents)",
           "Network: #{wallet.network}",
           "Transactions: #{wallet.txns.count}",
@@ -85,6 +86,11 @@ Available options:"
           "Modified: #{wallet.mtime.utc.iso8601} (#{Age.new(wallet.mtime.utc.iso8601)} ago)",
           "Digest: #{wallet.digest}"
         ].join("\n")
+      )
+      @log.info(
+        "\n" + Copies.new(File.join(@copies, wallet.id)).all.map do |c|
+          "##{c[:name]}: #{c[:score]} #{Wallet.new(c[:path]).mnemo}"
+        end.join("\n")
       )
       balance
     end

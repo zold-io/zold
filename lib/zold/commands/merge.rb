@@ -113,7 +113,7 @@ into #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 0.1 + cps.count * 0
 
     def merge_one(opts, patch, wallet, name)
       start = Time.now
-      @log.debug("Building a patch for #{wallet.id} from remote copy #{name}...")
+      @log.debug("Building a patch for #{wallet.id} from remote copy ##{name} with #{wallet.mnemo}...")
       patch.join(wallet, !opts['no-baseline']) do |id|
         unless opts['shallow']
           Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
@@ -121,7 +121,7 @@ into #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 0.1 + cps.count * 0
           )
         end
       end
-      @log.debug("Copy #{name} of #{wallet.id} merged in #{Age.new(start)}: #{patch}")
+      @log.debug("Copy ##{name} of #{wallet.id} merged in #{Age.new(start)}: #{patch}")
     rescue StandardError => e
       @log.error("Can't merge copy #{name}: #{e.message}")
       @log.debug(Backtrace.new(e).to_s)
