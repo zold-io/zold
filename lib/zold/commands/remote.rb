@@ -167,7 +167,7 @@ Available options:"
           [
             "#{r[:host]}:#{r[:port]}#{score}",
             r[:errors].positive? ? " #{r[:errors]} errors" : '',
-            r[:master] ? ' master' : ''
+            r[:master] ? ' [master]' : ''
           ].join
         )
       end
