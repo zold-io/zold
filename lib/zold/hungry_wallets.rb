@@ -24,6 +24,7 @@ require 'delegate'
 require_relative 'log'
 require_relative 'thread_pool'
 require_relative 'commands/pull'
+require_relative 'commands/fetch'
 
 # Wallets that PULL what's missing, in the background.
 #
@@ -41,30 +42,44 @@ module Zold
       @log = log
       @network = network
       @pool = pool
-      @queue = Queue.new
+      @queue = []
+      @mutex = Mutex.new
       @pool.add do
-        Endless.new('hungry', log: log).run do
-          id = @queue.pop
-          Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-            ['pull', id.to_s, "--network=#{@network}"]
-          )
-        rescue Pull::EdgesOnly => e
-          @log.error("Can't hungry-pull #{id}: #{e.message}")
-        end
+        Endless.new('hungry', log: log).run { pull }
       end
       super(wallets)
     end
 
     def acq(id, exclusive: false)
       @wallets.acq(id, exclusive: exclusive) do |wallet|
-        unless wallet.exists?
-          if @queue.size > 256
-            @log.error("Hungry queue is full with #{@queue.size} wallets, can't add #{id}")
-          else
-            @queue << id
+        if @queue.size > 256
+          @log.error("Hungry queue is full with #{@queue.size} wallets, can't add #{id}")
+        else
+          @mutex.synchronize do
+            unless @queue.include?(id)
+              @queue << id
+              @log.debug("Hungry queue got #{id}, at the pos no.#{@queue.size}")
+            end
           end
         end
         yield wallet
+      end
+    end
+
+    private
+
+    def pull
+      id = @mutex.synchronize { @queue.pop }
+      if id.nil?
+        sleep 1
+        return
+      end
+      begin
+        Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
+          ['pull', id.to_s, "--network=#{@network}"]
+        )
+      rescue Fetch::EdgesOnly => e
+        @log.error("Can't hungry-pull #{id}: #{e.message}")
       end
     end
   end

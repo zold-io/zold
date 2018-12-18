@@ -96,7 +96,7 @@ module Zold
       start = Time.new
       begin
         @threads.each do |t|
-          t.join(0)
+          t.join(0.1)
         end
       ensure
         @threads.each do |t|
