@@ -28,6 +28,9 @@ require_relative '../log'
 require_relative '../id'
 require_relative '../amount'
 require_relative '../wallet'
+require_relative '../tax'
+require_relative '../size'
+require_relative '../age'
 
 # SHOW command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -72,9 +75,17 @@ Available options:"
       wallet.txns.each do |t|
         @log.info(t.to_text)
       end
-      msg = "The balance of #{wallet}: #{balance}"
-      msg += " (net:#{wallet.network})" if wallet.network != Wallet::MAINET
-      @log.info(msg)
+      @log.info(
+        [
+          "The balance of #{wallet}: #{balance} (#{balance.to_i} zents)",
+          "Network: #{wallet.network}",
+          "Transactions: #{wallet.txns.count}",
+          "Taxes: #{Tax.new(wallet).paid} paid, the debt is #{Tax.new(wallet).debt}",
+          "File size: #{Size.new(wallet.size)}, #{Copies.new(File.join(@copies, wallet.id)).all.count} copies",
+          "Modified: #{wallet.mtime.utc.iso8601} (#{Age.new(wallet.mtime.utc.iso8601)} ago)",
+          "Digest: #{wallet.digest}"
+        ].join("\n")
+      )
       balance
     end
   end
