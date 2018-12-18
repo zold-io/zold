@@ -71,8 +71,11 @@ class TestThreadPool < Zold::Test
 
   def test_runs_with_exceptions
     assert_raises do
-      Zold::ThreadPool.new('test', log: test_log).run(1) do
-        raise 'intended'
+      Zold::ThreadPool.new('test', log: test_log).run(5) do |i|
+        if i == 4
+          sleep 0.1
+          raise 'intended'
+        end
       end
     end
   end

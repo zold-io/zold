@@ -99,6 +99,7 @@ Available options:"
     private
 
     def fetch(id, cps, opts)
+      raise "There are no remote nodes, run 'zold remote reset'" if @remotes.all.empty?
       start = Time.now
       total = Concurrent::AtomicFixnum.new
       nodes = Concurrent::AtomicFixnum.new
@@ -110,14 +111,14 @@ Available options:"
         masters.increment if r.master?
         done.increment
       end
-      raise "There are no remote nodes, run 'zold remote reset'" if nodes.value.zero?
       unless opts['quiet-if-absent']
         raise "No nodes out of #{nodes.value} have the wallet #{id}" if done.value.zero?
         if masters.value.zero? && !opts['tolerate-edges']
-          raise EdgesOnly, "There are only edge nodes, run 'zold remote reset' or use --tolerate-edges"
+          raise EdgesOnly, "There are only edge nodes, run 'zold remote update' or use --tolerate-edges"
         end
         if nodes.value < opts['tolerate-quorum']
-          raise NoQuorum, "There were not enough nodes, run 'zold remote reset' or use --tolerate-quorum=1"
+          raise NoQuorum, "There were not enough nodes, the required quorum is #{opts['tolerate-quorum']}; \
+run 'zold remote update' or use --tolerate-quorum=1"
         end
       end
       @log.info("#{done.value} copies of #{id} fetched in #{Age.new(start)} with the total score of \

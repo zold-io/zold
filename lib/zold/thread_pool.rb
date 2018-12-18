@@ -94,18 +94,23 @@ module Zold
       @log.debug("Stopping \"#{@title}\" thread pool with #{@threads.count} threads: \
 #{@threads.map { |t| "#{t.name}/#{t.status}" }.join(', ')}...")
       start = Time.new
-      @threads.each do |t|
-        (t.thread_variable_get(:kids) || []).each(&:kill)
-        t.kill
-        raise "Failed to join the thread \"#{t.name}\" in \"#{@title}\" pool" unless t.join(0.1)
-        Thread.current.thread_variable_set(
-          :kids,
-          (Thread.current.thread_variable_get(:kids) || []) - [t]
-        )
-      end
-      @log.debug("Thread pool \"#{@title}\" terminated all threads in #{Age.new(start)}, \
+      begin
+        @threads.each do |t|
+          t.join(0)
+        end
+      ensure
+        @threads.each do |t|
+          (t.thread_variable_get(:kids) || []).each(&:kill)
+          t.kill
+          Thread.current.thread_variable_set(
+            :kids,
+            (Thread.current.thread_variable_get(:kids) || []) - [t]
+          )
+        end
+        @log.debug("Thread pool \"#{@title}\" terminated all threads in #{Age.new(start)}, \
 it was alive for #{Age.new(@start)}: #{@threads.map { |t| "#{t.name}/#{t.status}" }.join(', ')}")
-      @threads.clear
+        @threads.clear
+      end
     end
 
     # How many threads are in there

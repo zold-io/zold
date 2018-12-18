@@ -107,7 +107,7 @@ Available options:"
           default: false
         o.integer '--depth',
           'The amount of update cycles to run, in order to fetch as many nodes as possible (default: 2)',
-          default: 2
+          default: 3
         o.string '--network',
           "The name of the network we work in (default: #{Wallet::MAINET}",
           required: true,

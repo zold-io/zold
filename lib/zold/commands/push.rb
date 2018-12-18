@@ -91,25 +91,26 @@ Available options:"
     private
 
     def push(id, opts)
+      raise "There are no remote nodes, run 'zold remote reset'" if @remotes.all.empty?
+      start = Time.now
       total = Concurrent::AtomicFixnum.new
       nodes = Concurrent::AtomicFixnum.new
       done = Concurrent::AtomicFixnum.new
       masters = Concurrent::AtomicFixnum.new
-      start = Time.now
       @remotes.iterate(@log) do |r|
         nodes.increment
         total.increment(push_one(id, r, opts))
         masters.increment if r.master?
         done.increment
       end
-      raise "There are no remote nodes, run 'zold remote reset'" if nodes.value.zero?
       unless opts['quiet-if-missed']
         raise "No nodes out of #{nodes} accepted the wallet #{id}" if done.value.zero?
         if masters.value.zero? && !opts['tolerate-edges']
-          raise EdgesOnly, "There are only edge nodes, run 'zold remote reset' or use --tolerate-edges"
+          raise EdgesOnly, "There are only edge nodes, run 'zold remote update' or use --tolerate-edges"
         end
         if nodes.value < opts['tolerate-quorum']
-          raise NoQuorum, "There were not enough nodes, run 'zold remote reset' or use --tolerate-quorum=1"
+          raise NoQuorum, "There were not enough nodes, the required quorum is #{opts['tolerate-quorum']}; \
+run 'zold remote update' or use --tolerate-quorum=1"
         end
       end
       @log.info("Push finished to #{done.value} nodes (#{masters.value} master nodes) \
