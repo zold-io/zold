@@ -48,6 +48,8 @@ module Zold
           Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
             ['pull', id.to_s, "--network=#{@network}"]
           )
+        rescue Pull::EdgesOnly => e
+          @log.error("Can't hungry-pull #{id}: #{e.message}")
         end
       end
       super(wallets)
