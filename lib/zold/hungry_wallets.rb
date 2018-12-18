@@ -57,7 +57,13 @@ module Zold
 
     def acq(id, exclusive: false)
       @wallets.acq(id, exclusive: exclusive) do |wallet|
-        @queue << id unless wallet.exists?
+        unless wallet.exists?
+          if @queue.size > 256
+            @log.error("Hungry queue is full with #{@queue.size} wallets, can't add #{id}")
+          else
+            @queue << id
+          end
+        end
         yield wallet
       end
     end
