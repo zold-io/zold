@@ -15,6 +15,8 @@ Layout/MultilineMethodCallIndentation:
   Enabled: false
 Metrics/AbcSize:
   Enabled: false
+Metrics/BlockNesting:
+  Max: 4
 Metrics/BlockLength:
   Max: 120
 Metrics/ClassLength:
@@ -26,7 +28,7 @@ Metrics/ParameterLists:
 Layout/AlignParameters:
   Enabled: false
 Metrics/PerceivedComplexity:
-  Max: 25
+  Max: 28
 Metrics/LineLength:
   Max: 120
 Style/MultilineBlockChain:

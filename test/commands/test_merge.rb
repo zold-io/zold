@@ -54,7 +54,7 @@ class TestMerge < Zold::Test
       copies = home.copies(wallet)
       copies.add(IO.read(first.path), 'host-1', 80, 5)
       copies.add(IO.read(second.path), 'host-2', 80, 5)
-      modified = Zold::Merge.new(wallets: home.wallets, copies: copies.root, log: test_log).run(
+      modified = Zold::Merge.new(wallets: home.wallets, remotes: home.remotes, copies: copies.root, log: test_log).run(
         ['merge', wallet.id.to_s]
       )
       assert(1, modified.count)
@@ -75,7 +75,7 @@ class TestMerge < Zold::Test
       copies = home.copies(wallet)
       copies.add(IO.read(first.path), 'host-1', 80, 5)
       copies.add(IO.read(second.path), 'host-2', 80, 5)
-      modified = Zold::Merge.new(wallets: home.wallets, copies: copies.root, log: test_log).run(
+      modified = Zold::Merge.new(wallets: home.wallets, remotes: home.remotes, copies: copies.root, log: test_log).run(
         ['merge', wallet.id.to_s]
       )
       assert(1, modified.count)
@@ -89,7 +89,7 @@ class TestMerge < Zold::Test
       copies = home.copies(wallet)
       copies.add(IO.read(wallet.path), 'good-host', 80, 5)
       copies.add('some garbage', 'bad-host', 80, 5)
-      modified = Zold::Merge.new(wallets: home.wallets, copies: copies.root, log: test_log).run(
+      modified = Zold::Merge.new(wallets: home.wallets, remotes: home.remotes, copies: copies.root, log: test_log).run(
         ['merge', wallet.id.to_s]
       )
       assert(modified.empty?)
@@ -103,7 +103,7 @@ class TestMerge < Zold::Test
       copies.add(IO.read(wallet.path), 'good-host', 80, 5)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       wallet.sub(Zold::Amount.new(zld: 9.99), "NOPREFIX@#{Zold::Id.new}", key)
-      Zold::Merge.new(wallets: home.wallets, copies: copies.root, log: test_log).run(
+      Zold::Merge.new(wallets: home.wallets, remotes: home.remotes, copies: copies.root, log: test_log).run(
         ['merge', wallet.id.to_s]
       )
       assert(!wallet.balance.zero?)
@@ -118,7 +118,7 @@ class TestMerge < Zold::Test
       remote.add(Zold::Txn.new(1, Time.now, Zold::Amount.new(zld: 11.0), 'NOPREFIX', Zold::Id.new, 'fake'))
       copies = home.copies(main)
       copies.add(IO.read(remote.path), 'fake-host', 80, 0)
-      Zold::Merge.new(wallets: home.wallets, copies: copies.root, log: test_log).run(
+      Zold::Merge.new(wallets: home.wallets, remotes: home.remotes, copies: copies.root, log: test_log).run(
         ['merge', main.id.to_s, '--no-baseline']
       )
       assert_equal(Zold::Amount::ZERO, main.balance)
@@ -130,7 +130,7 @@ class TestMerge < Zold::Test
       wallet = home.create_wallet
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       wallet.sub(Zold::Amount.new(zld: 9.99), "NOPREFIX@#{Zold::Id.new}", key)
-      Zold::Merge.new(wallets: home.wallets, copies: home.copies.root, log: test_log).run(
+      Zold::Merge.new(wallets: home.wallets, remotes: home.remotes, copies: home.copies.root, log: test_log).run(
         ['merge', wallet.id.to_s, '--no-baseline']
       )
       assert_equal(Zold::Amount::ZERO, wallet.balance)
@@ -147,7 +147,8 @@ class TestMerge < Zold::Test
         FileUtils.cp('fixtures/merge/asserts.rb', dir)
         wallets = Zold::Wallets.new(dir)
         copies = File.join(dir, 'copies')
-        Zold::Merge.new(wallets: wallets, copies: copies, log: test_log).run(
+        remotes = Zold::Remotes.new(file: File.join(dir, 'remotes'))
+        Zold::Merge.new(wallets: wallets, remotes: remotes, copies: copies, log: test_log).run(
           %w[merge 0123456789abcdef]
         )
         Dir.chdir(dir) do

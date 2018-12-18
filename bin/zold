@@ -222,7 +222,7 @@ cmd = lambda do
       Zold::Diff.new(wallets: wallets, copies: copies, log: log).run(args)
     when 'merge'
       require_relative '../lib/zold/commands/merge'
-      Zold::Merge.new(wallets: wallets, copies: copies, log: log).run(args)
+      Zold::Merge.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)
     when 'propagate'
       require_relative '../lib/zold/commands/propagate'
       Zold::Propagate.new(wallets: wallets, log: log).run(args)

@@ -45,7 +45,7 @@ module Zold
     def run(args = [])
       Zold::Clean.new(wallets: @wallets, copies: @copies, log: @log).run(args)
       Zold::Fetch.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(args)
-      Zold::Merge.new(wallets: @wallets, copies: @copies, log: @log).run(args)
+      Zold::Merge.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(args)
     end
   end
 end

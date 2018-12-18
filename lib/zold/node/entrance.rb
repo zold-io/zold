@@ -78,7 +78,7 @@ module Zold
         ).run(['fetch', id.to_s, "--ignore-node=#{@address}", "--network=#{@network}", '--quiet-if-absent'])
       end
       modified = Merge.new(
-        wallets: @wallets, copies: copies.root, log: @log
+        wallets: @wallets, remotes: @remotes, copies: copies.root, log: @log
       ).run(['merge', id.to_s, '--no-baseline'])
       Clean.new(wallets: @wallets, copies: copies.root, log: @log).run(['clean', id.to_s])
       copies.remove(localhost, Remotes::PORT)

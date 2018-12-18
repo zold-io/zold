@@ -25,6 +25,7 @@ require 'rainbow'
 require 'backtrace'
 require_relative 'thread_badge'
 require_relative 'args'
+require_relative 'pull'
 require_relative '../age'
 require_relative '../log'
 require_relative '../id'
@@ -40,8 +41,9 @@ module Zold
   class Merge
     prepend ThreadBadge
 
-    def initialize(wallets:, copies:, log: Log::NULL)
+    def initialize(wallets:, remotes:, copies:, log: Log::NULL)
       @wallets = wallets
+      @remotes = remotes
       @copies = copies
       @log = log
     end
@@ -57,6 +59,12 @@ Available options:"
         o.bool '--skip-propagate',
           'Don\'t propagate after merge',
           default: false
+        o.bool '--shallow',
+          'Don\'t try to pull other wallets if their confirmations are required',
+          default: false
+        o.string '--network',
+          'The name of the network we work in',
+          default: 'test'
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
@@ -106,7 +114,13 @@ into #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 0.1 + cps.count * 0
     def merge_one(opts, patch, wallet, name)
       start = Time.now
       @log.debug("Building a patch for #{wallet.id} from remote copy #{name}...")
-      patch.join(wallet, !opts['no-baseline'])
+      patch.join(wallet, !opts['no-baseline']) do |id|
+        unless opts['shallow']
+          Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
+            ['pull', id.to_s, "--network=#{opts['network']}", '--shallow']
+          )
+        end
+      end
       @log.debug("Copy #{name} of #{wallet.id} merged in #{Age.new(start)}: #{patch}")
     rescue StandardError => e
       @log.error("Can't merge copy #{name}: #{e.message}")

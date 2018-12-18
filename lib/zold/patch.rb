@@ -100,8 +100,16 @@ module Zold
             next
           end
           unless @wallets.acq(txn.bnf, &:exists?)
-            @log.error("Paying wallet file is absent: #{txn.to_text}")
-            next
+            if block_given?
+              yield(txn.bnf)
+              unless @wallets.acq(txn.bnf, &:exists?)
+                @log.error("Paying wallet #{txn.bnf} file is absent even after PULL: #{txn.to_text}")
+                next
+              end
+            else
+              @log.error("Paying wallet #{txn.bnf} file is absent and it's a \"shallow\" MERGE: #{txn.to_text}")
+              next
+            end
           end
           unless @wallets.acq(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
             @log.error("The beneficiary #{@wallets.acq(txn.bnf, &:mnemo)} of #{@id} \

@@ -163,7 +163,13 @@ Available options:"
     def show
       @remotes.all.each do |r|
         score = Rainbow("/#{r[:score]}").color(r[:score].positive? ? :green : :red)
-        @log.info("#{r[:host]}:#{r[:port]}#{score} #{r[:errors]} errors#{r[:default] ? ' default' : ''}")
+        @log.info(
+          [
+            "#{r[:host]}:#{r[:port]}#{score}",
+            r[:errors].positive? ? " #{r[:errors]} errors" : '',
+            r[:master] ? ' master' : ''
+          ].join
+        )
       end
     end
 
