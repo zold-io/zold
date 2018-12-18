@@ -34,8 +34,14 @@ class TestJsonPage < Zold::Test
   end
 
   def test_parses_broken_json_page
-    assert_raises do
+    assert_raises Zold::JsonPage::CantParse do
       Zold::JsonPage.new('not json').to_hash
+    end
+  end
+
+  def test_parses_empty_page
+    assert_raises Zold::JsonPage::CantParse do
+      Zold::JsonPage.new('').to_hash
     end
   end
 end

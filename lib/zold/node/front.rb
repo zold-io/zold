@@ -210,7 +210,8 @@ from #{request.ip} in #{Age.new(@start, limit: 1)}")
         end,
         memory: settings.zache.get(:memory, lifetime: 5 * 60) do
           mem = GetProcessMem.new.bytes.to_i
-          if mem > settings.opts['oom-limit'] * 1024 * 1024 && !settings.opts['skip-oom']
+          if mem > settings.opts['oom-limit'] * 1024 * 1024 &&
+            !settings.opts['skip-oom'] && !settings.opts['never-reboot']
             settings.log.error("We are too big in memory (#{Size.new(mem)}), quitting; use --skip-oom to never quit")
             Front.stop!
           end
@@ -459,7 +460,7 @@ time to stop; use --skip-oom to never quit")
     end
 
     def total_wallets
-      settings.zache.get(:wallets, lifetime: settings.opts['no-cache'] ? 0 : 60) do
+      settings.zache.get(:wallets, lifetime: settings.opts['no-cache'] ? 0 : 10 * 60) do
         settings.wallets.count
       end
     end

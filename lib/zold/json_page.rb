@@ -29,6 +29,9 @@ require 'json'
 module Zold
   # JSON page
   class JsonPage
+    # When can't parse the JSON page.
+    class CantParse < StandardError; end
+
     def initialize(text, uri = '')
       raise 'JSON text can\'t be nil' if text.nil?
       raise 'JSON must be of type String' unless text.is_a?(String)
@@ -37,11 +40,16 @@ module Zold
     end
 
     def to_hash
-      raise 'JSON is empty, can\'t parse' + (@uri.empty? ? '' : " at #{@uri}") if @text.empty?
+      raise CantParse, 'JSON is empty, can\'t parse' + (@uri.empty? ? '' : " at #{@uri}") if @text.empty?
       JSON.parse(@text)
     rescue JSON::ParserError => e
-      raise "Failed to parse JSON #{@uri.empty? ? '' : "at #{@uri}"} (#{e.message}): \
-#{@text.inspect.gsub(/^.{200,}$/, '\1...')}"
+      raise CantParse, "Failed to parse JSON #{@uri.empty? ? '' : "at #{@uri}"} (#{short(e.message)}): #{short(@text)}"
+    end
+
+    private
+
+    def short(txt)
+      txt.gsub(/^.{128,}$/, '\1...').inspect
     end
   end
 end
