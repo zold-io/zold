@@ -43,7 +43,7 @@ class TestPush < Zold::Test
       remotes.add('localhost', 80)
       stub_request(:put, "http://localhost:80/wallet/#{wallet.id}").to_return(status: 304)
       Zold::Push.new(wallets: home.wallets, remotes: remotes, log: test_log).run(
-        ['--ignore-this-stupid-option', 'push', wallet.id.to_s, '--tolerate-edges']
+        ['--ignore-this-stupid-option', 'push', wallet.id.to_s, '--tolerate-edges', '--tolerate-quorum=1']
       )
     end
   end
@@ -58,7 +58,7 @@ class TestPush < Zold::Test
       stub_request(:put, "http://localhost:80/wallet/#{wallet_a.id}").to_return(status: 304)
       stub_request(:put, "http://localhost:80/wallet/#{wallet_b.id}").to_return(status: 304)
       Zold::Push.new(wallets: home.wallets, remotes: remotes, log: log).run(
-        ['--tolerate-edges', '--threads=2', 'push', wallet_a.id.to_s, wallet_b.id.to_s]
+        ['--tolerate-edges', '--tolerate-quorum=1', '--threads=2', 'push', wallet_a.id.to_s, wallet_b.id.to_s]
       )
     end
   end
@@ -72,6 +72,20 @@ class TestPush < Zold::Test
       assert_raises Zold::Push::EdgesOnly do
         Zold::Push.new(wallets: home.wallets, remotes: remotes, log: test_log).run(
           ['push', wallet.id.to_s]
+        )
+      end
+    end
+  end
+
+  def test_fails_when_only_one_node
+    FakeHome.new(log: test_log).run do |home|
+      wallet = home.create_wallet
+      remotes = home.remotes
+      remotes.add('localhost', 80)
+      stub_request(:put, "http://localhost:80/wallet/#{wallet.id}").to_return(status: 304)
+      assert_raises Zold::Push::NoQuorum do
+        Zold::Push.new(wallets: home.wallets, remotes: remotes, log: test_log).run(
+          ['push', wallet.id.to_s, '--tolerate-edges']
         )
       end
     end

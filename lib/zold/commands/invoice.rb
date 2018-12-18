@@ -54,6 +54,9 @@ Available options:"
         o.bool '--tolerate-edges',
           'Don\'t fail if only "edge" (not "master" ones) nodes have the wallet',
           default: false
+        o.integer '--tolerate-quorum',
+          'The minimum number of nodes required for a successful fetch (default: 4)',
+          default: 4
         o.string '--network',
           'The name of the network we work in',
           default: 'test'
@@ -70,7 +73,7 @@ Available options:"
       unless @wallets.acq(id, &:exists?)
         require_relative 'pull'
         Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-          ['pull', id.to_s, "--network=#{opts['network']}"] +
+          ['pull', id.to_s, "--network=#{opts['network']}", "--tolerate-quorum=#{opts['tolerate-quorum']}"] +
           (opts['tolerate-edges'] ? ['--tolerate-edges'] : [])
         )
       end

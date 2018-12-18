@@ -76,7 +76,7 @@ module Zold
             else
               Thread.current.thread_variable_set(:wallet, id.to_s)
               Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-                ['push', "--ignore-node=#{@address}", id.to_s] +
+                ['push', "--ignore-node=#{@address}", id.to_s, '--tolerate-quorum=1'] +
                 (@ignore_score_weakeness ? ['--ignore-score-weakness'] : []) +
                 (@tolerate_edges ? ['--tolerate-edges'] : [])
               )

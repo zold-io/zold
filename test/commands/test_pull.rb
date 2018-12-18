@@ -42,7 +42,7 @@ class TestPull < Zold::Test
       stub_request(:get, "http://localhost:4096/wallet/#{id}/size").to_return(status: 200, body: '10000')
       stub_request(:get, "http://localhost:4096/wallet/#{id}").to_return(status: 200, body: json)
       Zold::Pull.new(wallets: home.wallets, remotes: remotes, copies: home.copies.root.to_s, log: test_log).run(
-        ['--ignore-this-stupid-option', 'pull', id.to_s, '--tolerate-edges']
+        ['--ignore-this-stupid-option', 'pull', id.to_s, '--tolerate-edges', '--tolerate-quorum=1']
       )
       home.wallets.acq(Zold::Id.new(id)) do |wallet|
         assert(wallet.exists?)

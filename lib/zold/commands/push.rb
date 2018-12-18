@@ -48,6 +48,9 @@ module Zold
     # Raises when there are only edge nodes and not a single master one.
     class EdgesOnly < StandardError; end
 
+    # Raises when there are not enough successful nodes.
+    class NoQuorum < StandardError; end
+
     def initialize(wallets:, remotes:, log: Log::NULL)
       @wallets = wallets
       @remotes = remotes
@@ -64,6 +67,9 @@ Available options:"
         o.bool '--tolerate-edges',
           'Don\'t fail if only "edge" (not "master" ones) nodes accepted the wallet',
           default: false
+        o.integer '--tolerate-quorum',
+          'The minimum number of nodes required for a successful fetch (default: 4)',
+          default: 4
         o.bool '--quiet-if-missed',
           'Don\'t fail if the wallet wasn\'t delivered to any remotes',
           default: false
@@ -101,6 +107,9 @@ Available options:"
         raise "No nodes out of #{nodes} accepted the wallet #{id}" if done.value.zero?
         if masters.value.zero? && !opts['tolerate-edges']
           raise EdgesOnly, "There are only edge nodes, run 'zold remote reset' or use --tolerate-edges"
+        end
+        if nodes.value < opts['tolerate-quorum']
+          raise NoQuorum, "There were not enough nodes, run 'zold remote reset' or use --tolerate-quorum=1"
         end
       end
       @log.info("Push finished to #{done.value} nodes (#{masters.value} master nodes) \

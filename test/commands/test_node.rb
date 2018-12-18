@@ -47,7 +47,7 @@ class TestNode < Zold::Test
         remotes = home.remotes
         remotes.add('localhost', port)
         Zold::Push.new(wallets: wallets, remotes: remotes, log: test_log).run(
-          ['push', '--ignore-score-weakness', '--tolerate-edges']
+          ['push', '--ignore-score-weakness', '--tolerate-edges', '--tolerate-quorum=1']
         )
         copies = home.copies(wallet)
         begin
@@ -55,7 +55,7 @@ class TestNode < Zold::Test
           Zold::Fetch.new(
             wallets: wallets, copies: copies.root,
             remotes: remotes, log: test_log
-          ).run(['fetch', '--ignore-score-weakness', '--tolerate-edges'])
+          ).run(['fetch', '--ignore-score-weakness', '--tolerate-edges', '--tolerate-quorum=1'])
         rescue StandardError => _
           sleep 1
           retry if (retries += 1) < 3

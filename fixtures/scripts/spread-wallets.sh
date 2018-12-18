@@ -5,7 +5,7 @@ function start_node {
   mkdir ${port}
   cd ${port}
   zold remote clean
-  zold node --trace --invoice=SPREADWALLETS@ffffffffffffffff --tolerate-edges \
+  zold node --trace --invoice=SPREADWALLETS@ffffffffffffffff --tolerate-edges --tolerate-quorum=1 \
     --host=127.0.0.1 --port=${port} --bind-port=${port} \
     --threads=0 > log.txt 2>&1 &
   pid=$!
@@ -26,12 +26,12 @@ zold --public-key=id_rsa.pub create 0000000000000000
 zold pay --private-key=id_rsa 0000000000000000 NOPREFIX@aaaabbbbccccdddd 4.95 'To help you, dude!'
 zold remote clean
 zold remote add 127.0.0.1 ${first}
-zold push 0000000000000000 --tolerate-edges
+zold push 0000000000000000 --tolerate-edges --tolerate-quorum=1
 zold remote clean
 zold remote add 127.0.0.1 ${second}
 
 i=0
-until zold fetch 0000000000000000 --ignore-score-weakness --tolerate-edges; do
+until zold fetch 0000000000000000 --ignore-score-weakness --tolerate-edges --tolerate-quorum=1; do
   echo 'Failed to fetch, let us try again'
   ((i++)) || sleep 0
   if ((i==5)); then
