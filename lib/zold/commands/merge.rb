@@ -59,6 +59,9 @@ Available options:"
         o.bool '--skip-propagate',
           'Don\'t propagate after merge',
           default: false
+        o.bool '--skip-legacy',
+          'Don\'t make legacy transactions (older than 24 hours) immutable',
+          default: false
         o.bool '--shallow',
           'Don\'t try to pull other wallets if their confirmations are required',
           default: false
@@ -86,6 +89,15 @@ Available options:"
       cps = cps.all.sort_by { |c| c[:score] }.reverse
       patch = Patch.new(@wallets, log: @log)
       score = 0
+      unless opts['skip-legacy']
+        @wallets.acq(id) do |w|
+          if w.exists?
+            s = Time.now
+            merge_one(opts, patch, w, 'localhost', legacy: true)
+            @log.debug("Local legacy copy of #{id} merged in #{Age.new(s)}: #{patch}")
+          end
+        end
+      end
       cps.each_with_index do |c, idx|
         wallet = Wallet.new(c[:path])
         name = "#{c[:name]}/#{idx}/#{c[:score]}"
@@ -94,8 +106,9 @@ Available options:"
       end
       @wallets.acq(id) do |w|
         if w.exists?
+          s = Time.now
           merge_one(opts, patch, w, 'localhost')
-          @log.debug("Local copy of #{id} merged in #{Age.new(start)}: #{patch}")
+          @log.debug("Local copy of #{id} merged in #{Age.new(s)}: #{patch}")
         else
           @log.debug("Local copy of #{id} is absent, nothing to merge")
         end
@@ -111,10 +124,10 @@ into #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 0.1 + cps.count * 0
       modified
     end
 
-    def merge_one(opts, patch, wallet, name)
+    def merge_one(opts, patch, wallet, name, legacy: false)
       start = Time.now
       @log.debug("Building a patch for #{wallet.id} from remote copy ##{name} with #{wallet.mnemo}...")
-      patch.join(wallet, !opts['no-baseline']) do |id|
+      patch.join(wallet, baseline: !opts['no-baseline'], legacy: legacy) do |id|
         unless opts['shallow']
           Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
             ['pull', id.to_s, "--network=#{opts['network']}", '--shallow']

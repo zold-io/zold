@@ -8,7 +8,7 @@ AllCops:
 Layout/EmptyLineAfterGuardClause:
   Enabled: false
 Metrics/CyclomaticComplexity:
-  Max: 25
+  Max: 30
 Metrics/MethodLength:
   Enabled: false
 Layout/MultilineMethodCallIndentation:
@@ -28,7 +28,7 @@ Metrics/ParameterLists:
 Layout/AlignParameters:
   Enabled: false
 Metrics/PerceivedComplexity:
-  Max: 28
+  Max: 30
 Metrics/LineLength:
   Max: 120
 Style/MultilineBlockChain:

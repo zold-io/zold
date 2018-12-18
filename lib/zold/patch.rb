@@ -43,7 +43,7 @@ module Zold
       "#{@txns.count} txns"
     end
 
-    def join(wallet, baseline = true)
+    def join(wallet, baseline: true, legacy: false)
       if @id.nil?
         @id = wallet.id
         @key = wallet.key
@@ -68,6 +68,7 @@ module Zold
         return
       end
       wallet.txns.each do |txn|
+        next if legacy && (txn.amount.positive? || txn.date > Time.now - 24 * 60 * 60)
         next if @txns.find { |t| t == txn }
         if txn.amount.negative?
           dup = @txns.find { |t| t.id == txn.id && t.amount.negative? }
