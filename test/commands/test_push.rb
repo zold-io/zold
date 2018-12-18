@@ -62,4 +62,18 @@ class TestPush < Zold::Test
       )
     end
   end
+
+  def test_fails_when_only_edge_nodes
+    FakeHome.new(log: test_log).run do |home|
+      wallet = home.create_wallet
+      remotes = home.remotes
+      remotes.add('localhost', 80)
+      stub_request(:put, "http://localhost:80/wallet/#{wallet.id}").to_return(status: 304)
+      assert_raises Zold::Push::EdgesOnly do
+        Zold::Push.new(wallets: home.wallets, remotes: remotes, log: test_log).run(
+          ['push', wallet.id.to_s]
+        )
+      end
+    end
+  end
 end

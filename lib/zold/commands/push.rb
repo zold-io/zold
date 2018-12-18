@@ -45,6 +45,9 @@ module Zold
   class Push
     prepend ThreadBadge
 
+    # Raises when there are only edge nodes and not a single master one.
+    class EdgesOnly < StandardError; end
+
     def initialize(wallets:, remotes:, log: Log::NULL)
       @wallets = wallets
       @remotes = remotes
@@ -97,7 +100,7 @@ Available options:"
       unless opts['quiet-if-missed']
         raise "No nodes out of #{nodes} accepted the wallet #{id}" if done.value.zero?
         if masters.value.zero? && !opts['tolerate-edges']
-          raise "There are only edge nodes, run 'zold remote reset' or use --tolerate-edges"
+          raise EdgesOnly, "There are only edge nodes, run 'zold remote reset' or use --tolerate-edges"
         end
       end
       @log.info("Push finished to #{done.value} nodes (#{masters.value} master nodes) \
