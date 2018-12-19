@@ -37,9 +37,10 @@ module Zold
   class Pay
     prepend ThreadBadge
 
-    def initialize(wallets:, remotes:, log: Log::NULL)
+    def initialize(wallets:, remotes:, copies:, log: Log::NULL)
       @wallets = wallets
       @remotes = remotes
+      @copies = copies
       @log = log
     end
 
@@ -59,6 +60,12 @@ Available options:"
         o.bool '--force',
           'Ignore all validations',
           default: false
+        o.bool '--tolerate-edges',
+          'Don\'t fail if only "edge" (not "master" ones) nodes have the wallet',
+          default: false
+        o.integer '--tolerate-quorum',
+          'The minimum number of nodes required for a successful fetch (default: 4)',
+          default: 4
         o.bool '--dont-pay-taxes',
           'Don\'t pay taxes even if the wallet is in debt',
           default: false
@@ -74,9 +81,10 @@ Available options:"
       invoice = mine[1]
       unless invoice.include?('@')
         require_relative 'invoice'
-        invoice = Invoice.new(
-          wallets: @wallets, remotes: @remotes, copies: @copies, log: @log
-        ).run(['invoice', invoice])
+        invoice = Invoice.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
+          ['invoice', invoice, "--tolerate-quorum=#{opts['tolerate-quorum']}"] +
+          (opts['tolerate-edges'] ? ['--tolerate-edges'] : [])
+        )
       end
       raise 'Amount is required (in ZLD) as the third argument' if mine[2].nil?
       amount = Amount.new(zld: mine[2].to_f)

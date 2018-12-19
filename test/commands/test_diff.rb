@@ -46,7 +46,7 @@ class TestDiff < Zold::Test
       IO.write(first.path, IO.read(wallet.path))
       second = home.create_wallet
       IO.write(second.path, IO.read(wallet.path))
-      Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: test_log).run(
+      Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: test_log).run(
         ['pay', wallet.id.to_s, "NOPREFIX@#{Zold::Id.new}", '14.95', '--force', '--private-key=fixtures/id_rsa']
       )
       copies = home.copies(wallet)

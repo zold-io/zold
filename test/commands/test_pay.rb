@@ -21,10 +21,12 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
+require 'webmock/minitest'
 require 'threads'
 require_relative '../test__helper'
 require_relative '../fake_home'
 require_relative '../../lib/zold/wallets'
+require_relative '../../lib/zold/json_page'
 require_relative '../../lib/zold/amount'
 require_relative '../../lib/zold/key'
 require_relative '../../lib/zold/id'
@@ -40,10 +42,31 @@ class TestPay < Zold::Test
       source = home.create_wallet
       target = home.create_wallet
       amount = Zold::Amount.new(zld: 14.95)
-      Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: test_log).run(
+      Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: test_log).run(
         [
           'pay', '--force', '--private-key=fixtures/id_rsa',
           source.id.to_s, target.id.to_s, amount.to_zld, 'For the car'
+        ]
+      )
+      assert_equal(amount * -1, source.balance)
+    end
+  end
+
+  def test_pay_without_invoice
+    FakeHome.new(log: test_log).run do |home|
+      remotes = home.remotes
+      remotes.add('localhost', 4096)
+      json = home.create_wallet_json
+      id = Zold::JsonPage.new(json).to_hash['id']
+      stub_request(:get, "http://localhost:4096/wallet/#{id}/size").to_return(status: 200, body: '10000')
+      stub_request(:get, "http://localhost:4096/wallet/#{id}").to_return(status: 200, body: json)
+      home.wallets.acq(Zold::Id.new(id)) { |w| File.delete(w.path) }
+      source = home.create_wallet
+      amount = Zold::Amount.new(zld: 14.95)
+      Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: remotes, log: test_log).run(
+        [
+          'pay', '--force', '--private-key=fixtures/id_rsa', '--tolerate-edges', '--tolerate-quorum=1',
+          source.id.to_s, id, amount.to_zld, 'For the car'
         ]
       )
       assert_equal(amount * -1, source.balance)
@@ -55,7 +78,7 @@ class TestPay < Zold::Test
       wallet = home.create_wallet
       amount = Zold::Amount.new(zld: 2.0)
       Threads.new(10).assert do
-        Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: test_log).run(
+        Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: test_log).run(
           [
             'pay', '--force', '--private-key=fixtures/id_rsa',
             wallet.id.to_s, 'NOPREFIX@dddd0000dddd0000', amount.to_zld, '-'
@@ -71,7 +94,7 @@ class TestPay < Zold::Test
       source = home.create_wallet(Zold::Id::ROOT)
       target = home.create_wallet
       amount = Zold::Amount.new(zld: 14.95)
-      Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: test_log).run(
+      Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: test_log).run(
         [
           'pay', '--private-key=fixtures/id_rsa',
           source.id.to_s, target.id.to_s, amount.to_zld, 'For the car'
@@ -92,7 +115,7 @@ class TestPay < Zold::Test
           'NOPREFIX', Zold::Id.new, '-'
         )
       )
-      Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: test_log).run(
+      Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: test_log).run(
         [
           'pay', '--private-key=fixtures/id_rsa',
           source.id.to_s, target.id.to_s, amount.to_zld, 'here is the refund'
@@ -115,7 +138,7 @@ class TestPay < Zold::Test
           (@info_messages ||= []) << message
         end
       end
-      Zold::Pay.new(wallets: home.wallets, remotes: home.remotes, log: accumulating_log).run(
+      Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: accumulating_log).run(
         [
           'pay', '--force', '--private-key=fixtures/id_rsa',
           source.id.to_s, target.id.to_s, amount.to_zld, 'For the car'

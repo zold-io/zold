@@ -44,6 +44,15 @@ class TestClean < Zold::Test
     end
   end
 
+  def test_clean_no_copies
+    FakeHome.new(log: test_log).run do |home|
+      wallet = home.create_wallet
+      copies = home.copies(wallet)
+      Zold::Clean.new(wallets: home.wallets, copies: copies.root, log: test_log).run(['clean'])
+      assert(copies.all.empty?)
+    end
+  end
+
   def test_cleans_empty_wallets
     FakeHome.new(log: test_log).run do |home|
       Zold::Clean.new(wallets: home.wallets, copies: File.join(home.dir, 'c'), log: test_log).run(['clean'])

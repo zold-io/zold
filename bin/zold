@@ -201,7 +201,7 @@ cmd = lambda do
       Zold::Invoice.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)
     when 'pay'
       require_relative '../lib/zold/commands/pay'
-      Zold::Pay.new(wallets: wallets, remotes: remotes, log: log).run(args)
+      Zold::Pay.new(wallets: wallets, copies: copies, remotes: remotes, log: log).run(args)
     when 'show'
       require_relative '../lib/zold/commands/show'
       Zold::Show.new(wallets: wallets, copies: copies, log: log).run(args)
