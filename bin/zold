@@ -29,6 +29,7 @@ require 'slop'
 require 'rainbow'
 require 'backtrace'
 require 'memory_profiler'
+require 'get_process_mem'
 require_relative '../lib/zold'
 require_relative '../lib/zold/version'
 require_relative '../lib/zold/wallet'
@@ -272,4 +273,5 @@ end
 
 exit(code) unless code.zero?
 
-log.debug("Successfully finished in #{Zold::Age.new(start)}")
+log.debug("Successfully finished in #{Zold::Age.new(start)}, \
+memory footprint is #{Size.new(GetProcessMem.new.bytes.to_i)}")
