@@ -275,4 +275,4 @@ end
 exit(code) unless code.zero?
 
 log.debug("Successfully finished in #{Zold::Age.new(start)}, \
-memory footprint is #{Size.new(GetProcessMem.new.bytes.to_i)}")
+memory footprint is #{Zold::Size.new(GetProcessMem.new.bytes.to_i)}")
