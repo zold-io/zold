@@ -38,7 +38,7 @@ module Zold
       @clean = ThreadPool.new('cached-wallets')
       @clean.add do
         Endless.new('cached_wallets').run do
-          sleep 60
+          sleep 5
           @zache.clean
         end
       end
@@ -47,7 +47,7 @@ module Zold
 
     def acq(id, exclusive: false)
       @wallets.acq(id, exclusive: exclusive) do |wallet|
-        c = @zache.get(id.to_s, lifetime: 5 * 60) { wallet }
+        c = @zache.get(id.to_s, lifetime: 15) { wallet }
         res = yield c
         c.flush if exclusive
         res
