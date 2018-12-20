@@ -21,7 +21,9 @@
 # SOFTWARE.
 
 require 'backtrace'
+require 'get_process_mem'
 require_relative 'log'
+require_relative 'size'
 
 # Verbose thread.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -37,6 +39,11 @@ module Zold
     def run(safe = false)
       Thread.current.report_on_exception = false
       yield
+    rescue Errno::ENOMEM => e
+      @log.error(Backtrace.new(e).to_s)
+      @log.error("We are too big in memory (#{Size.new(GetProcessMem.new.bytes.to_i)}), quitting; \
+this is not a normal behavior, you may want to report a bug to our GitHub repository")
+      exit
     rescue StandardError => e
       @log.error(Backtrace.new(e).to_s)
       raise e unless safe
