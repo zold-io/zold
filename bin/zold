@@ -32,6 +32,7 @@ require 'memory_profiler'
 require_relative '../lib/zold'
 require_relative '../lib/zold/version'
 require_relative '../lib/zold/wallet'
+require_relative '../lib/zold/dir_items'
 require_relative '../lib/zold/wallets'
 require_relative '../lib/zold/tree_wallets'
 require_relative '../lib/zold/sync_wallets'
@@ -159,20 +160,27 @@ FileUtils.mkdir_p(home)
 Dir.chdir(home)
 log.debug("Home directory: #{home}")
 
-zoldata = File.join(home, '.zoldata')
+zdata = File.join(home, '.zoldata')
 
 unless opts['skip-upgrades']
-  Zold::Upgrades.new(Zold::VersionFile.new(File.join(zoldata, 'version')), 'upgrades', { command: command, network: opts['network']}).run
+  Zold::Upgrades.new(Zold::VersionFile.new(File.join(zdata, 'version')), 'upgrades', { command: command, network: opts['network']}).run
 end
 
+locks = File.join(zdata, 'locks')
+Zold::DirItems.new(locks).fetch.each do |f|
+  file = File.join(locks, f)
+  if File.mtime(file) < Time.now - 60
+    File.delete(file)
+  end
+end
 wallets = Zold::SyncWallets.new(
   Zold::CachedWallets.new(
     command == 'node' ? Zold::TreeWallets.new(home) : Zold::Wallets.new(home)
   ),
   log: log,
-  dir: File.join(zoldata, 'locks')
+  dir: locks
 )
-fremotes = File.join(zoldata, 'remotes')
+fremotes = File.join(zdata, 'remotes')
 remotes = Zold::Remotes.new(file: fremotes, network: opts['network'])
 if File.exist?(fremotes)
   log.debug("Remote nodes: #{remotes.all.count} total")
@@ -180,7 +188,7 @@ else
   remotes.masters
   log.debug("Default remotes have been set: #{remotes.all.count} total")
 end
-copies = File.join(zoldata, 'copies')
+copies = File.join(zdata, 'copies')
 
 log.debug("Network: #{opts['network']} (#{opts['network'] == Zold::Wallet::MAINET ? 'main' : 'test'} net)")
 

@@ -57,6 +57,7 @@ class FakeNode
                 '--threads=1',
                 '--dump-errors',
                 '--strength=2',
+                '--halt-code=test',
                 '--routine-immediately',
                 '--invoice=NOPREFIX@ffffffffffffffff'
               ] + args
@@ -77,7 +78,7 @@ class FakeNode
         begin
           yield port
         ensure
-          Zold::Front.stop!
+          Zold::Http.new(uri: uri + '?halt=test').get
           node.join
         end
       end

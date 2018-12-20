@@ -23,6 +23,7 @@
 require 'open3'
 require 'slop'
 require 'backtrace'
+require 'fileutils'
 require 'zache'
 require 'concurrent'
 require 'zold/score'
@@ -220,6 +221,10 @@ module Zold
       elsif @remotes.exists?(host, port)
         Zold::Remote.new(remotes: @remotes).run(['remote', 'remove', host, port.to_s])
         @log.info("Removed current node (#{address}) from list of remotes")
+      end
+      if File.exist?(@copies)
+        FileUtils.rm_rf(@copies)
+        @log.info("Directory #{@copies} deleted")
       end
       hungry = Zold::ThreadPool.new('hungry', log: @log)
       wts = Zold::HungryWallets.new(@wallets, @remotes, @copies, hungry, log: @log, network: opts['network'])

@@ -60,10 +60,14 @@ module Zold
     def start
       raise 'Block must be given to start()' unless block_given?
       FileUtils.mkdir_p(@dir)
-      DirItems.new(@dir).fetch.select { |f| f =~ /^[0-9a-f]{16}-/ }.each do |f|
+      DirItems.new(@dir).fetch.each do |f|
         file = File.join(@dir, f)
-        id = f.split('-')[0]
-        @queue << { id: Id.new(id), file: file }
+        if /^[0-9a-f]{16}-/.match(f)
+          id = f.split('-')[0]
+          @queue << { id: Id.new(id), file: file }
+        else
+          File.delete(file)
+        end
       end
       @log.info("#{@queue.size} wallets pre-loaded into async_entrace from #{@dir}") unless @queue.size.zero?
       @entrance.start do

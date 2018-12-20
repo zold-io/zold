@@ -74,8 +74,10 @@ class TestAsyncEntrance < Zold::Test
   def test_handles_broken_entrance_gracefully
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
+      id = wallet.id
+      body = IO.read(wallet.path)
       Zold::AsyncEntrance.new(BrokenEntrance.new, home.dir, log: test_log).start do |e|
-        e.push(wallet.id, IO.read(wallet.path))
+        e.push(id, body)
       end
     end
   end

@@ -32,8 +32,8 @@ require_relative 'fake_entrance'
 # License:: MIT
 class TestSyncEntrance < Zold::Test
   def test_renders_json
-    FakeHome.new(log: test_log).run do
-      Zold::SyncEntrance.new(FakeEntrance.new, log: test_log).start do |e|
+    FakeHome.new(log: test_log).run do |home|
+      Zold::SyncEntrance.new(FakeEntrance.new, File.join(home.dir, 'x'), log: test_log).start do |e|
         assert(!e.to_json.nil?)
       end
     end

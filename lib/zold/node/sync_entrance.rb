@@ -46,6 +46,10 @@ module Zold
 
     def start
       raise 'Block must be given to start()' unless block_given?
+      if File.exist?(@dir)
+        FileUtils.rm_rf(@dir)
+        @log.info("Directory #{@dir} deleted")
+      end
       @entrance.start do
         yield(self)
       end
