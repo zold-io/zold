@@ -301,7 +301,7 @@ module Zold
           end
         end
       end
-      hungry.kill
+      hungry.kill unless opts['not-hungry']
       @log.info('Thanks for helping Zold network!')
     end
 
