@@ -23,6 +23,7 @@
 require 'backtrace'
 require_relative 'log'
 require_relative 'age'
+require_relative 'endless'
 require_relative 'verbose_thread'
 require_relative 'thread_pool'
 
@@ -60,8 +61,9 @@ module Zold
         @threads.add do
           Thread.current.name = "#{r.class.name}-#{idx}"
           step = 0
-          loop do
+          Endless.new(Thread.current.name).run do
             Thread.current.thread_variable_set(:start, Time.now)
+            step += 1
             begin
               r.exec(step)
               @log.debug("Routine #{r.class.name} ##{step} done \
@@ -70,9 +72,8 @@ in #{Age.new(Thread.current.thread_variable_get(:start))}")
               @failures[r.class.name] = Time.now.utc.iso8601 + "\n" + Backtrace.new(e).to_s
               @log.error("Routine #{r.class.name} ##{step} failed \
 in #{Age.new(Thread.current.thread_variable_get(:start))}")
-              @log.error(Backtrace.new(e).to_s)
+              raise e
             end
-            step += 1
             sleep(1)
           end
         end
