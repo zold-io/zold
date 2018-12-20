@@ -462,6 +462,7 @@ time to stop; use --skip-oom to never quit")
     end
 
     def total_wallets
+      return 256 if !settings.opts['no-cache']
       settings.zache.get(:wallets, lifetime: settings.opts['no-cache'] ? 0 : 60) do
         settings.wallets.count
       end
