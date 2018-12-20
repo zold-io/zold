@@ -208,7 +208,7 @@ from #{request.ip} in #{Age.new(@start, limit: 1)}")
         cpus: settings.zache.get(:cpus) do
           Concurrent.processor_count
         end,
-        memory: settings.zache.get(:memory, lifetime: 5 * 60) do
+        memory: settings.zache.get(:memory, lifetime: settings.opts['no-cache'] ? 0 : 60) do
           mem = GetProcessMem.new.bytes.to_i
           if mem > settings.opts['oom-limit'] * 1024 * 1024 &&
             !settings.opts['skip-oom'] && !settings.opts['never-reboot']
@@ -220,7 +220,7 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
           mem
         end,
         platform: RUBY_PLATFORM,
-        load: settings.zache.get(:load, lifetime: 5 * 60) do
+        load: settings.zache.get(:load, lifetime: settings.opts['no-cache'] ? 0 : 60) do
           require 'usagewatch_ext'
           Object.const_defined?('Usagewatch') ? Usagewatch.uw_load.to_f : 0.0
         end,
