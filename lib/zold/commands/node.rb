@@ -133,6 +133,12 @@ module Zold
         o.bool '--no-cache',
           'Skip caching of front JSON pages (will seriously slow down, mostly useful for testing)',
           default: false
+        o.boolean '--skip-audit',
+          'Don\'t report audit information to the console every minute',
+          default: false
+        o.boolean '--skip-reconnect',
+          'Don\'t reconnect to the network every minute (for testing)',
+          default: false
         o.boolean '--not-hungry',
           'Don\'t do hugry pulling of missed nodes (mostly for testing)',
           default: false
@@ -408,9 +414,19 @@ module Zold
         require_relative 'routines/gc'
         metronome.add(Routines::Gc.new(opts, @wallets, log: @log))
       end
+      if opts['skip-audit']
+        @log.info('Audit is disabled because of --skip-audit')
+      else
+        require_relative 'routines/audit'
+        metronome.add(Routines::Audit.new(opts, @wallets, log: @log))
+      end
       unless opts['standalone']
-        require_relative 'routines/reconnect'
-        metronome.add(Routines::Reconnect.new(opts, @remotes, farm, network: opts['network'], log: @log))
+        if opts['skip-reconnect']
+          @log.info('Reconnect is disabled because of --skip-reconnect')
+        else
+          require_relative 'routines/reconnect'
+          metronome.add(Routines::Reconnect.new(opts, @remotes, farm, network: opts['network'], log: @log))
+        end
       end
       @log.info('Metronome started (use --no-metronome to disable it)')
       metronome
