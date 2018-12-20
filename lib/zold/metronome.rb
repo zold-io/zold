@@ -59,9 +59,8 @@ module Zold
     def start
       @routines.each_with_index do |r, idx|
         @threads.add do
-          Thread.current.name = "#{r.class.name}-#{idx}"
           step = 0
-          Endless.new(Thread.current.name).run do
+          Endless.new("#{r.class.name}-#{idx}", log: @log).run do
             Thread.current.thread_variable_set(:start, Time.now)
             step += 1
             begin

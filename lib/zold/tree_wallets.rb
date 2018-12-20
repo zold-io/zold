@@ -67,7 +67,7 @@ module Zold
     end
 
     def count
-      `find . -name "*.z" | wc -l`.strip.to_i
+      `find #{@dir} -name "*.z" | wc -l`.strip.to_i
     end
   end
 end
