@@ -62,7 +62,7 @@ module Zold
       FileUtils.mkdir_p(@dir)
       DirItems.new(@dir).fetch.each do |f|
         file = File.join(@dir, f)
-        if /^[0-9a-f]{16}-/.match(f)
+        if /^[0-9a-f]{16}-/.match?(f)
           id = f.split('-')[0]
           @queue << { id: Id.new(id), file: file }
         else

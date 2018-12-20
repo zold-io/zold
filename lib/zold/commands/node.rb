@@ -133,6 +133,9 @@ module Zold
         o.bool '--no-cache',
           'Skip caching of front JSON pages (will seriously slow down, mostly useful for testing)',
           default: false
+        o.boolean '--not-hungry',
+          'Don\'t do hugry pulling of missed nodes (mostly for testing)',
+          default: false
         o.bool '--allow-spam',
           'Don\'t filter the incoming spam via PUT requests (duplicate wallets)',
           default: false
@@ -229,8 +232,13 @@ module Zold
         FileUtils.rm_rf(@copies)
         @log.info("Directory #{@copies} deleted")
       end
-      hungry = Zold::ThreadPool.new('hungry', log: @log)
-      wts = Zold::HungryWallets.new(@wallets, @remotes, @copies, hungry, log: @log, network: opts['network'])
+      wts = @wallets
+      if opts['not-hungry']
+        @log.info('Hungry pulling disabled because of --not-hungry')
+      else
+        hungry = Zold::ThreadPool.new('hungry', log: @log)
+        wts = Zold::HungryWallets.new(@wallets, @remotes, @copies, hungry, log: @log, network: opts['network'])
+      end
       Front.set(:zache, Zache.new(dirty: true))
       Front.set(:wallets, wts)
       Front.set(:remotes, @remotes)
@@ -394,7 +402,9 @@ module Zold
         @log.info("Metronome hasn't been started because of --no-metronome")
         return metronome
       end
-      unless opts['skip-gc']
+      if opts['skip-gc']
+        @log.info('Garbage collection is disabled because of --skip-gc')
+      else
         require_relative 'routines/gc'
         metronome.add(Routines::Gc.new(opts, @wallets, log: @log))
       end

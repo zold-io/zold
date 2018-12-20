@@ -58,7 +58,7 @@ module Zold
           @mutex.synchronize do
             unless @queue.include?(id)
               @queue << id
-              @log.debug("Hungry queue got #{id}, at the pos no.#{@queue.size}")
+              @log.debug("Hungry queue got #{id}, at the pos no.#{@queue.size - 1}")
             end
           end
         end
