@@ -89,7 +89,7 @@ module Zold
     end
 
     # Returns the name of the copy
-    def add(content, host, port, score, time = Time.now)
+    def add(content, host, port, score, time: Time.now, master: false)
       raise "Content can't be empty" if content.empty?
       raise 'TCP port must be of type Integer' unless port.is_a?(Integer)
       raise "TCP port can't be negative: #{port}" if port.negative?
@@ -121,7 +121,8 @@ module Zold
           host: host,
           port: port,
           score: score,
-          time: time
+          time: time,
+          master: master
         }
         save(list)
         name
