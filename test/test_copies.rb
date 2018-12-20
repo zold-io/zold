@@ -70,6 +70,15 @@ class TestCopies < Zold::Test
     end
   end
 
+  def test_master_first
+    Dir.mktmpdir do |dir|
+      copies = Zold::Copies.new(File.join(dir, 'my/a/copies-2'), log: test_log)
+      copies.add(content('z1'), 'master', 80, 100, master: false)
+      copies.add(content('z2'), 'edge', 80, 1, master: true)
+      assert(copies.all[0][:master])
+    end
+  end
+
   def test_cleans_copies
     Dir.mktmpdir do |dir|
       copies = Zold::Copies.new(dir, log: test_log)
