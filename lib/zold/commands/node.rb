@@ -145,6 +145,9 @@ module Zold
         o.integer '--queue-limit',
           'The maximum number of wallets to be accepted via PUSH and stored in the queue (default: 256)',
           default: 256
+        o.bool '--skip-gc',
+          'Don\'t run garbage collector and never remove any wallets from the disk',
+          default: false
         o.integer '--gc-age',
           'Maximum time in seconds to keep an empty and unused wallet on the disk',
           default: 60 * 60 * 24 * 10
@@ -388,11 +391,13 @@ module Zold
     def metronome(farm, opts)
       metronome = Metronome.new(@log)
       if opts['no-metronome']
-        @log.info('Metronome hasn\'t been started because of --no-metronome')
+        @log.info("Metronome hasn't been started because of --no-metronome")
         return metronome
       end
-      require_relative 'routines/gc'
-      metronome.add(Routines::Gc.new(opts, @wallets, log: @log))
+      unless opts['skip-gc']
+        require_relative 'routines/gc'
+        metronome.add(Routines::Gc.new(opts, @wallets, log: @log))
+      end
       unless opts['standalone']
         require_relative 'routines/reconnect'
         metronome.add(Routines::Reconnect.new(opts, @remotes, farm, network: opts['network'], log: @log))
