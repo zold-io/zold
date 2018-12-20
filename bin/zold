@@ -176,9 +176,9 @@ Zold::DirItems.new(locks).fetch.each do |f|
   end
 end
 wallets = Zold::SyncWallets.new(
-  Zold::CachedWallets.new(
-    command == 'node' ? Zold::TreeWallets.new(home) : Zold::Wallets.new(home)
-  ),
+  # Zold::CachedWallets.new(
+  command == 'node' ? Zold::TreeWallets.new(home) : Zold::Wallets.new(home),
+  # ),
   log: log,
   dir: locks
 )
