@@ -50,12 +50,15 @@ module Zold
       raise "The amount is too small: #{@zents}" if @zents < -MAX
     end
 
+    # Just zero, for convenience.
     ZERO = Amount.new(zents: 0)
 
+    # Convert it to zents and return as an integer.
     def to_i
       @zents
     end
 
+    # Convert to ZLD and return as a string. If you need float, you should use <tt>to_f()</tt> later.
     def to_zld(digits = 2)
       format("%0.#{digits}f", @zents.to_f / 2**FRACTION)
     end

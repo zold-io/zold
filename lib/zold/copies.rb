@@ -134,6 +134,8 @@ module Zold
           {
             name: name,
             path: File.join(@dir, "#{name}#{Copies::EXT}"),
+            total: scores.count,
+            master: scores.any? { |s| s[:master] },
             score: scores.select { |s| s[:time] > Time.now - 24 * 60 * 60 }
               .map { |s| s[:score] }
               .inject(&:+) || 0
@@ -145,13 +147,14 @@ module Zold
     def load
       FileUtils.mkdir_p(File.dirname(file))
       FileUtils.touch(file)
-      CSV.read(file).map do |s|
+      CSV.read(file).select { |s| s.count == 6 }.map do |s|
         {
           name: s[0],
           host: s[1],
           port: s[2].to_i,
           score: s[3].to_i,
-          time: Time.parse(s[4])
+          time: Time.parse(s[4]),
+          master: s[5] == 'M'
         }
       end
     end
@@ -163,9 +166,12 @@ module Zold
         file,
         list.map do |r|
           [
-            r[:name], r[:host],
-            r[:port], r[:score],
-            r[:time].utc.iso8601
+            r[:name],
+            r[:host],
+            r[:port],
+            r[:score],
+            r[:time].utc.iso8601,
+            r[:master] ? 'M' : 'E'
           ].join(',')
         end.join("\n")
       )

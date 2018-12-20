@@ -76,7 +76,7 @@ module Zold
       end
       begin
         Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-          ['pull', id.to_s, "--network=#{@network}"]
+          ['pull', id.to_s, "--network=#{@network}", '--tolerate-edges', '--tolerate-quorum=1']
         )
       rescue Fetch::EdgesOnly => e
         @log.error("Can't hungry-pull #{id}: #{e.message}")

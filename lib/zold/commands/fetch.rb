@@ -112,7 +112,9 @@ Available options:"
         done.increment
       end
       unless opts['quiet-if-absent']
-        raise "No nodes out of #{nodes.value} have the wallet #{id}" if done.value.zero?
+        if done.value.zero?
+          raise "No nodes out of #{nodes.value} have the wallet #{id}; run 'zold remote update' and try again"
+        end
         if masters.value.zero? && !opts['tolerate-edges']
           raise EdgesOnly, "There are only edge nodes, run 'zold remote update' or use --tolerate-edges"
         end

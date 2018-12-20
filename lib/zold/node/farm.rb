@@ -53,7 +53,7 @@ module Zold
     #
     # <tt>cache</tt> is the file where the farm will keep all the scores it
     # manages to find. If the file is absent, it will be created, together with
-    # the necesary parent directories.
+    # the necessary parent directories.
     #
     # <tt>lifetime</tt> is the amount of seconds for a score to live in the farm, by default
     # it's the entire day, since the Score expires in 24 hours; can be decreased for the

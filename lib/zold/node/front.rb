@@ -212,7 +212,9 @@ from #{request.ip} in #{Age.new(@start, limit: 1)}")
           mem = GetProcessMem.new.bytes.to_i
           if mem > settings.opts['oom-limit'] * 1024 * 1024 &&
             !settings.opts['skip-oom'] && !settings.opts['never-reboot']
-            settings.log.error("We are too big in memory (#{Size.new(mem)}), quitting; use --skip-oom to never quit")
+            settings.log.error("We are too big in memory (#{Size.new(mem)}), quitting; \
+use --skip-oom to never quit or --memory-dump to print the entire memory usage summary on exit; \
+this is not a normal behavior, you may want to report a bug to our GitHub repository")
             Front.stop!
           end
           mem
