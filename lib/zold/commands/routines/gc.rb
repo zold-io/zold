@@ -47,7 +47,7 @@ module Zold
         removed = 0
         @wallets.all.each do |id|
           seen += 1
-          next unless @wallets.acq(id) { |w| w.exists? && w.txns.empty? && w.mtime < Time.now - @opts['gc-age'] }
+          next unless @wallets.acq(id) { |w| w.exists? && w.mtime < Time.now - @opts['gc-age'] && w.txns.empty? }
           cmd.run(args + [id.to_s])
           removed += 1
         end
