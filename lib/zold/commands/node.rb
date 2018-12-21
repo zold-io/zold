@@ -245,8 +245,7 @@ module Zold
         hungry = Zold::ThreadPool.new('hungry', log: @log)
         wts = Zold::HungryWallets.new(@wallets, @remotes, @copies, hungry, log: @log, network: opts['network'])
       end
-      # Front.set(:zache, Zache.new(dirty: true))
-      Front.set(:zache, Zache::Fake.new)
+      Front.set(:zache, Zache.new(dirty: true))
       Front.set(:wallets, wts)
       Front.set(:remotes, @remotes)
       Front.set(:copies, @copies)
