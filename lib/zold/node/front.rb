@@ -250,7 +250,7 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
           digest: wallet.digest,
           copies: Copies.new(File.join(settings.copies, wallet.id)).all.count,
           balance: wallet.balance.to_i,
-          body: File.new(wallet.path).read
+          body: IO.read(wallet.path)
         )
       end
     end

@@ -41,6 +41,7 @@ module Zold
       raise "Wallet file '#{@file}' is absent" unless File.exist?(@file)
       lines = IO.read(@file).split(/\n/)
       raise "Not enough lines in #{@file}, just #{lines.count}" if lines.count < 4
+      puts "+++ loaded #{lines.count} lines from #{@file}"
       lines.drop(5)
         .each_with_index
         .map { |line, i| Txn.parse(line, i + 6) }
