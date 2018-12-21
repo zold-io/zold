@@ -40,6 +40,7 @@ module Zold
         Endless.new('cached_wallets').run do
           sleep 5
           @zache.clean
+          puts "+++ cached wallets: #{@zache.size}"
         end
       end
       super(wallets)
