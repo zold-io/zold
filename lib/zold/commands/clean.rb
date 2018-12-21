@@ -33,6 +33,7 @@ require_relative '../size'
 require_relative '../log'
 require_relative '../http'
 require_relative '../copies'
+require_relative '../thread_pool'
 
 # CLEAN command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -51,10 +52,14 @@ module Zold
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = "Usage: zold clean [ID...] [options]
 Available options:"
+        o.integer '--threads',
+          "How many threads to use for cleaning copies (default: #{[Concurrent.processor_count / 2, 2].max})",
+          default: [Concurrent.processor_count / 2, 2].max
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
-      (mine.empty? ? @wallets.all : mine.map { |i| Id.new(i) }).each do |id|
+      list = mine.empty? ? @wallets.all : mine.map { |i| Id.new(i) }
+      ThreadPool.new('clean', log: @log).run(opts['threads'], list.uniq) do |id|
         clean(Copies.new(File.join(@copies, id), log: @log), opts)
       end
     end

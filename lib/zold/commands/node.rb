@@ -149,8 +149,8 @@ module Zold
           'Skip Out Of Memory check and never exit, no matter how much RAM is consumed',
           default: false
         o.integer '--oom-limit',
-          'Maximum amount of memory we can consume, quit if we take more than that, in Mb (default: 256)',
-          default: 256
+          'Maximum amount of memory we can consume, quit if we take more than that, in Mb (default: 512)',
+          default: 512
         o.integer '--queue-limit',
           'The maximum number of wallets to be accepted via PUSH and stored in the queue (default: 256)',
           default: 256

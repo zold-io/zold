@@ -195,8 +195,6 @@ copies = File.join(zdata, 'copies')
 log.debug("Network: #{opts['network']} (#{opts['network'] == Zold::Wallet::MAINET ? 'main' : 'test'} net)")
 log.debug("Memory footprint at start is #{Zold::Size.new(GetProcessMem.new.bytes.to_i)}")
 
-GC.stress = true
-
 cmd = lambda do
   begin
     case command

@@ -282,15 +282,19 @@ class TestWallet < Zold::Test
   end
 
   def test_collects_memory_garbage
-    skip
     require 'get_process_mem'
-    require 'memory_profiler'
-    MemoryProfiler.report(top: 20) do
-      100.times do |i|
-        wallet = Zold::Wallet.new('fixtures/448b451bc62e8e16.z')
-        assert_equal(1000, wallet.txns.count)
-        test_log.debug("Memory: #{GetProcessMem.new.bytes.to_i}") if (i % 20).zero?
-      end
-    end.pretty_print
+    start = GetProcessMem.new.bytes.to_i
+    40.times do |i|
+      wallet = Zold::Wallet.new('fixtures/448b451bc62e8e16.z')
+      GC.start
+      wallet.id
+      wallet.txns.count
+      test_log.debug("Memory: #{GetProcessMem.new.bytes.to_i}") if (i % 5).zero?
+    end
+    GC.stress = true
+    diff = GetProcessMem.new.bytes.to_i - start
+    GC.stress = false
+    test_log.debug("Memory diff is #{diff}")
+    assert(diff < 20_000_000)
   end
 end

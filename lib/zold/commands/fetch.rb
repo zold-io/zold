@@ -91,7 +91,7 @@ Available options:"
       end
       mine = Args.new(opts, @log).take || return
       list = mine.empty? ? @wallets.all : mine.map { |i| Id.new(i) }
-      ThreadPool.new('fetch', log: @log).run(opts['threads'], list) do |id|
+      ThreadPool.new('fetch', log: @log).run(opts['threads'], list.uniq) do |id|
         fetch(id, Copies.new(File.join(@copies, id)), opts)
       end
     end
@@ -152,7 +152,7 @@ run 'zold remote update' or use --tolerate-quorum=1"
         body = json['body']
         IO.write(f, body)
         wallet = Wallet.new(f.path)
-        # wallet.refurbish
+        wallet.refurbish
         if wallet.protocol != Zold::PROTOCOL
           raise "Protocol #{wallet.protocol} doesn't match #{Zold::PROTOCOL} in #{id}"
         end

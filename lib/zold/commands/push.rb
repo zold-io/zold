@@ -83,7 +83,7 @@ Available options:"
       end
       mine = Args.new(opts, @log).take || return
       list = mine.empty? ? @wallets.all : mine.map { |i| Id.new(i) }
-      ThreadPool.new('push', log: @log).run(opts['threads'], list) do |id|
+      ThreadPool.new('push', log: @log).run(opts['threads'], list.uniq) do |id|
         push(id, opts)
       end
     end

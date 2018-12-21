@@ -31,14 +31,10 @@ module Zold
     PTN = Regexp.new('^[0-9a-fA-F]{16}$')
     private_constant :PTN
 
-    def initialize(id = nil)
-      if id.nil?
-        @id = rand(2**32..2**64 - 1)
-      else
-        raise "Invalid wallet ID type: #{id.class.name}" unless id.is_a?(String)
-        raise "Invalid wallet ID: #{id}" unless id =~ PTN
-        @id = Integer("0x#{id}", 16)
-      end
+    def initialize(id = format('%016x', rand(2**32..2**64 - 1)))
+      raise "Invalid wallet ID type: #{id.class.name}" unless id.is_a?(String)
+      raise "Invalid wallet ID: #{id}" unless PTN.match?(id)
+      @id = Integer("0x#{id}", 16)
     end
 
     # The ID of the root wallet.

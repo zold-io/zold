@@ -72,7 +72,8 @@ Available options:"
       end
       mine = Args.new(opts, @log).take || return
       modified = []
-      (mine.empty? ? @wallets.all : mine.map { |i| Id.new(i) }).each do |id|
+      list = mine.empty? ? @wallets.all : mine.map { |i| Id.new(i) }
+      list.uniq.each do |id|
         next unless merge(id, Copies.new(File.join(@copies, id)), opts)
         modified << id
         next if opts['skip-propagate']
