@@ -41,25 +41,29 @@ module Zold
     # Run this code in many threads
     def run(threads, set = (0..threads - 1).to_a)
       raise "Number of threads #{threads} has to be positive" unless threads.positive?
-      idx = Concurrent::AtomicFixnum.new
-      mutex = Mutex.new
       list = set.dup
       total = [threads, set.count].min
-      latch = Concurrent::CountDownLatch.new(total)
-      total.times do |i|
-        add do
-          Thread.current.name = "#{@title}-#{i}"
-          loop do
-            r = mutex.synchronize { list.pop }
-            break if r.nil?
-            yield(r, idx.increment - 1)
+      if total == 1
+        list.each_with_index { |r, i| yield(r, i) }
+      elsif total.positive?
+        idx = Concurrent::AtomicFixnum.new
+        mutex = Mutex.new
+        latch = Concurrent::CountDownLatch.new(total)
+        total.times do |i|
+          add do
+            Thread.current.name = "#{@title}-#{i}"
+            loop do
+              r = mutex.synchronize { list.pop }
+              break if r.nil?
+              yield(r, idx.increment - 1)
+            end
+          ensure
+            latch.count_down
           end
-        ensure
-          latch.count_down
         end
+        latch.wait
+        kill
       end
-      latch.wait
-      kill
     end
 
     # Add a new thread
