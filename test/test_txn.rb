@@ -73,4 +73,12 @@ class TestTxn < Zold::Test
     )
     assert_equal(details, txn.details)
   end
+
+  def test_prints_and_parses_time
+    10.times do |i|
+      time = Time.now + i * 12_345
+      iso = time.utc.iso8601
+      assert_equal(time.to_s, Zold::Txn.parse_time(iso).to_s)
+    end
+  end
 end

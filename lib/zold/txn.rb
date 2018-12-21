@@ -42,6 +42,14 @@ module Zold
     RE_PREFIX = '[a-zA-Z0-9]+'
     private_constant :RE_PREFIX
 
+    # To validate the prefix
+    REGEX_PREFIX = Regexp.new("^#{RE_PREFIX}$")
+    private_constant :REGEX_PREFIX
+
+    # To validate details
+    REGEX_DETAILS = Regexp.new("^#{RE_DETAILS}$")
+    private_constant :REGEX_DETAILS
+
     attr_reader :id, :date, :amount, :prefix, :bnf, :details, :sign
     attr_writer :sign, :amount, :bnf
     def initialize(id, date, amount, prefix, bnf, details)
@@ -62,12 +70,12 @@ module Zold
       raise 'Prefix can\'t be NIL' if prefix.nil?
       raise "Prefix is too short: \"#{prefix}\"" if prefix.length < 8
       raise "Prefix is too long: \"#{prefix}\"" if prefix.length > 32
-      raise "Prefix is wrong: \"#{prefix}\" (#{RE_PREFIX})" unless prefix =~ Regexp.new("^#{RE_PREFIX}$")
+      raise "Prefix is wrong: \"#{prefix}\" (#{RE_PREFIX})" unless REGEX_PREFIX.match?(prefix)
       @prefix = prefix
       raise 'Details can\'t be NIL' if details.nil?
       raise 'Details can\'t be empty' if details.empty?
       raise "Details are too long: \"#{details}\"" if details.length > 512
-      raise "Wrong details \"#{details}\" (#{RE_DETAILS})" unless details =~ Regexp.new("^#{RE_DETAILS}$")
+      raise "Wrong details \"#{details}\" (#{RE_DETAILS})" unless REGEX_DETAILS.match?(details)
       @details = details
     end
 
@@ -149,7 +157,7 @@ module Zold
       raise "Invalid line ##{idx}: #{line.inspect} #{regex}" unless parts
       txn = Txn.new(
         Hexnum.parse(parts[:id]).to_i,
-        Time.parse(parts[:date]),
+        parse_time(parts[:date]),
         Amount.new(zents: Hexnum.parse(parts[:amount]).to_i),
         parts[:prefix],
         Id.new(parts[:bnf]),
@@ -157,6 +165,27 @@ module Zold
       )
       txn.sign = parts[:sign]
       txn
+    end
+
+    ISO8601 = Regexp.new(
+      '^' + [
+        '(?<year>\d{4})',
+        '-(?<month>\d{2})',
+        '-(?<day>\d{2})',
+        'T(?<hours>\d{2})',
+        ':(?<minutes>\d{2})',
+        ':(?<seconds>\d{2})Z'
+      ].join
+    )
+    private_constant :ISO8601
+
+    def self.parse_time(iso)
+      parts = ISO8601.match(iso)
+      raise "Invalid ISO 8601 date \"#{iso}\"" if parts.nil?
+      Time.gm(
+        parts[:year].to_i, parts[:month].to_i, parts[:day].to_i,
+        parts[:hours].to_i, parts[:minutes].to_i, parts[:seconds].to_i
+      )
     end
   end
 end

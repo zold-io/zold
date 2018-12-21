@@ -22,6 +22,7 @@
 
 require 'time'
 require 'rainbow'
+require_relative 'txn'
 
 # Age in seconds.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -31,7 +32,7 @@ module Zold
   # Age
   class Age
     def initialize(time, limit: nil)
-      @time = time.nil? || time.is_a?(Time) ? time : Time.parse(time)
+      @time = time.nil? || time.is_a?(Time) ? time : Txn.parse_time(time)
       @limit = limit
     end
 

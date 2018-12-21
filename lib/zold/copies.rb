@@ -154,7 +154,7 @@ module Zold
           host: s[1],
           port: s[2].to_i,
           score: s[3].to_i,
-          time: Time.parse(s[4]),
+          time: Txn.parse_time(s[4]),
           master: s[5] == 'M'
         }
       end
