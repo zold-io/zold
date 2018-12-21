@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'time'
+require 'openssl'
 require 'csv'
 require 'futex'
 require 'backtrace'
@@ -102,7 +103,8 @@ module Zold
         list = load
         target = list.find do |s|
           f = File.join(@dir, "#{s[:name]}#{Copies::EXT}")
-          File.exist?(f) && IO.read(f) == content
+          digest = OpenSSL::Digest::SHA256.new(content).hexdigest
+          File.exist?(f) && OpenSSL::Digest::SHA256.file(f).hexdigest == digest
         end
         if target.nil?
           max = DirItems.new(@dir).fetch

@@ -150,8 +150,8 @@ class FarmTest < Zold::Test
     Dir.mktmpdir do |dir|
       file = File.join(dir, 'corrupted_farm')
       [
-        '0/6: 2018-06-26ABCT00:32:43Z 178.128.165.12 4096 MIRhypo1@c13620484b46caa4',
-        'some garbage'
+        'some garbage',
+        'some other garbage'
       ].each do |score_garbage_line|
         valid_score = Zold::Score.new(
           time: Time.parse('2017-07-19T21:24:51Z'),
