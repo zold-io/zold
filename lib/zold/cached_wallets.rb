@@ -40,6 +40,8 @@ module Zold
         Endless.new('cached_wallets').run do
           sleep 5
           @zache.clean
+          require 'object_space'
+          puts "+++ cached wallets: #{ObjectSpace.memsize_of(@zache)}"
         end
       end
       super(wallets)
