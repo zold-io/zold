@@ -48,7 +48,7 @@ require_relative 'soft_error'
 module Zold
   # Web front
   class Front < Sinatra::Base
-    # The minimum score required in order to recongnize a requestor
+    # The minimum score required in order to recognize a requester
     # as a valuable node and add it to the list of remotes.
     MIN_SCORE = 4
 
