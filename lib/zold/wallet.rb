@@ -59,8 +59,8 @@ module Zold
         raise "Wallet file must end with #{Wallet::EXT} or #{Copies::EXT}: #{file}"
       end
       @file = File.absolute_path(file)
-      @txns = Txns::Cached.new(Txns.new(@file))
-      @head = Head::Cached.new(Head.new(@file))
+      @txns = CachedTxns.new(Txns.new(@file))
+      @head = CachedHead.new(Head.new(@file))
     end
 
     def ==(other)

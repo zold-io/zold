@@ -46,23 +46,23 @@ module Zold
         .map { |line, i| Txn.parse(line, i + 6) }
         .sort
     end
+  end
 
-    # Cached transactions.
-    # Author:: Yegor Bugayenko (yegor256@gmail.com)
-    # Copyright:: Copyright (c) 2018 Yegor Bugayenko
-    # License:: MIT
-    class Cached
-      def initialize(txns)
-        @txns = txns
-      end
+  # Cached transactions.
+  # Author:: Yegor Bugayenko (yegor256@gmail.com)
+  # Copyright:: Copyright (c) 2018 Yegor Bugayenko
+  # License:: MIT
+  class CachedTxns
+    def initialize(txns)
+      @txns = txns
+    end
 
-      def flush
-        @fetch = nil
-      end
+    def flush
+      @fetch = nil
+    end
 
-      def fetch
-        @fetch ||= @txns.fetch
-      end
+    def fetch
+      @fetch ||= @txns.fetch
     end
   end
 end

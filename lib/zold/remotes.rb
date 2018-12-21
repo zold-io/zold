@@ -39,6 +39,61 @@ require_relative 'node/farm'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
+  # One remote.
+  class RemoteNode
+    def initialize(host:, port:, score:, idx:, master:, network: 'test', log: Log::NULL)
+      @host = host
+      @port = port
+      @score = score
+      @idx = idx
+      @master = master
+      @network = network
+      @log = log
+    end
+
+    def http(path = '/')
+      Http.new(uri: "http://#{@host}:#{@port}#{path}", score: @score, network: @network)
+    end
+
+    def master?
+      @master
+    end
+
+    def to_s
+      "#{@host}:#{@port}/#{@idx}"
+    end
+
+    def assert_code(code, response)
+      msg = response.status_line.strip
+      return if response.status.to_i == code
+      if response.headers && response.headers['X-Zold-Error']
+        raise "Error ##{response.status} \"#{response.headers['X-Zold-Error']}\"
+            at #{response.headers['X-Zold-Path']}"
+      end
+      raise "Unexpected HTTP code #{response.status}, instead of #{code}" if msg.empty?
+      raise "#{msg} (HTTP code #{response.status}, instead of #{code})"
+    end
+
+    def assert_valid_score(score)
+      raise "Invalid score #{score.reduced(4)}" unless score.valid?
+      raise "Expired score (#{Age.new(score.time)}) #{score.reduced(4)}" if score.expired?
+    end
+
+    def assert_score_ownership(score)
+      raise "Masqueraded host #{@host} as #{score.host}: #{score.reduced(4)}" if @host != score.host
+      raise "Masqueraded port #{@port} as #{score.port}: #{score.reduced(4)}" if @port != score.port
+    end
+
+    def assert_score_strength(score)
+      return if score.strength >= Score::STRENGTH
+      raise "Score #{score.strength} is too weak (<#{Score::STRENGTH}): #{score.reduced(4)}"
+    end
+
+    def assert_score_value(score, min)
+      raise "Score #{score.value} is too small (<#{min}): #{score.reduced(4)}" if score.value < min
+    end
+  end
+
   # All remotes
   class Remotes
     # The default TCP port all nodes are supposed to use.
@@ -70,60 +125,6 @@ module Zold
 
       def mtime
         Time.now
-      end
-    end
-
-    # One remote.
-    class Remote
-      def initialize(host:, port:, score:, idx:, network: 'test', log: Log::NULL)
-        @host = host
-        @port = port
-        @score = score
-        @idx = idx
-        @network = network
-        @log = log
-      end
-
-      def http(path = '/')
-        Http.new(uri: "http://#{@host}:#{@port}#{path}", score: @score, network: @network)
-      end
-
-      def master?
-        !MASTERS.find { |r| r[0] == @host && r[1].to_i == @port }.nil?
-      end
-
-      def to_s
-        "#{@host}:#{@port}/#{@idx}"
-      end
-
-      def assert_code(code, response)
-        msg = response.status_line.strip
-        return if response.status.to_i == code
-        if response.headers && response.headers['X-Zold-Error']
-          raise "Error ##{response.status} \"#{response.headers['X-Zold-Error']}\"
-            at #{response.headers['X-Zold-Path']}"
-        end
-        raise "Unexpected HTTP code #{response.status}, instead of #{code}" if msg.empty?
-        raise "#{msg} (HTTP code #{response.status}, instead of #{code})"
-      end
-
-      def assert_valid_score(score)
-        raise "Invalid score #{score.reduced(4)}" unless score.valid?
-        raise "Expired score (#{Age.new(score.time)}) #{score.reduced(4)}" if score.expired?
-      end
-
-      def assert_score_ownership(score)
-        raise "Masqueraded host #{@host} as #{score.host}: #{score.reduced(4)}" if @host != score.host
-        raise "Masqueraded port #{@port} as #{score.port}: #{score.reduced(4)}" if @port != score.port
-      end
-
-      def assert_score_strength(score)
-        return if score.strength >= Score::STRENGTH
-        raise "Score #{score.strength} is too weak (<#{Score::STRENGTH}): #{score.reduced(4)}"
-      end
-
-      def assert_score_value(score, min)
-        raise "Score #{score.value} is too small (<#{min}): #{score.reduced(4)}" if score.value < min
       end
     end
 
@@ -197,11 +198,12 @@ module Zold
         start = Time.now
         best = farm.best[0]
         begin
-          yield Remotes::Remote.new(
+          yield RemoteNode.new(
             host: r[:host],
             port: r[:port],
             score: best.nil? ? Score::ZERO : best,
             idx: idx,
+            master: master?(r[:host], r[:port]),
             log: log,
             network: @network
           )

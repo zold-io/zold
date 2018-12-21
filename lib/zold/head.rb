@@ -43,23 +43,23 @@ module Zold
       raise "Not enough lines in #{@file}, just #{lines.count}" if lines.count < 4
       lines.take(4)
     end
+  end
 
-    # Cached head.
-    # Author:: Yegor Bugayenko (yegor256@gmail.com)
-    # Copyright:: Copyright (c) 2018 Yegor Bugayenko
-    # License:: MIT
-    class Cached
-      def initialize(txns)
-        @txns = txns
-      end
+  # Cached head.
+  # Author:: Yegor Bugayenko (yegor256@gmail.com)
+  # Copyright:: Copyright (c) 2018 Yegor Bugayenko
+  # License:: MIT
+  class CachedHead
+    def initialize(head)
+      @head = head
+    end
 
-      def flush
-        @fetch = nil
-      end
+    def flush
+      @fetch = nil
+    end
 
-      def fetch
-        @fetch ||= @txns.fetch
-      end
+    def fetch
+      @fetch ||= @head.fetch
     end
   end
 end
