@@ -154,7 +154,7 @@ module Zold
     def self.parse(line, idx = 0)
       clean = line.strip
       parts = PTN.match(clean)
-      raise "Invalid line ##{idx}: #{line.inspect} #{regex}" unless parts
+      raise "Invalid line ##{idx}: #{line.inspect} (doesn't match #{PTN})" unless parts
       txn = Txn.new(
         Hexnum.parse(parts[:id]).to_i,
         parse_time(parts[:date]),

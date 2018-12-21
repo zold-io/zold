@@ -186,7 +186,7 @@ module Zold
     end
 
     def digest
-      OpenSSL::Digest::SHA256.new(IO.read(@file)).hexdigest
+      OpenSSL::Digest::SHA256.file(@file).hexdigest
     end
 
     # Age of wallet in hours

@@ -149,8 +149,7 @@ run 'zold remote update' or use --tolerate-quorum=1"
       r.assert_score_ownership(score)
       r.assert_score_strength(score) unless opts['ignore-score-weakness']
       Tempfile.open(['', Wallet::EXT]) do |f|
-        body = json['body']
-        IO.write(f, body)
+        IO.write(f, json['body'])
         wallet = Wallet.new(f.path)
         wallet.refurbish
         if wallet.protocol != Zold::PROTOCOL

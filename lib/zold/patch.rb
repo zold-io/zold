@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'openssl'
 require_relative 'log'
 require_relative 'wallet'
 require_relative 'signature'
@@ -132,7 +133,7 @@ doesn't have this transaction: \"#{txn.to_text}\"")
     def save(file, overwrite: false)
       raise 'You have to join at least one wallet in' if empty?
       before = ''
-      before = IO.read(file) if File.exist?(file)
+      before = OpenSSL::Digest::SHA256.file(file).hexdigest if File.exist?(file)
       wallet = Wallet.new(file)
       wallet.init(@id, @key, overwrite: overwrite, network: @network)
       File.open(file, 'a') do |f|
@@ -141,7 +142,7 @@ doesn't have this transaction: \"#{txn.to_text}\"")
         end
       end
       wallet.refurbish
-      after = IO.read(file)
+      after = OpenSSL::Digest::SHA256.file(file).hexdigest
       before != after
     end
   end

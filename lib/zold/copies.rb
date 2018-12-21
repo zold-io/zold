@@ -97,8 +97,8 @@ module Zold
       raise "Time must be in the past: #{time}" if time > Time.now
       raise 'Score must be Integer' unless score.is_a?(Integer)
       raise "Score can't be negative: #{score}" if score.negative?
+      FileUtils.mkdir_p(@dir)
       Futex.new(file, log: @log).open do
-        FileUtils.mkdir_p(@dir)
         list = load
         target = list.find do |s|
           f = File.join(@dir, "#{s[:name]}#{Copies::EXT}")

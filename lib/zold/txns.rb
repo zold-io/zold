@@ -39,9 +39,10 @@ module Zold
 
     def fetch
       raise "Wallet file '#{@file}' is absent" unless File.exist?(@file)
-      lines = IO.read(@file).split(/\n/)
+      lines = IO.readlines(@file, "\n")
       raise "Not enough lines in #{@file}, just #{lines.count}" if lines.count < 4
       lines.drop(5)
+        .reject { |t| t.strip.empty? }
         .each_with_index
         .map { |line, i| Txn.parse(line, i + 6) }
         .sort
