@@ -38,7 +38,7 @@ module Zold
       @clean = ThreadPool.new('cached-wallets')
       @clean.add do
         Endless.new('cached_wallets').run do
-          sleep 5
+          sleep 1
           @zache.clean
           require 'object_space'
           puts "+++ cached wallets: #{ObjectSpace.memsize_of(@zache)}"
