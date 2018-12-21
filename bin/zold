@@ -175,14 +175,13 @@ Zold::DirItems.new(locks).fetch.each do |f|
     File.delete(file)
   end
 end
-wallets = command == 'node' ? Zold::TreeWallets.new(home) : Zold::Wallets.new(home)
-# wallets = Zold::SyncWallets.new(
-#   Zold::CachedWallets.new(
-#     command == 'node' ? Zold::TreeWallets.new(home) : Zold::Wallets.new(home)
-#   ),
-#   log: log,
-#   dir: locks
-# )
+wallets = Zold::SyncWallets.new(
+  Zold::CachedWallets.new(
+    command == 'node' ? Zold::TreeWallets.new(home) : Zold::Wallets.new(home)
+  ),
+  log: log,
+  dir: locks
+)
 fremotes = File.join(zdata, 'remotes')
 remotes = Zold::Remotes.new(file: fremotes, network: opts['network'])
 if File.exist?(fremotes)
