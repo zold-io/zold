@@ -142,7 +142,6 @@ run 'zold remote update' or use --tolerate-quorum=1"
       size = r.http(uri + '/size').get
       r.assert_code(200, size)
       res = r.http(uri).get(timeout: 2 + size.body.to_i * 0.01 / 1024)
-      raise "Wallet #{id} not found" if res.status == '404'
       r.assert_code(200, res)
       json = JsonPage.new(res.body, uri).to_hash
       score = Score.parse_json(json['score'])
@@ -153,7 +152,7 @@ run 'zold remote update' or use --tolerate-quorum=1"
         body = json['body']
         IO.write(f, body)
         wallet = Wallet.new(f.path)
-        wallet.refurbish
+        # wallet.refurbish
         if wallet.protocol != Zold::PROTOCOL
           raise "Protocol #{wallet.protocol} doesn't match #{Zold::PROTOCOL} in #{id}"
         end

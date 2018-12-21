@@ -60,8 +60,8 @@ module Zold
     # When score strengths were updated. The numbers here indicate the
     # strengths we accepted before these dates.
     MILESTONES = {
-      Time.parse('30-11-2018') => 6,
-      Time.parse('09-12-2018') => 7
+      Txn.parse_time('30-11-2018T00:00:00Z') => 6,
+      Txn.parse_time('09-12-2018T00:00:00Z') => 7
     }.freeze
     private_constant :MILESTONES
 

@@ -193,6 +193,9 @@ end
 copies = File.join(zdata, 'copies')
 
 log.debug("Network: #{opts['network']} (#{opts['network'] == Zold::Wallet::MAINET ? 'main' : 'test'} net)")
+log.debug("Memory footprint at start is #{Zold::Size.new(GetProcessMem.new.bytes.to_i)}")
+
+GC.stress = true
 
 cmd = lambda do
   begin
@@ -272,7 +275,11 @@ else
   code = cmd.call
 end
 
-exit(code) unless code.zero?
+log.debug("Memory footprint at the end is #{Zold::Size.new(GetProcessMem.new.bytes.to_i)}")
+if code.zero?
+  log.debug("Failed in in #{Zold::Age.new(start)}")
+  exit(code)
+else
+  log.debug("Successfully finished in #{Zold::Age.new(start)}")
+end
 
-log.debug("Successfully finished in #{Zold::Age.new(start)}, \
-memory footprint is #{Zold::Size.new(GetProcessMem.new.bytes.to_i)}")
