@@ -74,6 +74,7 @@ module Zold
         sleep 1
         return
       end
+      GC.start
       begin
         Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
           ['pull', id.to_s, "--network=#{@network}", '--tolerate-edges', '--tolerate-quorum=1']
