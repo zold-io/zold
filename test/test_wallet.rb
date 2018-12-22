@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
+require 'tmpdir'
 require_relative 'test__helper'
 require_relative 'fake_home'
 require_relative '../lib/zold/key'
@@ -216,6 +217,19 @@ class TestWallet < Zold::Test
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       assert_equal(64, wallet.digest.length)
+    end
+  end
+
+  def test_raises_when_broken_format
+    Dir.mktmpdir do |dir|
+      file = File.join(dir, "0123456701234567#{Zold::Wallet::EXT}")
+      IO.write(file, 'broken head')
+      assert_raises(Zold::Head::CantParse) do
+        Zold::Wallet.new(file).id
+      end
+      assert_raises(Zold::Txns::CantParse) do
+        Zold::Wallet.new(file).txns
+      end
     end
   end
 

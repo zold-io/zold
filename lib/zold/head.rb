@@ -29,6 +29,9 @@ require_relative 'txn'
 module Zold
   # Head of the wallet.
   class Head
+    # When can't parse them.
+    class CantParse < StandardError; end
+
     def initialize(file)
       @file = file
     end
@@ -39,8 +42,11 @@ module Zold
 
     def fetch
       raise "Wallet file '#{@file}' is absent" unless File.exist?(@file)
-      lines = IO.readlines(@file, "\n").take(4)
-      raise "Not enough lines in #{@file}, just #{lines.count}" if lines.count < 4
+      lines = []
+      File.open(@file) do |f|
+        lines << f.readline while lines.count < 4 && !f.eof?
+      end
+      raise CantParse, "Not enough lines in #{@file}, just #{lines.count}" if lines.count < 4
       lines
     end
   end

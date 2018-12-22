@@ -85,8 +85,8 @@ Available options:"
           'The name of the network we work in',
           default: 'test'
         o.integer '--threads',
-          "How many threads to use for fetching wallets (default: #{[Concurrent.processor_count / 2, 2].max})",
-          default: [Concurrent.processor_count / 2, 2].max
+          'How many threads to use for fetching wallets (default: 1)',
+          default: 1
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return

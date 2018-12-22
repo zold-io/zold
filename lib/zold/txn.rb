@@ -34,6 +34,9 @@ require_relative 'signature'
 module Zold
   # A single transaction
   class Txn
+    # When can't parse them.
+    class CantParse < StandardError; end
+
     # Regular expression for details
     RE_DETAILS = '[a-zA-Z0-9 @\!\?\*_\-\.:,\'/]+'
     private_constant :RE_DETAILS
@@ -154,7 +157,7 @@ module Zold
     def self.parse(line, idx = 0)
       clean = line.strip
       parts = PTN.match(clean)
-      raise "Invalid line ##{idx}: #{line.inspect} (doesn't match #{PTN})" unless parts
+      raise CantParse, "Invalid line ##{idx}: #{line.inspect} (doesn't match #{PTN})" unless parts
       txn = Txn.new(
         Hexnum.parse(parts[:id]).to_i,
         parse_time(parts[:date]),
