@@ -112,23 +112,17 @@ class TestHttp < Zold::Test
     end
   end
 
-  # @todo #444:30min It's obvious that the test works (I can see that in
-  #  the console, but for some weird reason it doesn't work in Minitest. Try
-  #  to run it: ruby test/test_http.rb -n test_sends_correct_http_headers
-  #  If fails because of PUT HTTP request timeout. Let's find the problem,
-  #  fix it, and un-skip the test.
   def test_sends_correct_http_headers
-    skip
     WebMock.allow_net_connect!
     body = ''
     RandomPort::Pool::SINGLETON.acquire do |port|
       thread = Thread.start do
         Zold::VerboseThread.new(test_log).run do
-          server = TCPServer.new(port)
+          server = TCPServer.new('127.0.0.1', port)
           socket = server.accept
           loop do
             line = socket.gets
-            break if line.nil?
+            break if line.eql?("\r\n")
             test_log.info(line.inspect)
             body += line
           end
