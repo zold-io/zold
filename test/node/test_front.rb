@@ -146,7 +146,7 @@ class FrontTest < Zold::Test
       FakeNode.new(log: test_log).run(['--ignore-score-weakness', '--standalone']) do |port|
         wallet = home.create_wallet(txns: 2)
         base = "http://localhost:#{port}"
-        response = Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").put(IO.read(wallet.path))
+        response = Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").put(wallet.path)
         assert_equal(200, response.status, response.body)
         assert_equal_wait(200) { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").get.status }
         [
@@ -175,7 +175,7 @@ class FrontTest < Zold::Test
       FakeHome.new(log: test_log).run do |home|
         wallet = home.create_wallet
         base = "http://localhost:#{port}"
-        Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").put(IO.read(wallet.path))
+        Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").put(wallet.path)
         assert_equal_wait(200) { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").get.status }
         threads = []
         mutex = Mutex.new
@@ -198,12 +198,11 @@ class FrontTest < Zold::Test
         base = "http://localhost:#{port}"
         assert_equal(
           200,
-          Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").put(IO.read(wallet.path)).status
+          Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").put(wallet.path).status
         )
         assert_equal_wait(200) { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").get.status }
         3.times do
-          r = Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}")
-            .put(IO.read(wallet.path))
+          r = Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").put(wallet.path)
           assert_equal(304, r.status, r.body)
         end
       end
@@ -216,7 +215,7 @@ class FrontTest < Zold::Test
       FakeHome.new(log: test_log).run do |home|
         Threads.new(5).assert do
           wallet = home.create_wallet
-          Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").put(IO.read(wallet.path))
+          Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").put(wallet.path)
           assert_equal_wait(200) { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").get.status }
         end
       end
@@ -348,12 +347,12 @@ class FrontTest < Zold::Test
       FakeHome.new(log: test_log).run do |home|
         wallet = home.create_wallet(Zold::Id::ROOT)
         base = "http://localhost:#{port}"
-        Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").put(IO.read(wallet.path))
+        Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").put(wallet.path)
         assert_equal_wait(200) { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").get.status }
         cycles = 50
         cycles.times do
           wallet.sub(Zold::Amount.new(zents: 10), "NOPREFIX@#{Zold::Id.new}", key)
-          Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").put(IO.read(wallet.path))
+          Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").put(wallet.path)
           assert_equal(200, Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").get.status)
         end
         assert_equal_wait(-10 * cycles) do

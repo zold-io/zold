@@ -105,7 +105,7 @@ Available options:"
       end
       unless opts['quiet-if-missed']
         if done.value.zero?
-          raise "No nodes out of #{nodes} accepted the wallet #{id}; run 'zold remote update' and try again"
+          raise "No nodes out of #{nodes.value} accepted the wallet #{id}; run 'zold remote update' and try again"
         end
         if masters.value.zero? && !opts['tolerate-edges']
           raise EdgesOnly, "There are only edge nodes, run 'zold remote update' or use --tolerate-edges"
@@ -125,12 +125,14 @@ out of #{nodes.value} in #{Age.new(start)}, total score for #{id} is #{total.val
         return 0
       end
       start = Time.now
-      content = @wallets.acq(id) do |wallet|
-        raise "The wallet #{id} is absent" unless wallet.exists?
-        IO.read(wallet.path)
-      end
       uri = "/wallet/#{id}"
-      response = r.http(uri).put(content, timeout: 2 + content.length * 0.01 / 1024)
+      response = Tempfile.open do |f|
+        @wallets.acq(id) do |wallet|
+          raise "The wallet #{id} is absent" unless wallet.exists?
+          FileUtils.copy_file(wallet.path, f.path)
+        end
+        r.http(uri).put(f)
+      end
       @wallets.acq(id) do |wallet|
         if response.status == 304
           @log.info("#{r}: same version of #{wallet.mnemo} there, in #{Age.new(start, limit: 0.5)}")

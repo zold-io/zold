@@ -81,15 +81,17 @@ module Zold
       Error.new(e)
     end
 
-    def put(body, timeout: READ_TIMEOUT)
+    def put(file)
       Response.new(
         Typhoeus::Request.put(
           @uri,
           accept_encoding: 'gzip',
-          body: body,
-          headers: headers.merge('Content-Type': 'text/plain'),
+          body: IO.read(file),
+          headers: headers.merge(
+            'Content-Type': 'text/plain'
+          ),
           connecttimeout: CONNECT_TIMEOUT,
-          timeout: timeout
+          timeout: 2 + File.size(file) * 0.01 / 1024
         )
       )
     rescue StandardError => e

@@ -98,7 +98,7 @@ class TestHttp < Zold::Test
         Zold::VerboseThread.new(test_log).run do
           server = TCPServer.new(port)
           client = server.accept
-          client.puts("HTTP/1.1 200 OK\nContent-Length: 4\n\n")
+          client.puts("HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\n")
           sleep 1
           client.puts('Good')
           client.close
@@ -139,7 +139,10 @@ class TestHttp < Zold::Test
           socket.close
         end
       end
-      res = Zold::Http.new(uri: "http://127.0.0.1:#{port}/").put('how are you?')
+      res = Tempfile.open do |f|
+        IO.write(f, 'How are you?')
+        Zold::Http.new(uri: "http://127.0.0.1:#{port}/").put(f)
+      end
       assert_equal(200, res.status, res)
       assert(body.include?('Content-Length: 12'), body)
       assert(body.include?('Content-Type: text/plain'))
