@@ -146,10 +146,8 @@ run 'zold remote update' or use --tolerate-quorum=1"
       r.assert_valid_score(score)
       r.assert_score_ownership(score)
       r.assert_score_strength(score) unless opts['ignore-score-weakness']
-      bin = r.http(uri + '.bin').get(timeout: 2 + json['size'] * 0.01 / 1024)
-      r.assert_code(200, bin)
       Tempfile.open(['', Wallet::EXT]) do |f|
-        IO.write(f, bin.body)
+        r.http(uri + '.bin').get_file(f)
         wallet = Wallet.new(f.path)
         wallet.refurbish
         if wallet.protocol != Zold::PROTOCOL

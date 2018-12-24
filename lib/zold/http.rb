@@ -32,6 +32,44 @@ require_relative 'version'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
+  # Some clients waits for status method in response
+  class HttpResponse < SimpleDelegator
+    def status
+      code.zero? ? 599 : code
+    end
+
+    def status_line
+      status_message || ''
+    end
+
+    def to_s
+      "#{status}: #{status_line}\n#{body}"
+    end
+  end
+
+  # The error, if connection fails
+  class HttpError < HttpResponse
+    def initialize(ex)
+      @ex = ex
+    end
+
+    def body
+      Backtrace.new(@ex).to_s
+    end
+
+    def status
+      599
+    end
+
+    def status_line
+      @ex.message || ''
+    end
+
+    def headers
+      {}
+    end
+  end
+
   # Http page
   class Http
     # HTTP header we add to each HTTP request, in order to inform
@@ -68,7 +106,7 @@ module Zold
     end
 
     def get(timeout: READ_TIMEOUT)
-      Response.new(
+      HttpResponse.new(
         Typhoeus::Request.get(
           @uri,
           accept_encoding: 'gzip',
@@ -78,11 +116,19 @@ module Zold
         )
       )
     rescue StandardError => e
-      Error.new(e)
+      HttpError.new(e)
+    end
+
+    def get_file(file)
+      response = get(timeout: 60 * 60)
+      raise "Invalid response code #{response.status}" unless response.status == 200
+      IO.write(file, response.body)
+    rescue StandardError => e
+      HttpError.new(e)
     end
 
     def put(file)
-      Response.new(
+      HttpResponse.new(
         Typhoeus::Request.put(
           @uri,
           accept_encoding: 'gzip',
@@ -95,48 +141,10 @@ module Zold
         )
       )
     rescue StandardError => e
-      Error.new(e)
+      HttpError.new(e)
     end
 
     private
-
-    # Some clients waits for status method in response
-    class Response < SimpleDelegator
-      def status
-        code.zero? ? 599 : code
-      end
-
-      def status_line
-        status_message || ''
-      end
-
-      def to_s
-        "#{status}: #{status_line}\n#{body}"
-      end
-    end
-
-    # The error, if connection fails
-    class Error < Response
-      def initialize(ex)
-        @ex = ex
-      end
-
-      def body
-        Backtrace.new(@ex).to_s
-      end
-
-      def status
-        599
-      end
-
-      def status_line
-        @ex.message || ''
-      end
-
-      def headers
-        {}
-      end
-    end
 
     def headers
       headers = {
