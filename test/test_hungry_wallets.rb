@@ -37,7 +37,7 @@ class TestHungryWallets < Zold::Test
   def test_pulls_wallet
     FakeHome.new(log: test_log).run do |home|
       id = Zold::Id.new
-      get = stub_request(:get, "http://localhost:4096/wallet/#{id}/size").to_return(status: 404)
+      get = stub_request(:get, "http://localhost:4096/wallet/#{id}").to_return(status: 404)
       remotes = home.remotes
       remotes.add('localhost', 4096)
       pool = Zold::ThreadPool.new('test', log: test_log)

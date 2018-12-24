@@ -93,7 +93,6 @@ class FrontTest < Zold::Test
           '/this-is-absent',
           '/wallet/ffffeeeeddddcccc',
           '/wallet/ffffeeeeddddcccc.bin',
-          '/wallet/ffffeeeeddddcccc.json',
           '/wallet/ffffeeeeddddcccc.txt',
           '/wallet/ffffeeeeddddcccc/balance',
           '/wallet/ffffeeeeddddcccc/key',
@@ -152,7 +151,6 @@ class FrontTest < Zold::Test
         assert_equal_wait(200) { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").get.status }
         [
           "/wallet/#{wallet.id}.txt",
-          "/wallet/#{wallet.id}.json",
           "/wallet/#{wallet.id}/balance",
           "/wallet/#{wallet.id}/key",
           "/wallet/#{wallet.id}/mtime",

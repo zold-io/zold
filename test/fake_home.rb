@@ -81,6 +81,7 @@ class FakeHome
         protocol: Zold::PROTOCOL,
         id: wallet.id.to_s,
         score: score.to_h,
+        size: wallet.size,
         wallets: 1,
         mtime: wallet.mtime.utc.iso8601,
         digest: wallet.digest,

@@ -57,9 +57,10 @@ class TestPay < Zold::Test
       remotes = home.remotes
       remotes.add('localhost', 4096)
       json = home.create_wallet_json
-      id = Zold::JsonPage.new(json).to_hash['id']
-      stub_request(:get, "http://localhost:4096/wallet/#{id}/size").to_return(status: 200, body: '10000')
+      hash = Zold::JsonPage.new(json).to_hash
+      id = hash['id']
       stub_request(:get, "http://localhost:4096/wallet/#{id}").to_return(status: 200, body: json)
+      stub_request(:get, "http://localhost:4096/wallet/#{id}.bin").to_return(status: 200, body: hash['body'])
       home.wallets.acq(Zold::Id.new(id)) { |w| File.delete(w.path) }
       source = home.create_wallet
       amount = Zold::Amount.new(zld: 14.95)

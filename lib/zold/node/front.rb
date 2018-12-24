@@ -249,26 +249,7 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
           size: wallet.size,
           digest: wallet.digest,
           copies: Copies.new(File.join(settings.copies, wallet.id)).all.count,
-          balance: wallet.balance.to_i,
-          body: IO.read(wallet.path)
-        )
-      end
-    end
-
-    get %r{/wallet/(?<id>[A-Fa-f0-9]{16}).json} do
-      fetch('application/json') do |wallet|
-        pretty(
-          version: settings.opts['expose-version'],
-          alias: settings.node_alias,
-          protocol: settings.protocol,
-          id: wallet.id.to_s,
-          score: score.to_h,
-          wallets: total_wallets,
-          key: wallet.key.to_pub,
-          mtime: wallet.mtime.utc.iso8601,
-          digest: wallet.digest,
-          balance: wallet.balance.to_i,
-          txns: wallet.txns.count
+          balance: wallet.balance.to_i
         )
       end
     end
@@ -339,7 +320,7 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.bin} do
-      fetch { |w| IO.read(w.path) }
+      fetch { |w| send_file(w.path) }
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/copies} do

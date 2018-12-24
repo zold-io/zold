@@ -44,17 +44,17 @@ class TestFetch < Zold::Test
   def test_fetches_wallet
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
-      stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}/size")
-        .to_return(status: 200, body: wallet.size.to_s)
       stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}").to_return(
         status: 200,
         body: {
           'score': Zold::Score::ZERO.to_h,
-          'body': IO.read(wallet.path),
+          'size': 10_000,
           'mtime': Time.now.utc.iso8601
         }.to_json
       )
-      stub_request(:get, "http://localhost:81/wallet/#{wallet.id}/size").to_return(status: 404)
+      stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}.bin")
+        .to_return(status: 200, body: IO.read(wallet.path))
+      stub_request(:get, "http://localhost:81/wallet/#{wallet.id}").to_return(status: 404)
       remotes = home.remotes
       remotes.add('localhost', 4096)
       remotes.add('localhost', 81)
@@ -72,27 +72,27 @@ class TestFetch < Zold::Test
     log = TestLogger.new(test_log)
     FakeHome.new(log: log).run do |home|
       wallet_a = home.create_wallet
-      stub_request(:get, "http://localhost:4096/wallet/#{wallet_a.id}/size")
-        .to_return(status: 200, body: wallet_a.size.to_s)
       stub_request(:get, "http://localhost:4096/wallet/#{wallet_a.id}").to_return(
         status: 200,
         body: {
           'score': Zold::Score::ZERO.to_h,
-          'body': IO.read(wallet_a.path),
+          'size': 10_000,
           'mtime': Time.now.utc.iso8601
         }.to_json
       )
+      stub_request(:get, "http://localhost:4096/wallet/#{wallet_a.id}.bin")
+        .to_return(status: 200, body: IO.read(wallet_a.path))
       wallet_b = home.create_wallet
-      stub_request(:get, "http://localhost:4096/wallet/#{wallet_b.id}/size")
-        .to_return(status: 200, body: wallet_b.size.to_s)
       stub_request(:get, "http://localhost:4096/wallet/#{wallet_b.id}").to_return(
         status: 200,
         body: {
           'score': Zold::Score::ZERO.to_h,
-          'body': IO.read(wallet_b.path),
+          'size': 10_000,
           'mtime': Time.now.utc.iso8601
         }.to_json
       )
+      stub_request(:get, "http://localhost:4096/wallet/#{wallet_b.id}.bin")
+        .to_return(status: 200, body: IO.read(wallet_b.path))
       remotes = home.remotes
       remotes.add('localhost', 4096)
       copies_a = home.copies(wallet_a)
@@ -115,16 +115,16 @@ class TestFetch < Zold::Test
   def test_fails_when_only_edge_nodes
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
-      stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}/size")
-        .to_return(status: 200, body: wallet.size.to_s)
       stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}").to_return(
         status: 200,
         body: {
           'score': Zold::Score::ZERO.to_h,
-          'body': IO.read(wallet.path),
+          'size': 10_000,
           'mtime': Time.now.utc.iso8601
         }.to_json
       )
+      stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}.bin")
+        .to_return(status: 200, body: IO.read(wallet.path))
       remotes = home.remotes
       remotes.add('localhost', 4096)
       copies = home.copies(wallet)
@@ -139,16 +139,16 @@ class TestFetch < Zold::Test
   def test_fails_when_only_one_node
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
-      stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}/size")
-        .to_return(status: 200, body: wallet.size.to_s)
       stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}").to_return(
         status: 200,
         body: {
           'score': Zold::Score::ZERO.to_h,
-          'body': IO.read(wallet.path),
+          'size': 10_000,
           'mtime': Time.now.utc.iso8601
         }.to_json
       )
+      stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}.bin")
+        .to_return(status: 200, body: IO.read(wallet.path))
       remotes = home.remotes
       remotes.add('localhost', 4096)
       copies = home.copies(wallet)
