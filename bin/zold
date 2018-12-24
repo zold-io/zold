@@ -281,3 +281,4 @@ else
   log.debug("Successfully finished in #{Zold::Age.new(start)}")
 end
 
+abort # We need this in case some threads are still alive
