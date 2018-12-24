@@ -160,4 +160,63 @@ class TestHttp < Zold::Test
     res = Zold::Http.new(uri: 'http://some-host-3/').get
     assert_equal(200, res.status, res)
   end
+
+  def test_uploads_file
+    WebMock.allow_net_connect!
+    RandomPort::Pool::SINGLETON.acquire do |port|
+      thread = Thread.start do
+        Zold::VerboseThread.new(test_log).run do
+          server = TCPServer.new(port)
+          socket = server.accept
+          body = ''
+          stops = 0
+          loop do
+            part = socket.read_nonblock(5, exception: false)
+            if part == :wait_readable
+              break if stops > 5
+              stops += 1
+              sleep 0.001
+            else
+              body += part
+              stops = 0
+            end
+          end
+          socket.close_read
+          socket.print("HTTP/1.1 200 OK\nContent-Length: #{body.length}\n\n#{body}")
+          socket.close_write
+        end
+      end
+      content = "how are you\nmy friend"
+      res = Tempfile.open do |f|
+        IO.write(f, content)
+        Zold::Http.new(uri: "http://localhost:#{port}/").put(f)
+      end
+      assert_equal(200, res.status, res)
+      assert(res.body.include?(content), res)
+      thread.kill
+      thread.join
+    end
+  end
+
+  def test_downloads_file
+    WebMock.allow_net_connect!
+    RandomPort::Pool::SINGLETON.acquire do |port|
+      content = "how are you\nmy friend"
+      thread = Thread.start do
+        Zold::VerboseThread.new(test_log).run do
+          server = TCPServer.new(port)
+          socket = server.accept
+          socket.print("HTTP/1.1 200 OK\nContent-Length: #{content.length}\n\n#{content}")
+          socket.close_write
+        end
+      end
+      body = Tempfile.open do |f|
+        Zold::Http.new(uri: "http://localhost:#{port}/").get_file(f)
+        IO.read(f)
+      end
+      assert(body.include?(content), body)
+      thread.kill
+      thread.join
+    end
+  end
 end
