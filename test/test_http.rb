@@ -201,7 +201,7 @@ class TestHttp < Zold::Test
   def test_downloads_file
     WebMock.allow_net_connect!
     RandomPort::Pool::SINGLETON.acquire do |port|
-      content = "how are you\nmy friend"
+      content = "how are you\nmy friend" * 1000
       thread = Thread.start do
         Zold::VerboseThread.new(test_log).run do
           server = TCPServer.new(port)

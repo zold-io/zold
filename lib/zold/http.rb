@@ -120,9 +120,21 @@ module Zold
     end
 
     def get_file(file)
-      response = get(timeout: 60 * 60)
-      raise "Invalid response code #{response.status}" unless response.status == 200
-      IO.write(file, response.body)
+      File.open(file, 'w') do |f|
+        request = Typhoeus::Request.new(
+          @uri,
+          accept_encoding: 'gzip',
+          headers: headers,
+          connecttimeout: CONNECT_TIMEOUT
+        )
+        request.on_body do |chunk|
+          f.write(chunk)
+        end
+        request.run
+        response = new HttpResponse(request)
+        raise "Invalid response code #{response.status}" unless response.status == 200
+        response
+      end
     rescue StandardError => e
       HttpError.new(e)
     end
