@@ -261,6 +261,19 @@ class TestRemotes < Zold::Test
     end
   end
 
+  def test_unerror_remote
+    Dir.mktmpdir do |dir|
+      remotes = Zold::Remotes.new(file: File.join(dir, 'uu-90.csv'))
+      remotes.clean
+      remotes.add('192.168.0.1', 8081)
+      assert_equal remotes.all.last[:errors], 0
+      remotes.error('192.168.0.1', 8081)
+      assert_equal remotes.all.last[:errors], 1
+      remotes.unerror('192.168.0.1', 8081)
+      assert_equal remotes.all.last[:errors], 0
+    end
+  end
+
   def test_empty_remotes
     Time.stub :now, Time.mktime(2018, 1, 1) do
       remotes = Zold::Remotes::Empty.new

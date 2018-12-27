@@ -159,33 +159,25 @@ module Zold
     end
 
     def exists?(host, port = PORT)
-      raise 'Port has to be of type Integer' unless port.is_a?(Integer)
-      raise 'Host can\'t be nil' if host.nil?
-      raise 'Port can\'t be nil' if port.nil?
+      assert_host_info(host, port)
       list = Futex.new(@file).open(false) { load }
       !list.find { |r| r[:host] == host.downcase && r[:port] == port }.nil?
     end
 
     def add(host, port = PORT)
-      raise 'Host can\'t be nil' if host.nil?
-      raise 'Host can\'t be empty' if host.empty?
-      raise 'Port can\'t be nil' if port.nil?
-      raise 'Port has to be of type Integer' unless port.is_a?(Integer)
-      raise 'Port can\'t be zero' if port.zero?
-      raise 'Port can\'t be negative' if port.negative?
-      raise 'Port can\'t be over 65536' if port > 0xffff
+      assert_host_info(host, port)
       modify do |list|
         list + [{ host: host.downcase, port: port, score: 0, errors: 0 }]
       end
+      unerror(host, port)
     end
 
     def remove(host, port = PORT)
-      raise 'Port has to be of type Integer' unless port.is_a?(Integer)
-      raise 'Host can\'t be nil' if host.nil?
-      raise 'Port can\'t be nil' if port.nil?
+      assert_host_info(host, port)
       modify do |list|
         list.reject { |r| r[:host] == host.downcase && r[:port] == port }
       end
+      unerror(host, port)
     end
 
     # Go through the list of remotes and call a provided block for each
@@ -208,6 +200,7 @@ module Zold
             network: @network
           )
           raise 'Took too long to execute' if (Time.now - start).round > @timeout
+          unerror(r[:host], r[:port])
         rescue StandardError => e
           error(r[:host], r[:port])
           log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message} in #{Age.new(start)}")
@@ -218,19 +211,24 @@ module Zold
     end
 
     def error(host, port = PORT)
-      raise 'Host can\'t be nil' if host.nil?
-      raise 'Port can\'t be nil' if port.nil?
-      raise 'Port has to be of type Integer' unless port.is_a?(Integer)
+      assert_host_info(host, port)
       if_present(host, port) { |r| r[:errors] += 1 }
     end
 
+    def unerror(host, port = PORT)
+      assert_host_info(host, port)
+
+      if_present(host, port) do |remote|
+        remote[:errors] -= 1 if (remote[:errors]).positive?
+      end
+    end
+
     def rescore(host, port, score)
-      raise 'Host can\'t be nil' if host.nil?
-      raise 'Port can\'t be nil' if port.nil?
+      assert_host_info(host, port)
       raise 'Score can\'t be nil' if score.nil?
-      raise 'Port has to be of type Integer' unless port.is_a?(Integer)
       raise 'Score has to be of type Integer' unless score.is_a?(Integer)
       if_present(host, port) { |r| r[:score] = score }
+      unerror(host, port)
     end
 
     def mtime
@@ -288,6 +286,16 @@ module Zold
       else
         []
       end
+    end
+
+    def assert_host_info(host, port)
+      raise 'Host can\'t be nil' if host.nil?
+      raise 'Host can\'t be empty' if host.empty?
+      raise 'Port can\'t be nil' if port.nil?
+      raise 'Port has to be of type Integer' unless port.is_a?(Integer)
+      raise 'Port can\'t be zero' if port.zero?
+      raise 'Port can\'t be negative' if port.negative?
+      raise 'Port can\'t be over 65536' if port > 0xffff
     end
   end
 end
