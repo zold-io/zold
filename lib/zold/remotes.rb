@@ -177,6 +177,7 @@ module Zold
       modify do |list|
         list + [{ host: host.downcase, port: port, score: 0, errors: 0 }]
       end
+      unerror(host, port)
     end
 
     def remove(host, port = PORT)
@@ -186,6 +187,7 @@ module Zold
       modify do |list|
         list.reject { |r| r[:host] == host.downcase && r[:port] == port }
       end
+      unerror(host, port)
     end
 
     # Go through the list of remotes and call a provided block for each
@@ -208,6 +210,7 @@ module Zold
             network: @network
           )
           raise 'Took too long to execute' if (Time.now - start).round > @timeout
+          unerror(r[:host], r[:port])
         rescue StandardError => e
           error(r[:host], r[:port])
           log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message} in #{Age.new(start)}")
@@ -224,6 +227,16 @@ module Zold
       if_present(host, port) { |r| r[:errors] += 1 }
     end
 
+    def unerror(host, port = PORT)
+      raise 'Host can\'t be nil' if host.nil?
+      raise 'Port can\'t be nil' if port.nil?
+      raise 'Port has to be of type Integer' unless port.is_a?(Integer)
+
+      if_present(host, port) do |remote|
+        remote[:errors] -= 1 if remote[:errors] > 0
+      end
+    end
+
     def rescore(host, port, score)
       raise 'Host can\'t be nil' if host.nil?
       raise 'Port can\'t be nil' if port.nil?
@@ -231,6 +244,7 @@ module Zold
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
       raise 'Score has to be of type Integer' unless score.is_a?(Integer)
       if_present(host, port) { |r| r[:score] = score }
+      unerror(host, port)
     end
 
     def mtime
