@@ -149,8 +149,8 @@ module Zold
           'Skip Out Of Memory check and never exit, no matter how much RAM is consumed',
           default: false
         o.integer '--oom-limit',
-          'Maximum amount of memory we can consume, quit if we take more than that, in Mb (default: 512)',
-          default: 512
+          "Maximum amount of memory we can consume, quit if we take more than that, in Mb (default: #{oom_limit})",
+          default: oom_limit
         o.integer '--queue-limit',
           'The maximum number of wallets to be accepted via PUSH and stored in the queue (default: 256)',
           default: 256
@@ -438,6 +438,14 @@ module Zold
       end
       raise 'Can\'t detect your IP address, you have to specify it in --host' if addr.nil?
       addr.ip_address
+    end
+
+    def oom_limit
+      require 'total'
+      Total::Mem.new.bytes / (1024 * 1024) / 2
+    rescue Total::CantDetect => e
+      @log.error(e.message)
+      512
     end
 
     # Log facility for nohup

@@ -244,12 +244,12 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
           protocol: settings.protocol,
           id: wallet.id.to_s,
           score: score.to_h,
-          wallets: total_wallets,
           mtime: wallet.mtime.utc.iso8601,
           size: wallet.size,
           digest: wallet.digest,
           copies: Copies.new(File.join(settings.copies, wallet.id)).all.count,
-          balance: wallet.balance.to_i
+          balance: wallet.balance.to_i,
+          txns: wallet.txns.count
         )
       end
     end
