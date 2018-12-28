@@ -170,6 +170,21 @@ class FrontTest < Zold::Test
     end
   end
 
+  def test_renders_wallets_page
+    FakeHome.new(log: test_log).run do |home|
+      FakeNode.new(log: test_log).run(['--ignore-score-weakness', '--standalone']) do |port|
+        wallet = home.create_wallet(txns: 2)
+        base = "http://localhost:#{port}"
+        response = Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").put(wallet.path)
+        assert_equal(200, response.status, response.body)
+        assert_equal_wait(200) { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").get.status }
+        response = Zold::Http.new(uri: "#{base}/wallets").get
+        assert_equal(200, response.status, response.body)
+        assert(response.body.to_s.include?(wallet.id), response.body)
+      end
+    end
+  end
+
   def test_fetch_in_multiple_threads
     FakeNode.new(log: test_log).run(['--no-metronome', '--threads=0', '--standalone']) do |port|
       FakeHome.new(log: test_log).run do |home|
