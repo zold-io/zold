@@ -50,7 +50,7 @@ class TestRemotes < Zold::Test
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
       remotes = Zold::Remotes.new(file: file)
-      assert(remotes.master?('b1.zold.io', 80))
+      assert(remotes.master?('b2.zold.io', 4096))
     end
   end
 
