@@ -3,7 +3,7 @@ AllCops:
     - 'bin/**/*'
     - 'assets/**/*'
   DisplayCopNames: true
-  TargetRubyVersion: 2.5.1
+  TargetRubyVersion: 2.6.0
 
 Layout/EmptyLineAfterGuardClause:
   Enabled: false
