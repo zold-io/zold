@@ -22,7 +22,6 @@
 
 require 'concurrent'
 require 'tempfile'
-require_relative 'emission'
 require_relative '../log'
 require_relative '../remotes'
 require_relative '../copies'

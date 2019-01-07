@@ -22,7 +22,6 @@
 
 require 'concurrent'
 require 'tempfile'
-require_relative 'emission'
 require_relative 'soft_error'
 require_relative '../log'
 require_relative '../remotes'
@@ -74,7 +73,6 @@ module Zold
         if balance.negative? && !wallet.root?
           raise SoftError, "The balance #{balance} of #{wallet.id} is negative and it's not a root wallet"
         end
-        Emission.new(wallet).check
         tax = Tax.new(wallet)
         if tax.in_debt?
           raise SoftError, "Taxes are not paid, can't accept the wallet #{wallet.mnemo}; the debt is #{tax.debt} \
