@@ -92,6 +92,9 @@ Available options:"
 
     def push(id, opts)
       raise "There are no remote nodes, run 'zold remote reset'" if @remotes.all.empty?
+      @wallets.acq(id) do |wallet|
+        raise "The wallet #{id} is absent at #{wallet.path}" unless wallet.exists?
+      end
       start = Time.now
       total = Concurrent::AtomicFixnum.new
       nodes = Concurrent::AtomicFixnum.new
@@ -127,10 +130,7 @@ out of #{nodes.value} in #{Age.new(start)}, total score for #{id} is #{total.val
       start = Time.now
       uri = "/wallet/#{id}"
       response = Tempfile.open do |f|
-        @wallets.acq(id) do |wallet|
-          raise "The wallet #{id} is absent" unless wallet.exists?
-          FileUtils.copy_file(wallet.path, f.path)
-        end
+        @wallets.acq(id) { |w| FileUtils.copy_file(w.path, f.path) }
         r.http(uri).put(f)
       end
       @wallets.acq(id) do |wallet|
