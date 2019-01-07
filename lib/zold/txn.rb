@@ -55,6 +55,16 @@ module Zold
 
     attr_reader :id, :date, :amount, :prefix, :bnf, :details, :sign
     attr_writer :sign, :amount, :bnf
+
+    # Make a new object of this class (you must read the White Paper
+    # in order to understand this class).
+    #
+    # +id+:: is the ID of the transaction, an integer
+    # +date+:: is the date/time of the transaction
+    # +amount+:: is the amount, an instance of class +Amount+
+    # +prefix+:: is the prefix from the Invoice (read the WP)
+    # +bnf+:: is the wallet ID of the paying or receiving wallet
+    # +details+:: is the details, in plain text
     def initialize(id, date, amount, prefix, bnf, details)
       raise 'The ID can\'t be NIL' if id.nil?
       raise "ID of transaction can't be negative: #{id}" if id < 1
