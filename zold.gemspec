@@ -52,8 +52,8 @@ and suggests a different architecture for digital wallet maintenance.'
   s.post_install_message = "Thanks for installing Zold #{Zold::VERSION}!
   Study our White Paper: https://papers.zold.io/wp.pdf
   Read our blog posts: https://blog.zold.io
-  Try online wallet at: https://wts.zold.io
-  Stay in touch with the community: https://t.me/zold_io
+  Try ZLD online wallet at: https://wts.zold.io
+  Stay in touch with the community in Telegram: https://t.me/zold_io
   Follow us on Twitter: https://twitter.com/0crat
   If you have any issues, report to our GitHub repo: https://github.com/zold-io/zold"
   s.files = `git ls-files`.split($RS)

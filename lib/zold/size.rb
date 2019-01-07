@@ -34,8 +34,9 @@ module Zold
     end
 
     def to_s
-      return '?' if @bytes.nil?
-      if @bytes < 1024
+      if @bytes.nil?
+        '?'
+      elsif @bytes < 1024
         "#{@bytes}b"
       elsif @bytes < 1024 * 1024
         "#{(@bytes / 1024).round}Kb"

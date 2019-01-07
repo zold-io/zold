@@ -30,6 +30,7 @@ require 'sinatra/base'
 require 'concurrent'
 require 'backtrace'
 require 'zache'
+require 'total'
 require_relative '../version'
 require_relative '../size'
 require_relative '../wallet'
@@ -224,6 +225,7 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
           require 'usagewatch_ext'
           Object.const_defined?('Usagewatch') ? Usagewatch.uw_load.to_f : 0.0
         end,
+        total_mem: total_mem,
         threads: "#{Thread.list.select { |t| t.status == 'run' }.count}/#{Thread.list.count}",
         wallets: total_wallets,
         remotes: all_remotes.count,
@@ -440,6 +442,15 @@ time to stop; use --skip-oom to never quit")
       header = request.env[name]
       return unless header
       yield header
+    end
+
+    def total_mem
+      settings.zache.get(:total_mem, lifetime: settings.opts['no-cache'] ? 0 : 60) do
+        Total::Mem.new.bytes
+      rescue Total::CantDetect => e
+        @log.error(e.message)
+        0
+      end
     end
 
     def total_wallets
