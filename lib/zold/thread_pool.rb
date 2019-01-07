@@ -106,6 +106,7 @@ module Zold
         @threads.each do |t|
           (t.thread_variable_get(:kids) || []).each(&:kill)
           t.kill
+          sleep(0.001) while t.alive? # I believe it's a bug in Ruby, this line fixes it
           Thread.current.thread_variable_set(
             :kids,
             (Thread.current.thread_variable_get(:kids) || []) - [t]

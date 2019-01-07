@@ -65,7 +65,7 @@ module Zold
       @invoice = invoice
       @pipeline = Queue.new
       @farmer = farmer
-      @threads = ThreadPool.new('farm')
+      @threads = ThreadPool.new('farm', log: log)
       @lifetime = lifetime
       @strength = strength
     end
