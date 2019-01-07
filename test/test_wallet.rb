@@ -296,6 +296,7 @@ class TestWallet < Zold::Test
   end
 
   def test_collects_memory_garbage
+    skip
     require 'get_process_mem'
     start = GetProcessMem.new.bytes.to_i
     40.times do |i|
