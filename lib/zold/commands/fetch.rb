@@ -25,6 +25,7 @@ require 'json'
 require 'time'
 require 'tempfile'
 require 'slop'
+require 'openssl'
 require 'rainbow'
 require 'concurrent/atomics'
 require 'zold/score'
@@ -145,23 +146,32 @@ run 'zold remote update' or use --tolerate-quorum=1"
       r.assert_valid_score(score)
       r.assert_score_ownership(score)
       r.assert_score_strength(score) unless opts['ignore-score-weakness']
-      Tempfile.open(['', Wallet::EXT]) do |f|
-        r.http(uri + '.bin').get_file(f)
-        wallet = Wallet.new(f.path)
-        wallet.refurbish
-        if wallet.protocol != Zold::PROTOCOL
-          raise "Protocol #{wallet.protocol} doesn't match #{Zold::PROTOCOL} in #{id}"
-        end
-        if wallet.network != opts['network']
-          raise "The wallet #{id} is in network '#{wallet.network}', while we are in '#{opts['network']}'"
-        end
-        if wallet.balance.negative? && !wallet.root?
-          raise "The balance of #{id} is #{wallet.balance} and it's not a root wallet"
-        end
-        copy = cps.add(IO.read(f), score.host, score.port, score.value, master: r.master?)
-        @log.info("#{r} returned #{wallet.mnemo} #{Age.new(json['mtime'])}/#{json['copies']}c \
+      copy = nil
+      cps.all.each do |c|
+        next unless json['digest'] == OpenSSL::Digest::SHA256.file(c[:path]).hexdigest
+        copy = cps.add(IO.read(c[:path]), score.host, score.port, score.value, master: r.master?)
+        @log.debug("No need to fetch #{id} from #{r}, it's the same content as copy ##{copy}")
+        break
+      end
+      if copy.nil?
+        Tempfile.open(['', Wallet::EXT]) do |f|
+          r.http(uri + '.bin').get_file(f)
+          wallet = Wallet.new(f.path)
+          wallet.refurbish
+          if wallet.protocol != Zold::PROTOCOL
+            raise "Protocol #{wallet.protocol} doesn't match #{Zold::PROTOCOL} in #{id}"
+          end
+          if wallet.network != opts['network']
+            raise "The wallet #{id} is in network '#{wallet.network}', while we are in '#{opts['network']}'"
+          end
+          if wallet.balance.negative? && !wallet.root?
+            raise "The balance of #{id} is #{wallet.balance} and it's not a root wallet"
+          end
+          copy = cps.add(IO.read(f), score.host, score.port, score.value, master: r.master?)
+          @log.info("#{r} returned #{wallet.mnemo} #{Age.new(json['mtime'])}/#{json['copies']}c \
 as copy ##{copy}/#{cps.all.count} in #{Age.new(start, limit: 4)}: \
 #{Rainbow(score.value).green} (#{json['version']})")
+        end
       end
       score.value
     end
