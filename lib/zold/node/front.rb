@@ -251,7 +251,9 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
           digest: wallet.digest,
           copies: Copies.new(File.join(settings.copies, wallet.id)).all.count,
           balance: wallet.balance.to_i,
-          txns: wallet.txns.count
+          txns: wallet.txns.count,
+          taxes: Tax.new(wallet).paid.to_i,
+          debt: Tax.new(wallet).debt.to_i
         )
       end
     end
