@@ -22,7 +22,6 @@
 
 STDOUT.sync = true
 
-require 'eventmachine'
 require 'get_process_mem'
 require 'thin'
 require 'json'
