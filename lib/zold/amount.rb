@@ -58,9 +58,14 @@ module Zold
       @zents
     end
 
+    # Convert to ZLD and return as a float.
+    def to_f
+      @zents.to_f / 2**FRACTION
+    end
+
     # Convert to ZLD and return as a string. If you need float, you should use <tt>to_f()</tt> later.
     def to_zld(digits = 2)
-      format("%0.#{digits}f", @zents.to_f / 2**FRACTION)
+      format("%0.#{digits}f", to_f)
     end
 
     def to_s
