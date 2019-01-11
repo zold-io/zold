@@ -28,7 +28,11 @@ $ gem install --no-ri --no-rdoc zold
 
 ```bash
 $ sudo apt-get update -y
-$ sudo apt-get install -y ruby-dev rubygems zlib1g-dev libssl-dev build-essential libcurl4-openssl-dev
+$ sudo apt-get install -y curl ruby-dev rubygems zlib1g-dev libssl-dev build-essential libcurl4-openssl-dev
+$ gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
+$ curl -sSL https://get.rvm.io | bash -s stable
+$ source /etc/profile.d/rvm.sh
+$ rvm install --default 2.5.1
 $ gem install --no-ri --no-rdoc zold
 ```
 
@@ -64,7 +68,7 @@ $ sudo yum install zlib-devel gcc gcc-c++ ruby-devel rubygems ruby curl-devel
 $ gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
 $ curl -sSL https://get.rvm.io | bash -s stable
 $ source /etc/profile.d/rvm.sh
-$ rvm install 2.5.1
+$ rvm install --default 2.5.1
 $ gem install --no-ri --no-rdoc zold
 ```
 
@@ -75,7 +79,7 @@ $ sudo yum install zlib-devel gcc gcc-c++ ruby-devel rubygems ruby libcurl4-open
 $ gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
 $ curl -sSL https://get.rvm.io | bash -s stable
 $ source $HOME/.rvm/scripts/rvm
-$ rvm install 2.5.1
+$ rvm install --default 2.5.1
 $ gem install --no-ri --no-rdoc zold
 ```
 
