@@ -18,13 +18,21 @@ It is recommended to have at least 2 CPUs and 2 Gb RAM.
 
 ## Debian 9.4
 
+As a `root` user:
+
 ```bash
 $ sudo apt update -y
 $ sudo apt install -y ruby-dev rubygems zlib1g-dev libssl-dev make build-essential libcurl4-openssl-dev
+$ gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
+$ curl -sSL https://get.rvm.io | bash -s stable
+$ source /etc/profile.d/rvm.sh
+$ rvm install --default 2.5.1
 $ gem install --no-ri --no-rdoc zold
 ```
 
 ## Ubuntu 16.04
+
+As a `root` user:
 
 ```bash
 $ sudo apt-get update -y
