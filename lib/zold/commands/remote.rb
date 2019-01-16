@@ -93,6 +93,9 @@ Available options:"
         o.bool '--ignore-if-exists',
           'Ignore the node while adding if it already exists in the list',
           default: false
+        o.bool '--ignore-masters',
+          'Don\'t elect master nodes, only edges',
+          default: false
         o.integer '--min-score',
           "The minimum score required for winning the election (default: #{Tax::EXACT_SCORE})",
           default: Tax::EXACT_SCORE
@@ -227,6 +230,10 @@ Available options:"
         r.assert_score_ownership(score)
         r.assert_score_strength(score) unless opts['ignore-score-weakness']
         r.assert_score_value(score, opts['min-score']) unless opts['ignore-score-value']
+        if r.master? && opts['--ignore-masters']
+          @log.debug("#{r} ignored, it's a master node")
+          next
+        end
         scores << score
       end
       scores = scores.sample(opts['max-winners'])
