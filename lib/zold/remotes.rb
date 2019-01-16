@@ -41,6 +41,9 @@ require_relative 'node/farm'
 module Zold
   # One remote.
   class RemoteNode
+    # When something is wrong with the assertion
+    class CantAssert < StandardError; end
+
     def initialize(host:, port:, score:, idx:, master:, network: 'test', log: Log::NULL)
       @host = host
       @port = port
@@ -67,30 +70,30 @@ module Zold
       msg = response.status_line.strip
       return if response.status.to_i == code
       if response.headers && response.headers['X-Zold-Error']
-        raise "Error ##{response.status} \"#{response.headers['X-Zold-Error']}\"
+        raise CantAssert, "Error ##{response.status} \"#{response.headers['X-Zold-Error']}\"
             at #{response.headers['X-Zold-Path']}"
       end
-      raise "Unexpected HTTP code #{response.status}, instead of #{code}" if msg.empty?
-      raise "#{msg} (HTTP code #{response.status}, instead of #{code})"
+      raise CantAssert, "Unexpected HTTP code #{response.status}, instead of #{code}" if msg.empty?
+      raise CantAssert, "#{msg} (HTTP code #{response.status}, instead of #{code})"
     end
 
     def assert_valid_score(score)
-      raise "Invalid score #{score.reduced(4)}" unless score.valid?
-      raise "Expired score (#{Age.new(score.time)}) #{score.reduced(4)}" if score.expired?
+      raise CantAssert, "Invalid score #{score.reduced(4)}" unless score.valid?
+      raise CantAssert, "Expired score (#{Age.new(score.time)}) #{score.reduced(4)}" if score.expired?
     end
 
     def assert_score_ownership(score)
-      raise "Masqueraded host #{@host} as #{score.host}: #{score.reduced(4)}" if @host != score.host
-      raise "Masqueraded port #{@port} as #{score.port}: #{score.reduced(4)}" if @port != score.port
+      raise CantAssert, "Masqueraded host #{@host} as #{score.host}: #{score.reduced(4)}" if @host != score.host
+      raise CantAssert, "Masqueraded port #{@port} as #{score.port}: #{score.reduced(4)}" if @port != score.port
     end
 
     def assert_score_strength(score)
       return if score.strength >= Score::STRENGTH
-      raise "Score #{score.strength} is too weak (<#{Score::STRENGTH}): #{score.reduced(4)}"
+      raise CantAssert, "Score #{score.strength} is too weak (<#{Score::STRENGTH}): #{score.reduced(4)}"
     end
 
     def assert_score_value(score, min)
-      raise "Score #{score.value} is too small (<#{min}): #{score.reduced(4)}" if score.value < min
+      raise CantAssert, "Score #{score.value} is too small (<#{min}): #{score.reduced(4)}" if score.value < min
     end
   end
 

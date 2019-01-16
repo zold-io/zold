@@ -87,6 +87,9 @@ Available options:"
         o.integer '--threads',
           'How many threads to use for fetching wallets (default: 1)',
           default: 1
+        o.integer '--retry',
+          'How many times to retry each node before reporting a failure (default: 2)',
+          default: 2
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
@@ -133,48 +136,64 @@ run 'zold remote update' or use --tolerate-quorum=1"
     end
 
     def fetch_one(id, r, cps, opts)
-      start = Time.now
       if opts['ignore-node'].include?(r.to_s)
         @log.debug("#{r} ignored because of --ignore-node")
         return 0
       end
-      uri = "/wallet/#{id}"
-      head = r.http(uri).get
-      r.assert_code(200, head)
-      json = JsonPage.new(head.body, uri).to_hash
-      score = Score.parse_json(json['score'])
-      r.assert_valid_score(score)
-      r.assert_score_ownership(score)
-      r.assert_score_strength(score) unless opts['ignore-score-weakness']
-      copy = nil
-      cps.all.each do |c|
-        next unless json['digest'] == OpenSSL::Digest::SHA256.file(c[:path]).hexdigest &&
-          json['size'] == File.size(c[:path])
-        copy = cps.add(IO.read(c[:path]), score.host, score.port, score.value, master: r.master?)
-        @log.debug("No need to fetch #{id} from #{r}, it's the same content as copy ##{copy}")
-        break
-      end
-      if copy.nil?
-        Tempfile.open(['', Wallet::EXT]) do |f|
-          r.http(uri + '.bin').get_file(f)
-          wallet = Wallet.new(f.path)
-          wallet.refurbish
-          if wallet.protocol != Zold::PROTOCOL
-            raise "Protocol #{wallet.protocol} doesn't match #{Zold::PROTOCOL} in #{id}"
-          end
-          if wallet.network != opts['network']
-            raise "The wallet #{id} is in network '#{wallet.network}', while we are in '#{opts['network']}'"
-          end
-          if wallet.balance.negative? && !wallet.root?
-            raise "The balance of #{id} is #{wallet.balance} and it's not a root wallet"
-          end
-          copy = cps.add(IO.read(f), score.host, score.port, score.value, master: r.master?)
-          @log.info("#{r} returned #{wallet.mnemo} #{Age.new(json['mtime'])}/#{json['copies']}c \
-as copy ##{copy}/#{cps.all.count} in #{Age.new(start, limit: 4)}: \
-#{Rainbow(score.value).green} (#{json['version']})")
+      read_one(id, r, opts) do |json, score|
+        start = Time.now
+        r.assert_valid_score(score)
+        r.assert_score_ownership(score)
+        r.assert_score_strength(score) unless opts['ignore-score-weakness']
+        copy = nil
+        cps.all.each do |c|
+          next unless json['digest'] == OpenSSL::Digest::SHA256.file(c[:path]).hexdigest &&
+            json['size'] == File.size(c[:path])
+          copy = cps.add(IO.read(c[:path]), score.host, score.port, score.value, master: r.master?)
+          @log.debug("No need to fetch #{id} from #{r}, it's the same content as copy ##{copy}")
+          break
         end
+        if copy.nil?
+          Tempfile.open(['', Wallet::EXT]) do |f|
+            r.http("/wallet/#{id}.bin").get_file(f)
+            wallet = Wallet.new(f.path)
+            wallet.refurbish
+            if wallet.protocol != Zold::PROTOCOL
+              raise "Protocol #{wallet.protocol} doesn't match #{Zold::PROTOCOL} in #{id}"
+            end
+            if wallet.network != opts['network']
+              raise "The wallet #{id} is in network '#{wallet.network}', while we are in '#{opts['network']}'"
+            end
+            if wallet.balance.negative? && !wallet.root?
+              raise "The balance of #{id} is #{wallet.balance} and it's not a root wallet"
+            end
+            copy = cps.add(IO.read(f), score.host, score.port, score.value, master: r.master?)
+            @log.info("#{r} returned #{wallet.mnemo} #{Age.new(json['mtime'])}/#{json['copies']}c \
+  as copy ##{copy}/#{cps.all.count} in #{Age.new(start, limit: 4)}: \
+  #{Rainbow(score.value).green} (#{json['version']})")
+          end
+        end
+        score.value
       end
-      score.value
+    end
+
+    def read_one(id, r, opts)
+      attempt = 0
+      begin
+        uri = "/wallet/#{id}"
+        head = r.http(uri).get
+        r.assert_code(200, head)
+        json = JsonPage.new(head.body, uri).to_hash
+        score = Score.parse_json(json['score'])
+        yield json, score
+      rescue JsonPage::CantParse, Score::CantParse, RemoteNode::CantAssert => e
+        attempt += 1
+        if attempt < opts['retry']
+          @log.error("#{r} failed to fetch #{id}, trying again (attempt no.#{attempt}): #{e.message}")
+          retry
+        end
+        raise e
+      end
     end
 
     def digest(json)

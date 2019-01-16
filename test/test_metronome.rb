@@ -81,6 +81,7 @@ class TestMetronome < Zold::Test
 
     def exec(i)
       @count = i
+      sleep 0.1
       raise
     end
   end
