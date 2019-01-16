@@ -116,9 +116,11 @@ class TestHttp < Zold::Test
     WebMock.allow_net_connect!
     body = ''
     RandomPort::Pool::SINGLETON.acquire do |port|
+      latch = Concurrent::CountDownLatch.new(1)
       thread = Thread.start do
         Zold::VerboseThread.new(test_log).run do
           server = TCPServer.new('127.0.0.1', port)
+          latch.count_down
           socket = server.accept
           loop do
             line = socket.gets
@@ -133,6 +135,7 @@ class TestHttp < Zold::Test
           socket.close
         end
       end
+      latch.wait
       res = Tempfile.open do |f|
         IO.write(f, 'How are you?')
         Zold::Http.new(uri: "http://127.0.0.1:#{port}/").put(f)
@@ -158,9 +161,11 @@ class TestHttp < Zold::Test
   def test_uploads_file
     WebMock.allow_net_connect!
     RandomPort::Pool::SINGLETON.acquire do |port|
+      latch = Concurrent::CountDownLatch.new(1)
       thread = Thread.start do
         Zold::VerboseThread.new(test_log).run do
           server = TCPServer.new(port)
+          latch.count_down
           socket = server.accept
           body = ''
           stops = 0
@@ -180,6 +185,7 @@ class TestHttp < Zold::Test
           socket.close_write
         end
       end
+      latch.wait
       content = "how are you\nmy friend"
       res = Tempfile.open do |f|
         IO.write(f, content)
@@ -196,14 +202,17 @@ class TestHttp < Zold::Test
     WebMock.allow_net_connect!
     RandomPort::Pool::SINGLETON.acquire do |port|
       content = "how are you\nmy friend" * 1000
+      latch = Concurrent::CountDownLatch.new(1)
       thread = Thread.start do
         Zold::VerboseThread.new(test_log).run do
           server = TCPServer.new(port)
+          latch.count_down
           socket = server.accept
           socket.print("HTTP/1.1 200 OK\nContent-Length: #{content.length}\n\n#{content}")
           socket.close_write
         end
       end
+      latch.wait
       body = Tempfile.open do |f|
         Zold::Http.new(uri: "http://localhost:#{port}/").get_file(f)
         IO.read(f)

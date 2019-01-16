@@ -299,6 +299,7 @@ class TestWallet < Zold::Test
     # skip
     require 'get_process_mem'
     start = GetProcessMem.new.bytes.to_i
+
     40.times do |i|
       wallet = Zold::Wallet.new('fixtures/448b451bc62e8e16.z')
       GC.start
