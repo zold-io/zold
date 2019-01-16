@@ -78,6 +78,9 @@ Available options:"
         o.integer '--threads',
           'How many threads to use for pushing wallets (default: 1)',
           default: 1
+        o.integer '--retry',
+          'How many times to retry each node before reporting a failure (default: 2)',
+          default: 2
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
@@ -127,27 +130,41 @@ out of #{nodes.value} in #{Age.new(start)}, total score for #{id} is #{total.val
         return 0
       end
       start = Time.now
-      uri = "/wallet/#{id}"
-      response = Tempfile.open do |f|
-        @wallets.acq(id) { |w| FileUtils.copy_file(w.path, f.path) }
-        r.http(uri).put(f)
+      read_one(id, r, opts) do |json, score|
+        r.assert_valid_score(score)
+        r.assert_score_ownership(score)
+        r.assert_score_strength(score) unless opts['ignore-score-weakness']
+        if @log.info?
+          @log.info("#{r} accepted #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 4)}: \
+  #{Rainbow(score.value).green} (#{json['version']})")
+        end
+        score.value
       end
-      @wallets.acq(id) do |wallet|
+    end
+
+    def read_one(id, r, opts)
+      start = Time.now
+      uri = "/wallet/#{id}"
+      begin
+        response = Tempfile.open do |f|
+          @wallets.acq(id) { |w| FileUtils.copy_file(w.path, f.path) }
+          r.http(uri).put(f)
+        end
         if response.status == 304
-          @log.info("#{r}: same version of #{wallet.mnemo} there, in #{Age.new(start, limit: 0.5)}")
+          @log.info("#{r}: same version of #{@wallets.acq(id, &:mnemo)} there, in #{Age.new(start, limit: 0.5)}")
           return 0
         end
         r.assert_code(200, response)
         json = JsonPage.new(response.body, uri).to_hash
         score = Score.parse_json(json['score'])
-        r.assert_valid_score(score)
-        r.assert_score_ownership(score)
-        r.assert_score_strength(score) unless opts['ignore-score-weakness']
-        if @log.info?
-          @log.info("#{r} accepted #{wallet.mnemo} in #{Age.new(start, limit: 4)}: \
-#{Rainbow(score.value).green} (#{json['version']})")
+        yield json, score
+      rescue JsonPage::CantParse, Score::CantParse, RemoteNode::CantAssert => e
+        attempt += 1
+        if attempt < opts['retry']
+          @log.error("#{r} failed to push #{id}, trying again (attempt no.#{attempt}): #{e.message}")
+          retry
         end
-        score.value
+        raise e
       end
     end
   end

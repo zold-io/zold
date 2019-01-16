@@ -140,8 +140,8 @@ run 'zold remote update' or use --tolerate-quorum=1"
         @log.debug("#{r} ignored because of --ignore-node")
         return 0
       end
+      start = Time.now
       read_one(id, r, opts) do |json, score|
-        start = Time.now
         r.assert_valid_score(score)
         r.assert_score_ownership(score)
         r.assert_score_strength(score) unless opts['ignore-score-weakness']
