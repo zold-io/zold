@@ -102,6 +102,9 @@ Available options:"
         o.integer '--max-winners',
           'The maximum amount of election winners the election (default: 1)',
           default: 1
+        o.integer '--retry',
+          'How many times to retry each node before reporting a failure (default: 2)',
+          default: 2
         o.bool '--skip-ping',
           'Don\'t ping back the node when adding it (not recommended)',
           default: false
@@ -261,41 +264,38 @@ Available options:"
       opts['depth'].times do |cycle|
         @remotes.iterate(@log, farm: @farm) do |r|
           start = Time.now
-          uri = '/remotes'
-          res = r.http(uri).get
-          r.assert_code(200, res)
-          json = JsonPage.new(res.body, uri).to_hash
-          score = Score.parse_json(json['score'])
-          r.assert_valid_score(score)
-          r.assert_score_ownership(score)
-          r.assert_score_strength(score) unless opts['ignore-score-weakness']
-          @remotes.rescore(score.host, score.port, score.value)
-          if Semantic::Version.new(VERSION) < Semantic::Version.new(json['version'])
-            if opts['reboot']
-              @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, reboot! \
-(use --never-reboot to avoid this from happening)")
-              terminate
+          update_one(r, opts) do |json, score|
+            r.assert_valid_score(score)
+            r.assert_score_ownership(score)
+            r.assert_score_strength(score) unless opts['ignore-score-weakness']
+            @remotes.rescore(score.host, score.port, score.value)
+            if Semantic::Version.new(VERSION) < Semantic::Version.new(json['version'])
+              if opts['reboot']
+                @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, reboot! \
+  (use --never-reboot to avoid this from happening)")
+                terminate
+              end
+              @log.debug("#{r}: their version #{json['version']} is higher than mine #{VERSION}, \
+  it's recommended to reboot, but I don't do it because of --never-reboot")
             end
-            @log.debug("#{r}: their version #{json['version']} is higher than mine #{VERSION}, \
-it's recommended to reboot, but I don't do it because of --never-reboot")
-          end
-          if Semantic::Version.new(VERSION) < Semantic::Version.new(Zold::Gem.new.last_version)
-            if opts['reboot']
-              @log.info("#{r}: the version of the gem is higher than mine #{VERSION}, reboot! \
-(use --never-reboot to avoid this from happening)")
-              terminate
+            if Semantic::Version.new(VERSION) < Semantic::Version.new(Zold::Gem.new.last_version)
+              if opts['reboot']
+                @log.info("#{r}: the version of the gem is higher than mine #{VERSION}, reboot! \
+  (use --never-reboot to avoid this from happening)")
+                terminate
+              end
+              @log.debug("#{r}: gem version is higher than mine #{VERSION}, \
+  it's recommended to reboot, but I don't do it because of --never-reboot")
             end
-            @log.debug("#{r}: gem version is higher than mine #{VERSION}, \
-it's recommended to reboot, but I don't do it because of --never-reboot")
-          end
-          if cycle.positive?
-            json['all'].each do |s|
-              next if @remotes.exists?(s['host'], s['port'])
-              add(s['host'], s['port'], opts)
+            if cycle.positive?
+              json['all'].each do |s|
+                next if @remotes.exists?(s['host'], s['port'])
+                add(s['host'], s['port'], opts)
+              end
             end
+            capacity << { host: score.host, port: score.port, count: json['all'].count }
+            @log.info("#{r}: the score is #{Rainbow(score.value).green} (#{json['version']}) in #{Age.new(start)}")
           end
-          capacity << { host: score.host, port: score.port, count: json['all'].count }
-          @log.info("#{r}: the score is #{Rainbow(score.value).green} (#{json['version']}) in #{Age.new(start)}")
         end
       end
       max_capacity = capacity.map { |c| c[:count] }.max || 0
@@ -308,6 +308,25 @@ it's recommended to reboot, but I don't do it because of --never-reboot")
       else
         @log.info("There are #{total} known remotes with the overall score of \
 #{@remotes.all.map { |r| r[:score] }.inject(&:+)}, after update in #{Age.new(st)}")
+      end
+    end
+
+    def update_one(r, opts)
+      attempt = 0
+      begin
+        uri = '/remotes'
+        res = r.http(uri).get
+        r.assert_code(200, res)
+        json = JsonPage.new(res.body, uri).to_hash
+        score = Score.parse_json(json['score'])
+        yield json, score
+      rescue JsonPage::CantParse, Score::CantParse, RemoteNode::CantAssert => e
+        attempt += 1
+        if attempt < opts['retry']
+          @log.error("#{r} failed to read #{id}, trying again (attempt no.#{attempt}): #{e.message}")
+          retry
+        end
+        raise e
       end
     end
 
