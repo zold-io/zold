@@ -130,14 +130,14 @@ $ zold node --help
 You can run a node in a docker container also.
 
 ```bash
-docker run -d -p 4096:4096 zold/zold:latest /node.sh --invoice=5f96e731e48ae21f
+docker run -d -p 4096:4096 zold/zold:latest /node.sh --host=<your host IP> --invoice=5f96e731e48ae21f
 ```
 
 To store zold data between container restarts create a volume or bind a directory from host
 
 ```bash
 docker volume create zold 
-docker run -d -p 4096:4096 -v zold:/zold zold/zold:latest /node.sh --invoice=5f96e731e48ae21f
+docker run -d -p 4096:4096 -v zold:/zold zold/zold:latest /node.sh --host=<your host IP> --invoice=5f96e731e48ae21f
 ```
 
 ## Frequently Asked Questions
