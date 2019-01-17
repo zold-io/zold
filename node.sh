@@ -1,3 +1,3 @@
 #!/bin/bash
-zold node --nohup --host=0.0.0.0 $@
+zold node --nohup $@
 tail -f zold.log

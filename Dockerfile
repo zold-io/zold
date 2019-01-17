@@ -9,4 +9,4 @@ WORKDIR /zold
 COPY node.sh /
 RUN chmod +x /node.sh
 
-CMD ["/node.sh", "--invoice=17737fee5b825835"]
+CMD ["/node.sh", "--host=127.0.0.1", "--invoice=17737fee5b825835"]
