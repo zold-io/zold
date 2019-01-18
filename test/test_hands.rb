@@ -23,67 +23,47 @@
 require 'minitest/autorun'
 require 'concurrent'
 require_relative 'test__helper'
-require_relative '../lib/zold/thread_pool'
+require_relative '../lib/zold/hands'
 
-# ThreadPool test.
+# Hands test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestThreadPool < Zold::Test
-  def test_closes_all_threads_right
-    pool = Zold::ThreadPool.new('test', log: test_log)
+class TestHands < Zold::Test
+  def test_runs_in_many_threads
     idx = Concurrent::AtomicFixnum.new
     threads = 50
-    threads.times do
-      pool.add do
-        idx.increment
-      end
+    Zold::Hands.exec(threads) do
+      idx.increment
     end
-    pool.kill
     assert_equal(threads, idx.value)
   end
 
-  def test_adds_and_stops
-    pool = Zold::ThreadPool.new('test', log: test_log)
-    pool.add do
-      sleep 60 * 60
+  def test_runs_with_empty_set
+    Zold::Hands.exec(5, []) do
+      # nothing
     end
-    pool.kill
   end
 
-  def test_stops_stuck_threads
-    pool = Zold::ThreadPool.new('test', log: test_log)
-    pool.add do
-      loop do
-        # forever
+  def test_runs_with_index
+    idx = Concurrent::AtomicFixnum.new
+    indexes = Set.new
+    Zold::Hands.exec(10, %w[a b c]) do |_, i|
+      idx.increment
+      indexes << i
+    end
+    assert_equal(3, idx.value)
+    assert_equal('0 1 2', indexes.to_a.sort.join(' '))
+  end
+
+  def test_runs_with_exceptions
+    assert_raises do
+      Zold::Hands.exec(5) do |i|
+        if i == 4
+          sleep 0.1
+          raise 'intended'
+        end
       end
     end
-    pool.kill
-  end
-
-  def test_stops_empty_pool
-    pool = Zold::ThreadPool.new('test', log: test_log)
-    pool.kill
-  end
-
-  def test_prints_to_json
-    pool = Zold::ThreadPool.new('test', log: test_log)
-    pool.add do
-      Thread.current.thread_variable_set(:foo, 1)
-      loop do
-        # forever
-      end
-    end
-    assert(pool.to_json.is_a?(Array))
-    assert_equal('test', pool.to_json[0][:name])
-    assert_equal('run', pool.to_json[0][:status])
-    assert_equal(true, pool.to_json[0][:alive])
-    assert_equal(1, pool.to_json[0][:vars]['foo'])
-    pool.kill
-  end
-
-  def test_prints_to_text
-    pool = Zold::ThreadPool.new('test', log: test_log)
-    assert(!pool.to_s.nil?)
   end
 end

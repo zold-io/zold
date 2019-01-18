@@ -33,6 +33,7 @@ require 'concurrent'
 require_relative 'thread_badge'
 require_relative 'args'
 require_relative '../thread_pool'
+require_relative '../hands'
 require_relative '../log'
 require_relative '../age'
 require_relative '../http'
@@ -94,7 +95,7 @@ Available options:"
       end
       mine = Args.new(opts, @log).take || return
       list = mine.empty? ? @wallets.all : mine.map { |i| Id.new(i) }
-      ThreadPool.new('fetch', log: @log).run(opts['threads'], list.uniq) do |id|
+      Hands.exec(opts['threads'], list.uniq) do |id|
         fetch(id, Copies.new(File.join(@copies, id)), opts)
       end
     end

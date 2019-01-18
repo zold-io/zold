@@ -31,6 +31,7 @@ require 'backtrace'
 require 'zold/score'
 require_relative 'age'
 require_relative 'http'
+require_relative 'hands'
 require_relative 'thread_pool'
 require_relative 'node/farm'
 
@@ -188,7 +189,7 @@ module Zold
     def iterate(log, farm: Farm::Empty.new)
       raise 'Log can\'t be nil' if log.nil?
       raise 'Farm can\'t be nil' if farm.nil?
-      ThreadPool.new('remotes', log: log).run(Concurrent.processor_count * 4, all) do |r, idx|
+      Hands.exec(Concurrent.processor_count * 4, all) do |r, idx|
         Thread.current.name = "remotes-#{idx}@#{r[:host]}:#{r[:port]}"
         start = Time.now
         best = farm.best[0]

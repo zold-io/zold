@@ -38,34 +38,6 @@ module Zold
       @start = Time.now
     end
 
-    # Run this code in many threads
-    def run(threads, set = (0..threads - 1).to_a)
-      raise "Number of threads #{threads} has to be positive" unless threads.positive?
-      list = set.dup
-      total = [threads, set.count].min
-      if total == 1
-        list.each_with_index { |r, i| yield(r, i) }
-      elsif total.positive?
-        idx = Concurrent::AtomicFixnum.new
-        mutex = Mutex.new
-        latch = Concurrent::CountDownLatch.new(total)
-        total.times do |i|
-          add do
-            Thread.current.name = "#{@title}-#{i}"
-            loop do
-              r = mutex.synchronize { list.pop }
-              break if r.nil?
-              yield(r, idx.increment - 1)
-            end
-          ensure
-            latch.count_down
-          end
-        end
-        latch.wait
-        kill
-      end
-    end
-
     # Add a new thread
     def add
       raise 'Block must be given to start()' unless block_given?
@@ -99,9 +71,7 @@ module Zold
 #{@threads.map { |t| "#{t.name}/#{t.status}" }.join(', ')}...")
       start = Time.new
       begin
-        @threads.each do |t|
-          t.join(0.1)
-        end
+        join(0.1)
       ensure
         @threads.each do |t|
           (t.thread_variable_get(:kids) || []).each(&:kill)
@@ -116,6 +86,11 @@ module Zold
 it was alive for #{Age.new(@start)}: #{@threads.map { |t| "#{t.name}/#{t.status}" }.join(', ')}")
         @threads.clear
       end
+    end
+
+    # Is it empty and has no threads?
+    def empty?
+      @threads.empty?
     end
 
     # How many threads are in there

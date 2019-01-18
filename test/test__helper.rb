@@ -40,6 +40,9 @@ if ENV['CI'] == 'true'
   SimpleCov.formatter = SimpleCov::Formatter::Codecov
 end
 
+require_relative '../lib/zold/hands'
+Zold::Hands.start
+
 module Zold
   class Test < Minitest::Test
     include Minitest::Hooks

@@ -28,6 +28,7 @@ require 'concurrent'
 require_relative 'thread_badge'
 require_relative 'args'
 require_relative '../thread_pool'
+require_relative '../hands'
 require_relative '../age'
 require_relative '../size'
 require_relative '../log'
@@ -85,7 +86,7 @@ Available options:"
       end
       mine = Args.new(opts, @log).take || return
       list = mine.empty? ? @wallets.all : mine.map { |i| Id.new(i) }
-      ThreadPool.new('push', log: @log).run(opts['threads'], list.uniq) do |id|
+      Hands.exec(opts['threads'], list.uniq) do |id|
         push(id, opts)
       end
     end

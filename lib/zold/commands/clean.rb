@@ -34,6 +34,7 @@ require_relative '../log'
 require_relative '../http'
 require_relative '../copies'
 require_relative '../thread_pool'
+require_relative '../hands'
 
 # CLEAN command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -53,13 +54,13 @@ module Zold
         o.banner = "Usage: zold clean [ID...] [options]
 Available options:"
         o.integer '--threads',
-          "How many threads to use for cleaning copies (default: #{[Concurrent.processor_count / 2, 2].max})",
-          default: [Concurrent.processor_count / 2, 2].max
+          'How many threads to use for cleaning copies (default: 1)',
+          default: 1
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
       list = mine.empty? ? @wallets.all : mine.map { |i| Id.new(i) }
-      ThreadPool.new('clean', log: @log).run(opts['threads'], list.uniq) do |id|
+      Hands.exec(opts['threads'], list.uniq) do |id|
         clean(Copies.new(File.join(@copies, id), log: @log), opts)
       end
     end

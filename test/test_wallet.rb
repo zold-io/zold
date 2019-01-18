@@ -29,6 +29,7 @@ require_relative '../lib/zold/age'
 require_relative '../lib/zold/id'
 require_relative '../lib/zold/wallet'
 require_relative '../lib/zold/txn'
+require_relative '../lib/zold/thread_pool'
 require_relative '../lib/zold/amount'
 require_relative '../lib/zold/commands/pay'
 
@@ -296,16 +297,17 @@ class TestWallet < Zold::Test
   end
 
   def test_collects_memory_garbage
-    # skip
+    skip
     require 'get_process_mem'
     start = GetProcessMem.new.bytes.to_i
-
-    40.times do |i|
-      wallet = Zold::Wallet.new('fixtures/448b451bc62e8e16.z')
-      GC.start
-      wallet.id
-      wallet.txns.count
-      test_log.debug("Memory: #{GetProcessMem.new.bytes.to_i}") if (i % 5).zero?
+    Zold::Hands.exec(20) do
+      40.times do |i|
+        wallet = Zold::Wallet.new('fixtures/448b451bc62e8e16.z')
+        GC.start
+        wallet.id
+        wallet.txns.count
+        test_log.debug("Memory: #{GetProcessMem.new.bytes.to_i}") if (i % 5).zero?
+      end
     end
     GC.stress = true
     diff = GetProcessMem.new.bytes.to_i - start
