@@ -57,9 +57,9 @@ class TestZold < Zold::Test
             assert_equal(0, code, "#{f}\n#{out.join}")
           end
         end
+        sleep 0.2
       end
       test_log.info("\n\n#{f} done in #{Zold::Age.new(start)}")
-      sleep 1
     end
   end
 

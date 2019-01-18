@@ -40,7 +40,7 @@ module Zold
     private_constant :QUEUE
 
     # Start
-    def self.start(max = Concurrent.processor_count * 8)
+    def self.start(max = [Concurrent.processor_count * 8, 32].min)
       while POOL.count < max
         POOL.add do
           Endless.new('hands').run do
