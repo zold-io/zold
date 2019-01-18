@@ -162,8 +162,11 @@ the balance is #{wallet.balance}: #{tax.to_text}")
       @log.debug('Read the White Paper for more details: https://papers.zold.io/wp.pdf')
     end
 
-    def show(_, _)
-      raise 'Not implemented yet'
+    def show(wallet, _)
+      raise 'The wallet is absent' unless wallet.exists?
+      tax = Tax.new(wallet)
+      @log.info(tax.to_text)
+      @log.info('Read the White Paper for more details: https://papers.zold.io/wp.pdf')
     end
 
     def top_scores(opts)
