@@ -21,7 +21,9 @@
 # SOFTWARE.
 
 require 'concurrent'
+require 'total'
 require_relative 'thread_pool'
+require_relative 'log'
 require_relative 'endless'
 
 # Multiple threads that can do something useful together.
@@ -39,8 +41,15 @@ module Zold
     QUEUE = Queue.new
     private_constant :QUEUE
 
+    def self.threshold
+      advised = Total::Mem.new.bytes / (128 * 1024 * 1024)
+      [Concurrent.processor_count * 4, [advised, 4].max].min
+    rescue Total::CantDetect
+      4
+    end
+
     # Start
-    def self.start(max = [Concurrent.processor_count * 8, 32].min)
+    def self.start(max = Hands.threshold, log: Log::NULL)
       while POOL.count < max
         POOL.add do
           Endless.new('hands').run do
@@ -48,6 +57,7 @@ module Zold
           end
         end
       end
+      log.debug("There are #{POOL.count} threads in the 'hands' pool")
     end
 
     # Stop
