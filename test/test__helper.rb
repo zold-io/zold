@@ -52,7 +52,7 @@ module Zold
     # to wait can be increased, but try to make it as little as possible,
     # in order to catch problems ealier.
     def around
-      Timeout.timeout(120) do
+      Timeout.timeout(180) do
         Thread.current.name = 'test'
         super
       end
