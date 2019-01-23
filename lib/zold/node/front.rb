@@ -246,6 +246,7 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
           id: wallet.id.to_s,
           score: score.to_h,
           mtime: wallet.mtime.utc.iso8601,
+          age: wallet.age.to_s,
           size: wallet.size,
           digest: wallet.digest,
           copies: Copies.new(File.join(settings.copies, wallet.id)).all.count,

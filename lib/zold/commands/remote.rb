@@ -323,7 +323,7 @@ Available options:"
       rescue JsonPage::CantParse, Score::CantParse, RemoteNode::CantAssert => e
         attempt += 1
         if attempt < opts['retry']
-          @log.error("#{r} failed to read #{id}, trying again (attempt no.#{attempt}): #{e.message}")
+          @log.error("#{r} failed to read, trying again (attempt no.#{attempt}): #{e.message}")
           retry
         end
         raise e

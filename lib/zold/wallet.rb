@@ -175,12 +175,6 @@ module Zold
       Key.new(text: @head.fetch[3].strip)
     end
 
-    def income
-      txns.each do |t|
-        yield t unless t.amount.negative?
-      end
-    end
-
     def mtime
       File.mtime(@file)
     end

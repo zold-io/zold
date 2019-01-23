@@ -170,8 +170,8 @@ run 'zold remote update' or use --tolerate-quorum=1"
             end
             copy = cps.add(IO.read(f), score.host, score.port, score.value, master: r.master?)
             @log.info("#{r} returned #{wallet.mnemo} #{Age.new(json['mtime'])}/#{json['copies']}c \
-  as copy ##{copy}/#{cps.all.count} in #{Age.new(start, limit: 4)}: \
-  #{Rainbow(score.value).green} (#{json['version']})")
+as copy ##{copy}/#{cps.all.count} in #{Age.new(start, limit: 4)}: \
+#{Rainbow(score.value).green} (#{json['version']})")
           end
         end
         score.value
@@ -183,6 +183,7 @@ run 'zold remote update' or use --tolerate-quorum=1"
       begin
         uri = "/wallet/#{id}"
         head = r.http(uri).get
+        raise "The wallet #{id} doesn't exist at #{r}" if head.status == 404
         r.assert_code(200, head)
         json = JsonPage.new(head.body, uri).to_hash
         score = Score.parse_json(json['score'])

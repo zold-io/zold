@@ -47,7 +47,7 @@ class TestHungryWallets < Zold::Test
       )
       wallets.acq(id) { |w| assert(!w.exists?) }
       pool.join(2)
-      assert_requested(get, times: 2)
+      assert_requested(get, times: 1)
     end
   end
 end

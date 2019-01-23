@@ -257,8 +257,8 @@ class TestWallet < Zold::Test
         )
       )
       sum = Zold::Amount::ZERO
-      wallet.income do |t|
-        sum += t.amount
+      wallet.txns.each do |t|
+        sum += t.amount unless t.amount.negative?
       end
       assert(
         sum == Zold::Amount.new(zents: 235_965_503_242),
