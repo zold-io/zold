@@ -18,7 +18,7 @@ Metrics/AbcSize:
 Metrics/BlockNesting:
   Max: 4
 Metrics/BlockLength:
-  Max: 120
+  Max: 130
 Metrics/ClassLength:
   Max: 450
 Layout/EndOfLine:

@@ -145,6 +145,9 @@ module Zold
         o.bool '--allow-spam',
           'Don\'t filter the incoming spam via PUT requests (duplicate wallets)',
           default: false
+        o.bool '--ignore-empty-remotes',
+          'Don\'t fail if the list of remotes is empty (for testing mostly)',
+          default: false
         o.bool '--skip-oom',
           'Skip Out Of Memory check and never exit, no matter how much RAM is consumed',
           default: false
@@ -197,6 +200,10 @@ module Zold
       end
       raise '--invoice is mandatory' unless opts['invoice']
       if opts['nohup']
+        if @remotes.all.empty? && !opts['standalone'] && !opts['ignore-empty-remotes']
+          raise 'There are no remote nodes in the list and you are not running in --standalone mode;
+the node won\'t connect to the network like that; try to do "zold remote reset" first'
+        end
         pid = nohup(opts)
         IO.write(opts['save-pid'], pid) if opts['save-pid']
         @log.debug("Process ID #{pid} saved into \"#{opts['save-pid']}\"")

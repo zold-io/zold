@@ -6,7 +6,7 @@ function start_node {
   zold remote clean
   zold node $3 --nohup --nohup-command='touch restarted' --nohup-log=log --nohup-max-cycles=0 --nohup-log-truncate=10240 \
     --expose-version=$2 --save-pid=pid --routine-immediately --tolerate-edges --tolerate-quorum=1 \
-    --verbose --trace --invoice=REDEPLOY@ffffffffffffffff \
+    --verbose --trace --invoice=REDEPLOY@ffffffffffffffff --ignore-empty-remotes \
     --host=127.0.0.1 --port=$1 --bind-port=$1 --threads=1 --strength=20 > /dev/null 2>&1
   wait_for_port $1
   cat pid
