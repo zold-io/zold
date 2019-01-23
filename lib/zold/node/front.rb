@@ -455,7 +455,7 @@ time to stop; use --skip-oom to never quit")
       settings.zache.get(:total_mem, lifetime: settings.opts['no-cache'] ? 0 : 60) do
         Total::Mem.new.bytes
       rescue Total::CantDetect => e
-        @log.error(e.message)
+        settings.log.error(e.message)
         0
       end
     end
