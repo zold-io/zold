@@ -44,7 +44,7 @@ module Zold
       raise "Wallet file '#{@file}' is absent" unless File.exist?(@file)
       lines = []
       File.open(@file) do |f|
-        lines << f.readline while lines.count < 4 && !f.eof?
+        lines << f.readline.strip while lines.count < 4 && !f.eof?
       end
       raise CantParse, "Not enough lines in #{@file}, just #{lines.count}" if lines.count < 4
       lines
