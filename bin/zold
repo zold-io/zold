@@ -276,14 +276,13 @@ else
   code = cmd.call
 end
 
-log.debug("Memory footprint at the end is #{Zold::Size.new(GetProcessMem.new.bytes.to_i)}")
-if code.zero?
-  log.debug("Failed in in #{Zold::Age.new(start)}")
-  exit(code)
-else
-  log.debug("Successfully finished in #{Zold::Age.new(start)}")
-end
-
 Zold::Hands.stop
 
-abort # We need this in case some threads are still alive
+log.debug("Memory footprint at the end is #{Zold::Size.new(GetProcessMem.new.bytes.to_i)}")
+if code.zero?
+  log.debug("Successfully finished in #{Zold::Age.new(start)}")
+else
+  log.debug("Failed in #{Zold::Age.new(start)}")
+  exit(code)
+end
+
