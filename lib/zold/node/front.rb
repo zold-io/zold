@@ -376,6 +376,7 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
       content_type('application/json')
       pretty(
         version: settings.opts['expose-version'],
+        repo: Zold::REPO,
         alias: settings.node_alias,
         score: score.to_h,
         all: all_remotes,

@@ -269,24 +269,7 @@ Available options:"
             r.assert_score_ownership(score)
             r.assert_score_strength(score) unless opts['ignore-score-weakness']
             @remotes.rescore(score.host, score.port, score.value)
-            if Semantic::Version.new(VERSION) < Semantic::Version.new(json['version'])
-              if opts['reboot']
-                @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, reboot! \
-  (use --never-reboot to avoid this from happening)")
-                terminate
-              end
-              @log.debug("#{r}: their version #{json['version']} is higher than mine #{VERSION}, \
-  it's recommended to reboot, but I don't do it because of --never-reboot")
-            end
-            if Semantic::Version.new(VERSION) < Semantic::Version.new(Zold::Gem.new.last_version)
-              if opts['reboot']
-                @log.info("#{r}: the version of the gem is higher than mine #{VERSION}, reboot! \
-  (use --never-reboot to avoid this from happening)")
-                terminate
-              end
-              @log.debug("#{r}: gem version is higher than mine #{VERSION}, \
-  it's recommended to reboot, but I don't do it because of --never-reboot")
-            end
+            reboot(r, json, opts)
             if cycle.positive?
               json['all'].each do |s|
                 next if @remotes.exists?(s['host'], s['port'])
@@ -328,6 +311,30 @@ Available options:"
         end
         raise e
       end
+    end
+
+    def reboot(r, json, opts)
+      return unless json['repo'] == Zold::REPO
+      mine = Semantic::Version.new(VERSION)
+      if mine < Semantic::Version.new(json['version'])
+        if opts['reboot']
+          @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, reboot! \
+(use --never-reboot to avoid this from happening)")
+          terminate
+        end
+        @log.debug("#{r}: their version #{json['version']} is higher than mine #{VERSION}, \
+it's recommended to reboot, but I don't do it because of --never-reboot")
+      end
+      if mine < Semantic::Version.new(Zold::Gem.new.last_version)
+        if opts['reboot']
+          @log.info("#{r}: the version of the gem is higher than mine #{VERSION}, reboot! \
+(use --never-reboot to avoid this from happening)")
+          terminate
+        end
+        @log.debug("#{r}: gem version is higher than mine #{VERSION}, \
+it's recommended to reboot, but I don't do it because of --never-reboot")
+      end
+      @log.debug("#{r}: gem version is lower or equal to mine #{VERSION}, no need to reboot")
     end
 
     def select(opts)
