@@ -26,6 +26,7 @@ require_relative 'test__helper'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/id'
 require_relative '../lib/zold/wallet'
+require_relative '../lib/zold/prefixes'
 require_relative '../lib/zold/amount'
 require_relative '../lib/zold/patch'
 
@@ -52,8 +53,7 @@ class TestPatch < Zold::Test
       patch.join(first)
       patch.join(second)
       patch.join(third)
-      FileUtils.rm(first.path)
-      assert_equal(true, patch.save(first.path))
+      assert_equal(true, patch.save(first.path, overwrite: true))
       assert_equal(Zold::Amount.new(zld: -53.0), first.balance)
     end
   end
@@ -67,8 +67,8 @@ class TestPatch < Zold::Test
       patch = Zold::Patch.new(home.wallets, log: test_log)
       patch.join(first)
       patch.join(second)
-      FileUtils.rm(first.path)
-      assert_equal(true, patch.save(first.path))
+      assert_equal(false, patch.save(first.path, overwrite: true))
+      first.flush
       assert_equal(Zold::Amount::ZERO, first.balance)
     end
   end
@@ -84,8 +84,8 @@ class TestPatch < Zold::Test
       patch = Zold::Patch.new(home.wallets, log: test_log)
       patch.join(first)
       patch.join(second)
-      FileUtils.rm(first.path)
-      assert_equal(true, patch.save(first.path))
+      assert_equal(true, patch.save(first.path, overwrite: true))
+      first.flush
       assert_equal(amount * -1, first.balance)
     end
   end
@@ -97,13 +97,18 @@ class TestPatch < Zold::Test
       IO.write(second.path, IO.read(first.path))
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       second.sub(Zold::Amount.new(zld: 7.0), "NOPREFIX@#{Zold::Id.new}", key)
-      first.add(Zold::Txn.new(1, Time.now, Zold::Amount.new(zld: 9.0), 'NOPREFIX', Zold::Id.new, 'fake'))
+      first.add(
+        Zold::Txn.new(
+          1, Time.now, Zold::Amount.new(zld: 9.0),
+          Zold::Prefixes.new(first).create, Zold::Id.new, 'fake'
+        )
+      )
       patch = Zold::Patch.new(home.wallets, log: test_log)
       patch.join(first)
       patch.join(second)
-      FileUtils.rm(first.path)
-      assert_equal(true, patch.save(first.path))
-      assert_equal(Zold::Amount.new(zld: 2.0), first.balance)
+      assert_equal(true, patch.save(first.path, overwrite: true))
+      first.flush
+      assert_equal(Zold::Amount.new(zld: 2.0).to_s, first.balance.to_s)
     end
   end
 
@@ -135,9 +140,10 @@ class TestPatch < Zold::Test
       patch = Zold::Patch.new(home.wallets, log: test_log)
       patch.join(first)
       patch.join(second)
-      FileUtils.rm(first.path)
-      assert_equal(true, patch.save(first.path))
-      assert_equal(Zold::Amount.new(zld: -6.0), first.balance)
+      assert_equal(true, patch.save(first.path, overwrite: true))
+      first.flush
+      assert_equal(3, first.txns.count)
+      assert_equal(Zold::Amount.new(zld: -6.0).to_s, first.balance.to_s)
     end
   end
 end

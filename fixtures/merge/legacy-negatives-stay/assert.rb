@@ -20,29 +20,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'rainbow'
-require_relative '../lib/zold/version'
-require_relative '../lib/zold/wallet'
-
-module Zold
-  # Rename wallets that belong to another network
-  class RenameForeignWallets
-    def initialize(home, network, log)
-      @home = home
-      @network = network
-      @log = log
-    end
-
-    def exec
-      Dir.new(@home).each do |path|
-        next unless path =~ /^[a-f0-9]{16}#{Wallet::EXT}$/
-        f = File.join(@home, path)
-        wallet = Wallet.new(f)
-        next if wallet.network == @network
-        @log.info("Wallet #{wallet.id} #{Rainbow('renamed').red}, \
-since it's in \"#{wallet.network}\", while we are in \"#{@network}\" network")
-        File.rename(f, f + '-old')
-      end
-    end
-  end
-end
+require_relative 'asserts.rb'
+wallet = Zold::Wallet.new('0123456789abcdef.z')
+assert_equal(Zold::Amount.new(zld: -9.0), wallet.balance)

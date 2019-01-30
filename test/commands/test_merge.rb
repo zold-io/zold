@@ -25,6 +25,7 @@ require 'tmpdir'
 require 'time'
 require 'webmock/minitest'
 require 'zold/score'
+require 'English'
 require_relative '../test__helper'
 require_relative '../fake_home'
 require_relative '../../lib/zold/wallet'
@@ -131,15 +132,16 @@ class TestMerge < Zold::Test
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       wallet.sub(Zold::Amount.new(zld: 9.99), "NOPREFIX@#{Zold::Id.new}", key)
       Zold::Merge.new(wallets: home.wallets, remotes: home.remotes, copies: home.copies.root, log: test_log).run(
-        ['merge', wallet.id.to_s, '--no-baseline']
+        ['merge', wallet.id.to_s]
       )
       assert_equal(Zold::Amount::ZERO, wallet.balance)
     end
   end
 
-  def test_merges_scenarios
-    base = 'fixtures/merge'
-    Dir.new(base).select { |f| File.directory?(File.join(base, f)) && !f.start_with?('.') }.each do |f|
+  base = 'fixtures/merge'
+  Dir.new(base).select { |f| File.directory?(File.join(base, f)) && !f.start_with?('.') }.each do |f|
+    method = "test_#{f}"
+    define_method(method) do
       Dir.mktmpdir do |dir|
         FileUtils.cp_r(File.join('fixtures/merge', "#{f}/."), dir)
         scores = File.join(dir, "copies/0123456789abcdef/scores#{Zold::Copies::EXT}")
@@ -152,7 +154,6 @@ class TestMerge < Zold::Test
           %w[merge 0123456789abcdef --shallow]
         )
         Dir.chdir(dir) do
-          test_log.info("Testing #{f}...")
           require File.join(dir, 'assert.rb')
         end
       end

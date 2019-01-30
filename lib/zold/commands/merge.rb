@@ -53,9 +53,6 @@ module Zold
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = "Usage: zold merge [ID...] [options]
 Available options:"
-        o.bool '--no-baseline',
-          'Don\'t trust any remote copies and re-validate all incoming payments against their wallets',
-          default: false
         o.bool '--skip-propagate',
           'Don\'t propagate after merge',
           default: false
@@ -104,7 +101,7 @@ Available options:"
       cps.each_with_index do |c, idx|
         wallet = Wallet.new(c[:path])
         name = "#{c[:name]}/#{idx}/#{c[:score]}"
-        merge_one(opts, patch, wallet, name, baseline: !opts['no-baseline'])
+        merge_one(opts, patch, wallet, name)
         score += c[:score]
       end
       @wallets.acq(id) do |w|
@@ -127,11 +124,13 @@ into #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 0.1 + cps.count * 0
       modified
     end
 
-    def merge_one(opts, patch, wallet, name, baseline: false)
+    def merge_one(opts, patch, wallet, name)
       start = Time.now
       @log.debug("Building a patch for #{wallet.id} from remote copy ##{name} with #{wallet.mnemo}...")
-      patch.join(wallet, baseline: baseline) do |id|
-        unless opts['shallow']
+      if opts['shallow']
+        patch.join(wallet)
+      else
+        patch.join(wallet) do |id|
           Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
             ['pull', id.to_s, "--network=#{opts['network']}", '--shallow']
           )

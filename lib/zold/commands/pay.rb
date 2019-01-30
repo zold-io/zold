@@ -60,6 +60,9 @@ Available options:"
         o.bool '--force',
           'Ignore all validations',
           default: false
+        o.string '--time',
+          "Time of transaction (default: #{Time.now.utc.iso8601})",
+          default: Time.now.utc.iso8601
         o.bool '--tolerate-edges',
           'Don\'t fail if only "edge" (not "master" ones) nodes have the wallet',
           default: false
@@ -121,7 +124,7 @@ Available options:"
         end
       end
       key = Zold::Key.new(file: opts['private-key'])
-      txn = from.sub(amount, invoice, key, details)
+      txn = from.sub(amount, invoice, key, details, time: Txn.parse_time(opts['time']))
       @log.debug("#{amount} sent from #{from} to #{txn.bnf}: #{details}")
       @log.debug("Don't forget to do 'zold push #{from}'")
       @log.info(txn.id)

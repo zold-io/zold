@@ -58,19 +58,10 @@ module Zold
     # Joins a new wallet on top of existing patch. An attempt is made to
     # copy as many transactions from the newcoming wallet to the existing
     # set of transactions, avoiding mistakes and duplicates.
-    #
-    # If +baseline+ is set to TRUE the provided wallet is considered to be
-    # the baseline and all transactions will be blindly trusted.
-    def join(wallet, baseline: true)
+    def join(wallet)
       if @id.nil?
         @id = wallet.id
         @key = wallet.key
-        if baseline
-          @txns = wallet.txns
-          @log.debug("The baseline of #{wallet.id} is #{wallet.balance}/#{@txns.count}t")
-        else
-          @log.debug("The baseline of #{wallet.txns.count} transactions is not applied for #{wallet.id}")
-        end
         @network = wallet.network
       end
       unless wallet.network == @network
@@ -125,15 +116,14 @@ with a new one \"#{txn.to_text}\" from #{wallet.mnemo}")
                 @log.error("Paying wallet #{txn.bnf} file is absent even after PULL: \"#{txn.to_text}\"")
                 next
               end
-            else
-              @log.error("Paying wallet #{txn.bnf} file is absent and it's a \"shallow\" MERGE: #{txn.to_text}")
-              next
-            end
-          end
-          unless @wallets.acq(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
-            @log.error("The beneficiary #{@wallets.acq(txn.bnf, &:mnemo)} of #{@id} \
+              unless @wallets.acq(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
+                @log.error("The beneficiary #{@wallets.acq(txn.bnf, &:mnemo)} of #{@id} \
 doesn't have this transaction: \"#{txn.to_text}\"")
-            next
+                next
+              end
+            else
+              @log.debug("Paying wallet #{txn.bnf} file is absent but it's a \"shallow\" MERGE: #{txn.to_text}")
+            end
           end
         end
         @txns << txn
