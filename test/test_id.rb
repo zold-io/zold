@@ -22,6 +22,7 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
+require_relative 'test__helper'
 require_relative '../lib/zold/id'
 
 # ID test.
@@ -34,6 +35,10 @@ class TestId < Zold::Test
       id = Zold::Id.new
       assert id.to_s.length == 16
     end
+  end
+
+  def test_checks_for_root
+    assert(Zold::Id::ROOT.root?)
   end
 
   def test_generates_id_only_once

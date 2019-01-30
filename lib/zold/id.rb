@@ -40,6 +40,10 @@ module Zold
     # The ID of the root wallet.
     ROOT = Id.new('0000000000000000')
 
+    def root?
+      to_s == ROOT.to_s
+    end
+
     def eql?(other)
       raise 'Can only compare with Id' unless other.is_a?(Id)
       to_s == other.to_s
