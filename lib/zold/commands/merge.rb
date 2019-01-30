@@ -94,8 +94,10 @@ Available options:"
         @wallets.acq(id) do |w|
           if w.exists?
             s = Time.now
-            merge_one(opts, patch, w, 'localhost', baseline: false, legacy: true)
-            @log.debug("Local legacy copy of #{id} merged in #{Age.new(s)}: #{patch}")
+            patch.legacy(w)
+            @log.debug("Local copy of #{id} merged legacy in #{Age.new(s)}: #{patch}")
+          else
+            @log.debug("There is no local copy to merge legacy of #{id}")
           end
         end
       end
@@ -125,10 +127,10 @@ into #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 0.1 + cps.count * 0
       modified
     end
 
-    def merge_one(opts, patch, wallet, name, baseline: false, legacy: false)
+    def merge_one(opts, patch, wallet, name, baseline: false)
       start = Time.now
       @log.debug("Building a patch for #{wallet.id} from remote copy ##{name} with #{wallet.mnemo}...")
-      patch.join(wallet, baseline: baseline, legacy: legacy) do |id|
+      patch.join(wallet, baseline: baseline) do |id|
         unless opts['shallow']
           Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
             ['pull', id.to_s, "--network=#{opts['network']}", '--shallow']

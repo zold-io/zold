@@ -44,13 +44,24 @@ module Zold
       "#{@txns.count} txns"
     end
 
+    # Add legacy transactions first, since they are negative and can't
+    # be deleted ever. This method is called by merge.rb in order to add
+    # legacy negative transactions to the patch before everything else. They
+    # are not supposed to be disputed, ever.
+    def legacy(wallet, hours: 24)
+      raise 'You can\'t add legacy to a non-empty patch' unless @id.nil?
+      wallet.txns.each do |txn|
+        @txns << txn if txn.amount.negative? && txn.date < Time.now - hours * 60 * 60
+      end
+    end
+
     # Joins a new wallet on top of existing patch. An attempt is made to
     # copy as many transactions from the newcoming wallet to the existing
     # set of transactions, avoiding mistakes and duplicates.
     #
     # If +baseline+ is set to TRUE the provided wallet is considered to be
     # the baseline and all transactions will be blindly trusted.
-    def join(wallet, baseline: true, legacy: false)
+    def join(wallet, baseline: true)
       if @id.nil?
         @id = wallet.id
         @key = wallet.key
@@ -58,7 +69,7 @@ module Zold
           @txns = wallet.txns
           @log.debug("The baseline of #{wallet.id} is #{wallet.balance}/#{@txns.count}t")
         else
-          @log.debug("The baseline of #{@txns.count} transactions ignored")
+          @log.debug("The baseline of #{wallet.txns.count} transactions is not applied for #{wallet.id}")
         end
         @network = wallet.network
       end
@@ -75,7 +86,6 @@ module Zold
         return
       end
       wallet.txns.each do |txn|
-        next if legacy && (txn.amount.positive? || txn.date > Time.now - 24 * 60 * 60)
         next if @txns.find { |t| t == txn }
         if txn.amount.negative?
           dup = @txns.find { |t| t.id == txn.id && t.amount.negative? }
