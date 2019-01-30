@@ -137,7 +137,7 @@ out of #{nodes.value} in #{Age.new(start)}, total score for #{id} is #{total.val
         r.assert_score_strength(score) unless opts['ignore-score-weakness']
         if @log.info?
           @log.info("#{r} accepted #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 4)}: \
-  #{Rainbow(score.value).green} (#{json['version']})")
+#{Rainbow(score.value).green} (#{json['version']})")
         end
         score.value
       end
@@ -146,13 +146,15 @@ out of #{nodes.value} in #{Age.new(start)}, total score for #{id} is #{total.val
     def read_one(id, r, opts)
       start = Time.now
       uri = "/wallet/#{id}"
+      attempt = 0
       begin
         response = Tempfile.open do |f|
           @wallets.acq(id) { |w| FileUtils.copy_file(w.path, f.path) }
           r.http(uri).put(f)
         end
         if response.status == 304
-          @log.info("#{r}: same version of #{@wallets.acq(id, &:mnemo)} there, in #{Age.new(start, limit: 0.5)}")
+          @log.info("#{r}: same version of #{@wallets.acq(id, &:mnemo)} there, didn't push
+in #{Age.new(start, limit: 0.5)}")
           return 0
         end
         r.assert_code(200, response)
