@@ -50,4 +50,21 @@ class TestHungryWallets < Zold::Test
       assert_requested(get, times: 1)
     end
   end
+
+  def test_doesnt_pull_wallet_if_exists
+    FakeHome.new(log: test_log).run do |home|
+      pool = Zold::ThreadPool.new('test', log: test_log)
+      remotes = home.remotes
+      remotes.add('localhost', 4096)
+      wallet = home.create_wallet
+      get = stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}").to_return(status: 200)
+      wallets = Zold::HungryWallets.new(
+        home.wallets, remotes, File.join(home.dir, 'copies'),
+        pool, log: test_log
+      )
+      wallets.acq(wallet.id) { |w| assert(w.exists?) }
+      pool.join(2)
+      assert_requested(get, times: 0)
+    end
+  end
 end

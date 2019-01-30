@@ -52,13 +52,15 @@ module Zold
 
     def acq(id, exclusive: false)
       @wallets.acq(id, exclusive: exclusive) do |wallet|
-        if @queue.size > 256
-          @log.error("Hungry queue is full with #{@queue.size} wallets, can't add #{id}")
-        else
-          @mutex.synchronize do
-            unless @queue.include?(id)
-              @queue << id
-              @log.debug("Hungry queue got #{id}, at the pos no.#{@queue.size - 1}")
+        unless wallet.exists?
+          if @queue.size > 256
+            @log.error("Hungry queue is full with #{@queue.size} wallets, can't add #{id}")
+          else
+            @mutex.synchronize do
+              unless @queue.include?(id)
+                @queue << id
+                @log.debug("Hungry queue got #{id}, at the pos no.#{@queue.size - 1}")
+              end
             end
           end
         end
