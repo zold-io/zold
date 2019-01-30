@@ -94,7 +94,7 @@ Available options:"
         @wallets.acq(id) do |w|
           if w.exists?
             s = Time.now
-            merge_one(opts, patch, w, 'localhost', legacy: true)
+            merge_one(opts, patch, w, 'localhost', baseline: false, legacy: true)
             @log.debug("Local legacy copy of #{id} merged in #{Age.new(s)}: #{patch}")
           end
         end
@@ -102,7 +102,7 @@ Available options:"
       cps.each_with_index do |c, idx|
         wallet = Wallet.new(c[:path])
         name = "#{c[:name]}/#{idx}/#{c[:score]}"
-        merge_one(opts, patch, wallet, name)
+        merge_one(opts, patch, wallet, name, baseline: !opts['no-baseline'])
         score += c[:score]
       end
       @wallets.acq(id) do |w|
@@ -125,10 +125,10 @@ into #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 0.1 + cps.count * 0
       modified
     end
 
-    def merge_one(opts, patch, wallet, name, legacy: false)
+    def merge_one(opts, patch, wallet, name, baseline: false, legacy: false)
       start = Time.now
       @log.debug("Building a patch for #{wallet.id} from remote copy ##{name} with #{wallet.mnemo}...")
-      patch.join(wallet, baseline: !opts['no-baseline'], legacy: legacy) do |id|
+      patch.join(wallet, baseline: baseline, legacy: legacy) do |id|
         unless opts['shallow']
           Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
             ['pull', id.to_s, "--network=#{opts['network']}", '--shallow']
