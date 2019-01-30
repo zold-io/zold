@@ -44,6 +44,12 @@ module Zold
       "#{@txns.count} txns"
     end
 
+    # Joins a new wallet on top of existing patch. An attempt is made to
+    # copy as many transactions from the newcoming wallet to the existing
+    # set of transactions, avoiding mistakes and duplicates.
+    #
+    # If +baseline+ is set to TRUE the provided wallet is considered to be
+    # the baseline and all transactions will be blindly trusted.
     def join(wallet, baseline: true, legacy: false)
       if @id.nil?
         @id = wallet.id

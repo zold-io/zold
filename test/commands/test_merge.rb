@@ -149,9 +149,10 @@ class TestMerge < Zold::Test
         copies = File.join(dir, 'copies')
         remotes = Zold::Remotes.new(file: File.join(dir, 'remotes'))
         Zold::Merge.new(wallets: wallets, remotes: remotes, copies: copies, log: test_log).run(
-          %w[merge 0123456789abcdef]
+          %w[merge 0123456789abcdef --shallow]
         )
         Dir.chdir(dir) do
+          test_log.info("Testing #{f}...")
           require File.join(dir, 'assert.rb')
         end
       end

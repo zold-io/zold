@@ -96,7 +96,7 @@ module Zold
     def push(id, body)
       mods = @entrance.push(id, body)
       return mods if @remotes.all.empty?
-      (mods + [id]).each do |m|
+      mods.each do |m|
         next if @seen.include?(m)
         @mutex.synchronize { @seen << m }
         @modified.push(m)
