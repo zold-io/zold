@@ -153,7 +153,7 @@ out of #{nodes.value} in #{Age.new(start)}, total score for #{id} is #{total.val
           r.http(uri).put(f)
         end
         if response.status == 304
-          @log.info("#{r}: same version of #{@wallets.acq(id, &:mnemo)} there, didn't push
+          @log.info("#{r}: same version of #{@wallets.acq(id, &:mnemo)} there, didn't push \
 in #{Age.new(start, limit: 0.5)}")
           return 0
         end
