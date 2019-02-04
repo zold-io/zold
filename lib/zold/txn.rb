@@ -81,14 +81,14 @@ module Zold
       raise 'The bnf has to be of type Id' unless bnf.is_a?(Id)
       @bnf = bnf
       raise 'Prefix can\'t be NIL' if prefix.nil?
-      raise "Prefix is too short: \"#{prefix}\"" if prefix.length < 8
-      raise "Prefix is too long: \"#{prefix}\"" if prefix.length > 32
-      raise "Prefix is wrong: \"#{prefix}\" (#{RE_PREFIX})" unless REGEX_PREFIX.match?(prefix)
+      raise "Prefix is too short: #{prefix.inspect}" if prefix.length < 8
+      raise "Prefix is too long: #{prefix.inspect}" if prefix.length > 32
+      raise "Prefix is wrong: #{prefix.inspect} (#{RE_PREFIX})" unless REGEX_PREFIX.match?(prefix)
       @prefix = prefix
       raise 'Details can\'t be NIL' if details.nil?
       raise 'Details can\'t be empty' if details.empty?
-      raise "Details are too long: \"#{details}\"" if details.length > 512
-      raise "Wrong details \"#{details}\" (#{RE_DETAILS})" unless REGEX_DETAILS.match?(details)
+      raise "Details are too long: #{details.inspect}" if details.length > 512
+      raise "Wrong details #{details.inspect} (#{RE_DETAILS})" unless REGEX_DETAILS.match?(details)
       @details = details
     end
 

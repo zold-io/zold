@@ -63,15 +63,20 @@ class TestTxn < Zold::Test
   end
 
   def test_accepts_text_as_details
-    details = 'How are you, dude?! I\'m @yegor256: *_hello_'
-    txn = Zold::Txn.parse(
-      Zold::Txn.new(
-        123, Time.now, Zold::Amount.new(zld: -99.95),
-        'NOPREFIX', Zold::Id.new,
-        details
-      ).to_s
-    )
-    assert_equal(details, txn.details)
+    [
+      'How are you, dude?! I\'m @yegor256: *_hello_',
+      'For a pizza to my friend: John! Good? Works.',
+      'ZLD exchange to 0.00104 BTC at 3NimQKG2kuseH3cz3hdbdEHbqai9kj, rate is 0.00026, fee is 0.08'
+    ].each do |details|
+      txn = Zold::Txn.parse(
+        Zold::Txn.new(
+          123, Time.now, Zold::Amount.new(zld: -99.95),
+          'NOPREFIX', Zold::Id.new,
+          details
+        ).to_s
+      )
+      assert_equal(details, txn.details)
+    end
   end
 
   def test_prints_and_parses_time
