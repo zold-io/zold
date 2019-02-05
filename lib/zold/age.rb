@@ -54,7 +54,13 @@ module Zold
       return "#{(sec * 1000).round}ms" if sec < 1
       return "#{sec.round(2)}s" if sec < 60
       return "#{(sec / 60).round}m" if sec < 60 * 60
-      "#{(sec / 3600).round}h"
+      hours = (sec / 3600).round
+      return "#{hours}h" if hours < 24
+      days = (hours / 24).round
+      return "#{days}d" if days < 14
+      return "#{(days / 7).round}w" if days < 40
+      return "#{(days / 30).round}mo" if days < 365
+      "#{(days / 365).round}y"
     end
   end
 end
