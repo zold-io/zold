@@ -57,6 +57,9 @@ Available options:"
           'The location of RSA private key (default: ~/.ssh/id_rsa)',
           require: true,
           default: File.expand_path('~/.ssh/id_rsa')
+        o.string '--network',
+          'The name of the network we work in',
+          default: 'test'
         o.bool '--force',
           'Ignore all validations',
           default: false
@@ -85,7 +88,7 @@ Available options:"
       unless invoice.include?('@')
         require_relative 'invoice'
         invoice = Invoice.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-          ['invoice', invoice, "--tolerate-quorum=#{opts['tolerate-quorum']}"] +
+          ['invoice', invoice, "--tolerate-quorum=#{opts['tolerate-quorum']}", "--network=#{opts['network']}"] +
           (opts['tolerate-edges'] ? ['--tolerate-edges'] : [])
         )
       end
