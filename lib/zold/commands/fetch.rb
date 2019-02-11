@@ -56,6 +56,9 @@ module Zold
     # Raises when there are not enough successful nodes.
     class NoQuorum < StandardError; end
 
+    # Raises when the wallet wasn't found in all visible nodes.
+    class NotFound < StandardError; end
+
     def initialize(wallets:, remotes:, copies:, log: Log::NULL)
       @wallets = wallets
       @remotes = remotes
@@ -117,7 +120,8 @@ Available options:"
       end
       unless opts['quiet-if-absent']
         if done.value.zero?
-          raise "No nodes out of #{nodes.value} have the wallet #{id}; run 'zold remote update' and try again"
+          raise NotFound, "No nodes out of #{nodes.value} have the wallet #{id}; \
+run 'zold remote update' and try again"
         end
         if masters.value.zero? && !opts['tolerate-edges']
           raise EdgesOnly, "There are only edge nodes, run 'zold remote update' or use --tolerate-edges"
