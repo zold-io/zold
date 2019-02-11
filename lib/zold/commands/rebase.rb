@@ -64,11 +64,12 @@ Available options:"
     def rebase(id, _)
       start = Time.now
       patch = Patch.new(@wallets, log: @log)
-      @wallets.acq(id) do |wallet|
+      @wallets.acq(id, exclusive: true) do |wallet|
         patch.join(wallet) do |txn|
           @log.debug("Paying wallet #{txn.bnf} file is absent: #{txn.to_text}")
           false
         end
+        patch.save(wallet.path, overwrite: true)
         @log.debug("Wallet #{wallet.mnemo} rebased in #{Age.new(start)}")
       end
     end

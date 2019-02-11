@@ -25,6 +25,7 @@ require 'tmpdir'
 require_relative '../test__helper'
 require_relative '../fake_home'
 require_relative '../../lib/zold/commands/rebase'
+require_relative '../../lib/zold/commands/pay'
 
 # REBASE test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -34,6 +35,9 @@ class TestRebase < Zold::Test
   def test_rebases_wallet
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
+      Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: test_log).run(
+        ['pay', wallet.id.to_s, "NOPREFIX@#{Zold::Id.new}", '14.95', '--force', '--private-key=fixtures/id_rsa']
+      )
       Zold::Rebase.new(wallets: home.wallets, log: test_log).run(
         ['rebase', wallet.id.to_s]
       )
