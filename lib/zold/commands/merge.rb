@@ -37,7 +37,7 @@ require_relative '../patch'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  # MERGE pulling command
+  # MERGE command
   class Merge
     prepend ThreadBadge
 
@@ -128,12 +128,16 @@ into #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 0.1 + cps.count * 0
       start = Time.now
       @log.debug("Building a patch for #{wallet.id} from remote copy ##{name} with #{wallet.mnemo}...")
       if opts['shallow']
-        patch.join(wallet)
+        patch.join(wallet) do |txn|
+          @log.debug("Paying wallet #{txn.bnf} file is absent but it's a \"shallow\" MERGE: #{txn.to_text}")
+          false
+        end
       else
-        patch.join(wallet) do |id|
+        patch.join(wallet) do |txn|
           Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-            ['pull', id.to_s, "--network=#{opts['network']}", '--shallow']
+            ['pull', txn.bnf.to_s, "--network=#{opts['network']}", '--shallow']
           )
+          true
         end
       end
       @log.debug("Copy ##{name} of #{wallet.id} merged in #{Age.new(start)}: #{patch}")

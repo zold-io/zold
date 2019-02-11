@@ -28,6 +28,7 @@ require_relative '../tax'
 require_relative '../age'
 require_relative '../commands/clean'
 require_relative '../commands/merge'
+require_relative '../commands/rebase'
 require_relative '../commands/fetch'
 require_relative '../commands/push'
 
@@ -86,6 +87,7 @@ module Zold
         @log.info("Accepted #{id} in #{Age.new(start, limit: 1)} and not modified anything")
       else
         @log.info("Accepted #{id} in #{Age.new(start, limit: 1)} and modified #{modified.join(', ')}")
+        Rebase.new(wallets: @wallets, log: @log).run(['rebase'] + modified.map(&:to_s))
       end
       sec = (Time.now - start).round(2)
       @mutex.synchronize do

@@ -50,9 +50,9 @@ class TestPatch < Zold::Test
       t = third.sub(Zold::Amount.new(zld: 10.0), "NOPREFIX@#{Zold::Id.new}", key)
       third.add(t.inverse(Zold::Id.new))
       patch = Zold::Patch.new(home.wallets, log: test_log)
-      patch.join(first)
-      patch.join(second)
-      patch.join(third)
+      patch.join(first) { false }
+      patch.join(second) { false }
+      patch.join(third) { false }
       assert_equal(true, patch.save(first.path, overwrite: true))
       assert_equal(Zold::Amount.new(zld: -53.0), first.balance)
     end
@@ -65,8 +65,8 @@ class TestPatch < Zold::Test
       IO.write(second.path, IO.read(first.path))
       second.add(Zold::Txn.new(1, Time.now, Zold::Amount.new(zld: 11.0), 'NOPREFIX', Zold::Id.new, 'fake'))
       patch = Zold::Patch.new(home.wallets, log: test_log)
-      patch.join(first)
-      patch.join(second)
+      patch.join(first) { false }
+      patch.join(second) { false }
       assert_equal(false, patch.save(first.path, overwrite: true))
       first.flush
       assert_equal(Zold::Amount::ZERO, first.balance)
@@ -82,8 +82,8 @@ class TestPatch < Zold::Test
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       second.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
       patch = Zold::Patch.new(home.wallets, log: test_log)
-      patch.join(first)
-      patch.join(second)
+      patch.join(first) { false }
+      patch.join(second) { false }
       assert_equal(true, patch.save(first.path, overwrite: true))
       first.flush
       assert_equal(amount * -1, first.balance)
@@ -104,8 +104,8 @@ class TestPatch < Zold::Test
         )
       )
       patch = Zold::Patch.new(home.wallets, log: test_log)
-      patch.join(first)
-      patch.join(second)
+      patch.join(first) { false }
+      patch.join(second) { false }
       assert_equal(true, patch.save(first.path, overwrite: true))
       first.flush
       assert_equal(Zold::Amount.new(zld: 2.0).to_s, first.balance.to_s)
@@ -138,8 +138,8 @@ class TestPatch < Zold::Test
         ).signed(key, first.id)
       )
       patch = Zold::Patch.new(home.wallets, log: test_log)
-      patch.join(first)
-      patch.join(second)
+      patch.join(first) { false }
+      patch.join(second) { false }
       assert_equal(true, patch.save(first.path, overwrite: true))
       first.flush
       assert_equal(3, first.txns.count)

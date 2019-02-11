@@ -109,20 +109,15 @@ with a new one \"#{txn.to_text}\" from #{wallet.mnemo}")
             @log.error("Payment prefix '#{txn.prefix}' doesn't match with the key of #{wallet.id}: \"#{txn.to_text}\"")
             next
           end
-          unless @wallets.acq(txn.bnf, &:exists?)
-            if block_given?
-              yield(txn.bnf)
-              unless @wallets.acq(txn.bnf, &:exists?)
-                @log.error("Paying wallet #{txn.bnf} file is absent even after PULL: \"#{txn.to_text}\"")
-                next
-              end
-              unless @wallets.acq(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
-                @log.error("The beneficiary #{@wallets.acq(txn.bnf, &:mnemo)} of #{@id} \
+          if !@wallets.acq(txn.bnf, &:exists?) && yield(txn)
+            unless @wallets.acq(txn.bnf, &:exists?)
+              @log.error("Paying wallet #{txn.bnf} file is absent even after PULL: \"#{txn.to_text}\"")
+              next
+            end
+            unless @wallets.acq(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
+              @log.error("The beneficiary #{@wallets.acq(txn.bnf, &:mnemo)} of #{@id} \
 doesn't have this transaction: \"#{txn.to_text}\"")
-                next
-              end
-            else
-              @log.debug("Paying wallet #{txn.bnf} file is absent but it's a \"shallow\" MERGE: #{txn.to_text}")
+              next
             end
           end
         end
