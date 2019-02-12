@@ -50,14 +50,17 @@ module Zold
   class Fetch
     prepend ThreadBadge
 
+    # Raises when fetch fails.
+    class Error < StandardError; end
+
     # Raises when there are only edge nodes and not a single master one.
-    class EdgesOnly < StandardError; end
+    class EdgesOnly < Error; end
 
     # Raises when there are not enough successful nodes.
-    class NoQuorum < StandardError; end
+    class NoQuorum < Error; end
 
     # Raises when the wallet wasn't found in all visible nodes.
-    class NotFound < StandardError; end
+    class NotFound < Error; end
 
     def initialize(wallets:, remotes:, copies:, log: Log::NULL)
       @wallets = wallets

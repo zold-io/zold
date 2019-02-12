@@ -51,6 +51,26 @@ class TestHungryWallets < Zold::Test
     end
   end
 
+  def test_doesnt_pull_twice_if_not_found
+    FakeHome.new(log: test_log).run do |home|
+      id = Zold::Id.new
+      get = stub_request(:get, "http://localhost:4096/wallet/#{id}").to_return(status: 404)
+      remotes = home.remotes
+      remotes.add('localhost', 4096)
+      pool = Zold::ThreadPool.new('test', log: test_log)
+      wallets = Zold::HungryWallets.new(
+        home.wallets, remotes, File.join(home.dir, 'copies'),
+        pool, log: test_log
+      )
+      3.times do
+        wallets.acq(id) { |w| assert(!w.exists?) }
+        sleep 0.2
+      end
+      pool.join(2)
+      assert_requested(get, times: 1)
+    end
+  end
+
   def test_doesnt_pull_wallet_if_exists
     FakeHome.new(log: test_log).run do |home|
       pool = Zold::ThreadPool.new('test', log: test_log)
