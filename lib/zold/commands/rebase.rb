@@ -54,9 +54,11 @@ Available options:"
       end
       mine = Args.new(opts, @log).take || return
       list = mine.empty? ? @wallets.all : mine.map { |i| Id.new(i) }
+      modified = []
       list.uniq.each do |id|
-        rebase(id, opts)
+        modified << id if rebase(id, opts)
       end
+      modified
     end
 
     private

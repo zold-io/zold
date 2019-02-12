@@ -83,11 +83,11 @@ module Zold
       ).run(['merge', id.to_s])
       Clean.new(wallets: @wallets, copies: copies.root, log: @log).run(['clean', id.to_s])
       copies.remove(localhost, Remotes::PORT)
+      modified += Rebase.new(wallets: @wallets, log: @log).run(['rebase', id.to_s])
       if modified.empty?
         @log.info("Accepted #{id} in #{Age.new(start, limit: 1)} and not modified anything")
       else
         @log.info("Accepted #{id} in #{Age.new(start, limit: 1)} and modified #{modified.join(', ')}")
-        Rebase.new(wallets: @wallets, log: @log).run(['rebase'] + modified.map(&:to_s))
       end
       sec = (Time.now - start).round(2)
       @mutex.synchronize do
