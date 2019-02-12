@@ -25,6 +25,7 @@ require 'openssl'
 require 'zache'
 require_relative '../log'
 require_relative '../size'
+require_relative '../age'
 
 # The entrance that ignores something we've seen already.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -54,7 +55,8 @@ module Zold
       before = @zache.get(id.to_s, lifetime: @period) { '' }
       after = hash(id, body)
       if before == after
-        @log.debug("Spam of #{id} ignored #{Size.new(body.length)}")
+        @log.debug("Spam of #{id} ignored; the wallet content of #{Size.new(body.length)} \
+and '#{after[0..8]}' hash has already been seen #{Age.new(@zache.mtime(id.to_s))} ago")
         return []
       end
       @zache.put(id.to_s, after)
