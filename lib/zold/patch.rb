@@ -106,7 +106,7 @@ with a new one \"#{txn.to_text}\" from #{wallet.mnemo}")
             next
           end
           unless wallet.prefix?(txn.prefix)
-            @log.error("Payment prefix '#{txn.prefix}' doesn't match with the key of #{wallet.id}: \"#{txn.to_text}\"")
+            @log.debug("Payment prefix '#{txn.prefix}' doesn't match with the key of #{wallet.id}: \"#{txn.to_text}\"")
             next
           end
           if !@wallets.acq(txn.bnf, &:exists?) && yield(txn)
@@ -115,7 +115,7 @@ with a new one \"#{txn.to_text}\" from #{wallet.mnemo}")
               next
             end
             unless @wallets.acq(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
-              @log.error("The beneficiary #{@wallets.acq(txn.bnf, &:mnemo)} of #{@id} \
+              @log.debug("The beneficiary #{@wallets.acq(txn.bnf, &:mnemo)} of #{@id} \
 doesn't have this transaction: \"#{txn.to_text}\"")
               next
             end
