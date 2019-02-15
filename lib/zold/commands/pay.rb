@@ -123,7 +123,8 @@ Available options:"
         raise 'The amount can\'t be zero' if amount.zero?
         raise "The amount can't be negative: #{amount}" if amount.negative?
         if !from.root? && from.balance < amount
-          raise "There is not enough funds in #{from} to send #{amount}, only #{from.balance} left"
+          raise "There is not enough funds in #{from} to send #{amount}, only #{from.balance} left; \
+the difference is #{(amount - from.balance).to_i} zents"
         end
       end
       key = Zold::Key.new(file: opts['private-key'])

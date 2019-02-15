@@ -127,18 +127,22 @@ If you are lost, run this:
 $ zold node --help
 ```
 
-You can run a node in a docker container also.
+You can run a node in a docker container also, using [yegor256/zold](https://hub.docker.com/r/yegor256/zold)
+built from this [Dockerfile](https://github.com/zold-io/zold/blob/master/Dockerfile).
 
 ```bash
-docker run -d -p 4096:4096 zold/zold:latest /node.sh --host=<your host IP> --invoice=5f96e731e48ae21f
+docker run -d -p 4096:4096 yegor256/zold /node.sh --host=<your host IP> --invoice=5f96e731e48ae21f
 ```
 
-To store zold data between container restarts create a volume or bind a directory from host
+To store zold data between container restarts create a volume or bind a directory from host:
 
 ```bash
-docker volume create zold 
-docker run -d -p 4096:4096 -v zold:/zold zold/zold:latest /node.sh --host=<your host IP> --invoice=5f96e731e48ae21f
+docker volume create zold
+docker run -d -p 4096:4096 -v zold:/zold yegor256/zold /node.sh --host=<your host IP> --invoice=5f96e731e48ae21f
 ```
+
+You may find this blog post useful:
+[How to Run Zold Node?](https://blog.zold.io/2019/01/10/how-to-run-node.html)
 
 ## Frequently Asked Questions
 

@@ -71,8 +71,11 @@ Available options:"
           @log.debug("Paying wallet #{txn.bnf} file is absent: #{txn.to_text}")
           false
         end
-        patch.save(wallet.path, overwrite: true)
-        @log.debug("Wallet #{wallet.mnemo} rebased in #{Age.new(start)}")
+        if patch.save(wallet.path, overwrite: true)
+          @log.info("Wallet #{wallet.mnemo} rebased and modified in #{Age.new(start)}")
+        else
+          @log.debug("There is nothing to rebase in #{wallet.mnemo}, took #{Age.new(start)}")
+        end
       end
     end
   end

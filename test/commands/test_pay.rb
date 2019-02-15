@@ -49,6 +49,14 @@ class TestPay < Zold::Test
         ]
       )
       assert_equal(amount * -1, source.balance)
+      Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: test_log).run(
+        [
+          'pay', '--private-key=fixtures/id_rsa',
+          target.id.to_s, source.id.to_s, amount.to_zld, 'Refund'
+        ]
+      )
+      source.flush
+      assert_equal(Zold::Amount::ZERO, source.balance)
     end
   end
 
