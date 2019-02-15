@@ -50,7 +50,7 @@ module Zold
 Where:
     'wallet' is the sender's wallet ID
     'target' is the beneficiary (either wallet ID or invoice number)'
-    'amount' is the amount to pay, in ZLD, for example '14.95'
+    'amount' is the amount to pay, for example: '14.95Z' (in ZLD) or '12345z' (in zents)
     'details' is the optional text to attach to the payment
 Available options:"
         o.string '--private-key',
@@ -93,7 +93,7 @@ Available options:"
         )
       end
       raise 'Amount is required (in ZLD) as the third argument' if mine[2].nil?
-      amount = Amount.new(zld: mine[2].to_f)
+      amount = amount(mine[2].strip)
       details = mine[3] || '-'
       taxes(id, opts)
       @wallets.acq(id, exclusive: true) do |from|
@@ -105,6 +105,12 @@ Available options:"
     end
 
     private
+
+    def amount(txt)
+      return Amount.new(zents: txt.gsub(/z$/, '').to_i) if txt.end_with?('z')
+      return Amount.new(zld: txt.gsub(/Z$/, '').to_f) if txt.end_with?('Z')
+      Amount.new(zld: txt.to_f)
+    end
 
     def taxes(id, opts)
       debt = @wallets.acq(id) do |wallet|

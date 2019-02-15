@@ -23,7 +23,7 @@ zold --home=${first} remote add 127.0.0.1 ${second}
 zold --home=${second} remote add 127.0.0.1 ${first}
 
 zold --public-key=id_rsa.pub create 0000000000000000
-zold pay --private-key=id_rsa 0000000000000000 NOPREFIX@aaaabbbbccccdddd 4.95 'To help you, dude!'
+zold pay --private-key=id_rsa 0000000000000000 NOPREFIX@aaaabbbbccccdddd 4000000z 'To help you, dude!'
 zold remote clean
 zold remote add 127.0.0.1 ${first}
 zold push 0000000000000000 --tolerate-edges --tolerate-quorum=1
