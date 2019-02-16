@@ -45,6 +45,8 @@ module Zold
     # When something is wrong with the assertion
     class CantAssert < StandardError; end
 
+    attr_reader :touched
+
     def initialize(host:, port:, score:, idx:, master:, network: 'test', log: Log::NULL)
       @host = host
       @port = port
@@ -53,9 +55,11 @@ module Zold
       @master = master
       @network = network
       @log = log
+      @touched = false
     end
 
     def http(path = '/')
+      @touched = true
       Http.new(uri: "http://#{@host}:#{@port}#{path}", score: @score, network: @network)
     end
 
@@ -65,6 +69,10 @@ module Zold
 
     def to_s
       "#{@host}:#{@port}/#{@idx}"
+    end
+
+    def to_mnemo
+      "#{@host}:#{@port}"
     end
 
     def assert_code(code, response)
@@ -193,21 +201,22 @@ module Zold
         Thread.current.name = "remotes-#{idx}@#{r[:host]}:#{r[:port]}"
         start = Time.now
         best = farm.best[0]
+        node = RemoteNode.new(
+          host: r[:host],
+          port: r[:port],
+          score: best.nil? ? Score::ZERO : best,
+          idx: idx,
+          master: master?(r[:host], r[:port]),
+          log: log,
+          network: @network
+        )
         begin
-          yield RemoteNode.new(
-            host: r[:host],
-            port: r[:port],
-            score: best.nil? ? Score::ZERO : best,
-            idx: idx,
-            master: master?(r[:host], r[:port]),
-            log: log,
-            network: @network
-          )
+          yield node
           raise 'Took too long to execute' if (Time.now - start).round > @timeout
-          unerror(r[:host], r[:port])
+          unerror(r[:host], r[:port]) if node.touched
         rescue StandardError => e
           error(r[:host], r[:port])
-          log.info("#{Rainbow("#{r[:host]}:#{r[:port]}").red}: #{e.message} in #{Age.new(start)}")
+          log.info("#{Rainbow(node).red}: #{e.message} in #{Age.new(start)}")
           log.debug(Backtrace.new(e).to_s)
           remove(r[:host], r[:port]) if r[:errors] > TOLERANCE
         end

@@ -260,9 +260,15 @@ Available options:"
 
     def update(opts)
       st = Time.now
+      seen = Set.new
       capacity = []
-      opts['depth'].times do |cycle|
+      opts['depth'].times do
         @remotes.iterate(@log, farm: @farm) do |r|
+          if seen.include?(r.to_mnemo)
+            @log.debug("#{r} seen already, won't check again")
+            next
+          end
+          seen << r.to_mnemo
           start = Time.now
           update_one(r, opts) do |json, score|
             r.assert_valid_score(score)
@@ -270,11 +276,9 @@ Available options:"
             r.assert_score_strength(score) unless opts['ignore-score-weakness']
             @remotes.rescore(score.host, score.port, score.value)
             reboot(r, json, opts)
-            if cycle.positive?
-              json['all'].each do |s|
-                next if @remotes.exists?(s['host'], s['port'])
-                add(s['host'], s['port'], opts)
-              end
+            json['all'].each do |s|
+              next if @remotes.exists?(s['host'], s['port'])
+              add(s['host'], s['port'], opts)
             end
             capacity << { host: score.host, port: score.port, count: json['all'].count }
             @log.info("#{r}: the score is #{Rainbow(score.value).green} (#{json['version']}) in #{Age.new(start)}")

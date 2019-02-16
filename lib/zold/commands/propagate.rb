@@ -79,12 +79,12 @@ Available options:"
             next
           end
           unless target.network == network
-            @log.error("#{t.amount * -1} to #{t.bnf}: network mismatch, '#{target.network}'!='#{network}'")
+            @log.debug("#{t.amount * -1} to #{t.bnf}: network mismatch, '#{target.network}'!='#{network}'")
             next
           end
           next if target.includes_positive?(t.id, id)
           unless target.prefix?(t.prefix)
-            @log.error("#{t.amount * -1} from #{id} to #{t.bnf}: wrong prefix \"#{t.prefix}\" in \"#{t}\"")
+            @log.debug("#{t.amount * -1} from #{id} to #{t.bnf}: wrong prefix \"#{t.prefix}\" in \"#{t}\"")
             next
           end
           target.add(t.inverse(id))
