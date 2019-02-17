@@ -153,7 +153,7 @@ at #{host}:#{port}, strength is #{@strength}")
     def cleanup(host, port, threads)
       scores = load
       before = scores.map(&:value).max.to_i
-      save(threads, [Score.new(host: host, port: port, invoice: @invoice, strength: @strength)])
+      save(host, port, threads, [Score.new(host: host, port: port, invoice: @invoice, strength: @strength)])
       scores = load
       free = scores.reject { |s| @threads.exists?(s.to_mnemo) }
       @pipeline << free[0] if @pipeline.size.zero? && !free.empty?
@@ -182,16 +182,19 @@ at #{host}:#{port}, strength is #{@strength}")
       Thread.current.thread_variable_set(:start, Time.now.utc.iso8601)
       score = @farmer.up(s)
       @log.debug("New score discovered: #{score}") if @strength > 4
-      save(threads, [score])
+      save(host, port, threads, [score])
       cleanup(host, port, threads)
     end
 
-    def save(threads, list = [])
+    def save(host, port, threads, list = [])
       scores = load + list
       period = @lifetime / [threads, 1].max
       body = scores.select(&:valid?)
         .reject(&:expired?)
         .reject { |s| s.strength < @strength }
+        .select { |s| s.host == host }
+        .select { |s| s.port == port }
+        .select { |s| s.invoice == @invoice }
         .sort_by(&:value)
         .reverse
         .uniq(&:time)
