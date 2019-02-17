@@ -96,6 +96,9 @@ Available options:"
         o.bool '--ignore-masters',
           'Don\'t elect master nodes, only edges',
           default: false
+        o.bool '--masters-too',
+          'Give no priviledges to masters, treat them as other nodes',
+          default: false
         o.integer '--min-score',
           "The minimum score required for winning the election (default: #{Tax::EXACT_SCORE})",
           default: Tax::EXACT_SCORE
@@ -252,7 +255,7 @@ Available options:"
       all = @remotes.all
       all.each do |r|
         next if r[:errors] <= opts['tolerate']
-        @remotes.remove(r[:host], r[:port])
+        @remotes.remove(r[:host], r[:port]) if !opts['masters-too'] || !r[:master]
         @log.info("#{r[:host]}:#{r[:port]} removed because of #{r[:errors]} errors (over #{opts['tolerate']})")
       end
       @log.info("The list of #{all.count} remotes trimmed, #{@remotes.all.count} nodes left there")
@@ -344,7 +347,7 @@ it's recommended to reboot, but I don't do it because of --never-reboot")
     def select(opts)
       selected = @remotes.all.sort_by { |r| r[:score] }.reverse.first(opts['max-nodes'])
       (@remotes.all - selected).each do |r|
-        @remotes.remove(r[:host], r[:port])
+        @remotes.remove(r[:host], r[:port]) if !opts['masters-too'] || !r[:master]
         @log.info("Remote #{r[:host]}:#{r[:port]}/#{r[:score]} removed from the list, #{@remotes.all.count} left")
       end
       @log.info("#{opts['max-nodes']} remote nodes left in the list")
