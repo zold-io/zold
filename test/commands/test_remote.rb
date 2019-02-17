@@ -231,6 +231,16 @@ class TestRemote < Zold::Test
     end
   end
 
+  def test_select_doesnt_touch_masters
+    Dir.mktmpdir do |dir|
+      remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.txt'))
+      cmd = Zold::Remote.new(remotes: remotes, log: test_log)
+      cmd.run(%w[remote masters])
+      cmd.run(%w[remote select --max-nodes=0])
+      assert(!remotes.all.empty?)
+    end
+  end
+
   def test_updates_just_once
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'a/b/c/remotes'))

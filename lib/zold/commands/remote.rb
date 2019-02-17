@@ -345,12 +345,13 @@ it's recommended to reboot, but I don't do it because of --never-reboot")
     end
 
     def select(opts)
-      selected = @remotes.all.sort_by { |r| r[:score] }.reverse.first(opts['max-nodes'])
-      (@remotes.all - selected).each do |r|
-        @remotes.remove(r[:host], r[:port]) if !opts['masters-too'] || !r[:master]
+      @remotes.all.sort_by { |r| r[:score] }.reverse.each_with_index do |r, idx|
+        next if idx < opts['max-nodes']
+        next if r[:master] && !opts['masters-too']
+        @remotes.remove(r[:host], r[:port])
         @log.info("Remote #{r[:host]}:#{r[:port]}/#{r[:score]} removed from the list, #{@remotes.all.count} left")
       end
-      @log.info("#{opts['max-nodes']} remote nodes left in the list")
+      @log.info("#{@remotes.all.count} remote nodes left in the list")
     end
 
     def terminate
