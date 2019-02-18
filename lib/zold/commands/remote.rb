@@ -211,16 +211,16 @@ Available options:"
       end
       return unless ping(host, port, opts)
       if @remotes.exists?(host, port)
-        @log.info("#{host}:#{port} already exists among #{@remotes.all.count} others")
+        @log.debug("#{host}:#{port} already exists among #{@remotes.all.count} others")
       else
         @remotes.add(host, port)
-        @log.info("#{host}:#{port} added to the list, #{@remotes.all.count} total")
+        @log.debug("#{host}:#{port} added to the list, #{@remotes.all.count} total")
       end
     end
 
     def remove(host, port, _)
       @remotes.remove(host, port)
-      @log.info("#{host}:#{port} removed from the list, #{@remotes.all.count} total")
+      @log.debug("#{host}:#{port} removed from the list, #{@remotes.all.count} total")
     end
 
     # Returns an array of Zold::Score
@@ -256,9 +256,9 @@ Available options:"
       all.each do |r|
         next if r[:errors] <= opts['tolerate']
         @remotes.remove(r[:host], r[:port]) if !opts['masters-too'] || !r[:master]
-        @log.info("#{r[:host]}:#{r[:port]} removed because of #{r[:errors]} errors (over #{opts['tolerate']})")
+        @log.debug("#{r[:host]}:#{r[:port]} removed because of #{r[:errors]} errors (over #{opts['tolerate']})")
       end
-      @log.info("The list of #{all.count} remotes trimmed, #{@remotes.all.count} nodes left there")
+      @log.info("The list of #{all.count} remotes trimmed down to #{@remotes.all.count} nodes")
     end
 
     def update(opts)
@@ -284,7 +284,7 @@ Available options:"
               add(s['host'], s['port'], opts)
             end
             capacity << { host: score.host, port: score.port, count: json['all'].count }
-            @log.info("#{r}: the score is #{Rainbow(score.value).green} (#{json['version']}) in #{Age.new(start)}")
+            @log.debug("#{r}: the score is #{Rainbow(score.value).green} (#{json['version']}) in #{Age.new(start)}")
           end
         end
       end
@@ -349,9 +349,9 @@ it's recommended to reboot, but I don't do it because of --never-reboot")
         next if idx < opts['max-nodes']
         next if r[:master] && !opts['masters-too']
         @remotes.remove(r[:host], r[:port])
-        @log.info("Remote #{r[:host]}:#{r[:port]}/#{r[:score]} removed from the list, #{@remotes.all.count} left")
+        @log.debug("Remote #{r[:host]}:#{r[:port]}/#{r[:score]} removed from the list, #{@remotes.all.count} left")
       end
-      @log.info("#{@remotes.all.count} remote nodes left in the list")
+      @log.info("#{@remotes.all.count} remote nodes were selected to stay in the list")
     end
 
     def terminate
