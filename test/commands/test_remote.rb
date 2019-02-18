@@ -218,7 +218,7 @@ class TestRemote < Zold::Test
         cmd.run(%W[remote add localhost #{port}])
       end
       assert_equal(11 + File.readlines('resources/masters').count, remotes.all.count)
-      cmd.run(%w[remote select --max-nodes=5])
+      cmd.run(%w[remote select --max-nodes=5 --masters-too])
       assert_equal(5, remotes.all.count)
     end
   end

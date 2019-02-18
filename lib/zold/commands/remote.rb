@@ -345,7 +345,7 @@ it's recommended to reboot, but I don't do it because of --never-reboot")
     end
 
     def select(opts)
-      @remotes.all.sort_by { |r| r[:errors] }.reverse.each_with_index do |r, idx|
+      @remotes.all.shuffle.sort_by { |r| r[:errors] }.reverse.each_with_index do |r, idx|
         next if idx < opts['max-nodes']
         next if r[:master] && !opts['masters-too']
         @remotes.remove(r[:host], r[:port])
