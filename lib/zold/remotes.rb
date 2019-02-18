@@ -189,7 +189,6 @@ module Zold
       modify do |list|
         list.reject { |r| r[:host] == host.downcase && r[:port] == port }
       end
-      unerror(host, port)
     end
 
     # Go through the list of remotes and call a provided block for each
@@ -230,7 +229,6 @@ module Zold
 
     def unerror(host, port = PORT)
       assert_host_info(host, port)
-
       if_present(host, port) do |remote|
         remote[:errors] -= 1 if (remote[:errors]).positive?
       end

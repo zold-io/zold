@@ -183,11 +183,12 @@ class TestRemote < Zold::Test
       (1..11).each do |i|
         cmd.run(%W[remote add localhost #{i} --skip-ping])
         remotes.rescore('localhost', i, i)
+        i.times { remotes.error('localhost', i) }
       end
       cmd.run(%w[remote select --max-nodes=5])
       assert_equal(5, remotes.all.count)
       scores = remotes.all.map { |r| r[:score] }
-      assert_equal([11, 5, 4, 3, 2], scores)
+      assert_equal([7, 8, 9, 10, 11], scores.sort)
     end
   end
 
