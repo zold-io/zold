@@ -74,7 +74,7 @@ Available commands:
     #{Rainbow('remote trim').green}
       Remove the least reliable nodes
     #{Rainbow('remote select [options]').green}
-      Select the strongest n nodes.
+      Select the most reliable N nodes.
     #{Rainbow('remote update').green}
       Check each registered remote node for availability
 Available options:"
@@ -345,11 +345,11 @@ it's recommended to reboot, but I don't do it because of --never-reboot")
     end
 
     def select(opts)
-      @remotes.all.sort_by { |r| r[:score] }.reverse.each_with_index do |r, idx|
+      @remotes.all.sort_by { |r| r[:errors] }.reverse.each_with_index do |r, idx|
         next if idx < opts['max-nodes']
         next if r[:master] && !opts['masters-too']
         @remotes.remove(r[:host], r[:port])
-        @log.debug("Remote #{r[:host]}:#{r[:port]}/#{r[:score]} removed from the list, #{@remotes.all.count} left")
+        @log.debug("Remote #{r[:host]}:#{r[:port]}/#{r[:score]}/#{r[:errors]}e removed from the list")
       end
       @log.info("#{@remotes.all.count} remote nodes were selected to stay in the list")
     end

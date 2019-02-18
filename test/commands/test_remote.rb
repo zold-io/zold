@@ -187,7 +187,7 @@ class TestRemote < Zold::Test
       cmd.run(%w[remote select --max-nodes=5])
       assert_equal(5, remotes.all.count)
       scores = remotes.all.map { |r| r[:score] }
-      assert_equal([11, 10, 9, 8, 7], scores)
+      assert_equal([11, 5, 4, 3, 2], scores)
     end
   end
 
