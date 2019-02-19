@@ -146,4 +146,33 @@ class TestPatch < Zold::Test
       assert_equal(Zold::Amount.new(zld: -6.0).to_s, first.balance.to_s)
     end
   end
+
+  def test_protocols_new_txns
+    FakeHome.new(log: test_log).run do |home|
+      first = home.create_wallet(Zold::Id::ROOT)
+      second = home.create_wallet
+      IO.write(second.path, IO.read(first.path))
+      amount = Zold::Amount.new(zld: 333.0)
+      key = Zold::Key.new(file: 'fixtures/id_rsa')
+      target = Zold::Id.new
+      second.sub(amount, "NOPREFIX@#{target}", key, 'some details')
+      second.sub(amount * 2, "NOPREFIX@#{target}", key)
+      patch = Zold::Patch.new(home.wallets, log: test_log)
+      patch.legacy(first)
+      Tempfile.open do |f|
+        patch.join(second, ledger: f.path) { false }
+        lines = IO.read(f).split("\n")
+        assert_equal(2, lines.count)
+        parts = lines[0].split(';')
+        assert(!Zold::Txn.parse_time(parts[0]).nil?)
+        assert_equal(1, parts[1].to_i)
+        assert(!Zold::Txn.parse_time(parts[2]).nil?)
+        assert_equal(Zold::Id::ROOT.to_s, parts[3])
+        assert_equal(target.to_s, parts[4])
+        assert_equal(amount, Zold::Amount.new(zents: parts[5].to_i))
+        assert_equal('NOPREFIX', parts[6])
+        assert_equal('some details', parts[7])
+      end
+    end
+  end
 end

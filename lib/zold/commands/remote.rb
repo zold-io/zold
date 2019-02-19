@@ -79,7 +79,7 @@ Available commands:
       Check each registered remote node for availability
 Available options:"
         o.integer '--tolerate',
-          'Maximum level of errors we are able to tolerate',
+          "Maximum level of errors we are able to tolerate (default: #{Remotes::TOLERANCE})",
           default: Remotes::TOLERANCE
         o.bool '--ignore-score-weakness',
           'Don\'t complain when their score is too weak',
@@ -115,10 +115,10 @@ Available options:"
           'Don\'t fail if ping fails, just report the problem in the log',
           default: false
         o.integer '--depth',
-          'The amount of update cycles to run, in order to fetch as many nodes as possible (default: 2)',
+          'The amount of update cycles to run, in order to fetch as many nodes as possible (default: 3)',
           default: 3
         o.string '--network',
-          "The name of the network we work in (default: #{Wallet::MAINET}",
+          "The name of the network we work in (default: #{Wallet::MAINET})",
           required: true,
           default: Wallet::MAINET
         o.bool '--reboot',
@@ -134,7 +134,7 @@ Available options:"
         #  - Remove note from the --max-nodes option saying that it applies to the select
         #  subcommand only.
         o.integer '--max-nodes',
-          "This applies only to the select subcommand. Number of nodes to limit to. Defaults to #{Remotes::MAX_NODES}.",
+          "Number of nodes to limit to (default: #{Remotes::MAX_NODES})",
           default: Remotes::MAX_NODES
         o.bool '--help', 'Print instructions'
       end

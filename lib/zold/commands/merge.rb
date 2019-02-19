@@ -62,6 +62,9 @@ Available options:"
         o.bool '--shallow',
           'Don\'t try to pull other wallets if their confirmations are required',
           default: false
+        o.string '--ledger',
+          'The name of the file where all new negative transactions will be recorded (default: /dev/null)',
+          default: '/dev/null'
         o.string '--network',
           'The name of the network we work in',
           default: 'test'
@@ -128,12 +131,12 @@ into #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 0.1 + cps.count * 0
       start = Time.now
       @log.debug("Building a patch for #{wallet.id} from remote copy ##{name} with #{wallet.mnemo}...")
       if opts['shallow']
-        patch.join(wallet) do |txn|
+        patch.join(wallet, ledger: opts['ledger']) do |txn|
           @log.debug("Paying wallet #{txn.bnf} file is absent but it's a \"shallow\" MERGE: #{txn.to_text}")
           false
         end
       else
-        patch.join(wallet) do |txn|
+        patch.join(wallet, ledger: opts['ledger']) do |txn|
           Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
             ['pull', txn.bnf.to_s, "--network=#{opts['network']}", '--shallow']
           )

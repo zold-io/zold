@@ -62,6 +62,7 @@ module Zold
       set :server, :thin
       set :opts, nil # to be injected at node.rb
       set :log, nil # to be injected at node.rb
+      set :ledger, nil # to be injected at node.rb
       set :trace, nil # to be injected at node.rb
       set :dump_errors, false # to be injected at node.rb
       set :protocol, PROTOCOL # to be injected at node.rb
@@ -381,6 +382,30 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
         score: score.to_h,
         all: all_remotes,
         mtime: settings.remotes.mtime.utc.iso8601
+      )
+    end
+
+    get '/ledger' do
+      content_type('text/plain')
+      File.exist?(settings.ledger) ? IO.read(settings.ledger) : ''
+    end
+
+    get '/ledger.json' do
+      content_type('application/json')
+      pretty(
+        (File.exist?(settings.ledger) ? IO.read(settings.ledger).split("\n") : []).map do |t|
+          parts = t.split(';')
+          {
+            found: parts[0],
+            id: parts[1].to_i,
+            date: parts[2],
+            source: parts[3],
+            target: parts[4],
+            amount: parts[5],
+            prefix: parts[6],
+            details: parts[7]
+          }
+        end
       )
     end
 

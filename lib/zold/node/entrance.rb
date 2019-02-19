@@ -39,7 +39,8 @@ require_relative '../commands/push'
 module Zold
   # The entrance
   class Entrance
-    def initialize(wallets, remotes, copies, address, log: Log::NULL, network: 'test')
+    def initialize(wallets, remotes, copies, address, ledger: '/dev/null',
+      log: Log::NULL, network: 'test')
       @wallets = wallets
       @remotes = remotes
       @copies = copies
@@ -49,6 +50,7 @@ module Zold
       @history = []
       @speed = []
       @mutex = Mutex.new
+      @ledger = ledger
     end
 
     def start
@@ -60,7 +62,8 @@ module Zold
       {
         'history': @history.join(', '),
         'history_size': @history.count,
-        'speed': @speed.empty? ? 0 : (@speed.inject(&:+) / @speed.count)
+        'speed': @speed.empty? ? 0 : (@speed.inject(&:+) / @speed.count),
+        'ledger': File.exist?(@ledger) ? IO.read(@ledger).split("\n").count : 0
       }
     end
 
@@ -78,9 +81,7 @@ module Zold
           wallets: @wallets, remotes: @remotes, copies: copies.root, log: @log
         ).run(['fetch', id.to_s, "--ignore-node=#{@address}", "--network=#{@network}", '--quiet-if-absent'])
       end
-      modified = Merge.new(
-        wallets: @wallets, remotes: @remotes, copies: copies.root, log: @log
-      ).run(['merge', id.to_s])
+      modified = merge(id, copies)
       Clean.new(wallets: @wallets, copies: copies.root, log: @log).run(['clean', id.to_s])
       copies.remove(localhost, Remotes::PORT)
       modified += Rebase.new(wallets: @wallets, log: @log).run(['rebase', id.to_s])
@@ -99,6 +100,28 @@ module Zold
         @speed << sec
       end
       modified
+    end
+
+    def merge(id, copies)
+      Tempfile.open do |f|
+        modified = Merge.new(
+          wallets: @wallets, remotes: @remotes, copies: copies.root, log: @log
+        ).run(['merge', id.to_s, "--ledger=#{f.path}"])
+        @mutex.synchronize do
+          txns = File.exist?(@ledger) ? IO.read(@ledger).strip.split("\n") : []
+          txns += IO.read(f.path).strip.split("\n")
+          IO.write(
+            @ledger,
+            txns.map { |t| t.split(';') }
+              .uniq { |t| "#{t[1]}-#{t[3]}" }
+              .reject { |t| Txn.parse_time(t[0]) < Time.now - 24 * 60 * 60 }
+              .map { |t| t.join(';') }
+              .join("\n")
+              .strip
+          )
+        end
+        modified
+      end
     end
   end
 end

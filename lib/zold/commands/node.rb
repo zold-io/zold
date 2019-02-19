@@ -258,6 +258,8 @@ the node won\'t connect to the network like that; try to do "zold remote reset" 
       Front.set(:copies, @copies)
       Front.set(:address, address)
       Front.set(:root, home)
+      ledger = File.join(home, 'ledger.csv')
+      Front.set(:ledger, ledger)
       Front.set(:opts, opts)
       Front.set(:dump_errors, opts['dump-errors'])
       Front.set(:port, opts['bind-port'])
@@ -270,6 +272,7 @@ the node won\'t connect to the network like that; try to do "zold remote reset" 
                 SyncEntrance.new(
                   Entrance.new(
                     wts, @remotes, @copies, address,
+                    ledger: ledger,
                     log: @log, network: opts['network']
                   ),
                   File.join(home, '.zoldata/sync-entrance'),

@@ -82,6 +82,8 @@ class FrontTest < Zold::Test
           '/version',
           '/protocol',
           '/farm',
+          '/ledger',
+          '/ledger.json',
           '/metronome',
           '/score',
           '/trace',

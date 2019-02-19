@@ -58,7 +58,7 @@ module Zold
     # Joins a new wallet on top of existing patch. An attempt is made to
     # copy as many transactions from the newcoming wallet to the existing
     # set of transactions, avoiding mistakes and duplicates.
-    def join(wallet)
+    def join(wallet, ledger: '/dev/null')
       if @id.nil?
         @id = wallet.id
         @key = wallet.key
@@ -122,6 +122,22 @@ doesn't have this transaction: \"#{txn.to_text}\"")
           end
         end
         @txns << txn
+        if txn.amount.negative?
+          File.open(ledger, 'a') do |f|
+            f.puts(
+              [
+                Time.now.utc.iso8601,
+                txn.id,
+                txn.date.utc.iso8601,
+                wallet.id,
+                txn.bnf,
+                txn.amount.to_i * -1,
+                txn.prefix,
+                txn.details
+              ].map(&:to_s).join(';') + "\n"
+            )
+          end
+        end
         @log.debug("Merged on top, balance is #{@txns.map(&:amount).inject(&:+)}: #{txn.to_text}")
       end
     end
