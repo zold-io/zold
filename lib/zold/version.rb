@@ -25,7 +25,7 @@
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 module Zold
-  VERSION = '0.0.0'
+  VERSION = '0.24.0'
   PROTOCOL = 2
   REPO = 'zold-io/zold'
 end
