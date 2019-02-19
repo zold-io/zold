@@ -71,7 +71,7 @@ module Zold
       @id = id
       raise 'The time can\'t be NIL' if date.nil?
       raise 'Time have to be of type Time' unless date.is_a?(Time)
-      raise "Time can't be in the future: #{date}" if date > Time.now
+      raise "Time can't be in the future: #{date.utc.iso8601}" if date > Time.now
       @date = date
       raise 'The amount can\'t be NIL' if amount.nil?
       raise 'The amount has to be of type Amount' unless amount.is_a?(Amount)

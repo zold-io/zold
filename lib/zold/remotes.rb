@@ -79,8 +79,8 @@ module Zold
       msg = response.status_line.strip
       return if response.status.to_i == code
       if response.headers && response.headers['X-Zold-Error']
-        raise CantAssert, "Error ##{response.status} \"#{response.headers['X-Zold-Error']}\"
-            at #{response.headers['X-Zold-Path']}"
+        raise CantAssert, "Error ##{response.status} \"#{response.headers['X-Zold-Error']}\" \
+at #{response.headers['X-Zold-Path']}"
       end
       raise CantAssert, "Unexpected HTTP code #{response.status}, instead of #{code}" if msg.empty?
       raise CantAssert, "#{msg} (HTTP code #{response.status}, instead of #{code})"

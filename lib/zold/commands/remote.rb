@@ -74,7 +74,7 @@ Available commands:
     #{Rainbow('remote trim').green}
       Remove the least reliable nodes
     #{Rainbow('remote select [options]').green}
-      Select the most reliable N nodes.
+      Select the most reliable N nodes
     #{Rainbow('remote update').green}
       Check each registered remote node for availability
 Available options:"
