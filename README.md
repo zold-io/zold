@@ -144,6 +144,26 @@ docker run -d -p 4096:4096 -v zold:/zold yegor256/zold /node.sh --host=<your hos
 You may find this blog post useful:
 [How to Run Zold Node?](https://blog.zold.io/2019/01/10/how-to-run-node.html)
 
+## If Your File System is on Fire (or How to Reduce Your Hard Disk Usage)
+
+At the moment, the file system is utilised too aggressively and if you
+like to calm this process down and have a bit of spare memory, you may
+find the following approach handy (directly applicable to FreeBSD OS).
+
+The application data can be moved to [a memory-backed memory disk](https://www.freebsd.org/doc/handbook/disks-virtual.html)
+with a periodical syncing of `farm`, `zold.log` and `.zolddata` to the
+hard disk.
+
+The `/etc/fstab` entry:
+```
+md /usr/home/zold/app-in-mem mfs rw,-M,-n,-s512m,-wzold:zold,-p0755 2 0
+```
+
+The `/etc/crontab` entry:
+```
+*/10    *       *       *       *       zold    /usr/local/bin/rsync -aubv /usr/home/zold/app-in-mem/farm /usr/home/zold/app-in-mem/zold.log /usr/home/zold/app-in-mem/.zoldata /usr/home/zold/app/
+```
+
 ## Frequently Asked Questions
 
 > Where are my RSA private/public keys?
