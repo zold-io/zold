@@ -115,8 +115,8 @@ Available options:"
           'Don\'t fail if ping fails, just report the problem in the log',
           default: false
         o.integer '--depth',
-          'The amount of update cycles to run, in order to fetch as many nodes as possible (default: 3)',
-          default: 3
+          'The amount of update cycles to run, in order to fetch as many nodes as possible (default: 2)',
+          default: 2
         o.string '--network',
           "The name of the network we work in (default: #{Wallet::MAINET})",
           required: true,

@@ -401,7 +401,7 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
             date: parts[2],
             source: parts[3],
             target: parts[4],
-            amount: parts[5],
+            amount: parts[5].to_i,
             prefix: parts[6],
             details: parts[7]
           }

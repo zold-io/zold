@@ -215,7 +215,7 @@ at #{response.headers['X-Zold-Path']}"
           unerror(r[:host], r[:port]) if node.touched
         rescue StandardError => e
           error(r[:host], r[:port])
-          log.info("#{Rainbow(node).red}: #{e.message} in #{Age.new(start)}")
+          log.info("#{Rainbow(node).red}: \"#{e.message.strip}\" in #{Age.new(start)}")
           log.debug(Backtrace.new(e).to_s)
           remove(r[:host], r[:port]) if r[:errors] > TOLERANCE
         end
