@@ -59,6 +59,7 @@ module Zold
       set :start, Time.now
       set :lock, false
       set :show_exceptions, false
+      set :raise_errors, false
       set :server, :thin
       set :opts, nil # to be injected at node.rb
       set :log, nil # to be injected at node.rb
