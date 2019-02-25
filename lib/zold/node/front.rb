@@ -371,7 +371,7 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
 
     get '/wallets' do
       content_type('text/plain')
-      settings.wallets.all.map(&:to_s).join('\n')
+      settings.wallets.all.map(&:to_s).join("\n")
     end
 
     get '/remotes' do

@@ -181,7 +181,7 @@ class FrontTest < Zold::Test
         assert_equal_wait(200) { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").get.status }
         response = Zold::Http.new(uri: "#{base}/wallets").get
         assert_equal(200, response.status, response.body)
-        assert(response.body.to_s.include?(wallet.id), response.body)
+        assert(response.body.to_s.split("\n").include?(wallet.id.to_s), response.body)
       end
     end
   end

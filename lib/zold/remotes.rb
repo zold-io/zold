@@ -45,7 +45,7 @@ module Zold
     # When something is wrong with the assertion
     class CantAssert < StandardError; end
 
-    attr_reader :touched
+    attr_reader :touched, :idx
 
     def initialize(host:, port:, score:, idx:, master:, network: 'test', log: Log::NULL)
       @host = host

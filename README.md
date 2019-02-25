@@ -25,6 +25,8 @@ Join our [Telegram group](https://t.me/zold_io) to discuss it all live.
 
 The license is [MIT](https://github.com/zold-io/zold/blob/master/LICENSE.txt).
 
+The web wallet is here: [wts.zold.io](https://wts.zold.io).
+
 ## How to Use
 
 First, install [Ruby 2.3+](https://www.ruby-lang.org/en/documentation/installation/),
