@@ -355,8 +355,10 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
 
     put %r{/wallet/(?<id>[A-Fa-f0-9]{16})/?} do
       error(404, 'PUSH is disabled with --disable-push') if settings.opts['disable-fetch']
+      id = Id.new(params[:id])
+      ban(id)
       request.body.rewind
-      modified = settings.entrance.push(Id.new(params[:id]), request.body.read.to_s)
+      modified = settings.entrance.push(id, request.body.read.to_s)
       if modified.empty?
         status(304)
         return
@@ -521,9 +523,15 @@ time to stop; use --skip-oom to never quit")
       end
     end
 
+    def ban(id)
+      return unless IO.read(File.join(__dir__, '../../../resources/banned-wallets.csv')).include?("\"#{id}\"")
+      error(404, "The wallet #{id} is banned")
+    end
+
     def fetch(type = 'text/plain')
       error(404, 'FETCH is disabled with --disable-fetch') if settings.opts['disable-fetch']
       id = Id.new(params[:id])
+      ban(id)
       settings.wallets.acq(id) do |wallet|
         error(404, "Wallet ##{id} doesn't exist on the node") unless wallet.exists?
         content_type(type)

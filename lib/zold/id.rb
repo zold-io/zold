@@ -31,7 +31,15 @@ module Zold
     PTN = Regexp.new('^[0-9a-fA-F]{16}$')
     private_constant :PTN
 
-    def initialize(id = format('%016x', rand(2**32..2**64 - 1)))
+    def self.generate_id
+      loop do
+        id = format('%016x', rand(2**32..2**64 - 1))
+        next if IO.read(File.join(__dir__, '../../resources/banned-wallets.csv')).include?("\"#{id}\"")
+        return id
+      end
+    end
+
+    def initialize(id = Id.generate_id)
       raise "Invalid wallet ID type: #{id.class.name}" unless id.is_a?(String)
       raise "Invalid wallet ID: #{id}" unless PTN.match?(id)
       @id = Integer("0x#{id}", 16)
