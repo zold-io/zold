@@ -58,6 +58,13 @@ module Zold
     # Joins a new wallet on top of existing patch. An attempt is made to
     # copy as many transactions from the newcoming wallet to the existing
     # set of transactions, avoiding mistakes and duplicates.
+    #
+    # A block has to be given. It will be called, if a paying wallet is absent.
+    # The block will have to return either TRUE or FALSE. TRUE will mean that
+    # the paying wallet has to be present and we just tried to pull it. If it's
+    # not present, it's a failure, don't accept the transaction. FALSE will mean
+    # that the transaction should be accepted, even if the paying wallet is
+    # absent.
     def join(wallet, ledger: '/dev/null')
       if @id.nil?
         @id = wallet.id
@@ -109,16 +116,16 @@ with a new one \"#{txn.to_text}\" from #{wallet.mnemo}")
             @log.debug("Payment prefix '#{txn.prefix}' doesn't match with the key of #{wallet.id}: \"#{txn.to_text}\"")
             next
           end
-          if !@wallets.acq(txn.bnf, &:exists?) && yield(txn)
-            unless @wallets.acq(txn.bnf, &:exists?)
+          unless @wallets.acq(txn.bnf, &:exists?)
+            if yield(txn) && !@wallets.acq(txn.bnf, &:exists?)
               @log.error("Paying wallet #{txn.bnf} file is absent even after PULL: \"#{txn.to_text}\"")
               next
             end
-            unless @wallets.acq(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
-              @log.debug("The beneficiary #{@wallets.acq(txn.bnf, &:mnemo)} of #{@id} \
+          end
+          if @wallets.acq(txn.bnf, &:exists?) && !@wallets.acq(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
+            @log.debug("The beneficiary #{@wallets.acq(txn.bnf, &:mnemo)} of #{@id} \
 doesn't have this transaction: \"#{txn.to_text}\"")
-              next
-            end
+            next
           end
         end
         @txns << txn
