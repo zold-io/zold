@@ -117,6 +117,9 @@ Available options:"
         o.integer '--depth',
           'The amount of update cycles to run, in order to fetch as many nodes as possible (default: 2)',
           default: 2
+        o.integer '--threads',
+          "How many threads to use for updating, electing, etc. (default: #{[Concurrent.processor_count, 4].min})",
+          default: [Concurrent.processor_count, 4].min
         o.string '--network',
           "The name of the network we work in (default: #{Wallet::MAINET})",
           required: true,
@@ -226,7 +229,7 @@ Available options:"
     # Returns an array of Zold::Score
     def elect(opts)
       scores = []
-      @remotes.iterate(@log, farm: @farm) do |r|
+      @remotes.iterate(@log, farm: @farm, threads: opts['threads']) do |r|
         uri = '/'
         res = r.http(uri).get
         r.assert_code(200, res)
@@ -266,7 +269,7 @@ Available options:"
       seen = Set.new
       capacity = []
       opts['depth'].times do
-        @remotes.iterate(@log, farm: @farm) do |r|
+        @remotes.iterate(@log, farm: @farm, threads: opts['threads']) do |r|
           if seen.include?(r.to_mnemo)
             @log.debug("#{r} seen already, won't check again")
             next

@@ -193,10 +193,10 @@ at #{response.headers['X-Zold-Path']}"
 
     # Go through the list of remotes and call a provided block for each
     # of them. See how it's used, for example, in fetch.rb.
-    def iterate(log, farm: Farm::Empty.new)
+    def iterate(log, farm: Farm::Empty.new, threads: 1)
       raise 'Log can\'t be nil' if log.nil?
       raise 'Farm can\'t be nil' if farm.nil?
-      Hands.exec(Concurrent.processor_count * 4, all) do |r, idx|
+      Hands.exec(threads, all) do |r, idx|
         Thread.current.name = "remotes-#{idx}@#{r[:host]}:#{r[:port]}"
         start = Time.now
         best = farm.best[0]
