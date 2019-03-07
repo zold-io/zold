@@ -64,11 +64,7 @@ module Zold
         file = File.join(@dir, f)
         if /^[0-9a-f]{16}-/.match?(f)
           id = f.split('-')[0]
-          if exists?(id, IO.read(file))
-            @queue << { id: Id.new(id), file: file }
-          else
-            File.delete(file)
-          end
+          @queue << { id: Id.new(id), file: file }
         else
           File.delete(file)
         end
