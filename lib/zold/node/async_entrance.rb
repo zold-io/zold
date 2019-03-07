@@ -95,20 +95,37 @@ module Zold
         )
       end
       start = Time.now
-      loop do
-        uuid = SecureRandom.uuid
-        file = File.join(@dir, "#{id}-#{uuid}")
-        next if File.exist?(file)
-        IO.write(file, body)
-        @queue << { id: id, file: file }
-        @log.debug("Added #{id}/#{Size.new(body.length)} to the queue at pos.#{@queue.size} \
-in #{Age.new(start, limit: 0.05)}")
-        break
+      unless exists?(id, body)
+        loop do
+          uuid = SecureRandom.uuid
+          file = File.join(@dir, "#{id}-#{uuid}")
+          next if File.exist?(file)
+          IO.write(file, body)
+          @queue << { id: id, file: file }
+          @log.debug("Added #{id}/#{Size.new(body.length)} to the queue at pos.#{@queue.size} \
+  in #{Age.new(start, limit: 0.05)}")
+          break
+        end
       end
       [id]
     end
 
     private
+
+    # Returns TRUE if a file for this wallet is already in the queue.
+    def exists?(id, body)
+      DirItems.new(@dir).fetch.each do |f|
+        next unless f.start_with?("#{id}-")
+        return true if safe_read(File.join(@dir, f)) == body
+      end
+      false
+    end
+
+    def safe_read(file)
+      IO.read(file)
+    rescue Errno::ENOENT
+      ''
+    end
 
     def take
       start = Time.now
