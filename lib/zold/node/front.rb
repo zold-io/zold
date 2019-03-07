@@ -36,6 +36,7 @@ require_relative '../wallet'
 require_relative '../age'
 require_relative '../copies'
 require_relative '../log'
+require_relative '../dir_items'
 require_relative '../tax'
 require_relative '../id'
 require_relative '../http'
@@ -80,6 +81,7 @@ module Zold
       set :copies, nil # to be injected at node.rb
       set :node_alias, nil # to be injected at node.rb
       set :zache, nil # to be injected at node.rb
+      set :async_dir, nil # to be injected at node.rb
     end
     use Rack::Deflater
 
@@ -439,6 +441,10 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
     get '/ps' do
       content_type('text/plain')
       processes.join("\n")
+    end
+
+    get '/queue' do
+      DirItems.new(@dir).fetch.select { |f| /^[0-9a-f]{16}-/.match?(f) }.join("\n")
     end
 
     not_found do

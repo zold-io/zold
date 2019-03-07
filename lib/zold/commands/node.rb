@@ -263,6 +263,9 @@ the node won\'t connect to the network like that; try to do "zold remote reset" 
       Front.set(:opts, opts)
       Front.set(:dump_errors, opts['dump-errors'])
       Front.set(:port, opts['bind-port'])
+      async_dir = File.join(home, '.zoldata/async-entrance')
+      FileUtils.mkdir_p(async_dir)
+      Front.set(:async_dir, async_dir)
       Front.set(:node_alias, node_alias(opts, address))
       entrance = SafeEntrance.new(
         NoSpamEntrance.new(
@@ -283,7 +286,7 @@ the node won\'t connect to the network like that; try to do "zold remote reset" 
                 ignore_score_weakeness: opts['ignore-score-weakness'],
                 tolerate_edges: opts['tolerate-edges']
               ),
-              File.join(home, '.zoldata/async-entrance'),
+              async_dir,
               log: @log,
               queue_limit: opts['queue-limit']
             ),
