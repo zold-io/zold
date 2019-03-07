@@ -118,14 +118,7 @@ while #{settings.address} is in '#{settings.opts['network']}'")
           if settings.address == "#{s.host}:#{s.port}" && !settings.opts['ignore-score-weakness']
             error(400, 'Self-requests are prohibited')
           end
-          require_relative '../commands/remote'
-          begin
-            Remote.new(remotes: settings.remotes, log: settings.log).run(
-              ['remote', 'add', s.host, s.port.to_s, "--network=#{settings.opts['network']}", '--ignore-if-exists']
-            )
-          rescue StandardError => e
-            error(400, e.message)
-          end
+          add_new_remote(s)
         end
       end
     end
@@ -542,6 +535,22 @@ time to stop; use --skip-oom to never quit")
         error(404, "Wallet ##{id} doesn't exist on the node") unless wallet.exists?
         content_type(type)
         yield wallet
+      end
+    end
+
+    def add_new_remote(score)
+      all = settings.remotes.all
+      return if all.count > Remotes::MAX_NODES && all.none? { |r| r[:error] > Remotes::TOLERANCE }
+      begin
+        require_relative '../commands/remote'
+        Remote.new(remotes: settings.remotes, log: settings.log).run(
+          [
+            'remote', 'add', score.host, score.port.to_s,
+            "--network=#{settings.opts['network']}", '--ignore-if-exists'
+          ]
+        )
+      rescue StandardError => e
+        error(400, e.message)
       end
     end
   end
