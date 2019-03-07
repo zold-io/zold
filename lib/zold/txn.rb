@@ -180,6 +180,9 @@ module Zold
       txn
     end
 
+    # When time can't be parsed.
+    class CantParseTime < StandardError; end
+
     ISO8601 = Regexp.new(
       '^' + [
         '(?<year>\d{4})',
@@ -194,7 +197,7 @@ module Zold
 
     def self.parse_time(iso)
       parts = ISO8601.match(iso)
-      raise "Invalid ISO 8601 date \"#{iso}\"" if parts.nil?
+      raise CantParseTime, "Invalid ISO 8601 date \"#{iso}\"" if parts.nil?
       Time.gm(
         parts[:year].to_i, parts[:month].to_i, parts[:day].to_i,
         parts[:hours].to_i, parts[:minutes].to_i, parts[:seconds].to_i

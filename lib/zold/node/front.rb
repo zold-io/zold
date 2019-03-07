@@ -540,14 +540,14 @@ time to stop; use --skip-oom to never quit")
 
     def add_new_remote(score)
       all = settings.remotes.all
-      return if all.count > Remotes::MAX_NODES && all.none? { |r| r[:error] > Remotes::TOLERANCE }
+      return if all.count > Remotes::MAX_NODES && all.none? { |r| r[:errors] > Remotes::TOLERANCE }
       begin
         require_relative '../commands/remote'
         Remote.new(remotes: settings.remotes, log: settings.log).run(
           [
             'remote', 'add', score.host, score.port.to_s,
             "--network=#{settings.opts['network']}", '--ignore-if-exists'
-          ]
+          ] + (settings.opts['ignore-score-weakness'] ? ['--skip-ping'] : [])
         )
       rescue StandardError => e
         error(400, e.message)

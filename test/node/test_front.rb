@@ -115,18 +115,23 @@ class FrontTest < Zold::Test
   end
 
   def test_updates_list_of_remotes
-    FakeNode.new(log: test_log).run(['--ignore-score-weakness', '--no-cache']) do |port|
-      score = Zold::Score.new(
-        host: 'localhost', port: port, invoice: 'NOPREFIX@ffffffffffffffff', strength: 1
-      ).next.next.next.next
-      response = Zold::Http.new(uri: "http://localhost:#{port}/remotes", score: score).get
-      assert_equal(200, response.status, response.body)
-      assert_equal(1, Zold::JsonPage.new(response.body).to_hash['all'].count, response.body)
-      assert_match(
-        /(\d{4})-(\d{2})-(\d{2})T(\d{2})\:(\d{2})\:(\d{2})Z/,
-        Zold::JsonPage.new(response.body).to_hash['mtime'].to_s,
-        response.body
-      )
+    FakeNode.new(log: test_log).run(['--ignore-score-weakness', '--no-metronome', '--no-cache']) do |port|
+      (Zold::Remotes::MAX_NODES + 5).times do |i|
+        score = Zold::Score.new(
+          host: 'localhost', port: i + 1, invoice: 'NOPREFIX@ffffffffffffffff', strength: 1
+        ).next.next.next.next
+        response = Zold::Http.new(uri: "http://localhost:#{port}/remotes", score: score).get
+        assert_equal(200, response.status, response.body)
+        assert_equal(
+          [i + 1, Zold::Remotes::MAX_NODES + 1].min,
+          Zold::JsonPage.new(response.body).to_hash['all'].count, response.body
+        )
+        assert_match(
+          /(\d{4})-(\d{2})-(\d{2})T(\d{2})\:(\d{2})\:(\d{2})Z/,
+          Zold::JsonPage.new(response.body).to_hash['mtime'].to_s,
+          response.body
+        )
+      end
     end
   end
 
