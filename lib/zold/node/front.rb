@@ -444,7 +444,7 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
     end
 
     get '/queue' do
-      DirItems.new(@dir).fetch.select { |f| /^[0-9a-f]{16}-/.match?(f) }.join("\n")
+      DirItems.new(settings.async_dir).fetch.select { |f| /^[0-9a-f]{16}-/.match?(f) }.join("\n")
     end
 
     not_found do
