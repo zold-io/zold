@@ -59,6 +59,9 @@ Available options:"
         o.bool '--skip-legacy',
           'Don\'t make legacy transactions (older than 24 hours) immutable',
           default: false
+        o.bool '--quiet-if-absent',
+          'Don\'t fail if the wallet is absent',
+          default: false
         o.bool '--shallow',
           'Don\'t try to pull other wallets if their confirmations are required',
           default: false
@@ -116,7 +119,10 @@ Available options:"
           @log.debug("Local copy of #{id} is absent, nothing to merge")
         end
       end
-      raise "There are no copies of #{id}, nothing to merge" if patch.empty?
+      if patch.empty?
+        return if opts['quiet-if-absent']
+        raise "There are no copies of #{id}, nothing to merge"
+      end
       modified = @wallets.acq(id, exclusive: true) { |w| patch.save(w.path, overwrite: true) }
       if modified
         @log.info("#{cps.count} copies with the total score of #{score} successfully merged \
@@ -138,7 +144,7 @@ into #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 0.1 + cps.count * 0
       else
         patch.join(wallet, ledger: opts['ledger']) do |txn|
           Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-            ['pull', txn.bnf.to_s, "--network=#{opts['network']}", '--shallow']
+            ['pull', txn.bnf.to_s, "--network=#{opts['network']}", '--shallow', '--quiet-if-absent']
           )
           true
         end

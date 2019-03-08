@@ -109,7 +109,10 @@ Available options:"
     private
 
     def fetch(id, cps, opts)
-      raise "There are no remote nodes, run 'zold remote reset'" if @remotes.all.empty?
+      if @remotes.all.empty?
+        return if opts['quiet-if-absent']
+        raise "There are no remote nodes, run 'zold remote reset'"
+      end
       start = Time.now
       total = Concurrent::AtomicFixnum.new
       nodes = Concurrent::AtomicFixnum.new
