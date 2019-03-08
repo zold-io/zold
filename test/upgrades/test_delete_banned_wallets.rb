@@ -20,35 +20,28 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative 'log'
+require 'minitest/autorun'
+require_relative '../test__helper'
+require_relative '../../lib/zold/id'
+require_relative '../../upgrades/delete_banned_wallets'
+require_relative '../fake_home'
 
-module Zold
-  # Class to manage data upgrades (when zold itself upgrades).
-  class Upgrades
-    def initialize(version, directory, opts, log: Log::VERBOSE)
-      raise 'network can\'t be nil' if opts[:network].nil?
-      @version = version
-      @directory = directory
-      @log = log
-      @opts = opts
-    end
-
-    def run
-      Dir.glob("#{@directory}/*.rb").select { |f| f =~ /^(\d+)\.rb$/ }.sort.each do |script|
-        @version.apply(script)
-      end
-      command = @opts[:command]
-      require_relative '../../upgrades/delete_banned_wallets'
-      DeleteBannedWallets.new(Dir.pwd, @log).exec
-      require_relative '../../upgrades/2'
-      UpgradeTo2.new(Dir.pwd, @log).exec
-      require_relative '../../upgrades/protocol_up'
-      ProtocolUp.new(Dir.pwd, @log).exec
-      require_relative '../../upgrades/rename_foreign_wallets'
-      RenameForeignWallets.new(Dir.pwd, @opts[:network], @log).exec
-      return unless command == 'node'
-      require_relative '../../upgrades/move_wallets_into_tree'
-      MoveWalletsIntoTree.new(Dir.pwd, @log).exec
+# Delete banned wallets.
+# Author:: Yegor Bugayenko (yegor256@gmail.com)
+# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# License:: MIT
+class TestDeleteBannedWallets < Zold::Test
+  def test_delete_them
+    id = Zold::Id.new(CSV.read(File.join(__dir__, '../../resources/banned-wallets.csv'))[0][0])
+    FakeHome.new(log: test_log).run do |home|
+      home.create_wallet(id)
+      FileUtils.mkdir_p(File.join(home.dir, 'a/b/c'))
+      File.rename(
+        File.join(home.dir, "#{id}#{Zold::Wallet::EXT}"),
+        File.join(home.dir, "a/b/c/#{id}#{Zold::Wallet::EXT}")
+      )
+      Zold::DeleteBannedWallets.new(home.dir, test_log).exec
+      assert(File.exist?(File.join(home.dir, "a/b/c/#{id}#{Zold::Wallet::EXT}-banned")))
     end
   end
 end

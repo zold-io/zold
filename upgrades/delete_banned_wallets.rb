@@ -20,35 +20,29 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative 'log'
+require 'rainbow'
+require_relative '../lib/zold/version'
+require_relative '../lib/zold/wallet'
 
 module Zold
-  # Class to manage data upgrades (when zold itself upgrades).
-  class Upgrades
-    def initialize(version, directory, opts, log: Log::VERBOSE)
-      raise 'network can\'t be nil' if opts[:network].nil?
-      @version = version
-      @directory = directory
+  # Delete wallets which are in the banned-wallets.csv file
+  class DeleteBannedWallets
+    def initialize(home, log)
+      @home = home
       @log = log
-      @opts = opts
     end
 
-    def run
-      Dir.glob("#{@directory}/*.rb").select { |f| f =~ /^(\d+)\.rb$/ }.sort.each do |script|
-        @version.apply(script)
+    def exec
+      banned = IO.read(File.join(__dir__, '../resources/banned-wallets.csv'))
+      DirItems.new(@home).fetch.each do |path|
+        name = File.basename(path)
+        next unless name =~ /^[a-f0-9]{16}#{Wallet::EXT}$/
+        id = name[0..15]
+        next unless banned.include?("\"#{id}\"")
+        path = File.join(@home, path)
+        File.rename(path, path + '-banned')
+        @log.info("Wallet file #{path} renamed, since wallet #{id} is banned")
       end
-      command = @opts[:command]
-      require_relative '../../upgrades/delete_banned_wallets'
-      DeleteBannedWallets.new(Dir.pwd, @log).exec
-      require_relative '../../upgrades/2'
-      UpgradeTo2.new(Dir.pwd, @log).exec
-      require_relative '../../upgrades/protocol_up'
-      ProtocolUp.new(Dir.pwd, @log).exec
-      require_relative '../../upgrades/rename_foreign_wallets'
-      RenameForeignWallets.new(Dir.pwd, @opts[:network], @log).exec
-      return unless command == 'node'
-      require_relative '../../upgrades/move_wallets_into_tree'
-      MoveWalletsIntoTree.new(Dir.pwd, @log).exec
     end
   end
 end

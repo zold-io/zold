@@ -168,7 +168,11 @@ log.debug("Home directory: #{home}")
 zdata = File.join(home, '.zoldata')
 
 unless opts['skip-upgrades']
-  Zold::Upgrades.new(Zold::VersionFile.new(File.join(zdata, 'version')), 'upgrades', { command: command, network: opts['network']}).run
+  Zold::Upgrades.new(
+    Zold::VersionFile.new(File.join(zdata, 'version')),
+    'upgrades',
+    { command: command, network: opts['network']}
+  ).run
 end
 
 locks = File.join(zdata, 'locks')
