@@ -82,6 +82,25 @@ class TestPay < Zold::Test
     end
   end
 
+  def test_pay_with_keygap
+    FakeHome.new(log: test_log).run do |home|
+      wallet = home.create_wallet
+      amount = Zold::Amount.new(zld: 2.0)
+      Tempfile.open do |f|
+        pem = IO.read('fixtures/id_rsa')
+        keygap = pem[100..120]
+        IO.write(f, pem.gsub(keygap, '*' * keygap.length))
+        Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: test_log).run(
+          [
+            'pay', '--force', "--private-key=#{f.path}", "--keygap=#{keygap}",
+            wallet.id.to_s, 'NOPREFIX@dddd0000dddd0000', amount.to_zld, '-'
+          ]
+        )
+      end
+      assert_equal(amount * -1, wallet.balance)
+    end
+  end
+
   def test_pay_in_many_threads
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet

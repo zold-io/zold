@@ -78,6 +78,9 @@ Available options:"
         o.bool '--ignore-score-weakness',
           'Don\'t complain when their score is too weak',
           default: false
+        o.string '--keygap',
+          'Keygap, if the private RSA key is not complete',
+          default: ''
         o.bool '--ignore-nodes-absence',
           'Don\'t complain if there are not enough nodes in the network to pay taxes',
           default: false
@@ -145,7 +148,12 @@ the balance is #{wallet.balance}: #{tax.to_text}")
           @log.debug("The score has already been taxed: #{best}")
           next
         end
-        txn = tax.pay(Zold::Key.new(file: opts['private-key']), best)
+        pem = IO.read(opts['private-key'])
+        unless opts['keygap'].empty?
+          pem = pem.sub('*' * opts['keygap'].length, opts['keygap'])
+          @log.debug("Keygap \"#{'*' * opts['keygap'].length}\" injected into the RSA private key")
+        end
+        txn = tax.pay(Zold::Key.new(text: pem), best)
         debt += txn.amount
         paid += 1
         @log.info("#{txn.amount * -1} of taxes paid from #{wallet.id} to #{txn.bnf} \

@@ -83,8 +83,11 @@ module Zold
         @log.error("Wallet ID mismatch, ours is #{@id}, theirs is #{wallet.id}")
         return
       end
+      seen = 0
+      added = 0
       wallet.txns.each do |txn|
         next if @txns.find { |t| t == txn }
+        seen += 1
         if txn.amount.negative?
           dup = @txns.find { |t| t.id == txn.id && t.amount.negative? }
           if dup
@@ -129,6 +132,7 @@ doesn't have this transaction: \"#{txn.to_text}\"")
           end
         end
         @txns << txn
+        added += 1
         if txn.amount.negative?
           File.open(ledger, 'a') do |f|
             f.puts(
@@ -147,6 +151,7 @@ doesn't have this transaction: \"#{txn.to_text}\"")
         end
         @log.debug("Merged on top, balance is #{@txns.map(&:amount).inject(&:+)}: #{txn.to_text}")
       end
+      @log.debug("#{seen} new txns arrived from #{wallet.mnemo}, #{added} of them added to the patch")
     end
 
     def empty?

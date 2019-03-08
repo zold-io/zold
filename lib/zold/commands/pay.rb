@@ -66,6 +66,9 @@ Available options:"
         o.string '--time',
           "Time of transaction (default: #{Time.now.utc.iso8601})",
           default: Time.now.utc.iso8601
+        o.string '--keygap',
+          'Keygap, if the private RSA key is not complete',
+          default: ''
         o.bool '--tolerate-edges',
           'Don\'t fail if only "edge" (not "master" ones) nodes have the wallet',
           default: false
@@ -120,7 +123,7 @@ Available options:"
       return unless debt
       require_relative 'taxes'
       Taxes.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-        ['taxes', 'pay', "--private-key=#{opts['private-key']}", id.to_s]
+        ['taxes', 'pay', "--private-key=#{opts['private-key']}", id.to_s, "--keygap=#{opts['keygap']}"]
       )
     end
 
@@ -133,7 +136,12 @@ Available options:"
 the difference is #{(amount - from.balance).to_i} zents"
         end
       end
-      key = Zold::Key.new(file: opts['private-key'])
+      pem = IO.read(opts['private-key'])
+      unless opts['keygap'].empty?
+        pem = pem.sub('*' * opts['keygap'].length, opts['keygap'])
+        @log.debug("Keygap \"#{'*' * opts['keygap'].length}\" injected into the RSA private key")
+      end
+      key = Zold::Key.new(text: pem)
       txn = from.sub(amount, invoice, key, details, time: Txn.parse_time(opts['time']))
       @log.debug("#{amount} sent from #{from} to #{txn.bnf}: #{details}")
       @log.debug("Don't forget to do 'zold push #{from}'")

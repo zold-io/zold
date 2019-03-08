@@ -190,7 +190,7 @@ as copy ##{copy}/#{cps.all.count} in #{Age.new(start, limit: 4)}: \
       begin
         uri = "/wallet/#{id}"
         head = r.http(uri).get
-        raise "The wallet #{id} doesn't exist at #{r}" if head.status == 404
+        raise Fetch::Error, "The wallet #{id} doesn't exist at #{r}" if head.status == 404
         r.assert_code(200, head)
         json = JsonPage.new(head.body, uri).to_hash
         score = Score.parse_json(json['score'])
@@ -198,7 +198,7 @@ as copy ##{copy}/#{cps.all.count} in #{Age.new(start, limit: 4)}: \
       rescue JsonPage::CantParse, Score::CantParse, RemoteNode::CantAssert => e
         attempt += 1
         if attempt < opts['retry']
-          @log.error("#{r} failed to fetch #{id}, trying again (attempt no.#{attempt}): #{e.message}")
+          @log.debug("#{r} failed to fetch #{id}, trying again (attempt no.#{attempt}): #{e.message}")
           retry
         end
         raise e
