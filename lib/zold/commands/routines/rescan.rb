@@ -23,7 +23,7 @@
 require_relative '../remote'
 require_relative '../../node/farm'
 
-# Reconnect routine.
+# Rescan routine.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
@@ -31,7 +31,7 @@ module Zold
   # Routines module
   module Routines
     # Reconnect to the network
-    class Reconnect
+    class Rescan
       def initialize(opts, remotes, farm = Farm::Empty.new, network: 'test', log: Log::NULL)
         @opts = opts
         @remotes = remotes
@@ -40,7 +40,7 @@ module Zold
         @log = log
       end
 
-      def exec(step = 0)
+      def exec(_ = 0)
         sleep(60) unless @opts['routine-immediately']
         cmd = Remote.new(remotes: @remotes, log: @log, farm: @farm)
         args = ['remote', "--network=#{@opts['network']}", '--ignore-ping']
@@ -50,9 +50,7 @@ module Zold
         all = @remotes.all
         return if @opts['routine-immediately'] && all.empty?
         cmd.run(args + ['select'])
-        if all.count < Remotes::MAX_NODES / 2 || all.any? { |r| r[:errors] > Remotes::TOLERANCE } || (step % 10).zero?
-          cmd.run(args + ['update'] + (@opts['never-reboot'] ? [] : ['--reboot']))
-        end
+        cmd.run(args + ['update'] + (@opts['never-reboot'] ? [] : ['--reboot']))
         cmd.run(args + ['trim'])
         cmd.run(args + ['select'])
         @log.info("Reconnected, there are #{@remotes.all.count} remote notes: \
