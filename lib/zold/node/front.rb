@@ -313,7 +313,8 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
           "Balance: #{wallet.balance.to_zld(8)} ZLD (#{wallet.balance.to_i} zents)",
           "Transactions: #{wallet.txns.count}",
           "Taxes: #{Tax.new(wallet).paid} paid, the debt is #{Tax.new(wallet).debt}",
-          "File size: #{Size.new(wallet.size)}, #{Copies.new(File.join(settings.copies, wallet.id)).all.count} copies",
+          "File size: #{Size.new(wallet.size)}/#{wallet.size}, \
+#{Copies.new(File.join(settings.copies, wallet.id)).all.count} copies",
           "Modified: #{wallet.mtime.utc.iso8601} (#{Age.new(wallet.mtime.utc.iso8601)} ago)",
           "Digest: #{wallet.digest}"
         ].join("\n")
