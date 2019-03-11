@@ -438,7 +438,12 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
     end
 
     get '/queue' do
-      DirItems.new(settings.async_dir).fetch.select { |f| /^[0-9a-f]{16}-/.match?(f) }.join("\n")
+      content_type('text/plain')
+      DirItems.new(settings.async_dir).fetch.select { |f| /^[0-9a-f]{16}-/.match?(f) }.map do |f|
+        Wallet.new(File.join(settings.async_dir, f)).mnemo
+      rescue Errno::ENOENT
+        f
+      end.join("\n")
     end
 
     not_found do
