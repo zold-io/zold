@@ -312,7 +312,9 @@ Now you are ready to create a wallet:
 
 ```ruby
 require 'zold/commands/create'
-Zold::Create.new(wallets: wallets).run(['create', '--public-key=/tmp/id_rsa.pub'])
+Zold::Create.new(wallets: wallets, remotes: remotes).run(
+  ['create', '--public-key=/tmp/id_rsa.pub', '--skip-test']
+)
 ```
 
 Here `--public-key=/tmp/id_rsa.pub` points to the absolute location of

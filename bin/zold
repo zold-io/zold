@@ -212,7 +212,7 @@ cmd = lambda do
       Zold::Node.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)
     when 'create'
       require_relative '../lib/zold/commands/create'
-      Zold::Create.new(wallets: wallets, log: log).run(args)
+      Zold::Create.new(wallets: wallets, remotes: remotes, log: log).run(args)
     when 'remote'
       require_relative '../lib/zold/commands/remote'
       Zold::Remote.new(remotes: remotes, log: log).run(args)

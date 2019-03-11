@@ -35,8 +35,8 @@ class TestCreate < Zold::Test
   def test_creates_wallet
     Dir.mktmpdir do |dir|
       wallets = Zold::Wallets.new(dir)
-      id = Zold::Create.new(wallets: wallets, log: test_log).run(
-        ['create', '--public-key=fixtures/id_rsa.pub']
+      id = Zold::Create.new(wallets: wallets, remotes: nil, log: test_log).run(
+        ['create', '--public-key=fixtures/id_rsa.pub', '--skip-test']
       )
       wallets.acq(id) do |wallet|
         assert(wallet.balance.zero?)

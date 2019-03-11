@@ -275,10 +275,6 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
       fetch { |w| w.age.to_s }
     end
 
-    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/age} do
-      fetch { |w| w.age.to_s }
-    end
-
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/txns} do
       fetch { |w| w.txns.count.to_s }
     end

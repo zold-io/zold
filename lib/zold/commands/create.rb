@@ -37,8 +37,9 @@ module Zold
   class Create
     prepend ThreadBadge
 
-    def initialize(wallets:, log: Log::NULL)
+    def initialize(wallets:, remotes:, log: Log::NULL)
       @wallets = wallets
+      @remotes = remotes
       @log = log
     end
 
@@ -50,6 +51,9 @@ Available options:"
           'The location of RSA public key (default: ~/.ssh/id_rsa.pub)',
           require: true,
           default: File.expand_path('~/.ssh/id_rsa.pub')
+        o.bool '--skip-test',
+          'Don\'t check whether this wallet ID is available',
+          default: false
         o.string '--network',
           "The name of the network (default: #{Wallet::MAINET}",
           require: true,
@@ -57,10 +61,24 @@ Available options:"
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
-      create(mine.empty? ? Id.new : Id.new(mine[0]), opts)
+      create(mine.empty? ? create_id(opts) : Id.new(mine[0]), opts)
     end
 
     private
+
+    def create_id(opts)
+      loop do
+        id = Id.new
+        return id if opts['skip-test']
+        found = false
+        @remotes.iterate(@log) do |r|
+          head = r.http("/wallet/#{id}/digest").get
+          found = true if head.status == 200
+        end
+        return id unless found
+        @log.info("Wallet ID #{id} is already occupied, will try another one...")
+      end
+    end
 
     def create(id, opts)
       key = Zold::Key.new(file: opts['public-key'])
