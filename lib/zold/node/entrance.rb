@@ -74,8 +74,8 @@ module Zold
       raise 'Body can\'t be nil' if body.nil?
       start = Time.now
       copies = Copies.new(File.join(@copies, id.to_s))
-      localhost = '0.0.0.0'
-      copies.add(body, localhost, Remotes::PORT, 0)
+      host = '0.0.0.0'
+      copies.add(body, host, Remotes::PORT, 0)
       unless @remotes.all.empty?
         Fetch.new(
           wallets: @wallets, remotes: @remotes, copies: copies.root, log: @log
@@ -83,7 +83,7 @@ module Zold
       end
       modified = merge(id, copies)
       Clean.new(wallets: @wallets, copies: copies.root, log: @log).run(['clean', id.to_s])
-      copies.remove(localhost, Remotes::PORT)
+      copies.remove(host, Remotes::PORT)
       modified += Rebase.new(wallets: @wallets, log: @log).run(['rebase', id.to_s])
       if modified.empty?
         @log.info("Accepted #{id} in #{Age.new(start, limit: 1)} and not modified anything")

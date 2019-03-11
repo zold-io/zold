@@ -162,8 +162,8 @@ doesn't have this transaction: \"#{txn.to_text}\"")
     def save(file, overwrite: false)
       raise 'You have to join at least one wallet in' if empty?
       before = ''
-      before = OpenSSL::Digest::SHA256.file(file).hexdigest if File.exist?(file)
       wallet = Wallet.new(file)
+      before = wallet.digest if wallet.exists?
       wallet.init(@id, @key, overwrite: overwrite, network: @network)
       File.open(file, 'a') do |f|
         @txns.each do |txn|
@@ -171,8 +171,7 @@ doesn't have this transaction: \"#{txn.to_text}\"")
         end
       end
       wallet.refurbish
-      after = OpenSSL::Digest::SHA256.file(file).hexdigest
-      before != after
+      before != wallet.digest
     end
   end
 end

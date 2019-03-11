@@ -56,6 +56,9 @@ Available options:"
         o.integer '--threads',
           'How many threads to use for cleaning copies (default: 1)',
           default: 1
+        o.integer '--max-age',
+          'Maximum age for a copy to stay, in hours (default: 24)',
+          default: 24
         o.bool '--help', 'Print instructions'
       end
       mine = Args.new(opts, @log).take || return
@@ -65,9 +68,9 @@ Available options:"
       end
     end
 
-    def clean(cps, _)
+    def clean(cps, opts)
       start = Time.now
-      deleted = cps.clean
+      deleted = cps.clean(max: opts['max-age'])
       list = cps.all.map do |c|
         wallet = Wallet.new(c[:path])
         "#{c[:name]}: #{c[:score]} #{wallet.mnemo} \

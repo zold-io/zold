@@ -53,10 +53,11 @@ module Zold
       File.basename(@dir)
     end
 
-    def clean
+    # Delete all copies that are older than the "max" age provided, in seconds.
+    def clean(max: 24 * 60 * 60)
       Futex.new(file, log: @log).open do
         list = load
-        list.reject! { |s| s[:time] < Time.now - 24 * 60 * 60 }
+        list.reject! { |s| s[:time] < Time.now - max }
         save(list)
         deleted = 0
         files.each do |f|

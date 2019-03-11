@@ -46,7 +46,7 @@ class FakeHome
     Dir.mktmpdir do |dir|
       FileUtils.copy(File.expand_path(File.join(__dir__, '../fixtures/id_rsa')), File.join(dir, 'id_rsa'))
       result = yield FakeHome.new(dir, log: @log)
-      sleep 0.8 # It's a workaround against a bug (without it tests fail sporadically)
+      sleep 1 # It's a workaround against a bug (without it tests fail sporadically)
       result
     end
   end
