@@ -438,9 +438,11 @@ the node won\'t connect to the network like that; try to do "zold remote reset" 
           @log.info('Reconnect is disabled because of --skip-reconnect')
         else
           require_relative 'routines/reconnect'
-          metronome.add(Routines::Reconnect.new(opts, @remotes, farm, network: opts['network'], log: @log))
+          metronome.add(Routines::Reconnect.new(opts, @remotes, farm, log: @log))
         end
       end
+      require_relative 'routines/spread'
+      metronome.add(Routines::Spread.new(opts, @wallets, @remotes, @copies, log: @log))
       @log.info('Metronome started (use --no-metronome to disable it)')
       metronome
     end
