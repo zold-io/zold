@@ -98,7 +98,7 @@ module Zold
       unless exists?(id, body)
         loop do
           uuid = SecureRandom.uuid
-          file = File.join(@dir, "#{id}-#{uuid}")
+          file = File.join(@dir, "#{id}-#{uuid}#{Wallet::EXT}")
           next if File.exist?(file)
           IO.write(file, body)
           @queue << { id: id, file: file }
