@@ -126,9 +126,12 @@ with a new one \"#{txn.to_text}\" from #{wallet.mnemo}")
             end
           end
           if @wallets.acq(txn.bnf, &:exists?) && !@wallets.acq(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
-            @log.debug("The beneficiary #{@wallets.acq(txn.bnf, &:mnemo)} of #{@id} \
+            yield(txn)
+            unless @wallets.acq(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
+              @log.debug("The beneficiary #{@wallets.acq(txn.bnf, &:mnemo)} of #{@id} \
 doesn't have this transaction: \"#{txn.to_text}\"")
-            next
+              next
+            end
           end
         end
         @txns << txn
