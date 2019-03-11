@@ -37,6 +37,10 @@ class TestId < Zold::Test
     end
   end
 
+  def test_list_of_banned_ids_is_not_empty
+    assert(!Zold::Id::BANNED.empty?)
+  end
+
   def test_checks_for_root
     assert(Zold::Id::ROOT.root?)
   end

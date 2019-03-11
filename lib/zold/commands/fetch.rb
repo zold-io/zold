@@ -156,15 +156,7 @@ run 'zold remote update' or use --tolerate-quorum=1"
         r.assert_valid_score(score)
         r.assert_score_ownership(score)
         r.assert_score_strength(score) unless opts['ignore-score-weakness']
-        copy = nil
-        cps.all.each do |c|
-          next unless json['digest'] == OpenSSL::Digest::SHA256.file(c[:path]).hexdigest &&
-            json['size'] == File.size(c[:path])
-          copy = cps.add(IO.read(c[:path]), score.host, score.port, score.value, master: r.master?)
-          @log.debug("No need to fetch #{id} from #{r}, it's the same content as copy ##{copy}")
-          break
-        end
-        if copy.nil?
+        unless existing_copy_added(id, cps, score, r, json)
           Tempfile.open(['', Wallet::EXT]) do |f|
             r.http("/wallet/#{id}.bin").get_file(f)
             wallet = Wallet.new(f.path)
@@ -206,6 +198,17 @@ as copy ##{copy}/#{cps.all.count} in #{Age.new(start, limit: 4)}: \
         end
         raise e
       end
+    end
+
+    def existing_copy_added(id, cps, score, r, json)
+      cps.all.each do |c|
+        next unless json['digest'] == OpenSSL::Digest::SHA256.file(c[:path]).hexdigest &&
+          json['size'] == File.size(c[:path])
+        copy = cps.add(IO.read(c[:path]), score.host, score.port, score.value, master: r.master?)
+        @log.debug("No need to fetch #{id} from #{r}, it's the same content as copy ##{copy}")
+        return true
+      end
+      false
     end
 
     def digest(json)

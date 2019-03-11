@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'csv'
+
 # The ID of the wallet.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
@@ -31,10 +33,15 @@ module Zold
     PTN = Regexp.new('^[0-9a-fA-F]{16}$')
     private_constant :PTN
 
+    # Returns a list of banned IDs, as strings
+    BANNED = begin
+      CSV.read(File.join(__dir__, '../../resources/banned-wallets.csv')).map { |r| r[0] }
+    end
+
     def self.generate_id
       loop do
         id = format('%016x', rand(2**32..2**64 - 1))
-        next if IO.read(File.join(__dir__, '../../resources/banned-wallets.csv')).include?("\"#{id}\"")
+        next if Id::BANNED.include?(id)
         return id
       end
     end

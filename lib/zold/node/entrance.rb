@@ -82,7 +82,9 @@ module Zold
         ).run(['fetch', id.to_s, "--ignore-node=#{@address}", "--network=#{@network}", '--quiet-if-absent'])
       end
       modified = merge(id, copies)
-      Clean.new(wallets: @wallets, copies: copies.root, log: @log).run(['clean', id.to_s])
+      Clean.new(wallets: @wallets, copies: copies.root, log: @log).run(
+        ['clean', id.to_s, '--max-age=1']
+      )
       copies.remove(host, Remotes::PORT)
       modified += Rebase.new(wallets: @wallets, log: @log).run(['rebase', id.to_s])
       if modified.empty?
@@ -90,6 +92,7 @@ module Zold
       else
         @log.info("Accepted #{id} in #{Age.new(start, limit: 1)} and modified #{modified.join(', ')}")
       end
+      modified << id if copies.all.count > 1
       sec = (Time.now - start).round(2)
       @mutex.synchronize do
         @history.shift if @history.length >= 16

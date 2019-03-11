@@ -524,7 +524,7 @@ time to stop; use --skip-oom to never quit")
     end
 
     def ban(id)
-      return unless IO.read(File.join(__dir__, '../../../resources/banned-wallets.csv')).include?("\"#{id}\"")
+      return unless Id::BANNED.include?(id.to_s)
       error(404, "The wallet #{id} is banned")
     end
 

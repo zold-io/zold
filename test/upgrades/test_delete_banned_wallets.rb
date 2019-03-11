@@ -32,7 +32,7 @@ require_relative '../fake_home'
 # License:: MIT
 class TestDeleteBannedWallets < Zold::Test
   def test_delete_them
-    id = Zold::Id.new(CSV.read(File.join(__dir__, '../../resources/banned-wallets.csv'))[0][0])
+    id = Zold::Id.new(Zold::Id::BANNED[0])
     FakeHome.new(log: test_log).run do |home|
       home.create_wallet(id)
       FileUtils.mkdir_p(File.join(home.dir, 'a/b/c'))

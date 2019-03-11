@@ -33,12 +33,11 @@ module Zold
     end
 
     def exec
-      banned = IO.read(File.join(__dir__, '../resources/banned-wallets.csv'))
       DirItems.new(@home).fetch.each do |path|
         name = File.basename(path)
         next unless name =~ /^[a-f0-9]{16}#{Wallet::EXT}$/
-        id = name[0..15]
-        next unless banned.include?("\"#{id}\"")
+        id = Id.new(name[0..15])
+        next unless Id::BANNED.include?(id.to_s)
         path = File.join(@home, path)
         File.rename(path, path + '-banned')
         @log.info("Wallet file #{path} renamed, since wallet #{id} is banned")
