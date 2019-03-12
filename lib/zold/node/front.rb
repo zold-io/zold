@@ -136,7 +136,7 @@ while #{settings.address} is in '#{settings.opts['network']}'")
       headers['X-Zold-Thread'] = Thread.current.object_id.to_s
       unless @start.nil?
         if Time.now - @start > 1
-          settings.log.info("Slow response to #{request.request_method} #{request.url} \
+          settings.log.debug("Slow response to #{request.request_method} #{request.url} \
 from #{request.ip} in #{Age.new(@start, limit: 1)}")
         end
         headers['X-Zold-Milliseconds'] = ((Time.now - @start) * 1000).round.to_s

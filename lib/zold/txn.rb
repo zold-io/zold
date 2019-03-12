@@ -128,7 +128,7 @@ module Zold
     end
 
     def to_text
-      start = @amount.negative? ? "##{@id}" : '-'
+      start = @amount.negative? ? "##{@id}" : "(#{@id})"
       "#{start} #{@date.utc.iso8601} #{@amount} #{@bnf} #{@details}"
     end
 

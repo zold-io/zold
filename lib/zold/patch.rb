@@ -172,7 +172,7 @@ doesn't have this transaction: \"#{txn.to_text}\"")
         end
         temp.refurbish
         if temp.balance.negative? && !temp.id.root? && !allow_negative_balance
-          @log.info("The balance is negative, won't merge: #{wallet.mnemo}")
+          @log.info("The balance is negative, won't merge #{temp.mnemo} on top of #{wallet.mnemo}")
         else
           FileUtils.mkdir_p(File.dirname(file))
           IO.write(file, IO.read(f.path))
