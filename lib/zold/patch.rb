@@ -95,12 +95,6 @@ module Zold
 with a new one \"#{txn.to_text}\" from #{wallet.mnemo}")
             next
           end
-          balance = @txns.map(&:amount).map(&:to_i).inject(&:+).to_i
-          if balance < txn.amount.to_i * -1 && !wallet.root?
-            @log.error("The transaction ##{txn.id} attempts to make the balance of \
-#{wallet.id}/#{Amount.new(zents: balance).to_zld}/#{@txns.size} negative: \"#{txn.to_text}\"")
-            next
-          end
           unless Signature.new(@network).valid?(@key, wallet.id, txn)
             @log.error("Invalid RSA signature at the transaction ##{txn.id} of #{wallet.id}: \"#{txn.to_text}\"")
             next
@@ -162,18 +156,28 @@ doesn't have this transaction: \"#{txn.to_text}\"")
     end
 
     # Returns TRUE if the file was actually modified
-    def save(file, overwrite: false)
+    def save(file, overwrite: false, allow_negative_balance: false)
       raise 'You have to join at least one wallet in' if empty?
       before = ''
       wallet = Wallet.new(file)
       before = wallet.digest if wallet.exists?
-      wallet.init(@id, @key, overwrite: overwrite, network: @network)
-      File.open(file, 'a') do |f|
-        @txns.each do |txn|
-          f.print "#{txn}\n"
+      Tempfile.open([@id, Wallet::EXT]) do |f|
+        temp = Wallet.new(f.path)
+        temp.init(@id, @key, overwrite: overwrite, network: @network)
+        File.open(f.path, 'a') do |t|
+          @txns.each do |txn|
+            next if Id::BANNED.include?(txn.bnf.to_s)
+            t.print "#{txn}\n"
+          end
+        end
+        temp.refurbish
+        if temp.balance.negative? && !temp.id.root? && !allow_negative_balance
+          @log.info("The balance is negative, won't merge: #{wallet.mnemo}")
+        else
+          FileUtils.mkdir_p(File.dirname(file))
+          IO.write(file, IO.read(f.path))
         end
       end
-      wallet.refurbish
       before != wallet.digest
     end
   end

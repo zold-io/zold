@@ -39,8 +39,6 @@ zold fetch --tolerate-edges --tolerate-quorum=1
 zold diff 0000000000000000
 zold merge
 zold merge 0000000000000000
-zold rebase
-zold rebase 0000000000000000
 zold clean
 zold clean 0000000000000000
 zold remove

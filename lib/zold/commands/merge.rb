@@ -65,6 +65,9 @@ Available options:"
         o.bool '--shallow',
           'Don\'t try to pull other wallets if their confirmations are required',
           default: false
+        o.bool '--allow-negative-balance',
+          'Don\'t check for the negative balance of the wallet after the merge',
+          default: false
         o.string '--ledger',
           'The name of the file where all new negative transactions will be recorded (default: /dev/null)',
           default: '/dev/null'
@@ -123,7 +126,9 @@ Available options:"
         return if opts['quiet-if-absent']
         raise "There are no copies of #{id}, nothing to merge"
       end
-      modified = @wallets.acq(id, exclusive: true) { |w| patch.save(w.path, overwrite: true) }
+      modified = @wallets.acq(id, exclusive: true) do |w|
+        patch.save(w.path, overwrite: true, allow_negative_balance: opts['allow-negative-balance'])
+      end
       if modified
         @log.info("#{cps.count} copies with the total score of #{score} successfully merged \
 into #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 0.1 + cps.count * 0.01)}")

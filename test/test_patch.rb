@@ -53,7 +53,7 @@ class TestPatch < Zold::Test
       patch.join(first) { false }
       patch.join(second) { false }
       patch.join(third) { false }
-      assert_equal(true, patch.save(first.path, overwrite: true))
+      assert_equal(true, patch.save(first.path, overwrite: true, allow_negative_balance: true))
       assert_equal(Zold::Amount.new(zld: -53.0), first.balance)
     end
   end

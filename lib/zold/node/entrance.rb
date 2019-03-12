@@ -28,7 +28,6 @@ require_relative '../tax'
 require_relative '../age'
 require_relative '../commands/clean'
 require_relative '../commands/merge'
-require_relative '../commands/rebase'
 require_relative '../commands/fetch'
 require_relative '../commands/push'
 
@@ -86,7 +85,6 @@ module Zold
         ['clean', id.to_s, '--max-age=1']
       )
       copies.remove(host, Remotes::PORT)
-      modified += Rebase.new(wallets: @wallets, log: @log).run(['rebase', id.to_s])
       if modified.empty?
         @log.info("Accepted #{id} in #{Age.new(start, limit: 1)} and not modified anything")
       else

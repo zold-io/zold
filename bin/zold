@@ -81,8 +81,6 @@ Available commands:
     Remove expired local copies
   #{Rainbow('merge').green} [ID...] [options]
     Merge remote copies with the HEAD
-  #{Rainbow('rebase').green} [ID...] [options]
-    Rebase local copy of the wallet, removing all inconsistencies
   #{Rainbow('propagate').green} [ID...] [options]
     Propagate transactions to receiving wallets
   #{Rainbow('pull').green} [ID...] [options]
@@ -243,9 +241,6 @@ cmd = lambda do
     when 'merge'
       require_relative '../lib/zold/commands/merge'
       Zold::Merge.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)
-    when 'rebase'
-      require_relative '../lib/zold/commands/rebase'
-      Zold::Rebase.new(wallets: wallets, log: log).run(args)
     when 'propagate'
       require_relative '../lib/zold/commands/propagate'
       Zold::Propagate.new(wallets: wallets, log: log).run(args)
