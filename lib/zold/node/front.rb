@@ -317,6 +317,43 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
       end
     end
 
+    get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.html} do
+      fetch do |wallet|
+        [
+          '<!DOCTYPE html><html><head>',
+          '<title>' + wallet.id.to_s + '</title>',
+          '<link href="https://cdn.jsdelivr.net/gh/yegor256/tacit@gh-pages/tacit-css-1.4.2.min.css" rel="stylesheet"/>',
+          '<style>table { width: 100%; } td, th { padding: 0.2em .4em }</style>',
+          '</head><body><section>',
+          "<p>#{wallet.network}<br/>",
+          "#{wallet.protocol}<br/>",
+          "#{wallet.id}<br/>",
+          "#{wallet.key.to_pub}</p>",
+          '<table><thead><tr><th>Id</th><th>Date</th><th>Amount</th><th>Wallet</th><th>Details</th></thead>',
+          '<tbody>',
+          wallet.txns.map do |t|
+            [
+              '<tr>',
+              '<td style="color:' + (t.amount.negative? ? 'red' : 'green') + "\">#{t.id}</td>",
+              "<td>#{t.date.utc.iso8601}</td>",
+              '<td style="text-align:right">' + t.amount.to_zld(4) + '</td>',
+              "<td><a href='/wallet/#{t.bnf}.html'>#{t.bnf}</td>",
+              "<td>#{t.details}</td>",
+              '</tr>'
+            ].join
+          end.join,
+          '<p>&mdash;<br/>',
+          "Balance: #{wallet.balance.to_zld(8)} ZLD (#{wallet.balance.to_i} zents)<br/>",
+          "Transactions: #{wallet.txns.count}<br/>",
+          "Taxes: #{Tax.new(wallet).paid} paid, the debt is #{Tax.new(wallet).debt}<br/>",
+          "File size: #{Size.new(wallet.size)}/#{wallet.size}, \
+#{Copies.new(File.join(settings.copies, wallet.id)).all.count} copies<br/>",
+          "Modified: #{wallet.mtime.utc.iso8601} (#{Age.new(wallet.mtime.utc.iso8601)} ago)<br/>",
+          "Digest: #{wallet.digest}</p></section></body></html>"
+        ].join
+      end
+    end
+
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.bin} do
       fetch { |w| send_file(w.path) }
     end
