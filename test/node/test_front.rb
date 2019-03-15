@@ -139,7 +139,7 @@ class FrontTest < Zold::Test
   def test_increments_score
     FakeNode.new(log: test_log).run(opts('--threads=1')) do |port|
       3.times do |i|
-        assert_equal_wait(true) do
+        assert_equal_wait(true, max: 60) do
           response = Zold::Http.new(uri: "http://localhost:#{port}/").get
           assert_equal(200, response.status, response.body)
           score = Zold::Score.parse_json(Zold::JsonPage.new(response.body).to_hash['score'])
