@@ -83,9 +83,10 @@ module Zold
       jlog = Logger.new(journal)
       jlog.level = Logger::DEBUG
       jlog.formatter = Log::COMPACT
-      tlog = Log::Tee.new(log, jlog)
-      tlog.info("push(#{id}, #{body.length} bytes)")
-      @pipeline.push(id, body, JournaledPipeline::Wallets.new(wallets, jlog), tlog)
+      jlog.info("push(#{id}, #{body.length} bytes): starting...")
+      modified = @pipeline.push(id, body, JournaledPipeline::Wallets.new(wallets, jlog), Log::Tee.new(log, jlog))
+      jlog.info("push(#{id}): done")
+      modified
     end
   end
 end
