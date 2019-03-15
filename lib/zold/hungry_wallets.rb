@@ -57,12 +57,13 @@ module Zold
         unless wallet.exists?
           if @queue.size > 256
             @log.error("Hungry queue is full with #{@queue.size} wallets, can't add #{id}")
-          elsif @missed.exists?(id)
-            @log.debug("Hungry queue has seen #{id} just #{Age.new(@missed.mtime(id))} ago and it was not-found")
+          elsif @missed.exists?(id.to_s)
+            @log.debug("Hungry queue has seen #{id} just #{Age.new(@missed.mtime(id.to_s))} ago
+(amoung #{@missed.size} others) and it was not found")
           else
             @mutex.synchronize do
               unless @queue.include?(id)
-                @missed.put(id, lifetime: 5 * 60)
+                @missed.put(id.to_s, lifetime: 5 * 60)
                 @queue << id
                 @log.debug("Hungry queue got #{id}, at the pos no.#{@queue.size - 1}")
               end
@@ -85,7 +86,7 @@ module Zold
         Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
           ['pull', id.to_s, "--network=#{@network}", '--tolerate-edges', '--tolerate-quorum=1']
         )
-        @missed.remove(id)
+        @missed.remove(id.to_s)
       rescue Fetch::Error => e
         @log.error("Can't hungry-pull #{id}: #{e.message}")
       end
