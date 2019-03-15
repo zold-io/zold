@@ -135,10 +135,8 @@ out of #{nodes.value} in #{Age.new(start)}, total score for #{id} is #{total.val
         r.assert_valid_score(score)
         r.assert_score_ownership(score)
         r.assert_score_strength(score) unless opts['ignore-score-weakness']
-        if @log.info?
-          @log.info("#{r} accepted #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 4)}: \
+        @log.debug("#{r} accepted #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 4)}: \
 #{Rainbow(score.value).green} (#{json['version']})")
-        end
         score.value
       end
     end
@@ -153,7 +151,7 @@ out of #{nodes.value} in #{Age.new(start)}, total score for #{id} is #{total.val
           r.http(uri).put(f)
         end
         if response.status == 304
-          @log.info("#{r}: same version of #{@wallets.acq(id, &:mnemo)} there, didn't push \
+          @log.debug("#{r}: same version of #{@wallets.acq(id, &:mnemo)} there, didn't push \
 in #{Age.new(start, limit: 0.5)}")
           return 0
         end
@@ -164,7 +162,7 @@ in #{Age.new(start, limit: 0.5)}")
       rescue JsonPage::CantParse, Score::CantParse, RemoteNode::CantAssert => e
         attempt += 1
         if attempt < opts['retry']
-          @log.error("#{r} failed to push #{id}, trying again (attempt no.#{attempt}): #{e.message}")
+          @log.debug("#{r} failed to push #{id}, trying again (attempt no.#{attempt}): #{e.message}")
           retry
         end
         raise e

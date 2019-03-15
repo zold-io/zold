@@ -354,7 +354,7 @@ it's recommended to reboot, but I don't do it because of --never-reboot")
         @remotes.remove(r[:host], r[:port])
         @log.debug("Remote #{r[:host]}:#{r[:port]}/#{r[:score]}/#{r[:errors]}e removed from the list")
       end
-      @log.info("#{@remotes.all.count} remote nodes were selected to stay in the list")
+      @log.info("#{@remotes.all.count} best remote nodes were selected to stay in the list")
     end
 
     def terminate
@@ -368,7 +368,7 @@ it's recommended to reboot, but I don't do it because of --never-reboot")
       res = Http.new(uri: "http://#{host}:#{port}/version", network: opts['network']).get
       return true if res.status == 200
       raise "The node #{host}:#{port} is not responding, #{res.status}:#{res.status_line}" unless opts['ignore-ping']
-      @log.error("The node #{host}:#{port} is not responding, #{res.status}:#{res.status_line}")
+      @log.error("The node #{host}:#{port} is not responding but we --ignore-ping, #{res.status}:#{res.status_line}")
       false
     end
   end

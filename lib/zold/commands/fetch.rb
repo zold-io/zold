@@ -171,7 +171,7 @@ run 'zold remote update' or use --tolerate-quorum=1"
               raise "The balance of #{id} is #{wallet.balance} and it's not a root wallet"
             end
             copy = cps.add(IO.read(f), score.host, score.port, score.value, master: r.master?)
-            @log.info("#{r} returned #{wallet.mnemo} #{Age.new(json['mtime'])}/#{json['copies']}c \
+            @log.debug("#{r} returned #{wallet.mnemo} #{Age.new(json['mtime'])}/#{json['copies']}c \
 as copy ##{copy}/#{cps.all.count} in #{Age.new(start, limit: 4)}: \
 #{Rainbow(score.value).green} (#{json['version']})")
           end
