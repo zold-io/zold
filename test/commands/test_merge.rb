@@ -62,28 +62,7 @@ class TestMerge < Zold::Test
       assert(wallet.id, modified[0])
     end
   end
-
-  def test_merges_into_empty_wallet
-    FakeHome.new(log: test_log).run do |home|
-      wallet = home.create_wallet
-      first = home.create_wallet
-      IO.write(first.path, IO.read(wallet.path))
-      second = home.create_wallet
-      IO.write(second.path, IO.read(wallet.path))
-      Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: test_log).run(
-        ['pay', wallet.id.to_s, "NOPREFIX@#{Zold::Id.new}", '14.95', '--force', '--private-key=fixtures/id_rsa']
-      )
-      copies = home.copies(wallet)
-      copies.add(IO.read(first.path), 'host-1', 80, 5)
-      copies.add(IO.read(second.path), 'host-2', 80, 5)
-      modified = Zold::Merge.new(wallets: home.wallets, remotes: home.remotes, copies: copies.root, log: test_log).run(
-        ['merge', wallet.id.to_s]
-      )
-      assert(1, modified.count)
-      assert(wallet.id, modified[0])
-    end
-  end
-
+  
   def test_merges_with_a_broken_copy
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
