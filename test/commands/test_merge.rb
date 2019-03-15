@@ -62,7 +62,7 @@ class TestMerge < Zold::Test
       assert(wallet.id, modified[0])
     end
   end
-  
+
   def test_merges_with_a_broken_copy
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
