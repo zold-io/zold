@@ -328,22 +328,23 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
           '</head><body><section>',
           "<p>#{wallet.network}<br/>",
           "#{wallet.protocol}<br/>",
-          "#{wallet.id}<br/>",
-          "#{wallet.key.to_pub}</p>",
-          '<table><thead><tr><th>Id</th><th>Date</th><th>Amount</th><th>Wallet</th><th>Details</th></thead>',
+          "<code>#{wallet.id}</code><br/>",
+          "#{wallet.key.to_pub.gsub(/([^ ]{16})/, '\1&shy;')}</p>",
+          '<table><thead><tr><th>Id</th><th>Date</th><th>Amount</th><th>Wallet</th><th>Details</th></tr></thead>',
           '<tbody>',
           wallet.txns.map do |t|
             [
               '<tr>',
               '<td style="color:' + (t.amount.negative? ? 'red' : 'green') + "\">#{t.id}</td>",
               "<td>#{t.date.utc.iso8601}</td>",
-              '<td style="text-align:right">' + t.amount.to_zld(4) + '</td>',
+              '<td style="text-align:right;color:' + (t.amount.negative? ? 'red' : 'green') + '">' +
+              t.amount.to_zld(2) + '</td>',
               "<td><a href='/wallet/#{t.bnf}.html'><code>#{t.bnf}</code></a></td>",
-              "<td>#{CGI.escapeHTML(t.details)}</td>",
+              "<td>#{CGI.escapeHTML(t.details).gsub(/([^ ]{16})/, '\1&shy;')}</td>",
               '</tr>'
             ].join
           end.join,
-          '<p>&mdash;<br/>',
+          '</tbody></table><p>&mdash;<br/>',
           "Balance: #{wallet.balance.to_zld(8)} ZLD (#{wallet.balance.to_i} zents)<br/>",
           "Transactions: #{wallet.txns.count}<br/>",
           "Taxes: #{Tax.new(wallet).paid} paid, the debt is #{Tax.new(wallet).debt}<br/>",
@@ -487,7 +488,7 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
         '<title>/journal</title>',
         '<link href="https://cdn.jsdelivr.net/gh/yegor256/tacit@gh-pages/tacit-css-1.4.2.min.css" rel="stylesheet"/>',
         '</head><body><section>',
-        DirItems.new(settings.journal_dir).fetch.sort.map do |f|
+        DirItems.new(settings.journal_dir).fetch.sort.reverse.map do |f|
           file = File.join(settings.journal_dir, f)
           "<p><a href='/journal/item?id=#{f}'>#{f}</a>: #{File.size(file)} #{Age.new(File.mtime(file))} ago</p>"
         end.join,
