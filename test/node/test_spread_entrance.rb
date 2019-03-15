@@ -26,6 +26,7 @@ require_relative 'fake_node'
 require_relative '../test__helper'
 require_relative '../../lib/zold/id'
 require_relative '../../lib/zold/node/entrance'
+require_relative '../../lib/zold/node/pipeline'
 require_relative '../../lib/zold/node/spread_entrance'
 require_relative 'fake_entrance'
 
@@ -38,7 +39,11 @@ class TestSpreadEntrance < Zold::Test
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet(Zold::Id.new)
       Zold::SpreadEntrance.new(
-        Zold::Entrance.new(home.wallets, home.remotes, home.copies(wallet).root, 'x', log: test_log),
+        Zold::Entrance.new(
+          home.wallets,
+          Zold::Pipeline.new(home.remotes, home.copies(wallet).root, 'x'),
+          log: test_log
+        ),
         home.wallets, home.remotes, 'x', log: test_log
       ).start do |e|
         assert_equal(0, e.to_json[:modified])

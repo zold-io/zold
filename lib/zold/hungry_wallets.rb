@@ -58,7 +58,7 @@ module Zold
           if @queue.size > 256
             @log.error("Hungry queue is full with #{@queue.size} wallets, can't add #{id}")
           elsif @missed.exists?(id.to_s)
-            @log.debug("Hungry queue has seen #{id} just #{Age.new(@missed.mtime(id.to_s))} ago
+            @log.debug("Hungry queue has seen #{id} just #{Age.new(@missed.mtime(id.to_s))} ago \
 (amoung #{@missed.size} others) and it was not found")
           else
             @mutex.synchronize do

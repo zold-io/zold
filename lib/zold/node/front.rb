@@ -319,7 +319,7 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.html} do
-      fetch do |wallet|
+      fetch('text/html') do |wallet|
         [
           '<!DOCTYPE html><html><head>',
           '<title>' + wallet.id.to_s + '</title>',
@@ -338,8 +338,8 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
               '<td style="color:' + (t.amount.negative? ? 'red' : 'green') + "\">#{t.id}</td>",
               "<td>#{t.date.utc.iso8601}</td>",
               '<td style="text-align:right">' + t.amount.to_zld(4) + '</td>',
-              "<td><a href='/wallet/#{t.bnf}.html'>#{t.bnf}</td>",
-              "<td>#{t.details}</td>",
+              "<td><a href='/wallet/#{t.bnf}.html'><code>#{t.bnf}</code></a></td>",
+              "<td>#{CGI.escapeHTML(t.details)}</td>",
               '</tr>'
             ].join
           end.join,
@@ -350,7 +350,7 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
           "File size: #{Size.new(wallet.size)}/#{wallet.size}, \
 #{Copies.new(File.join(settings.copies, wallet.id)).all.count} copies<br/>",
           "Modified: #{wallet.mtime.utc.iso8601} (#{Age.new(wallet.mtime.utc.iso8601)} ago)<br/>",
-          "Digest: #{wallet.digest}</p></section></body></html>"
+          "Digest: <code>#{wallet.digest}</code></p></section></body></html>"
         ].join
       end
     end
@@ -488,7 +488,8 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
         '<link href="https://cdn.jsdelivr.net/gh/yegor256/tacit@gh-pages/tacit-css-1.4.2.min.css" rel="stylesheet"/>',
         '</head><body><section>',
         DirItems.new(settings.journal_dir).fetch.sort.map do |f|
-          "<p><a href='/journal/item?id=#{f}'>#{f}</a></p>"
+          file = File.join(settings.journal_dir, f)
+          "<p><a href='/journal/item?id=#{f}'>#{f}</a>: #{File.size(file)} #{Age.new(File.mtime(file))} ago</p>"
         end.join,
         '</section></body></html>'
       ].join

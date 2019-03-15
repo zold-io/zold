@@ -21,15 +21,8 @@
 # SOFTWARE.
 
 require 'tempfile'
+require 'time'
 require_relative '../log'
-require_relative '../remotes'
-require_relative '../copies'
-require_relative '../tax'
-require_relative '../age'
-require_relative '../commands/clean'
-require_relative '../commands/merge'
-require_relative '../commands/fetch'
-require_relative '../commands/push'
 
 # The entrance of the web front.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -38,18 +31,13 @@ require_relative '../commands/push'
 module Zold
   # The entrance
   class Entrance
-    def initialize(wallets, remotes, copies, address, ledger: '/dev/null',
-      log: Log::NULL, network: 'test')
+    def initialize(wallets, pipeline, log: Log::NULL)
       @wallets = wallets
-      @remotes = remotes
-      @copies = copies
-      @address = address
+      @pipeline = pipeline
       @log = log
-      @network = network
       @history = []
       @speed = []
       @mutex = Mutex.new
-      @ledger = ledger
     end
 
     def start
@@ -62,7 +50,7 @@ module Zold
         'history': @history.join(', '),
         'history_size': @history.count,
         'speed': @speed.empty? ? 0 : (@speed.inject(&:+) / @speed.count),
-        'ledger': File.exist?(@ledger) ? IO.read(@ledger).split("\n").count : 0
+        'pipeline': @pipeline.to_json
       }
     end
 
@@ -72,25 +60,7 @@ module Zold
       raise 'Id must be of type Id' unless id.is_a?(Id)
       raise 'Body can\'t be nil' if body.nil?
       start = Time.now
-      copies = Copies.new(File.join(@copies, id.to_s))
-      host = '0.0.0.0'
-      copies.add(body, host, Remotes::PORT, 0)
-      unless @remotes.all.empty?
-        Fetch.new(
-          wallets: @wallets, remotes: @remotes, copies: copies.root, log: @log
-        ).run(['fetch', id.to_s, "--ignore-node=#{@address}", "--network=#{@network}", '--quiet-if-absent'])
-      end
-      modified = merge(id, copies)
-      Clean.new(wallets: @wallets, copies: copies.root, log: @log).run(
-        ['clean', id.to_s, '--max-age=1']
-      )
-      copies.remove(host, Remotes::PORT)
-      if modified.empty?
-        @log.info("Accepted #{id} in #{Age.new(start, limit: 1)} and not modified anything")
-      else
-        @log.info("Accepted #{id} in #{Age.new(start, limit: 1)} and modified #{modified.join(', ')}")
-      end
-      modified << id if copies.all.count > 1
+      modified = @pipeline.push(id, body, @wallets, @log)
       sec = (Time.now - start).round(2)
       @mutex.synchronize do
         @history.shift if @history.length >= 16
@@ -101,28 +71,6 @@ module Zold
         @speed << sec
       end
       modified
-    end
-
-    def merge(id, copies)
-      Tempfile.open do |f|
-        modified = Merge.new(
-          wallets: @wallets, remotes: @remotes, copies: copies.root, log: @log
-        ).run(['merge', id.to_s, "--ledger=#{f.path}", "--network=#{@network}"])
-        @mutex.synchronize do
-          txns = File.exist?(@ledger) ? IO.read(@ledger).strip.split("\n") : []
-          txns += IO.read(f.path).strip.split("\n")
-          IO.write(
-            @ledger,
-            txns.map { |t| t.split(';') }
-              .uniq { |t| "#{t[1]}-#{t[3]}" }
-              .reject { |t| Txn.parse_time(t[0]) < Time.now - 24 * 60 * 60 }
-              .map { |t| t.join(';') }
-              .join("\n")
-              .strip
-          )
-        end
-        modified
-      end
     end
   end
 end

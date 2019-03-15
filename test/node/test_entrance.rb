@@ -29,6 +29,7 @@ require_relative '../../lib/zold/remotes'
 require_relative '../../lib/zold/id'
 require_relative '../../lib/zold/key'
 require_relative '../../lib/zold/node/entrance'
+require_relative '../../lib/zold/node/pipeline'
 require_relative '../../lib/zold/commands/pay'
 
 # ENTRANCE test.
@@ -54,7 +55,11 @@ class TestEntrance < Zold::Test
       source = home.create_wallet(sid)
       target = home.create_wallet(tid)
       ledger = File.join(home.dir, 'ledger.csv')
-      e = Zold::Entrance.new(home.wallets, home.remotes, home.copies(source).root, 'x', ledger: ledger, log: test_log)
+      e = Zold::Entrance.new(
+        home.wallets,
+        Zold::Pipeline.new(home.remotes, home.copies(source).root, 'x', ledger: ledger),
+        log: test_log
+      )
       modified = e.push(source.id, body)
       assert_equal(2, modified.count)
       assert_equal(Zold::Amount.new(zld: -19.99), source.balance)
@@ -68,7 +73,7 @@ class TestEntrance < Zold::Test
   def test_renders_json
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
-      e = Zold::Entrance.new(home.wallets, home.remotes, home.copies.root, 'x', log: test_log)
+      e = Zold::Entrance.new(home.wallets, Zold::Pipeline.new(home.remotes, home.copies.root, 'x'), log: test_log)
       e.push(wallet.id, IO.read(wallet.path))
       assert(e.to_json[:history].include?(wallet.id.to_s))
       assert(!e.to_json[:speed].negative?)

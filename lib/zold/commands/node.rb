@@ -45,7 +45,8 @@ require_relative '../node/async_entrance'
 require_relative '../node/sync_entrance'
 require_relative '../node/nodup_entrance'
 require_relative '../node/nospam_entrance'
-require_relative '../node/journaled_entrance'
+require_relative '../node/pipeline'
+require_relative '../node/journaled_pipeline'
 require_relative '../node/front'
 require_relative '../node/trace'
 require_relative '../node/farm'
@@ -271,25 +272,23 @@ the node won\'t connect to the network like that; try to do "zold remote reset" 
       FileUtils.mkdir_p(journal_dir)
       Front.set(:journal_dir, journal_dir)
       Front.set(:node_alias, node_alias(opts, address))
-      jlog = Logger.new(File.join(journal_dir, 'journal'))
-      jlog.level = Logger::DEBUG
-      jlog.formatter = Log::COMPACT
       entrance = SafeEntrance.new(
         NoSpamEntrance.new(
           NoDupEntrance.new(
             AsyncEntrance.new(
               SpreadEntrance.new(
                 SyncEntrance.new(
-                  JournaledEntrance.new(
-                    Entrance.new(
-                      wts, @remotes, @copies, address,
-                      ledger: ledger,
-                      log: Log::Tee.new(@log, jlog), network: opts['network']
-                    ),
+                  Entrance.new(
                     wts,
-                    journal_dir,
-                    jlog,
-                    'journal'
+                    JournaledPipeline.new(
+                      Pipeline.new(
+                        @remotes, @copies, address,
+                        ledger: ledger,
+                        network: opts['network']
+                      ),
+                      journal_dir
+                    ),
+                    log: @log
                   ),
                   File.join(home, '.zoldata/sync-entrance'),
                   log: @log
