@@ -20,7 +20,7 @@ Metrics/BlockNesting:
 Metrics/BlockLength:
   Max: 130
 Metrics/ClassLength:
-  Max: 500
+  Max: 600
 Layout/EndOfLine:
   EnforcedStyle: lf
 Metrics/ParameterLists:

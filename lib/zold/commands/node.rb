@@ -45,6 +45,7 @@ require_relative '../node/async_entrance'
 require_relative '../node/sync_entrance'
 require_relative '../node/nodup_entrance'
 require_relative '../node/nospam_entrance'
+require_relative '../node/journaled_entrance'
 require_relative '../node/front'
 require_relative '../node/trace'
 require_relative '../node/farm'
@@ -235,10 +236,10 @@ the node won\'t connect to the network like that; try to do "zold remote reset" 
 #{@remotes.all.map { |r| "#{r[:host]}:#{r[:port]}" }.join(', ')}")
       @log.info("Wallets at: #{@wallets.path}")
       if opts['standalone']
-        @remotes = Zold::Remotes::Empty.new
+        @remotes = Remotes::Empty.new
         @log.info('Running in standalone mode! (will never talk to other remotes)')
       elsif @remotes.exists?(host, port)
-        Zold::Remote.new(remotes: @remotes).run(['remote', 'remove', host, port.to_s])
+        Remote.new(remotes: @remotes).run(['remote', 'remove', host, port.to_s])
         @log.info("Removed current node (#{address}) from list of remotes")
       end
       if File.exist?(@copies)
@@ -249,8 +250,8 @@ the node won\'t connect to the network like that; try to do "zold remote reset" 
       if opts['not-hungry']
         @log.info('Hungry pulling disabled because of --not-hungry')
       else
-        hungry = Zold::ThreadPool.new('hungry', log: @log)
-        wts = Zold::HungryWallets.new(@wallets, @remotes, @copies, hungry, log: @log, network: opts['network'])
+        hungry = ThreadPool.new('hungry', log: @log)
+        wts = HungryWallets.new(@wallets, @remotes, @copies, hungry, log: @log, network: opts['network'])
       end
       Front.set(:zache, Zache.new(dirty: true))
       Front.set(:wallets, wts)
@@ -266,17 +267,29 @@ the node won\'t connect to the network like that; try to do "zold remote reset" 
       async_dir = File.join(home, '.zoldata/async-entrance')
       FileUtils.mkdir_p(async_dir)
       Front.set(:async_dir, async_dir)
+      journal_dir = File.join(home, '.zoldata/journal')
+      FileUtils.mkdir_p(journal_dir)
+      Front.set(:journal_dir, journal_dir)
       Front.set(:node_alias, node_alias(opts, address))
+      jlog = Logger.new(File.join(journal_dir, 'journal'))
+      jlog.level = Logger::DEBUG
+      jlog.formatter = Log::COMPACT
       entrance = SafeEntrance.new(
         NoSpamEntrance.new(
           NoDupEntrance.new(
             AsyncEntrance.new(
               SpreadEntrance.new(
                 SyncEntrance.new(
-                  Entrance.new(
-                    wts, @remotes, @copies, address,
-                    ledger: ledger,
-                    log: @log, network: opts['network']
+                  JournaledEntrance.new(
+                    Entrance.new(
+                      wts, @remotes, @copies, address,
+                      ledger: ledger,
+                      log: Log::Tee.new(@log, jlog), network: opts['network']
+                    ),
+                    wts,
+                    journal_dir,
+                    jlog,
+                    'journal'
                   ),
                   File.join(home, '.zoldata/sync-entrance'),
                   log: @log

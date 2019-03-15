@@ -82,6 +82,7 @@ module Zold
       set :node_alias, nil # to be injected at node.rb
       set :zache, nil # to be injected at node.rb
       set :async_dir, nil # to be injected at node.rb
+      set :journal_dir, nil # to be injected at node.rb
     end
     use Rack::Deflater
 
@@ -477,6 +478,25 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
       rescue Errno::ENOENT
         f
       end.join("\n")
+    end
+
+    get '/journal' do
+      content_type('text/html')
+      [
+        '<!DOCTYPE html><html><head>',
+        '<title>/journal</title>',
+        '<link href="https://cdn.jsdelivr.net/gh/yegor256/tacit@gh-pages/tacit-css-1.4.2.min.css" rel="stylesheet"/>',
+        '</head><body><section>',
+        DirItems.new(settings.journal_dir).fetch.sort.map do |f|
+          "<p><a href='/journal/item?id=#{f}'>#{f}</a></p>"
+        end.join,
+        '</section></body></html>'
+      ].join
+    end
+
+    get '/journal/item' do
+      content_type('text/plain')
+      IO.read(File.join(settings.journal_dir, params[:id]))
     end
 
     not_found do

@@ -104,5 +104,36 @@ module Zold
     ERRORS.level = Logger::ERROR
     ERRORS.formatter = COMPACT
     ERRORS.freeze
+
+    # Tee logger.
+    class Tee
+      def initialize(first, second)
+        @first = first
+        @second = second
+      end
+
+      def debug(msg)
+        @first.debug(msg)
+        @second.debug(msg)
+      end
+
+      def debug?
+        @first.debug? || @second.debug?
+      end
+
+      def info(msg)
+        @first.info(msg)
+        @second.info(msg)
+      end
+
+      def info?
+        @first.info? || @second.info?
+      end
+
+      def error(msg)
+        @first.error(msg)
+        @second.error(msg)
+      end
+    end
   end
 end
