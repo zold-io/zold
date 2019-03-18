@@ -74,6 +74,9 @@ Available options:"
         o.string '--ledger',
           'The name of the file where all new negative transactions will be recorded (default: /dev/null)',
           default: '/dev/null'
+        o.array '--trusted',
+          'List of wallet IDs we fully trust and won\'t pull',
+          default: []
         o.string '--network',
           'The name of the network we work in',
           default: 'test'
@@ -151,10 +154,13 @@ into #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 0.1 + cps.count * 0
         end
       else
         patch.join(wallet, ledger: opts['ledger']) do |txn|
-          Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-            ['pull', txn.bnf.to_s, "--network=#{opts['network']}", '--quiet-if-absent'] +
-            (opts['deep'] ? ['--deep'] : ['--shallow'])
-          )
+          unless opts['trusted'].include?(txn.bnf.to_s) || opts['trusted'].count > 32
+            Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
+              ['pull', txn.bnf.to_s, "--network=#{opts['network']}", '--quiet-if-absent'] +
+              (opts['deep'] ? ['--deep'] : ['--shallow']) +
+              ['--trusted=' + (opts['trusted'] + [txn.bnf.to_s]).join(',')]
+            )
+          end
           true
         end
       end
