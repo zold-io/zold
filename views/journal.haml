@@ -1,0 +1,14 @@
+%table
+  %thead
+    %tr
+      %th File
+      %th Size
+      %th Modified
+  %tbody
+    - files.each do |f|
+      - file = File.join(dir, f)
+      %tr
+        %td
+          %a{href: '/journal/item?id=#{f}'}= f
+        %td.right= Zold::Size.new(File.size(file))
+        %td= "#{Zold::Age.new(File.mtime(file))} ago"

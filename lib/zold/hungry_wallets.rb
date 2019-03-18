@@ -82,6 +82,10 @@ module Zold
         sleep 0.2
         return
       end
+      if @remotes.all.empty?
+        @log.debug("Can't hungry-pull #{id}, the list of remotes is empty")
+        return
+      end
       begin
         Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
           ['pull', id.to_s, "--network=#{@network}", '--tolerate-edges', '--tolerate-quorum=1']

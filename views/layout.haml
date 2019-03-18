@@ -1,0 +1,32 @@
+!!! 5
+%html
+  %head
+    %title= title
+    %meta{charset:'UTF-8'}
+    %meta{name: 'viewport', content: 'width=device-width, initial-scale=1.0'}
+    %meta{name: 'keywords', content: 'Zold, Cryptocurrency, Payments, Online Payments'}
+    %meta{name: 'description', content: description}
+    %link{rel: 'shortcut icon', href: '//www.zold.io/images/logo.png'}
+    %link{href: '//cdn.jsdelivr.net/gh/yegor256/tacit@gh-pages/tacit-css-1.4.2.min.css', rel: 'stylesheet'}
+    %link{href: '//www.zold.io/0.13.3/css/main.min.css', rel: 'stylesheet'}
+    %meta{name: 'twitter:creator', content: '@0crat'}
+    %meta{name: 'twitter:site', content: '@0crat'}
+    %meta{name: 'twitter:title', property: 'og:title', content: 'Zold'}
+    %meta{name: 'twitter:description', property: 'og:description', content: 'Experimental Non-Blockchain Cryptocurrency for Fast Micropayments'}
+    %meta{name: 'twitter:url', property: 'og:url', content: request.url}
+    %meta{name: 'telegram:channel', content: 'zold_io'}
+    %meta{name: 'og:image', content: '//blog.zold.io/images/ledger.jpg'}
+    %meta{name: 'twitter:image', content: '//blog.zold.io/images/ledger.jpg'}
+    %meta{name: 'twitter:card', content: 'summary'}
+    %meta{name: 'twitter:image:alt', content: 'Zold'}
+  %body
+    %section
+      %p
+        %a{href: '/'}
+          %img.logo{src: '//www.zold.io/images/logo.svg', alt: 'Zold logo'}
+      = yield
+      %p.footnotes
+        = Zold::VERSION
+      %p
+        %a{href: 'https://github.com/zold-io/zold/stargazers'}
+          %img{src: '//img.shields.io/github/stars/zold-io/zold.svg?style=flat-square', alt: 'GitHub stars'}

@@ -24,6 +24,7 @@ STDOUT.sync = true
 
 require 'get_process_mem'
 require 'thin'
+require 'haml'
 require 'json'
 require 'sinatra/base'
 require 'concurrent'
@@ -54,6 +55,8 @@ module Zold
     MIN_SCORE = 4
 
     configure do
+      Haml::Options.defaults[:format] = :xhtml
+      set :views, (proc { File.expand_path(File.join(__dir__, '../../../views')) })
       Thread.current.name = 'sinatra'
       set :bind, '0.0.0.0'
       set :suppress_messages, true
@@ -93,7 +96,7 @@ module Zold
       Thread.current.thread_variable_set(:ip, request.ip)
       @start = Time.now
       if !settings.opts['halt-code'].empty? && params[:halt] && params[:halt] == settings.opts['halt-code']
-        settings.log.error('Halt signal received, shutting the front end down...')
+        settings.log.info('Halt signal received, shutting the front end down...')
         Front.stop!
       end
       check_header(Http::NETWORK_HEADER) do |header|
@@ -320,39 +323,15 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})\.html} do
       fetch('text/html') do |wallet|
-        [
-          '<!DOCTYPE html><html><head>',
-          '<title>' + wallet.id.to_s + '</title>',
-          '<link href="https://cdn.jsdelivr.net/gh/yegor256/tacit@gh-pages/tacit-css-1.4.2.min.css" rel="stylesheet"/>',
-          '<style>table { width: 100%; } td, th { padding: 0.2em .4em }</style>',
-          '</head><body><section>',
-          "<p>#{wallet.network}<br/>",
-          "#{wallet.protocol}<br/>",
-          "<code>#{wallet.id}</code><br/>",
-          "#{wallet.key.to_pub.gsub(/([^ ]{16})/, '\1&shy;')}</p>",
-          '<table><thead><tr><th>Id</th><th>Date</th><th>Amount</th><th>Wallet</th><th>Details</th></tr></thead>',
-          '<tbody>',
-          wallet.txns.map do |t|
-            [
-              '<tr>',
-              '<td style="color:' + (t.amount.negative? ? 'red' : 'green') + "\">#{t.id}</td>",
-              "<td>#{t.date.utc.iso8601}</td>",
-              '<td style="text-align:right;color:' + (t.amount.negative? ? 'red' : 'green') + '">' +
-              t.amount.to_zld(2) + '</td>',
-              "<td><a href='/wallet/#{t.bnf}.html'><code>#{t.bnf}</code></a></td>",
-              "<td>#{CGI.escapeHTML(t.details).gsub(/([^ ]{16})/, '\1&shy;')}</td>",
-              '</tr>'
-            ].join
-          end.join,
-          '</tbody></table><p>&mdash;<br/>',
-          "Balance: #{wallet.balance.to_zld(8)} ZLD (#{wallet.balance.to_i} zents)<br/>",
-          "Transactions: #{wallet.txns.count}<br/>",
-          "Taxes: #{Tax.new(wallet).paid} paid, the debt is #{Tax.new(wallet).debt}<br/>",
-          "File size: #{Size.new(wallet.size)}/#{wallet.size}, \
-#{Copies.new(File.join(settings.copies, wallet.id)).all.count} copies<br/>",
-          "Modified: #{wallet.mtime.utc.iso8601} (#{Age.new(wallet.mtime.utc.iso8601)} ago)<br/>",
-          "Digest: <code>#{wallet.digest}</code></p></section></body></html>"
-        ].join
+        haml(
+          :wallet,
+          layout: :layout,
+          locals: {
+            title: wallet.id.to_s,
+            description: "Zold wallet #{wallet.id} at #{settings.address}",
+            wallet: wallet
+          }
+        )
       end
     end
 
@@ -483,17 +462,18 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
 
     get '/journal' do
       content_type('text/html')
-      [
-        '<!DOCTYPE html><html><head>',
-        '<title>/journal</title>',
-        '<link href="https://cdn.jsdelivr.net/gh/yegor256/tacit@gh-pages/tacit-css-1.4.2.min.css" rel="stylesheet"/>',
-        '</head><body><section>',
-        DirItems.new(settings.journal_dir).fetch.sort.reverse.map do |f|
-          file = File.join(settings.journal_dir, f)
-          "<p><a href='/journal/item?id=#{f}'>#{f}</a>: #{File.size(file)} #{Age.new(File.mtime(file))} ago</p>"
-        end.join,
-        '</section></body></html>'
-      ].join
+      haml(
+        :journal,
+        layout: :layout,
+        locals: {
+          title: '/journal',
+          description: 'The journal',
+          files: DirItems.new(settings.journal_dir).fetch.sort.reverse.select do |f|
+            !params[:id] || f.start_with?(params[:id])
+          end,
+          dir: settings.journal_dir
+        }
+      )
     end
 
     get '/journal/item' do

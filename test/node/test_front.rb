@@ -149,22 +149,23 @@ class FrontTest < Zold::Test
     end
   end
 
-  def test_renders_wallet_pages
-    FakeHome.new(log: test_log).run do |home|
-      FakeNode.new(log: test_log).run(opts) do |port|
-        wallet = home.create_wallet(txns: 2)
-        base = "http://localhost:#{port}"
-        response = Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").put(wallet.path)
-        assert_equal(200, response.status, response.body)
-        assert_equal_wait(200) { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").get.status }
-        [
-          '.txt', '.html',
-          '/balance', '/key', '/mtime',
-          '/digest', '/size',
-          '/age', '/mnemo', '/debt', '/txns',
-          '/txns.json', '.bin', '/copies'
-        ].each do |u|
-          assert_equal_wait(200) { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}#{u}").get.status }
+  [
+    '.txt', '.html',
+    '/balance', '/key', '/mtime',
+    '/digest', '/size',
+    '/age', '/mnemo', '/debt', '/txns',
+    '/txns.json', '.bin', '/copies'
+  ].each do |p|
+    method = "test_wallet_page_#{p.gsub(/[^a-z]/, '_')}"
+    define_method(method) do
+      FakeHome.new(log: test_log).run do |home|
+        FakeNode.new(log: test_log).run(opts) do |port|
+          wallet = home.create_wallet(txns: 2)
+          base = "http://localhost:#{port}"
+          response = Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").put(wallet.path)
+          assert_equal(200, response.status, response.body)
+          assert_equal_wait(200) { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").get.status }
+          assert_equal_wait(200) { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}#{p}").get.status }
         end
       end
     end

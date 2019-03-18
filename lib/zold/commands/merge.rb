@@ -143,7 +143,7 @@ into #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 0.1 + cps.count * 0
       @log.debug("Building a patch for #{wallet.id} from remote copy ##{name} with #{wallet.mnemo}...")
       if opts['shallow']
         patch.join(wallet, ledger: opts['ledger']) do |txn|
-          @log.debug("Paying wallet #{txn.bnf} file is absent but it's a \"shallow\" MERGE: #{txn.to_text}")
+          @log.debug("Paying wallet #{txn.bnf} file is in question but it's a \"shallow\" MERGE: #{txn.to_text}")
           false
         end
       else
