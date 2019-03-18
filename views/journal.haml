@@ -14,6 +14,7 @@
       - file = File.join(dir, f)
       %tr
         %td
-          %a{href: '/journal/item?id=#{f}'}= f
+          %a{href: "/journal/item?id=#{f}"}<
+            %code= f
         %td.right= Zold::Size.new(File.size(file))
         %td= "#{Zold::Age.new(File.mtime(file))} ago"

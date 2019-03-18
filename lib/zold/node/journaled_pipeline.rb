@@ -84,6 +84,8 @@ module Zold
       jlog.level = Logger::DEBUG
       jlog.formatter = Log::COMPACT
       jlog.info("push(#{id}, #{body.length} bytes): starting...")
+      jlog.info("Time: #{Time.now.utc.iso8601}")
+      jlog.info("Zold gem version: #{Zold::VERSION}")
       modified = @pipeline.push(id, body, JournaledPipeline::Wallets.new(wallets, jlog), Log::Tee.new(log, jlog))
       jlog.info("push(#{id}): done")
       modified
