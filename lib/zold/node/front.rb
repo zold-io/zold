@@ -479,7 +479,9 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
 
     get '/journal/item' do
       content_type('text/plain')
-      IO.read(File.join(settings.journal_dir, params[:id]))
+      file = File.join(settings.journal_dir, params[:id])
+      error(404, "Journal item not found at #{file}") unless File.exist?(file)
+      IO.read(file)
     end
 
     not_found do

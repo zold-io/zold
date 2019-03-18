@@ -21,12 +21,34 @@
     %meta{name: 'twitter:image:alt', content: 'Zold'}
   %body
     %section
-      %p
-        %a{href: '/'}
-          %img.logo{src: '//www.zold.io/images/logo.svg', alt: 'Zold logo'}
+      %header
+        %nav
+          %li
+            %a{href: '/'}
+              %img.logo{src: '//www.zold.io/images/logo.svg', alt: 'Zold logo'}
+        %nav
+          %li
+            %a{href: '/'} Home
+          %li
+            %a{href: '/queue'} Queue
+          %li
+            %a{href: '/remotes'} Remotes
+          %li
+            %a{href: '/threads'} Threads
+          %li
+            %a{href: '/wallets'} Wallets
+          %li
+            %a{href: '/ledger'} Ledger
+          %li
+            %a{href: '/journal'} Journal
+          %li
+            %a{href: '/farm'} Farm
+          %li
+            %a{href: '/metronome'} Metronome
       = yield
-      %p.footnotes
-        = Zold::VERSION
-      %p
-        %a{href: 'https://github.com/zold-io/zold/stargazers'}
-          %img{src: '//img.shields.io/github/stars/zold-io/zold.svg?style=flat-square', alt: 'GitHub stars'}
+      %footer
+        %p.footnotes
+          = Zold::VERSION
+        %p
+          %a{href: 'https://github.com/zold-io/zold/stargazers'}
+            %img{src: '//img.shields.io/github/stars/zold-io/zold.svg?style=flat-square', alt: 'GitHub stars'}
