@@ -468,6 +468,7 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
         locals: {
           title: '/journal',
           description: 'The journal',
+          id: params[:id],
           files: DirItems.new(settings.journal_dir).fetch.sort.reverse.select do |f|
             !params[:id] || f.start_with?(params[:id])
           end,

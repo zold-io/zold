@@ -87,7 +87,7 @@ module Zold
       Tempfile.open do |f|
         modified = Merge.new(
           wallets: wallets, remotes: @remotes, copies: copies.root, log: log
-        ).run(['merge', id.to_s, "--ledger=#{f.path}", "--network=#{@network}"])
+        ).run(['merge', id.to_s, "--ledger=#{f.path}", "--network=#{@network}", '--deep'])
         @mutex.synchronize do
           txns = File.exist?(@ledger) ? IO.read(@ledger).strip.split("\n") : []
           txns += IO.read(f.path).strip.split("\n")

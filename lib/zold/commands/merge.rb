@@ -65,6 +65,9 @@ Available options:"
         o.bool '--shallow',
           'Don\'t try to pull other wallets if their confirmations are required',
           default: false
+        o.bool '--deep',
+          'Try to pull other wallets if their confirmations are required, as deep as possible',
+          default: false
         o.bool '--allow-negative-balance',
           'Don\'t check for the negative balance of the wallet after the merge',
           default: false
@@ -149,7 +152,8 @@ into #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 0.1 + cps.count * 0
       else
         patch.join(wallet, ledger: opts['ledger']) do |txn|
           Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-            ['pull', txn.bnf.to_s, "--network=#{opts['network']}", '--shallow', '--quiet-if-absent']
+            ['pull', txn.bnf.to_s, "--network=#{opts['network']}", '--quiet-if-absent'] +
+            (opts['deep'] ? ['--deep'] : ['--shallow'])
           )
           true
         end
