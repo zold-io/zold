@@ -119,8 +119,9 @@ Available options:"
       end
       cps.each_with_index do |c, idx|
         wallet = Wallet.new(c[:path])
-        name = "#{c[:name]}/#{idx}/#{c[:score]}"
-        merge_one(opts, patch, wallet, name, baseline: idx.zero? && c[:master] && !opts['no-baseline'])
+        baseline = idx.zero? && c[:master] && !opts['no-baseline']
+        name = "#{c[:name]}/#{idx}/#{c[:score]}#{baseline ? '/baseline' : ''}"
+        merge_one(opts, patch, wallet, name, baseline: baseline)
         score += c[:score]
       end
       @wallets.acq(id) do |w|
