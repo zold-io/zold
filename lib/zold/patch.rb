@@ -65,7 +65,11 @@ module Zold
     # not present, it's a failure, don't accept the transaction. FALSE will mean
     # that the transaction should be accepted, even if the paying wallet is
     # absent.
-    def join(wallet, ledger: '/dev/null')
+    #
+    # The "baseline" flag, when set to TRUE, means that we should NOT validate
+    # the presence of positive incoming transactions in their correspondent
+    # wallets. We shall just trust them.
+    def join(wallet, ledger: '/dev/null', baseline: false)
       if @id.nil?
         @id = wallet.id
         @key = wallet.key
@@ -115,25 +119,35 @@ with a new one \"#{txn.to_text}\" from #{wallet.mnemo}")
             next
           end
           unless @wallets.acq(txn.bnf, &:exists?)
-            next if pulled.include?(txn.bnf)
-            pulled << txn.bnf
-            if yield(txn) && !@wallets.acq(txn.bnf, &:exists?)
-              @log.error("Paying wallet #{txn.bnf} file is absent even after PULL: \"#{txn.to_text}\"")
-              next
+            if baseline
+              @log.debug("Paying wallet #{txn.bnf} is absent, but the txn in in the baseline: \"#{txn.to_text}\"")
+            else
+              next if pulled.include?(txn.bnf)
+              pulled << txn.bnf
+              if yield(txn) && !@wallets.acq(txn.bnf, &:exists?)
+                @log.error("Paying wallet #{txn.bnf} file is absent even after PULL: \"#{txn.to_text}\"")
+                next
+              end
             end
           end
-          if @wallets.acq(txn.bnf, &:exists?) && !@wallets.acq(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
-            if pulled.include?(txn.bnf)
+          if @wallets.acq(txn.bnf, &:exists?) &&
+            !@wallets.acq(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
+            if baseline
               @log.debug("The beneficiary #{@wallets.acq(txn.bnf, &:mnemo)} of #{@id} \
+doesn't have this transaction, but we trust it, since it's a baseline: \"#{txn.to_text}\"")
+            else
+              if pulled.include?(txn.bnf)
+                @log.debug("The beneficiary #{@wallets.acq(txn.bnf, &:mnemo)} of #{@id} \
 doesn't have this transaction: \"#{txn.to_text}\"")
-              next
-            end
-            pulled << txn.bnf
-            yield(txn)
-            unless @wallets.acq(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
-              @log.debug("The beneficiary #{@wallets.acq(txn.bnf, &:mnemo)} of #{@id} \
+                next
+              end
+              pulled << txn.bnf
+              yield(txn)
+              unless @wallets.acq(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
+                @log.debug("The beneficiary #{@wallets.acq(txn.bnf, &:mnemo)} of #{@id} \
 doesn't have this transaction: \"#{txn.to_text}\"")
-              next
+                next
+              end
             end
           end
         end

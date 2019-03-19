@@ -1,1 +1,3 @@
 --verbose
+--deep
+--no-baseline

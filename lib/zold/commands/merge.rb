@@ -63,14 +63,14 @@ Available options:"
         o.bool '--quiet-if-absent',
           'Don\'t fail if the wallet is absent',
           default: false
-        o.bool '--shallow',
-          'Don\'t try to pull other wallets if their confirmations are required',
-          default: false
         o.bool '--deep',
           'Try to pull other wallets if their confirmations are required, as deep as possible',
           default: false
         o.bool '--allow-negative-balance',
           'Don\'t check for the negative balance of the wallet after the merge',
+          default: false
+        o.bool '--no-baseline',
+          'Don\'t treat the highest score master copy as trustable baseline',
           default: false
         o.string '--ledger',
           'The name of the file where all new negative transactions will be recorded (default: /dev/null)',
@@ -80,7 +80,7 @@ Available options:"
           default: '/dev/null'
         o.integer '--trusted-max',
           'The maximum amount of trusted wallets we can see in the list',
-          default: 32
+          default: 128
         o.string '--network',
           'The name of the network we work in',
           default: 'test'
@@ -120,7 +120,7 @@ Available options:"
       cps.each_with_index do |c, idx|
         wallet = Wallet.new(c[:path])
         name = "#{c[:name]}/#{idx}/#{c[:score]}"
-        merge_one(opts, patch, wallet, name)
+        merge_one(opts, patch, wallet, name, baseline: idx.zero? && c[:master] && !opts['no-baseline'])
         score += c[:score]
       end
       @wallets.acq(id) do |w|
@@ -148,16 +148,11 @@ into #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 0.1 + cps.count * 0
       modified
     end
 
-    def merge_one(opts, patch, wallet, name)
+    def merge_one(opts, patch, wallet, name, baseline: false)
       start = Time.now
       @log.debug("Building a patch for #{wallet.id} from remote copy ##{name} with #{wallet.mnemo}...")
-      if opts['shallow']
-        patch.join(wallet, ledger: opts['ledger']) do |txn|
-          @log.debug("Paying wallet #{txn.bnf} file is in question but it's a \"shallow\" MERGE: #{txn.to_text}")
-          false
-        end
-      else
-        patch.join(wallet, ledger: opts['ledger']) do |txn|
+      if opts['deep']
+        patch.join(wallet, ledger: opts['ledger'], baseline: baseline) do |txn|
           trusted = IO.read(opts['trusted']).split(',')
           if trusted.include?(txn.bnf.to_s)
             @log.debug("Won't PULL #{txn.bnf} since it is already trusted, among #{trusted.count} others")
@@ -168,11 +163,17 @@ into #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 0.1 + cps.count * 0
             IO.write(opts['trusted'], (trusted + [txn.bnf.to_s]).sort.uniq.join(','))
             Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
               ['pull', txn.bnf.to_s, "--network=#{Shellwords.escape(opts['network'])}", '--quiet-if-absent'] +
-              (opts['deep'] ? ['--deep'] : ['--shallow']) +
+              (opts['deep'] ? ['--deep'] : []) +
+              (opts['no-baseline'] ? ['--no-baseline'] : []) +
               ["--trusted=#{Shellwords.escape(opts['trusted'])}"]
             )
           end
           true
+        end
+      else
+        patch.join(wallet, ledger: opts['ledger'], baseline: baseline) do |txn|
+          @log.debug("Paying wallet #{txn.bnf} file is in question but it's not a deep MERGE: #{txn.to_text}")
+          false
         end
       end
       @log.debug("Copy ##{name} of #{wallet.id} merged in #{Age.new(start)}: #{patch}")
