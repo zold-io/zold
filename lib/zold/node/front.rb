@@ -98,7 +98,10 @@ module Zold
       @start = Time.now
       if !settings.opts['halt-code'].empty? && params[:halt] && params[:halt] == settings.opts['halt-code']
         settings.log.info('Halt signal received, shutting the front end down...')
-        Front.stop!
+        Thread.start do
+          sleep 0.1
+          Front.stop!
+        end
       end
       check_header(Http::NETWORK_HEADER) do |header|
         if header != settings.opts['network']
