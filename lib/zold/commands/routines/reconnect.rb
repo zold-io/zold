@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'shellwords'
 require_relative '../remote'
 require_relative '../../node/farm'
 
@@ -42,9 +43,9 @@ module Zold
       def exec(step = 0)
         sleep(60) unless @opts['routine-immediately']
         cmd = Remote.new(remotes: @remotes, log: @log, farm: @farm)
-        args = ['remote', "--network=#{@opts['network']}", '--ignore-ping']
+        args = ['remote', "--network=#{Shellwords.escape(@opts['network'])}", '--ignore-ping']
         score = @farm.best[0]
-        args << "--ignore-node=#{score.host}:#{score.port}" if score
+        args << "--ignore-node=#{Shellwords.escape("#{score.host}:#{score.port}")}" if score
         cmd.run(args + ['masters']) unless @opts['routine-immediately']
         all = @remotes.all
         return if @opts['routine-immediately'] && all.empty?

@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'shellwords'
 require_relative '../../log'
 require_relative '../../id'
 require_relative '../../copies'
@@ -47,7 +48,7 @@ module Zold
         @wallets.all.sample(100).each do |id|
           next if Copies.new(File.join(@copies, id)).all.count < 2
           Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-            ['push', "--network=#{@opts['network']}", id.to_s]
+            ['push', "--network=#{Shellwords.escape(@opts['network'])}", id.to_s]
           )
         end
       end

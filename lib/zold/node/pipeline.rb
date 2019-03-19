@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'tempfile'
+require 'shellwords'
 require_relative '../log'
 require_relative '../remotes'
 require_relative '../copies'
@@ -85,9 +86,13 @@ module Zold
 
     def merge(id, copies, wallets, log)
       Tempfile.open do |f|
-        modified = Merge.new(
-          wallets: wallets, remotes: @remotes, copies: copies.root, log: log
-        ).run(['merge', id.to_s, "--ledger=#{f.path}", "--network=#{@network}", '--deep'])
+        modified = Tempfile.open do |t|
+          Merge.new(wallets: wallets, remotes: @remotes, copies: copies.root, log: log).run(
+            ['merge', id.to_s, "--ledger=#{Shellwords.escape(f.path)}"] +
+            ["--trusted=#{Shellwords.escape(t.path)}", '--deep'] +
+            ["--network=#{Shellwords.escape(@network)}"]
+          )
+        end
         @mutex.synchronize do
           txns = File.exist?(@ledger) ? IO.read(@ledger).strip.split("\n") : []
           txns += IO.read(f.path).strip.split("\n")

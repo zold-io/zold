@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'slop'
+require 'shellwords'
 require_relative 'thread_badge'
 require_relative 'args'
 require_relative '../log'
@@ -73,7 +74,8 @@ Available options:"
       unless @wallets.acq(id, &:exists?)
         require_relative 'pull'
         Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-          ['pull', id.to_s, "--network=#{opts['network']}", "--tolerate-quorum=#{opts['tolerate-quorum']}"] +
+          ['pull', id.to_s, "--network=#{Shellwords.escape(opts['network'])}"] +
+          ["--tolerate-quorum=#{Shellwords.escape(opts['tolerate-quorum'])}"] +
           (opts['tolerate-edges'] ? ['--tolerate-edges'] : [])
         )
       end

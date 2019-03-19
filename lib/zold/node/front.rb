@@ -25,6 +25,7 @@ STDOUT.sync = true
 require 'get_process_mem'
 require 'thin'
 require 'haml'
+require 'shellwords'
 require 'json'
 require 'sinatra/base'
 require 'concurrent'
@@ -590,7 +591,7 @@ time to stop; use --skip-oom to never quit")
         Remote.new(remotes: settings.remotes, log: settings.log).run(
           [
             'remote', 'add', score.host, score.port.to_s,
-            "--network=#{settings.opts['network']}", '--ignore-if-exists'
+            "--network=#{Shellwords.escape(settings.opts['network'])}", '--ignore-if-exists'
           ] + (settings.opts['ignore-score-weakness'] ? ['--skip-ping'] : [])
         )
       rescue StandardError => e

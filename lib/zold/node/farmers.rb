@@ -92,9 +92,9 @@ for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}")
           'ruby',
           Shellwords.escape(bin),
           '--skip-upgrades',
-          "--info-tid=#{Thread.current.thread_variable_get(:tid)}",
+          "--info-tid=#{Shellwords.escape(Thread.current.thread_variable_get(:tid))}",
           "--info-thread=#{Shellwords.escape(Thread.current.name)}",
-          "--info-start=#{Time.now.utc.iso8601}",
+          "--info-start=#{Shellwords.escape(Time.now.utc.iso8601)}",
           '--low-priority',
           'next',
           Shellwords.escape(score)

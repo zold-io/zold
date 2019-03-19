@@ -22,6 +22,7 @@
 
 require 'slop'
 require 'rainbow'
+require 'shellwords'
 require_relative 'thread_badge'
 require_relative 'args'
 require_relative '../id'
@@ -91,7 +92,8 @@ Available options:"
       unless invoice.include?('@')
         require_relative 'invoice'
         invoice = Invoice.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-          ['invoice', invoice, "--tolerate-quorum=#{opts['tolerate-quorum']}", "--network=#{opts['network']}"] +
+          ['invoice', invoice, "--tolerate-quorum=#{Shellwords.escape(opts['tolerate-quorum'])}"] +
+          ["--network=#{Shellwords.escape(opts['network'])}"] +
           (opts['tolerate-edges'] ? ['--tolerate-edges'] : [])
         )
       end
@@ -123,7 +125,8 @@ Available options:"
       return unless debt
       require_relative 'taxes'
       Taxes.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-        ['taxes', 'pay', "--private-key=#{opts['private-key']}", id.to_s, "--keygap=#{opts['keygap']}"]
+        ['taxes', 'pay', "--private-key=#{Shellwords.escape(opts['private-key'])}"] +
+        [id.to_s, "--keygap=#{Shellwords.escape(opts['keygap'])}"]
       )
     end
 
@@ -138,6 +141,7 @@ the difference is #{(amount - from.balance).to_i} zents"
       end
       pem = IO.read(opts['private-key'])
       unless opts['keygap'].empty?
+        puts opts['keygap']
         pem = pem.sub('*' * opts['keygap'].length, opts['keygap'])
         @log.debug("Keygap \"#{'*' * opts['keygap'].length}\" injected into the RSA private key")
       end

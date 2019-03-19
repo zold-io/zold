@@ -23,6 +23,7 @@
 require 'minitest/autorun'
 require 'webmock/minitest'
 require 'threads'
+require 'shellwords'
 require_relative '../test__helper'
 require_relative '../fake_home'
 require_relative '../../lib/zold/wallets'
@@ -92,7 +93,8 @@ class TestPay < Zold::Test
         IO.write(f, pem.gsub(keygap, '*' * keygap.length))
         Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: test_log).run(
           [
-            'pay', '--force', "--private-key=#{f.path}", "--keygap=#{keygap}",
+            'pay', '--force', "--private-key=#{Shellwords.escape(f.path)}",
+            "--keygap=#{Shellwords.escape(keygap)}",
             wallet.id.to_s, 'NOPREFIX@dddd0000dddd0000', amount.to_zld, '-'
           ]
         )

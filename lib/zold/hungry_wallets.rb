@@ -22,6 +22,7 @@
 
 require 'delegate'
 require 'zache'
+require 'shellwords'
 require_relative 'log'
 require_relative 'thread_pool'
 require_relative 'commands/pull'
@@ -88,7 +89,7 @@ module Zold
       end
       begin
         Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-          ['pull', id.to_s, "--network=#{@network}", '--tolerate-edges', '--tolerate-quorum=1']
+          ['pull', id.to_s, "--network=#{Shellwords.escape(@network)}", '--tolerate-edges', '--tolerate-quorum=1']
         )
         @missed.remove(id.to_s)
       rescue Fetch::Error => e

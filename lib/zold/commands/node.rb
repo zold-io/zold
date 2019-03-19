@@ -22,6 +22,7 @@
 
 require 'open3'
 require 'slop'
+require 'shellwords'
 require 'backtrace'
 require 'fileutils'
 require 'zache'
@@ -337,7 +338,8 @@ the node won\'t connect to the network like that; try to do "zold remote reset" 
       unless invoice.include?('@')
         require_relative 'invoice'
         invoice = Invoice.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-          ['invoice', invoice, "--network=#{opts['network']}", "--tolerate-quorum=#{opts['tolerate-quorum']}"] +
+          ['invoice', invoice, "--network=#{Shellwords.escape(opts['network'])}"] +
+          ["--tolerate-quorum=#{Shellwords.escape(opts['tolerate-quorum'])}"] +
           (opts['tolerate-edges'] ? ['--tolerate-edges'] : [])
         )
       end
