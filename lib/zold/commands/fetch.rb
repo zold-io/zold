@@ -162,13 +162,13 @@ run 'zold remote update' or use --tolerate-quorum=1"
             wallet = Wallet.new(f.path)
             wallet.refurbish
             if wallet.protocol != Zold::PROTOCOL
-              raise "Protocol #{wallet.protocol} doesn't match #{Zold::PROTOCOL} in #{id}"
+              raise FetchError, "Protocol #{wallet.protocol} doesn't match #{Zold::PROTOCOL} in #{id}"
             end
             if wallet.network != opts['network']
-              raise "The wallet #{id} is in network '#{wallet.network}', while we are in '#{opts['network']}'"
+              raise FetchError, "The wallet #{id} is in '#{wallet.network}', while we are in '#{opts['network']}'"
             end
             if wallet.balance.negative? && !wallet.root?
-              raise "The balance of #{id} is #{wallet.balance} and it's not a root wallet"
+              raise FetchError, "The balance of #{id} is #{wallet.balance} and it's not a root wallet"
             end
             copy = cps.add(IO.read(f), score.host, score.port, score.value, master: r.master?)
             @log.debug("#{r} returned #{wallet.mnemo} #{Age.new(json['mtime'])}/#{json['copies']}c \

@@ -141,7 +141,6 @@ the difference is #{(amount - from.balance).to_i} zents"
       end
       pem = IO.read(opts['private-key'])
       unless opts['keygap'].empty?
-        puts opts['keygap']
         pem = pem.sub('*' * opts['keygap'].length, opts['keygap'])
         @log.debug("Keygap \"#{'*' * opts['keygap'].length}\" injected into the RSA private key")
       end

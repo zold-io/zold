@@ -57,7 +57,14 @@ module Zold
     def clean(max: 24 * 60 * 60)
       Futex.new(file, log: @log).open do
         list = load
-        list.reject! { |s| s[:time] < Time.now - max }
+        list.reject! do |s|
+          if s[:time] >= Time.now - max
+            false
+          else
+            @log.debug("Copy ##{s[:name]}/#{s[:host]}:#{s[:port]} is too old, over #{Age.new(s[:time])}")
+            true
+          end
+        end
         save(list)
         deleted = 0
         files.each do |f|
@@ -68,18 +75,21 @@ module Zold
           @log.debug("Copy at #{f} deleted: #{Size.new(size)}")
           deleted += 1
         end
-        files.each do |f|
-          cp = File.join(@dir, f)
+        list.select! do |s|
+          cp = File.join(@dir, "#{s[:name]}#{Copies::EXT}")
           wallet = Wallet.new(cp)
           begin
             wallet.refurbish
             raise "Invalid protocol #{wallet.protocol} in #{cp}" unless wallet.protocol == Zold::PROTOCOL
+            true
           rescue StandardError => e
             FileUtils.rm_rf(cp)
-            @log.debug("Copy at #{f} deleted: #{Backtrace.new(e)}")
+            @log.debug("Copy at #{cp} deleted: #{Backtrace.new(e)}")
             deleted += 1
+            false
           end
         end
+        save(list)
         deleted
       end
     end
