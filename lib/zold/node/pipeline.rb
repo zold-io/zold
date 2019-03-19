@@ -89,7 +89,7 @@ module Zold
         modified = Tempfile.open do |t|
           Merge.new(wallets: wallets, remotes: @remotes, copies: copies.root, log: log).run(
             ['merge', id.to_s, "--ledger=#{Shellwords.escape(f.path)}"] +
-            ["--trusted=#{Shellwords.escape(t.path)}", '--deep'] +
+            ["--trusted=#{Shellwords.escape(t.path)}", '--deep', '--trusted-max=256'] +
             ["--network=#{Shellwords.escape(@network)}"]
           )
         end

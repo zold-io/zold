@@ -22,6 +22,7 @@
 
 require 'tempfile'
 require 'diffy'
+require 'fileutils'
 require_relative 'pipeline'
 require_relative '../log'
 require_relative '../age'
@@ -88,6 +89,7 @@ module Zold
       jlog.info("Zold gem version: #{Zold::VERSION}")
       modified = @pipeline.push(id, body, JournaledPipeline::Wallets.new(wallets, jlog), Log::Tee.new(log, jlog))
       jlog.info("push(#{id}): done")
+      FileUtils.mv(journal, journal + '-done')
       modified
     end
   end

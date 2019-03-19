@@ -85,6 +85,7 @@ module Zold
       end
       seen = 0
       added = 0
+      pulled = []
       wallet.txns.each do |txn|
         next if @txns.find { |t| t == txn }
         seen += 1
@@ -114,12 +115,20 @@ with a new one \"#{txn.to_text}\" from #{wallet.mnemo}")
             next
           end
           unless @wallets.acq(txn.bnf, &:exists?)
+            next if pulled.include?(txn.bnf)
+            pulled << txn.bnf
             if yield(txn) && !@wallets.acq(txn.bnf, &:exists?)
               @log.error("Paying wallet #{txn.bnf} file is absent even after PULL: \"#{txn.to_text}\"")
               next
             end
           end
           if @wallets.acq(txn.bnf, &:exists?) && !@wallets.acq(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
+            if pulled.include?(txn.bnf)
+              @log.debug("The beneficiary #{@wallets.acq(txn.bnf, &:mnemo)} of #{@id} \
+doesn't have this transaction: \"#{txn.to_text}\"")
+              next
+            end
+            pulled << txn.bnf
             yield(txn)
             unless @wallets.acq(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
               @log.debug("The beneficiary #{@wallets.acq(txn.bnf, &:mnemo)} of #{@id} \
@@ -130,25 +139,22 @@ doesn't have this transaction: \"#{txn.to_text}\"")
         end
         @txns << txn
         added += 1
-        if txn.amount.negative?
-          File.open(ledger, 'a') do |f|
-            f.puts(
-              [
-                Time.now.utc.iso8601,
-                txn.id,
-                txn.date.utc.iso8601,
-                wallet.id,
-                txn.bnf,
-                txn.amount.to_i * -1,
-                txn.prefix,
-                txn.details
-              ].map(&:to_s).join(';') + "\n"
-            )
-          end
+        next unless txn.amount.negative?
+        File.open(ledger, 'a') do |f|
+          f.puts(
+            [
+              Time.now.utc.iso8601,
+              txn.id,
+              txn.date.utc.iso8601,
+              wallet.id,
+              txn.bnf,
+              txn.amount.to_i * -1,
+              txn.prefix,
+              txn.details
+            ].map(&:to_s).join(';') + "\n"
+          )
         end
-        @log.debug("Merged on top, balance is #{@txns.map(&:amount).inject(&:+)}: #{txn.to_text}")
       end
-      @log.debug("#{seen} new txns arrived from #{wallet.mnemo}, #{added} of them added to the patch")
     end
 
     def empty?

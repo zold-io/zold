@@ -70,7 +70,7 @@ Available options:"
 
     def clean(cps, opts)
       start = Time.now
-      deleted = cps.clean(max: opts['max-age'])
+      deleted = cps.clean(max: opts['max-age'] * 60 * 60)
       list = cps.all.map do |c|
         wallet = Wallet.new(c[:path])
         "#{c[:name]}: #{c[:score]} #{wallet.mnemo} \
