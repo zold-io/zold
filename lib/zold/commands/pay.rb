@@ -45,6 +45,8 @@ module Zold
       @log = log
     end
 
+    # Sends a payment and returns the transaction just created in the
+    # paying wallet, an instance of Zold::Txn
     def run(args = [])
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = "Usage: zold pay wallet target amount [details] [options]
@@ -101,12 +103,13 @@ Available options:"
       amount = amount(mine[2].strip)
       details = mine[3] || '-'
       taxes(id, opts)
-      @wallets.acq(id, exclusive: true) do |from|
+      txn = @wallets.acq(id, exclusive: true) do |from|
         pay(from, invoice, amount, details, opts)
       end
       return if opts['skip-propagate']
       require_relative 'propagate'
       Propagate.new(wallets: @wallets, log: @log).run(['propagate', id.to_s])
+      txn
     end
 
     private
