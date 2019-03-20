@@ -72,6 +72,9 @@ Available options:"
         o.bool '--no-baseline',
           'Don\'t treat the highest score master copy as trustable baseline',
           default: false
+        o.bool '--edge-baseline',
+          'Use any strongest group of nodes as baseline, even if there are no masters inside (dangerous!)',
+          default: false
         o.string '--ledger',
           'The name of the file where all new negative transactions will be recorded (default: /dev/null)',
           default: '/dev/null'
@@ -103,7 +106,7 @@ Available options:"
 
     def merge(id, cps, opts)
       start = Time.now
-      cps = cps.all.sort_by { |c| c[:score] }.reverse
+      cps = cps.all(masters_first: !opts['edge-baseline'])
       patch = Patch.new(@wallets, log: @log)
       score = 0
       unless opts['skip-legacy']
@@ -119,7 +122,7 @@ Available options:"
       end
       cps.each_with_index do |c, idx|
         wallet = Wallet.new(c[:path])
-        baseline = idx.zero? && c[:master] && !opts['no-baseline']
+        baseline = idx.zero? && (c[:master] || opts['edge-baseline']) && !opts['no-baseline']
         name = "#{c[:name]}/#{idx}/#{c[:score]}#{baseline ? '/baseline' : ''}"
         merge_one(opts, patch, wallet, name, baseline: baseline)
         score += c[:score]
@@ -166,6 +169,7 @@ into #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 0.1 + cps.count * 0
               ['pull', txn.bnf.to_s, "--network=#{Shellwords.escape(opts['network'])}", '--quiet-if-absent'] +
               ["--depth=#{opts['depth'] - 1}"] +
               (opts['no-baseline'] ? ['--no-baseline'] : []) +
+              (opts['edge-baseline'] ? ['--edge-baseline'] : []) +
               ["--trusted=#{Shellwords.escape(opts['trusted'])}"]
             )
           end

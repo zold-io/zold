@@ -87,12 +87,13 @@ module Zold
     def merge(id, copies, wallets, log)
       Tempfile.open do |f|
         modified = Tempfile.open do |t|
-          host, port = @address.split(':')
+          # host, port = @address.split(':')
           Merge.new(wallets: wallets, remotes: @remotes, copies: copies.root, log: log).run(
             ['merge', id.to_s, "--ledger=#{Shellwords.escape(f.path)}"] +
             ["--trusted=#{Shellwords.escape(t.path)}"] +
             ["--network=#{Shellwords.escape(@network)}"] +
-            (@remotes.master?(host, port.to_i) ? ['--no-baseline', '--depth=4'] : [])
+            ['--edge-baseline']
+            # (@remotes.master?(host, port.to_i) ? ['--no-baseline', '--depth=4'] : [])
           )
         end
         @mutex.synchronize do

@@ -99,7 +99,7 @@ module Zold
       if !settings.opts['halt-code'].empty? && params[:halt] && params[:halt] == settings.opts['halt-code']
         settings.log.info('Halt signal received, shutting the front end down...')
         Thread.start do
-          sleep 0.1
+          sleep 0.1 # to let the current request finish and close the socket
           Front.stop!
         end
       end

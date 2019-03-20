@@ -142,9 +142,9 @@ module Zold
       end
     end
 
-    def all
+    def all(masters_first: true)
       Futex.new(file, log: @log).open(false) do
-        load.group_by { |s| s[:name] }.map do |name, scores|
+        list = load.group_by { |s| s[:name] }.map do |name, scores|
           {
             name: name,
             path: File.join(@dir, "#{name}#{Copies::EXT}"),
@@ -154,7 +154,13 @@ module Zold
               .map { |s| s[:score] }
               .inject(&:+) || 0
           }
-        end.select { |c| File.exist?(c[:path]) }.sort_by { |c| [c[:master] ? 1 : 0, c[:score].to_s] }.reverse
+        end.select { |c| File.exist?(c[:path]) }
+        if masters_first
+          list.sort_by! { |c| [c[:master] ? 1 : 0, c[:score].to_s.rjust(5, '0')] }
+        else
+          list.sort_by! { |c| c[:score] }
+        end
+        list.reverse
       end
     end
 
