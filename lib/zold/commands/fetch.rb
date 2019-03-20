@@ -140,7 +140,7 @@ run 'zold remote update' or use --tolerate-quorum=1"
       @log.info("#{done.value} copies of #{id} fetched in #{Age.new(start)} with the total score of \
 #{total.value} from #{nodes.value} nodes (#{masters.value} master nodes)")
       list = cps.all.map do |c|
-        "  ##{c[:name]}: #{c[:score]} #{Wallet.new(c[:path]).mnemo} \
+        "  ##{c[:name]}: #{c[:score]} #{c[:total]}n #{Wallet.new(c[:path]).mnemo} \
 #{Size.new(File.size(c[:path]))}/#{Age.new(File.mtime(c[:path]))}#{c[:master] ? ' master' : ''}"
       end
       @log.debug("#{cps.all.count} local copies of #{id}:\n#{list.join("\n")}")

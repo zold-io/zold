@@ -73,7 +73,7 @@ Available options:"
       deleted = cps.clean(max: opts['max-age'] * 60 * 60)
       list = cps.all.map do |c|
         wallet = Wallet.new(c[:path])
-        "#{c[:name]}: #{c[:score]} #{wallet.mnemo} \
+        "#{c[:name]}: #{c[:score]} #{c[:total]}n #{wallet.mnemo} \
 #{Size.new(File.size(c[:path]))}/#{Age.new(File.mtime(c[:path]))}#{c[:master] ? ' master' : ''}"
       end
       @log.debug(

@@ -28,7 +28,7 @@ Metrics/ParameterLists:
 Layout/AlignParameters:
   Enabled: false
 Metrics/PerceivedComplexity:
-  Max: 30
+  Max: 34
 Metrics/LineLength:
   Max: 120
 Style/MultilineBlockChain:

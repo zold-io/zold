@@ -96,36 +96,43 @@ module Zold
         if txn.amount.negative?
           dup = @txns.find { |t| t.id == txn.id && t.amount.negative? }
           if dup
-            @log.error("An attempt to overwrite existing transaction \"#{dup.to_text}\" \
-with a new one \"#{txn.to_text}\" from #{wallet.mnemo}")
+            @log.error("An attempt to overwrite existing transaction #{dup.to_text.inspect} \
+with a new one #{txn.to_text.inspect} from #{wallet.mnemo}")
             next
           end
           unless Signature.new(@network).valid?(@key, wallet.id, txn)
-            @log.error("Invalid RSA signature at the transaction ##{txn.id} of #{wallet.id}: \"#{txn.to_text}\"")
+            @log.error("Invalid RSA signature at the transaction ##{txn.id} of #{wallet.id}: #{txn.to_text.inspect}")
             next
           end
         else
+          if Id::BANNED.include?(txn.bnf.to_s)
+            @log.debug("The paying wallet is banned, #{wallet.id} can't accept this: #{txn.to_text.inspect}")
+            next
+          end
           dup = @txns.find { |t| t.id == txn.id && t.bnf == txn.bnf && t.amount.positive? }
           if dup
-            @log.error("Overwriting \"#{dup.to_text}\" with \"#{txn.to_text}\" from #{wallet.mnemo} (same ID/BNF)")
+            @log.error("Overwriting #{dup.to_text.inspect} with #{txn.to_text.inspect} \
+from #{wallet.mnemo} (same ID/BNF)")
             next
           end
           if !txn.sign.nil? && !txn.sign.empty?
-            @log.error("RSA signature is redundant at ##{txn.id} of #{wallet.id}: \"#{txn.to_text}\"")
+            @log.error("RSA signature is redundant at ##{txn.id} of #{wallet.id}: #{txn.to_text.inspect}")
             next
           end
           unless wallet.prefix?(txn.prefix)
-            @log.debug("Payment prefix '#{txn.prefix}' doesn't match with the key of #{wallet.id}: \"#{txn.to_text}\"")
+            @log.debug("Payment prefix '#{txn.prefix}' doesn't match \
+with the key of #{wallet.id}: #{txn.to_text.inspect}")
             next
           end
           unless @wallets.acq(txn.bnf, &:exists?)
             if baseline
-              @log.debug("Paying wallet #{txn.bnf} is absent, but the txn in in the baseline: \"#{txn.to_text}\"")
+              @log.debug("Paying wallet #{txn.bnf} is absent, \
+but the txn in in the baseline: #{txn.to_text.inspect}")
             else
               next if pulled.include?(txn.bnf)
               pulled << txn.bnf
               if yield(txn) && !@wallets.acq(txn.bnf, &:exists?)
-                @log.error("Paying wallet #{txn.bnf} file is absent even after PULL: \"#{txn.to_text}\"")
+                @log.error("Paying wallet #{txn.bnf} file is absent even after PULL: #{txn.to_text.inspect}")
                 next
               end
             end
@@ -134,18 +141,18 @@ with a new one \"#{txn.to_text}\" from #{wallet.mnemo}")
             !@wallets.acq(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
             if baseline
               @log.debug("The beneficiary #{@wallets.acq(txn.bnf, &:mnemo)} of #{@id} \
-doesn't have this transaction, but we trust it, since it's a baseline: \"#{txn.to_text}\"")
+doesn't have this transaction, but we trust it, since it's a baseline: #{txn.to_text.inspect}")
             else
               if pulled.include?(txn.bnf)
                 @log.debug("The beneficiary #{@wallets.acq(txn.bnf, &:mnemo)} of #{@id} \
-doesn't have this transaction: \"#{txn.to_text}\"")
+doesn't have this transaction: #{txn.to_text.inspect}")
                 next
               end
               pulled << txn.bnf
               yield(txn)
               unless @wallets.acq(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
                 @log.debug("The beneficiary #{@wallets.acq(txn.bnf, &:mnemo)} of #{@id} \
-doesn't have this transaction: \"#{txn.to_text}\"")
+doesn't have this transaction: #{txn.to_text.inspect}")
                 next
               end
             end
