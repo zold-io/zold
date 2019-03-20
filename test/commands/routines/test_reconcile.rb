@@ -20,34 +20,32 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative '../routines'
-require_relative '../../log'
-require_relative '../remove'
+require 'minitest/autorun'
+require 'webmock/minitest'
+require_relative '../../test__helper'
+require_relative '../../fake_home'
+require_relative '../../../lib/zold/remotes'
+require_relative '../../../lib/zold/commands/routines/reconcile.rb'
 
-# Gargage collecting. It goes through the list of all wallets and removes
-# those that are older than 10 days and don't have any transactions inside.
+# Reconcile test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class Zold::Routines::Gc
-  def initialize(opts, wallets, log: Log::NULL)
-    @opts = opts
-    @wallets = wallets
-    @log = log
-  end
-
-  def exec(_ = 0)
-    sleep(60) unless @opts['routine-immediately']
-    cmd = Zold::Remove.new(wallets: @wallets, log: @log)
-    args = ['remove']
-    seen = 0
-    removed = 0
-    @wallets.all.each do |id|
-      seen += 1
-      next unless @wallets.acq(id) { |w| w.exists? && w.mtime < Time.now - @opts['gc-age'] && w.txns.empty? }
-      cmd.run(args + [id.to_s])
-      removed += 1
+class TestReconcile < Zold::Test
+  def test_reconciles
+    FakeHome.new(log: test_log).run do |home|
+      remotes = home.remotes
+      remotes.clean
+      remotes.masters
+      m = remotes.all[0]
+      remotes.all.each_with_index { |r, idx| remotes.remove(r[:host], r[:port]) if idx.positive? }
+      stub_request(:get, "http://#{m[:host]}:#{m[:port]}/wallets").to_return(status: 200, body: Zold::Id::ROOT.to_s)
+      stub_request(:get, "http://#{m[:host]}:#{m[:port]}/wallet/#{Zold::Id::ROOT}").to_return(status: 404)
+      opts = { 'never-reboot' => true, 'routine-immediately' => true }
+      routine = Zold::Routines::Reconcile.new(
+        opts, home.wallets, remotes, home.copies.root, 'some-fake-host:2096', log: test_log
+      )
+      routine.exec
     end
-    @log.info("Removed #{removed} empty+old wallets out of #{seen} total") unless removed.zero?
   end
 end

@@ -5,6 +5,8 @@ AllCops:
   DisplayCopNames: true
   TargetRubyVersion: 2.5
 
+Style/ClassAndModuleChildren:
+  Enabled: false
 Layout/EmptyLineAfterGuardClause:
   Enabled: false
 Metrics/CyclomaticComplexity:

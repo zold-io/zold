@@ -21,33 +21,28 @@
 # SOFTWARE.
 
 require 'get_process_mem'
+require_relative '../routines'
 require_relative '../../size'
 
 # Audit and report as much as we can to the command line.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # Routines module
-  module Routines
-    # Audit the system
-    class Audit
-      def initialize(opts, wallets, log: Log::NULL)
-        @opts = opts
-        @wallets = wallets
-        @log = log
-      end
+class Zold::Routines::Audit
+  def initialize(opts, wallets, log: Log::NULL)
+    @opts = opts
+    @wallets = wallets
+    @log = log
+  end
 
-      def exec(_ = 0)
-        sleep(60) unless @opts['routine-immediately']
-        @log.info(
-          'Audit: ' + [
-            "memory used: #{Size.new(GetProcessMem.new.bytes.to_i)}",
-            "threads total: #{Thread.list.count}",
-            "wallets: #{@wallets.count}"
-          ].join('; ')
-        )
-      end
-    end
+  def exec(_ = 0)
+    sleep(60) unless @opts['routine-immediately']
+    @log.info(
+      'Audit: ' + [
+        "memory used: #{Zold::Size.new(GetProcessMem.new.bytes.to_i)}",
+        "threads total: #{Thread.list.count}",
+        "wallets: #{@wallets.count}"
+      ].join('; ')
+    )
   end
 end

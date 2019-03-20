@@ -319,7 +319,7 @@ the node won\'t connect to the network like that; try to do "zold remote reset" 
         )
         farm.start(host, opts[:port], threads: opts[:threads]) do |f|
           Front.set(:farm, f)
-          metronome(f, opts).start do |metronome|
+          metronome(f, opts, host, port).start do |metronome|
             Front.set(:metronome, metronome)
             @log.info("Starting up the web front at http://#{host}:#{opts[:port]}...")
             Front.run!
@@ -429,7 +429,7 @@ the node won\'t connect to the network like that; try to do "zold remote reset" 
       pid
     end
 
-    def metronome(farm, opts)
+    def metronome(farm, opts, host, port)
       metronome = Metronome.new(@log)
       if opts['no-metronome']
         @log.info("Metronome hasn't been started because of --no-metronome")
@@ -457,6 +457,10 @@ the node won\'t connect to the network like that; try to do "zold remote reset" 
       end
       require_relative 'routines/spread'
       metronome.add(Routines::Spread.new(opts, @wallets, @remotes, @copies, log: @log))
+      if @remotes.master?(host, port)
+        require_relative 'routines/reconcile'
+        metronome.add(Routines::Reconcile.new(opts, @wallets, @remotes, @copies, "#{host}:#{port}", log: @log))
+      end
       @log.info('Metronome started (use --no-metronome to disable it)')
       metronome
     end

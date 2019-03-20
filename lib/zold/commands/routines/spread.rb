@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'shellwords'
+require_relative '../routines'
 require_relative '../../log'
 require_relative '../../id'
 require_relative '../../copies'
@@ -30,28 +31,22 @@ require_relative '../push'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # Routines module
-  module Routines
-    # Spread them
-    class Spread
-      def initialize(opts, wallets, remotes, copies, log: Log::NULL)
-        @opts = opts
-        @wallets = wallets
-        @remotes = remotes
-        @copies = copies
-        @log = log
-      end
+class Zold::Routines::Spread
+  def initialize(opts, wallets, remotes, copies, log: Log::NULL)
+    @opts = opts
+    @wallets = wallets
+    @remotes = remotes
+    @copies = copies
+    @log = log
+  end
 
-      def exec(_ = 0)
-        sleep(60) unless @opts['routine-immediately']
-        @wallets.all.sample(100).each do |id|
-          next if Copies.new(File.join(@copies, id)).all.count < 2
-          Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-            ['push', "--network=#{Shellwords.escape(@opts['network'])}", id.to_s]
-          )
-        end
-      end
+  def exec(_ = 0)
+    sleep(60) unless @opts['routine-immediately']
+    @wallets.all.sample(100).each do |id|
+      next if Zold::Copies.new(File.join(@copies, id)).all.count < 2
+      Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
+        ['push', "--network=#{Shellwords.escape(@opts['network'])}", id.to_s]
+      )
     end
   end
 end

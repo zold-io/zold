@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'shellwords'
+require_relative '../routines'
 require_relative '../remote'
 require_relative '../../node/farm'
 
@@ -28,36 +29,31 @@ require_relative '../../node/farm'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-module Zold
-  # Routines module
-  module Routines
-    # Reconnect to the network
-    class Reconnect
-      def initialize(opts, remotes, farm = Farm::Empty.new, log: Log::NULL)
-        @opts = opts
-        @remotes = remotes
-        @farm = farm
-        @log = log
-      end
+class Zold::Routines::Reconnect
+  def initialize(opts, remotes, farm = Zold::Farm::Empty.new, log: Log::NULL)
+    @opts = opts
+    @remotes = remotes
+    @farm = farm
+    @log = log
+  end
 
-      def exec(step = 0)
-        sleep(60) unless @opts['routine-immediately']
-        cmd = Remote.new(remotes: @remotes, log: @log, farm: @farm)
-        args = ['remote', "--network=#{Shellwords.escape(@opts['network'])}", '--ignore-ping']
-        score = @farm.best[0]
-        args << "--ignore-node=#{Shellwords.escape("#{score.host}:#{score.port}")}" if score
-        cmd.run(args + ['masters']) unless @opts['routine-immediately']
-        all = @remotes.all
-        return if @opts['routine-immediately'] && all.empty?
-        cmd.run(args + ['select'])
-        if all.count < Remotes::MAX_NODES / 2 || all.any? { |r| r[:errors] > Remotes::TOLERANCE } || (step % 10).zero?
-          cmd.run(args + ['update'] + (@opts['never-reboot'] ? [] : ['--reboot']))
-        end
-        cmd.run(args + ['trim'])
-        cmd.run(args + ['select'])
-        @log.info("Reconnected, there are #{@remotes.all.count} remote notes: \
-#{@remotes.all.map { |r| "#{r[:host]}:#{r[:port]}/#{r[:score]}/#{r[:errors]}" }.join(', ')}")
-      end
+  def exec(step = 0)
+    sleep(60) unless @opts['routine-immediately']
+    cmd = Zold::Remote.new(remotes: @remotes, log: @log, farm: @farm)
+    args = ['remote', "--network=#{Shellwords.escape(@opts['network'])}", '--ignore-ping']
+    score = @farm.best[0]
+    args << "--ignore-node=#{Shellwords.escape("#{score.host}:#{score.port}")}" if score
+    cmd.run(args + ['masters']) unless @opts['routine-immediately']
+    all = @remotes.all
+    return if @opts['routine-immediately'] && all.empty?
+    cmd.run(args + ['select'])
+    if all.count < Zold::Remotes::MAX_NODES / 2 ||
+      all.any? { |r| r[:errors] > Remotes::TOLERANCE } || (step % 10).zero?
+      cmd.run(args + ['update'] + (@opts['never-reboot'] ? [] : ['--reboot']))
     end
+    cmd.run(args + ['trim'])
+    cmd.run(args + ['select'])
+    @log.info("Reconnected, there are #{@remotes.all.count} remote notes: \
+#{@remotes.all.map { |r| "#{r[:host]}:#{r[:port]}/#{r[:score]}/#{r[:errors]}" }.join(', ')}")
   end
 end

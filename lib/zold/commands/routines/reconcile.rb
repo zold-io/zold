@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2018-2019 Zerocracy, Inc.
+# Copyright (c) 2018 Yegor Bugayenko
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the 'Software'), to deal
@@ -20,34 +20,46 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'shellwords'
 require_relative '../routines'
 require_relative '../../log'
-require_relative '../remove'
+require_relative '../../id'
+require_relative '../../copies'
+require_relative '../pull'
 
-# Gargage collecting. It goes through the list of all wallets and removes
-# those that are older than 10 days and don't have any transactions inside.
+# R
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class Zold::Routines::Gc
-  def initialize(opts, wallets, log: Log::NULL)
+class Zold::Routines::Reconcile
+  def initialize(opts, wallets, remotes, copies, address, log: Log::NULL)
     @opts = opts
     @wallets = wallets
+    @remotes = remotes
+    @copies = copies
+    @address = address
     @log = log
   end
 
   def exec(_ = 0)
-    sleep(60) unless @opts['routine-immediately']
-    cmd = Zold::Remove.new(wallets: @wallets, log: @log)
-    args = ['remove']
-    seen = 0
-    removed = 0
-    @wallets.all.each do |id|
-      seen += 1
-      next unless @wallets.acq(id) { |w| w.exists? && w.mtime < Time.now - @opts['gc-age'] && w.txns.empty? }
-      cmd.run(args + [id.to_s])
-      removed += 1
+    sleep(20 * 60) unless @opts['routine-immediately']
+    @remotes.iterate(@log) do |r|
+      next unless r.master?
+      next if r.to_mnemo == @address
+      res = r.http('/wallets').get
+      r.assert_code(200, res)
+      res.body.strip.split("\n").compact
+        .select { |i| /^[a-f0-9]{16}$/.match?(i) }
+        .reject { |i| @wallets.acq(Zold::Id.new(i), &:exists?) }
+        .each { |i| pull(i) }
     end
-    @log.info("Removed #{removed} empty+old wallets out of #{seen} total") unless removed.zero?
+  end
+
+  private
+
+  def pull(id)
+    Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
+      ['pull', "--network=#{Shellwords.escape(@opts['network'])}", id.to_s, '--quiet-if-absent']
+    )
   end
 end
