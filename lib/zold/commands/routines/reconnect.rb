@@ -48,7 +48,7 @@ class Zold::Routines::Reconnect
     return if @opts['routine-immediately'] && all.empty?
     cmd.run(args + ['select'])
     if all.count < Zold::Remotes::MAX_NODES / 2 ||
-      all.any? { |r| r[:errors] > Remotes::TOLERANCE } || (step % 10).zero?
+      all.any? { |r| r[:errors] > Zold::Remotes::TOLERANCE } || (step % 10).zero?
       cmd.run(args + ['update'] + (@opts['never-reboot'] ? [] : ['--reboot']))
     end
     cmd.run(args + ['trim'])
