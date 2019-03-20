@@ -63,9 +63,9 @@ Available options:"
         o.bool '--quiet-if-absent',
           'Don\'t fail if the wallet is absent',
           default: false
-        o.bool '--deep',
-          'Try to pull other wallets if their confirmations are required, as deep as possible',
-          default: false
+        o.integer '--depth',
+          'How many levels down we try to pull other wallets if their confirmations are required (default: 0)',
+          default: 1
         o.bool '--allow-negative-balance',
           'Don\'t check for the negative balance of the wallet after the merge',
           default: false
@@ -152,7 +152,7 @@ into #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 0.1 + cps.count * 0
     def merge_one(opts, patch, wallet, name, baseline: false)
       start = Time.now
       @log.debug("Building a patch for #{wallet.id} from remote copy ##{name} with #{wallet.mnemo}...")
-      if opts['deep']
+      if opts['depth'].positive?
         patch.join(wallet, ledger: opts['ledger'], baseline: baseline) do |txn|
           trusted = IO.read(opts['trusted']).split(',')
           if trusted.include?(txn.bnf.to_s)
@@ -164,7 +164,7 @@ into #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 0.1 + cps.count * 0
             IO.write(opts['trusted'], (trusted + [txn.bnf.to_s]).sort.uniq.join(','))
             Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
               ['pull', txn.bnf.to_s, "--network=#{Shellwords.escape(opts['network'])}", '--quiet-if-absent'] +
-              (opts['deep'] ? ['--deep'] : []) +
+              ["--depth=#{opts['depth'] - 1}"] +
               (opts['no-baseline'] ? ['--no-baseline'] : []) +
               ["--trusted=#{Shellwords.escape(opts['trusted'])}"]
             )
@@ -173,7 +173,7 @@ into #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 0.1 + cps.count * 0
         end
       else
         patch.join(wallet, ledger: opts['ledger'], baseline: baseline) do |txn|
-          @log.debug("Paying wallet #{txn.bnf} file is in question but it's not a deep MERGE: #{txn.to_text}")
+          @log.debug("Paying wallet #{txn.bnf} is incomplete but there is not enough depth to PULL: #{txn.to_text}")
           false
         end
       end

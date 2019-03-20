@@ -131,6 +131,10 @@ at #{response.headers['X-Zold-Path']}"
         []
       end
 
+      def master?(_, _)
+        true
+      end
+
       def iterate(_)
         # Nothing to do here
       end

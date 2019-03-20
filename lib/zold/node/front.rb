@@ -473,7 +473,7 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
           title: '/journal',
           description: 'The journal',
           id: params[:id],
-          files: DirItems.new(settings.journal_dir).fetch.sort.reverse.select do |f|
+          files: DirItems.new(settings.journal_dir).fetch.sort.reverse.take(256).select do |f|
             !params[:id] || f.include?(params[:id])
           end,
           dir: settings.journal_dir

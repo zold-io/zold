@@ -75,10 +75,10 @@ module Zold
     end
 
     # Returns a list of modifed wallets (as Zold::Id)
-    def push(id, body, wallets, log)
+    def push(id, body, wallets, log, lifetime: 6)
       DirItems.new(@dir).fetch.each do |f|
         f = File.join(@dir, f)
-        File.delete(f) if File.mtime(f) < Time.now - 24 * 60 * 60
+        File.delete(f) if File.mtime(f) < Time.now - lifetime * 60 * 60
       end
       journal = File.join(@dir, "#{Time.now.utc.iso8601.gsub(/[^0-9]/, '-')}-#{id}")
       jlog = Logger.new(journal)
