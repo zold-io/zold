@@ -48,10 +48,11 @@ class Zold::Routines::Reconcile
       next if r.to_mnemo == @address
       res = r.http('/wallets').get
       r.assert_code(200, res)
-      res.body.strip.split("\n").compact
+      missing = res.body.strip.split("\n").compact
         .select { |i| /^[a-f0-9]{16}$/.match?(i) }
         .reject { |i| @wallets.acq(Zold::Id.new(i), &:exists?) }
-        .each { |i| pull(i) }
+      missing.each { |i| pull(i) }
+      @log.info("Reconciled routine pulled #{missing.count} wallets") unless missing.empty?
     end
   end
 
