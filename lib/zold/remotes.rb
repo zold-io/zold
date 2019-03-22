@@ -118,7 +118,12 @@ at #{response.headers['X-Zold-Path']}"
     MAX_NODES = 16
 
     # Default nodes and their ports
-    MASTERS = CSV.read(File.expand_path(File.join(File.dirname(__FILE__), '../../resources/masters')))
+    MASTERS = CSV.read(File.expand_path(File.join(File.dirname(__FILE__), '../../resources/masters'))).map do |r|
+      {
+        host: r[0].strip,
+        port: r[1].to_i
+      }
+    end.freeze
     private_constant :MASTERS
 
     # Empty, for standalone mode
@@ -168,9 +173,9 @@ at #{response.headers['X-Zold-Path']}"
     def masters
       MASTERS.each do |r|
         if block_given?
-          next unless yield(r[0], r[1].to_i)
+          next unless yield(r[:host], r[:port])
         end
-        add(r[0], r[1].to_i)
+        add(r[:host], r[:port])
       end
     end
 
@@ -255,7 +260,7 @@ at #{response.headers['X-Zold-Path']}"
     end
 
     def master?(host, port)
-      !MASTERS.find { |r| r[0] == host && r[1].to_i == port }.nil?
+      !MASTERS.find { |r| r[:host] == host && r[:port] == port }.nil?
     end
 
     private

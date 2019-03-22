@@ -457,9 +457,13 @@ the node won\'t connect to the network like that; try to do "zold remote reset" 
       end
       require_relative 'routines/spread'
       metronome.add(Routines::Spread.new(opts, @wallets, @remotes, @copies, log: @log))
+      require_relative 'routines/retire'
+      metronome.add(Routines::Retire.new(opts, log: @log))
       if @remotes.master?(host, port)
         require_relative 'routines/reconcile'
         metronome.add(Routines::Reconcile.new(opts, @wallets, @remotes, @copies, "#{host}:#{port}", log: @log))
+      else
+        @log.info('This is not master, no need to reconcile')
       end
       @log.info('Metronome started (use --no-metronome to disable it)')
       metronome
