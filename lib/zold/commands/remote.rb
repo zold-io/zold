@@ -261,7 +261,8 @@ Available options:"
         @remotes.remove(r[:host], r[:port]) if !opts['masters-too'] || !r[:master]
         @log.debug("#{r[:host]}:#{r[:port]} removed because of #{r[:errors]} errors (over #{opts['tolerate']})")
       end
-      @log.info("The list of #{all.count} remotes trimmed down to #{@remotes.all.count} nodes")
+      @log.info("The list of #{all.count} remotes trimmed down to #{@remotes.all.count} nodes \
+(#{@remotes.all.count { |r| r[:master] }} masters)")
     end
 
     def update(opts)
@@ -299,7 +300,9 @@ Available options:"
       if total.zero?
         @log.info("The list of remotes is #{Rainbow('empty').red}, run 'zold remote reset'!")
       else
-        @log.info("There are #{total} known remotes with the overall score of \
+        @log.info("There are #{total} known remotes \
+(#{@remotes.all.count { |r| r[:master] }} masters) \
+with the overall score of \
 #{@remotes.all.map { |r| r[:score] }.inject(&:+)}, after update in #{Age.new(st)}")
       end
     end
@@ -354,7 +357,8 @@ it's recommended to reboot, but I don't do it because of --never-reboot")
         @remotes.remove(r[:host], r[:port])
         @log.debug("Remote #{r[:host]}:#{r[:port]}/#{r[:score]}/#{r[:errors]}e removed from the list")
       end
-      @log.info("#{@remotes.all.count} best remote nodes were selected to stay in the list")
+      @log.info("#{@remotes.all.count} best remote nodes were selected to stay in the list \
+(#{@remotes.all.count { |r| r[:master] }} masters)")
     end
 
     def terminate
