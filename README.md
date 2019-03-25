@@ -24,7 +24,7 @@ The license is [MIT](https://github.com/zold-io/zold/blob/master/LICENSE.txt).
 
 The web wallet is here: [wts.zold.io](https://wts.zold.io).
 
-[![Watch the video](https://img.youtube.com/vi/5A9uBwMow0M/maxresdefault.jpg)](https://youtu.be/5A9uBwMow0M)
+[![Watch the video](https://img.youtube.com/vi/5A9uBwMow0M/mqdefault.jpg)](https://youtu.be/5A9uBwMow0M)
 
 ## How to Use
 
