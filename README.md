@@ -16,9 +16,6 @@
 [![Yard Docs](http://img.shields.io/badge/yard-docs-blue.svg)](http://rubydoc.info/github/zold-io/zold/master/frames)
 [![Maintainability](https://api.codeclimate.com/v1/badges/2861728929db934eb376/maintainability)](https://codeclimate.com/github/zold-io/zold/maintainability)
 
-**NOTICE**: It's an experiment and a very early draft! Please, feel free to
-submit your ideas and/or pull requests.
-
 Here is the [White Paper](https://papers.zold.io/wp.pdf).
 
 Join our [Telegram group](https://t.me/zold_io) to discuss it all live.
@@ -26,6 +23,8 @@ Join our [Telegram group](https://t.me/zold_io) to discuss it all live.
 The license is [MIT](https://github.com/zold-io/zold/blob/master/LICENSE.txt).
 
 The web wallet is here: [wts.zold.io](https://wts.zold.io).
+
+[![Watch the video](https://img.youtube.com/vi/5A9uBwMow0M/maxresdefault.jpg)](https://youtu.be/5A9uBwMow0M)
 
 ## How to Use
 
