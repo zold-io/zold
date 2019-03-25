@@ -16,17 +16,36 @@
 [![Yard Docs](http://img.shields.io/badge/yard-docs-blue.svg)](http://rubydoc.info/github/zold-io/zold/master/frames)
 [![Maintainability](https://api.codeclimate.com/v1/badges/2861728929db934eb376/maintainability)](https://codeclimate.com/github/zold-io/zold/maintainability)
 
-Here is the [White Paper](https://papers.zold.io/wp.pdf).
+To understand what Zold cryptocurrency is about you may want
+to watch [this video](https://youtu.be/5A9uBwMow0M) first. Then, you may
+want to read [this blog](https://blog.zold.io/2018/07/08/mission.html) post.
+Then, you have to read the [Green Paper](https://papers.zold.io/green-paper.pdf)
+(just four pages). In a nutshell, Zold is a cryptocurrency with the following
+features:
+
+  * No Blockchain
+  * No General Ledger
+  * Very fast, because de-centralized
+  * 100 times heaper than Bitcoin
+  * Proof-of-work
+  * Unique consensus protocol
+  * Pre-mined with total capacity of 2 billion ZLD
+  * Anonymous
+  * Written in Ruby
+
+More details you can find in the [White Paper](https://papers.zold.io/wp.pdf).
+
+You can also find us at the [Bitcointalk](https://bitcointalk.org/index.php?topic=5095078) forum.
 
 Join our [Telegram group](https://t.me/zold_io) to discuss it all live.
 
 The license is [MIT](https://github.com/zold-io/zold/blob/master/LICENSE.txt).
 
-The web wallet is here: [wts.zold.io](https://wts.zold.io).
-
-[![Watch the video](https://img.youtube.com/vi/5A9uBwMow0M/mqdefault.jpg)](https://youtu.be/5A9uBwMow0M)
-
 ## How to Use
+
+You can try the web wallet [here](https://wts.zold.io), but the best way
+to use Zold is through the command line tool, which has all the features
+and should remind you Git, if you are a programmer.
 
 First, install [Ruby 2.3+](https://www.ruby-lang.org/en/documentation/installation/),
 [Rubygems](https://rubygems.org/pages/download), and
