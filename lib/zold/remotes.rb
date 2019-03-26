@@ -34,6 +34,7 @@ require_relative 'http'
 require_relative 'hands'
 require_relative 'thread_pool'
 require_relative 'node/farm'
+require_relative 'commands/fetch'
 
 # The list of remotes.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
