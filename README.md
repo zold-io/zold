@@ -208,7 +208,7 @@ Yes, you can run many nodes with the same wallet ID.
 Yes, you can use `--threads` command line argument for your node
 and the number of threads will be as big as you wish.
 
-## JSON Details
+## Front-end JSON Details
 
 When you open up the front web page of your node, you will see a JSON document
 with a lot of technical details. Here is the explanation of the majority of them:
@@ -288,6 +288,88 @@ To be continued...
 `date` is the current date and time on the server.
 
 `hours_alive` is the time in hours your server is alive without a reboot.
+
+## HTTP RESTful API
+
+Well, maybe it's not purely RESTful, but each node has a simple
+set of HTTP entry points, which you can use to retrieve information
+about wallets, node status, log details, and some other things. Here
+is a more or less complete list of them:
+
+  * `GET /`: returns the JSON explained above
+
+  * `GET /score`: returns the text presentation of the current Score
+
+  * `GET /version`: returns the version of the software
+
+  * `GET /protocol`: returns the protocol ID
+
+  * `GET /wallet/ID`: returns the JSON with wallet details
+
+  * `GET /wallet/ID/balance`: returns wallet balance in zents (text/plain)
+
+  * `GET /wallet/ID/key`: returns wallet public RSA key
+
+  * `GET /wallet/ID/mtime`: returns ISO-8601 time of wallet file modification
+
+  * `GET /wallet/ID/size`: returns the size of the wallet file in bytes
+
+  * `GET /wallet/ID/age`: returns the age of the wallet, in seconds
+
+  * `GET /wallet/ID/txns`: returns the amount of transactions in the wallet
+
+  * `GET /wallet/ID/debt`: returns the tax debt of the wallet in zents
+
+  * `GET /wallet/ID/digest`: returns SHA-256 digest of the wallet file
+
+  * `GET /wallet/ID/mnemo`: returns the mnemo short string of the wallet
+
+  * `GET /wallet/ID/txns.json`: returns the full list of transactions in the wallet in JSON document
+
+  * `GET /wallet/ID.txt`: returns the text presentation of the wallet
+
+  * `GET /wallet/ID.html`: returns the HTML presentation of the wallet
+
+  * `GET /wallet/ID.bin`: returns the entire wallet file
+
+  * `GET /wallet/ID/copies`: returns the list of copies of the wallet
+
+  * `GET /wallet/ID/copy/NAME`: returns the entire content of a single copy of the wallet
+
+  * `PUT /wallet/ID`: accepts a new content of the wallet, in order to
+    modify the one stored on the server (PUSH operation)
+
+  * `GET /wallets`: returns the list of all wallets maintained by the node,
+    in plain text, separated by EOL
+
+  * `GET /remotes`: returns the list of remote nodes in JSON
+
+  * `GET /ledger`: returns the list of recently visible transactions
+
+  * `GET /ledger.json`: returns the list of recently visible transactions, in JSON
+
+There are a few other entry points, which exist most for debugging purposes,
+they may not be supported by alternative implementations of the node software:
+
+  * `GET /pid`: returns the process ID of the software
+
+  * `GET /trace`: returns the entire log of the node
+
+  * `GET /farm`: returns the statistics of the Farm
+
+  * `GET /metronome`: returns the statistics of the Metronome
+
+  * `GET /threads`: returns the statistics of all Ruby threads
+
+  * `GET /ps`: returns the statistics of all currently running Unix processes
+
+  * `GET /queue`: returns the statistics of the node queue
+
+  * `GET /journal`: returns the journal, in HTML
+
+  * `GET /journal/item?id=ID`: returns the content of a single journal entry
+
+There could be other entry points, not documented here.
 
 ## SDK
 
