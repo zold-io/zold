@@ -100,7 +100,7 @@ Available options:"
         raise "The wallet #{id} is absent at #{wallet.path}" unless wallet.exists?
       end
       if @wallets.acq(id) { |w| Tax.new(w).in_debt? }
-        @log.info("Taxes in #{id} are not paid, most likely the wallet won't accepted")
+        @log.info("Taxes in #{id} are not paid, most likely the wallet won't be accepted by any node")
       end
       start = Time.now
       total = Concurrent::AtomicFixnum.new

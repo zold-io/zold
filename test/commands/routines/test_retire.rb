@@ -25,22 +25,16 @@ require 'tmpdir'
 require 'webmock/minitest'
 require_relative '../../test__helper'
 require_relative '../../../lib/zold/remotes'
-require_relative '../../../lib/zold/commands/routines/reconnect.rb'
+require_relative '../../../lib/zold/commands/routines/retire.rb'
 
-# Reconnect test.
+# Retire test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestReconnect < Zold::Test
-  def test_reconnects
-    Dir.mktmpdir do |dir|
-      remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.csv'))
-      remotes.clean
-      remotes.add('localhost', 4096)
-      stub_request(:get, 'http://localhost:4096/remotes').to_return(status: 404)
-      opts = { 'never-reboot' => true, 'routine-immediately' => true }
-      routine = Zold::Routines::Reconnect.new(opts, remotes, log: test_log)
-      routine.exec
-    end
+class TestRetire < Zold::Test
+  def test_retires
+    opts = { 'never-reboot' => false, 'routine-immediately' => true }
+    routine = Zold::Routines::Retire.new(opts, log: test_log)
+    routine.exec(10 * 24 * 60)
   end
 end

@@ -52,7 +52,11 @@ class Zold::Routines::Reconcile
         .select { |i| /^[a-f0-9]{16}$/.match?(i) }
         .reject { |i| @wallets.acq(Zold::Id.new(i), &:exists?) }
       missing.each { |i| pull(i) }
-      @log.info("Reconciled routine pulled #{missing.count} wallets") unless missing.empty?
+      if missing.empty?
+        log.info("Nothing to reconcile with #{r}, we are good at #{@address}")
+      else
+        @log.info("Reconcile routine pulled #{missing.count} wallets from #{r}")
+      end
     end
   end
 

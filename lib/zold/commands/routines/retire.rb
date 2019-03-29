@@ -20,27 +20,29 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'minitest/autorun'
-require 'tmpdir'
-require 'webmock/minitest'
-require_relative '../../test__helper'
-require_relative '../../../lib/zold/remotes'
-require_relative '../../../lib/zold/commands/routines/reconnect.rb'
+require 'shellwords'
+require_relative '../routines'
+require_relative '../remote'
+require_relative '../../node/farm'
 
-# Reconnect test.
+# Kill the node if it's too old.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class TestReconnect < Zold::Test
-  def test_reconnects
-    Dir.mktmpdir do |dir|
-      remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.csv'))
-      remotes.clean
-      remotes.add('localhost', 4096)
-      stub_request(:get, 'http://localhost:4096/remotes').to_return(status: 404)
-      opts = { 'never-reboot' => true, 'routine-immediately' => true }
-      routine = Zold::Routines::Reconnect.new(opts, remotes, log: test_log)
-      routine.exec
-    end
+class Zold::Routines::Retire
+  def initialize(opts, log: Log::NULL)
+    @opts = opts
+    @log = log
+    @start = Time.now
+  end
+
+  def exec(step = 0)
+    sleep(60) unless @opts['routine-immediately']
+    days = 4
+    return if step < days * 24 * 60 && Time.now - @start < days * 24 * 60 * 60
+    return if @opts['never-reboot']
+    @log.info("We are too old, step ##{step}, it's time to retire (use --never-reboot to avoid this)")
+    require_relative '../../node/front'
+    Zold::Front.stop!
   end
 end

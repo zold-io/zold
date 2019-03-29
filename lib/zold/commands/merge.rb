@@ -65,7 +65,7 @@ Available options:"
           default: false
         o.integer '--depth',
           'How many levels down we try to pull other wallets if their confirmations are required (default: 0)',
-          default: 1
+          default: 0
         o.bool '--allow-negative-balance',
           'Don\'t check for the negative balance of the wallet after the merge',
           default: false
