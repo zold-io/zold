@@ -125,7 +125,7 @@ Available options:"
 run 'zold remote update' or use --tolerate-quorum=1"
         end
       end
-      @log.info("Push finished to #{done.value} nodes (#{masters.value} master nodes) \
+      @log.info("Push finished to #{done.value - masters.value}+#{masters.value}m nodes \
 out of #{nodes.value} in #{Age.new(start)}, total score for #{id} is #{total.value}")
     end
 
