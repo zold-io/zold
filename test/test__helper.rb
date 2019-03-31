@@ -40,7 +40,7 @@ if ENV['CI'] == 'true'
   SimpleCov.formatter = SimpleCov::Formatter::Codecov
 end
 
-$LOAD_PATH.unshift('../../lib')
+$LOAD_PATH.unshift('../lib')
 
 require 'zold/hands'
 Zold::Hands.start
