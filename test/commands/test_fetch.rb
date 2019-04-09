@@ -35,6 +35,7 @@ require_relative '../../lib/zold/id'
 require_relative '../../lib/zold/copies'
 require_relative '../../lib/zold/key'
 require_relative '../../lib/zold/commands/fetch'
+require_relative '../../lib/zold/home'
 
 # FETCH test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -42,8 +43,8 @@ require_relative '../../lib/zold/commands/fetch'
 # License:: MIT
 class TestFetch < Zold::Test
   def test_fetches_wallet
-    FakeHome.new(log: test_log).run do |home|
-      wallet = home.create_wallet
+    FakeHome.new(log: test_log).run do |fake_home|
+      wallet = fake_home.create_wallet
       stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}").to_return(
         status: 200,
         body: {
@@ -55,11 +56,12 @@ class TestFetch < Zold::Test
       stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}.bin")
         .to_return(status: 200, body: IO.read(wallet.path))
       stub_request(:get, "http://localhost:81/wallet/#{wallet.id}").to_return(status: 404)
-      remotes = home.remotes
+      remotes = fake_home.remotes
       remotes.add('localhost', 4096)
       remotes.add('localhost', 81)
-      copies = home.copies(wallet)
-      Zold::Fetch.new(wallets: home.wallets, copies: copies.root, remotes: remotes, log: test_log).run(
+      copies = fake_home.copies(wallet)
+      home = ::Zold::Home.new(wallets: fake_home.wallets, remotes: remotes, copies: copies.root.to_s)
+      Zold::Fetch.new(home: home, log: test_log).run(
         ['fetch', '--tolerate-edges', '--tolerate-quorum=1', '--ignore-score-weakness', wallet.id.to_s]
       )
       assert_equal(1, copies.all.count)
@@ -70,8 +72,8 @@ class TestFetch < Zold::Test
 
   def test_fetches_multiple_wallets
     log = TestLogger.new(test_log)
-    FakeHome.new(log: log).run do |home|
-      wallet_a = home.create_wallet
+    FakeHome.new(log: log).run do |fake_home|
+      wallet_a = fake_home.create_wallet
       stub_request(:get, "http://localhost:4096/wallet/#{wallet_a.id}").to_return(
         status: 200,
         body: {
@@ -82,7 +84,7 @@ class TestFetch < Zold::Test
       )
       stub_request(:get, "http://localhost:4096/wallet/#{wallet_a.id}.bin")
         .to_return(status: 200, body: IO.read(wallet_a.path))
-      wallet_b = home.create_wallet
+      wallet_b = fake_home.create_wallet
       stub_request(:get, "http://localhost:4096/wallet/#{wallet_b.id}").to_return(
         status: 200,
         body: {
@@ -93,11 +95,12 @@ class TestFetch < Zold::Test
       )
       stub_request(:get, "http://localhost:4096/wallet/#{wallet_b.id}.bin")
         .to_return(status: 200, body: IO.read(wallet_b.path))
-      remotes = home.remotes
+      remotes = fake_home.remotes
       remotes.add('localhost', 4096)
-      copies_a = home.copies(wallet_a)
-      copies_b = home.copies(wallet_b)
-      Zold::Fetch.new(wallets: home.wallets, copies: copies_a.root, remotes: remotes, log: log).run(
+      copies_a = fake_home.copies(wallet_a)
+      copies_b = fake_home.copies(wallet_b)
+      home = Zold::Home.new(wallets: fake_home.wallets, copies: copies_a.root, remotes: remotes)
+      Zold::Fetch.new(home: home, log: log).run(
         [
           'fetch', '--tolerate-edges', '--tolerate-quorum=1', '--ignore-score-weakness',
           '--threads 2', wallet_a.id.to_s, wallet_b.id.to_s
@@ -113,8 +116,8 @@ class TestFetch < Zold::Test
   end
 
   def test_fails_when_only_edge_nodes
-    FakeHome.new(log: test_log).run do |home|
-      wallet = home.create_wallet
+    FakeHome.new(log: test_log).run do |fake_home|
+      wallet = fake_home.create_wallet
       stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}").to_return(
         status: 200,
         body: {
@@ -125,11 +128,12 @@ class TestFetch < Zold::Test
       )
       stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}.bin")
         .to_return(status: 200, body: IO.read(wallet.path))
-      remotes = home.remotes
+      remotes = fake_home.remotes
       remotes.add('localhost', 4096)
-      copies = home.copies(wallet)
+      copies = fake_home.copies(wallet)
+      home = Zold::Home.new(wallets: fake_home.wallets, copies: copies.root, remotes: remotes)
       assert_raises Zold::Fetch::EdgesOnly do
-        Zold::Fetch.new(wallets: home.wallets, copies: copies.root, remotes: remotes, log: test_log).run(
+        Zold::Fetch.new(home: home, log: test_log).run(
           ['fetch', '--ignore-score-weakness', wallet.id.to_s]
         )
       end
@@ -137,8 +141,8 @@ class TestFetch < Zold::Test
   end
 
   def test_fails_when_only_one_node
-    FakeHome.new(log: test_log).run do |home|
-      wallet = home.create_wallet
+    FakeHome.new(log: test_log).run do |fake_home|
+      wallet = fake_home.create_wallet
       stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}").to_return(
         status: 200,
         body: {
@@ -149,11 +153,12 @@ class TestFetch < Zold::Test
       )
       stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}.bin")
         .to_return(status: 200, body: IO.read(wallet.path))
-      remotes = home.remotes
+      remotes = fake_home.remotes
       remotes.add('localhost', 4096)
-      copies = home.copies(wallet)
+      copies = fake_home.copies(wallet)
+      home = Zold::Home.new(wallets: fake_home.wallets, copies: copies.root, remotes: remotes)
       assert_raises Zold::Fetch::NoQuorum do
-        Zold::Fetch.new(wallets: home.wallets, copies: copies.root, remotes: remotes, log: test_log).run(
+        Zold::Fetch.new(home: home, log: test_log).run(
           ['fetch', '--tolerate-edges', '--ignore-score-weakness', wallet.id.to_s]
         )
       end

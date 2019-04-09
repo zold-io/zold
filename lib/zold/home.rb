@@ -24,8 +24,9 @@ require_relative 'log'
 
 module Zold
   # Home class combines wallets, remotes and copies
+  # Constructor defaults to nil to make it compatible with another classes
   class Home
-    def initialize(wallets:, remotes:, copies:, log: Log::NULL)
+    def initialize(wallets:, remotes: nil, copies: nil, log: Log::NULL)
       @wallets = wallets
       @remotes = remotes
       @copies = copies

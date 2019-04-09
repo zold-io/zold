@@ -65,7 +65,7 @@ module Zold
       copies.add(body, host, Remotes::PORT, 0)
       unless @remotes.all.empty?
         Fetch.new(
-          wallets: wallets, remotes: @remotes, copies: copies.root, log: log
+          home: Zold::Home.new(wallets: wallets, remotes: @remotes, copies: copies.root), log: log
         ).run(['fetch', id.to_s, "--ignore-node=#{@address}", "--network=#{@network}", '--quiet-if-absent'])
       end
       modified = merge(id, copies, wallets, log)
@@ -88,7 +88,7 @@ module Zold
       Tempfile.open do |f|
         modified = Tempfile.open do |t|
           host, port = @address.split(':')
-          Merge.new(wallets: wallets, remotes: @remotes, copies: copies.root, log: log).run(
+          Merge.new(home: Zold::Home.new(wallets: wallets, remotes: @remotes, copies: copies.root), log: log).run(
             ['merge', id.to_s, "--ledger=#{Shellwords.escape(f.path)}"] +
             ["--trusted=#{Shellwords.escape(t.path)}"] +
             ["--network=#{Shellwords.escape(@network)}"] +

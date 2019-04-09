@@ -42,10 +42,11 @@ module Zold
   class Merge
     prepend ThreadBadge
 
-    def initialize(wallets:, remotes:, copies:, log: Log::NULL)
-      @wallets = wallets
-      @remotes = remotes
-      @copies = copies
+    def initialize(home:, log: Log::NULL)
+      @home = home
+      @wallets = @home.wallets
+      @remotes = @home.remotes
+      @copies = @home.copies
       @log = log
     end
 
@@ -165,7 +166,8 @@ into #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 0.1 + cps.count * 0
 #{trusted.count} > #{opts['trusted-max']}")
           else
             IO.write(opts['trusted'], (trusted + [txn.bnf.to_s]).sort.uniq.join(','))
-            Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
+            home = Zold::Home.new(wallets: @wallets, remotes: @remotes, copies: @copies)
+            Pull.new(home: home, log: @log).run(
               ['pull', txn.bnf.to_s, "--network=#{Shellwords.escape(opts['network'])}", '--quiet-if-absent'] +
               ["--depth=#{opts['depth'] - 1}"] +
               (opts['no-baseline'] ? ['--no-baseline'] : []) +

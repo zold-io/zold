@@ -35,17 +35,18 @@ module Zold
   class Pull
     prepend ThreadBadge
 
-    def initialize(wallets:, remotes:, copies:, log: Log::NULL)
-      @wallets = wallets
-      @remotes = remotes
-      @copies = copies
+    def initialize(home:, log: Log::NULL)
+      @home = home
+      @wallets = @home.wallets
+      @remotes = @home.remotes
+      @copies = @home.copies
       @log = log
     end
 
     def run(args = [])
       Zold::Clean.new(wallets: @wallets, copies: @copies, log: @log).run(args)
-      Zold::Fetch.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(args)
-      Zold::Merge.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(args)
+      Zold::Fetch.new(home: @home, log: @log).run(args)
+      Zold::Merge.new(home: @home, log: @log).run(args)
     end
   end
 end

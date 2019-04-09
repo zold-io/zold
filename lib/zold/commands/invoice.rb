@@ -36,10 +36,11 @@ module Zold
   class Invoice
     prepend ThreadBadge
 
-    def initialize(wallets:, remotes:, copies:, log: Log::NULL)
-      @wallets = wallets
-      @remotes = remotes
-      @copies = copies
+    def initialize(home:, log: Log::NULL)
+      @home = home
+      @wallets = @home.wallets
+      @remotes = @home.remotes
+      @copies = @home.copies
       @log = log
     end
 
@@ -73,7 +74,7 @@ Available options:"
     def invoice(id, opts)
       unless @wallets.acq(id, &:exists?)
         require_relative 'pull'
-        Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
+        Pull.new(home: @home, log: @log).run(
           ['pull', id.to_s, "--network=#{Shellwords.escape(opts['network'])}"] +
           ["--tolerate-quorum=#{Shellwords.escape(opts['tolerate-quorum'])}"] +
           (opts['tolerate-edges'] ? ['--tolerate-edges'] : [])

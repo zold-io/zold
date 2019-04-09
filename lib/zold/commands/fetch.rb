@@ -62,10 +62,11 @@ module Zold
     # Raises when the wallet wasn't found in all visible nodes.
     class NotFound < Error; end
 
-    def initialize(wallets:, remotes:, copies:, log: Log::NULL)
-      @wallets = wallets
-      @remotes = remotes
-      @copies = copies
+    def initialize(home:, log: Log::NULL)
+      @home = home
+      @wallets = @home.wallets
+      @remotes = @home.remotes
+      @copies = @home.copies
       @log = log
     end
 

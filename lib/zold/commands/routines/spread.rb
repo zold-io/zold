@@ -32,11 +32,12 @@ require_relative '../push'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class Zold::Routines::Spread
-  def initialize(opts, wallets, remotes, copies, log: Log::NULL)
+  def initialize(opts, home, log: Log::NULL)
     @opts = opts
-    @wallets = wallets
-    @remotes = remotes
-    @copies = copies
+    @home = home
+    @wallets = @home.wallets
+    @remotes = @home.remotes
+    @copies = @home.copies
     @log = log
   end
 
@@ -44,7 +45,7 @@ class Zold::Routines::Spread
     sleep(60) unless @opts['routine-immediately']
     @wallets.all.sample(100).each do |id|
       next if Zold::Copies.new(File.join(@copies, id)).all.count < 2
-      Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
+      Zold::Push.new(home: @home, log: @log).run(
         ['push', "--network=#{Shellwords.escape(@opts['network'])}", id.to_s]
       )
     end
