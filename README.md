@@ -15,6 +15,7 @@
 
 [![Yard Docs](http://img.shields.io/badge/yard-docs-blue.svg)](http://rubydoc.info/github/zold-io/zold/master/frames)
 [![Maintainability](https://api.codeclimate.com/v1/badges/2861728929db934eb376/maintainability)](https://codeclimate.com/github/zold-io/zold/maintainability)
+[![Hits-of-Code](https://hitsofcode.com/github/zold-io/zold)](https://hitsofcode.com/github/zold-io/zold)
 
 To understand what Zold cryptocurrency is about you may want
 to watch [this video](https://youtu.be/5A9uBwMow0M) first. Then, you may
