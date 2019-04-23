@@ -27,7 +27,7 @@ features:
   * No Blockchain
   * No General Ledger
   * Very fast, because de-centralized
-  * 100 times heaper than Bitcoin
+  * 100 times cheaper than Bitcoin
   * Proof-of-work
   * Unique consensus protocol
   * Pre-mined with total capacity of 2 billion ZLD
