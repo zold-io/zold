@@ -28,6 +28,7 @@ require_relative '../lib/zold/key'
 require_relative '../lib/zold/thread_pool'
 require_relative '../lib/zold/wallets'
 require_relative '../lib/zold/hungry_wallets'
+require_relative '../lib/zold/home'
 
 # HungryWallets test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -42,7 +43,7 @@ class TestHungryWallets < Zold::Test
       remotes.add('localhost', 4096)
       pool = Zold::ThreadPool.new('test', log: test_log)
       wallets = Zold::HungryWallets.new(
-        home.wallets, remotes, File.join(home.dir, 'copies'),
+        Zold::Home.new(wallets: home.wallets, remotes: remotes, copies: File.join(home.dir, 'copies')),
         pool, log: test_log
       )
       wallets.acq(id) { |w| assert(!w.exists?) }
@@ -59,7 +60,7 @@ class TestHungryWallets < Zold::Test
       remotes.add('localhost', 4096)
       pool = Zold::ThreadPool.new('test', log: test_log)
       wallets = Zold::HungryWallets.new(
-        home.wallets, remotes, File.join(home.dir, 'copies'),
+        Zold::Home.new(wallets: home.wallets, remotes: remotes, copies: File.join(home.dir, 'copies')),
         pool, log: test_log
       )
       3.times do
@@ -79,7 +80,7 @@ class TestHungryWallets < Zold::Test
       wallet = home.create_wallet
       get = stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}").to_return(status: 200)
       wallets = Zold::HungryWallets.new(
-        home.wallets, remotes, File.join(home.dir, 'copies'),
+        Zold::Home.new(wallets: home.wallets, remotes: remotes, copies: File.join(home.dir, 'copies')),
         pool, log: test_log
       )
       wallets.acq(wallet.id) { |w| assert(w.exists?) }

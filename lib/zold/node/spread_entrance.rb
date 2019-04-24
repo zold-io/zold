@@ -75,7 +75,7 @@ module Zold
               @log.info("The wallet #{id} is in debt, won't spread")
             else
               Thread.current.thread_variable_set(:wallet, id.to_s)
-              Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
+              Push.new(home: Zold::Home.new(wallets: @wallets, remotes: @remotes), log: @log).run(
                 ['push', "--ignore-node=#{Shellwords.escape(@address)}", id.to_s, '--tolerate-quorum=1'] +
                 (@ignore_score_weakeness ? ['--ignore-score-weakness'] : []) +
                 (@tolerate_edges ? ['--tolerate-edges'] : [])

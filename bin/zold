@@ -49,6 +49,7 @@ require_relative '../lib/zold/copies'
 require_relative '../lib/zold/remotes'
 require_relative '../lib/zold/upgrades'
 require_relative '../lib/zold/version_file'
+require_relative '../lib/zold/home'
 
 Thread.current.name = 'main'
 
@@ -158,12 +159,12 @@ args = opts.arguments
 args << '--help' if opts.help?
 args << "--network=#{opts['network']}"
 
-home = File.expand_path(opts[:home])
-FileUtils.mkdir_p(home)
-Dir.chdir(home)
-log.debug("Home directory: #{home}")
+home_dir = File.expand_path(opts[:home])
+FileUtils.mkdir_p(home_dir)
+Dir.chdir(home_dir)
+log.debug("Home directory: #{home_dir}")
 
-zdata = File.join(home, '.zoldata')
+zdata = File.join(home_dir, '.zoldata')
 
 unless opts['skip-upgrades']
   Zold::Upgrades.new(
@@ -182,7 +183,7 @@ Zold::DirItems.new(locks).fetch.each do |f|
 end
 wallets = Zold::SyncWallets.new(
   Zold::CachedWallets.new(
-    command == 'node' ? Zold::TreeWallets.new(home) : Zold::Wallets.new(home)
+    command == 'node' ? Zold::TreeWallets.new(home_dir) : Zold::Wallets.new(home_dir)
   ),
   log: log,
   dir: locks
@@ -201,13 +202,13 @@ log.debug("Network: #{opts['network']} (#{opts['network'] == Zold::Wallet::MAINE
 log.debug("Memory footprint at start is #{Zold::Size.new(GetProcessMem.new.bytes.to_i)}")
 
 Zold::Hands.start(log: log)
-
+home = Zold::Home.new(wallets: wallets, remotes: remotes, copies: copies)
 cmd = lambda do
   begin
     case command
     when 'node'
       require_relative '../lib/zold/commands/node'
-      Zold::Node.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)
+      Zold::Node.new(home: home, log: log).run(args)
     when 'create'
       require_relative '../lib/zold/commands/create'
       Zold::Create.new(wallets: wallets, remotes: remotes, log: log).run(args)
@@ -216,10 +217,10 @@ cmd = lambda do
       Zold::Remote.new(remotes: remotes, log: log).run(args)
     when 'invoice'
       require_relative '../lib/zold/commands/invoice'
-      Zold::Invoice.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)
+      Zold::Invoice.new(home: home, log: log).run(args)
     when 'pay'
       require_relative '../lib/zold/commands/pay'
-      Zold::Pay.new(wallets: wallets, copies: copies, remotes: remotes, log: log).run(args)
+      Zold::Pay.new(home: home, log: log).run(args)
     when 'show'
       require_relative '../lib/zold/commands/show'
       Zold::Show.new(wallets: wallets, copies: copies, log: log).run(args)
@@ -228,7 +229,7 @@ cmd = lambda do
       Zold::List.new(wallets: wallets, copies: copies, log: log).run(args)
     when 'fetch'
       require_relative '../lib/zold/commands/fetch'
-      Zold::Fetch.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)
+      Zold::Fetch.new(home: home, log: log).run(args)
     when 'clean'
       require_relative '../lib/zold/commands/clean'
       Zold::Clean.new(wallets: wallets, copies: copies, log: log).run(args)
@@ -240,19 +241,19 @@ cmd = lambda do
       Zold::Diff.new(wallets: wallets, copies: copies, log: log).run(args)
     when 'merge'
       require_relative '../lib/zold/commands/merge'
-      Zold::Merge.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)
+      Zold::Merge.new(home: home, log: log).run(args)
     when 'propagate'
       require_relative '../lib/zold/commands/propagate'
       Zold::Propagate.new(wallets: wallets, log: log).run(args)
     when 'pull'
       require_relative '../lib/zold/commands/pull'
-      Zold::Pull.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)
+      Zold::Pull.new(home: home, log: log).run(args)
     when 'taxes'
       require_relative '../lib/zold/commands/taxes'
       Zold::Taxes.new(wallets: wallets, remotes: remotes, log: log).run(args)
     when 'push'
       require_relative '../lib/zold/commands/push'
-      Zold::Push.new(wallets: wallets, remotes: remotes, log: log).run(args)
+      Zold::Push.new(home: home, log: log).run(args)
     when 'alias'
       require_relative '../lib/zold/commands/alias'
       Zold::Alias.new(wallets: wallets, log: log).run(args)

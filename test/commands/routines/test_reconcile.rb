@@ -25,6 +25,7 @@ require 'webmock/minitest'
 require_relative '../../test__helper'
 require_relative '../../fake_home'
 require_relative '../../../lib/zold/remotes'
+require_relative '../../../lib/zold/home'
 require_relative '../../../lib/zold/commands/routines/reconcile.rb'
 
 # Reconcile test.
@@ -43,7 +44,7 @@ class TestReconcile < Zold::Test
       stub_request(:get, "http://#{m[:host]}:#{m[:port]}/wallet/#{Zold::Id::ROOT}").to_return(status: 404)
       opts = { 'never-reboot' => true, 'routine-immediately' => true }
       routine = Zold::Routines::Reconcile.new(
-        opts, home.wallets, remotes, home.copies.root, 'some-fake-host:2096', log: test_log
+        opts, Zold::Home.new(wallets: home.wallets, remotes: remotes, copies: home.copies.root), 'some-fake-host:2096', log: test_log
       )
       routine.exec
     end

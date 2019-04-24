@@ -22,31 +22,24 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
-require_relative '../test__helper'
-require_relative '../../lib/zold/wallets'
-require_relative '../../lib/zold/amount'
-require_relative '../../lib/zold/key'
-require_relative '../../lib/zold/id'
-require_relative '../../lib/zold/commands/invoice'
-require_relative '../../lib/zold/home'
+require_relative 'fake_home'
+require_relative 'test__helper'
+require_relative '../lib/zold/home'
 
-# INVOICE test.
-# Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
-# License:: MIT
-class TestInvoice < Zold::Test
-  def test_generates_invoice
-    Dir.mktmpdir do |dir|
-      id = Zold::Id.new
-      wallets = Zold::Wallets.new(dir)
-      home = Zold::Home.new(wallets: wallets)
-      wallets.acq(id) do |source|
-        source.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-        invoice = Zold::Invoice.new(home: home, log: test_log).run(
-          ['invoice', id.to_s, '--length=16']
-        )
-        assert_equal(33, invoice.length)
-      end
+class TestHome < Zold::Test
+  def test_home
+    FakeHome.new(log: test_log).run do |fake_home|
+      wallets = fake_home.wallets
+      remotes = fake_home.remotes
+      copies  = fake_home.copies
+
+      home = ::Zold::Home.new(wallets: wallets,
+                              remotes: remotes,
+                              copies: copies,
+                              log: test_log)
+      assert_equal wallets, home.wallets
+      assert_equal remotes, home.remotes
+      assert_equal copies, home.copies
     end
   end
 end

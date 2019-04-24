@@ -36,11 +36,12 @@ require_relative 'commands/fetch'
 module Zold
   # Wallets decorator that adds missing wallets to the queue to be pulled later.
   class HungryWallets < SimpleDelegator
-    def initialize(wallets, remotes, copies, pool,
-      log: Log::NULL, network: 'test')
-      @wallets = wallets
-      @remotes = remotes
-      @copies = copies
+    def initialize(home, pool,
+                   log: Log::NULL, network: 'test')
+      @home = home
+      @wallets = @home.wallets
+      @remotes = @home.remotes
+      @copies = @home.copies
       @log = log
       @network = network
       @pool = pool
@@ -50,7 +51,7 @@ module Zold
       @pool.add do
         Endless.new('hungry', log: log).run { pull }
       end
-      super(wallets)
+      super(@wallets)
     end
 
     def acq(id, exclusive: false)
@@ -88,7 +89,7 @@ module Zold
         return
       end
       begin
-        Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
+        Pull.new(home: @home, log: @log).run(
           ['pull', id.to_s, "--network=#{Shellwords.escape(@network)}", '--tolerate-edges', '--tolerate-quorum=1']
         )
         @missed.remove(id.to_s)

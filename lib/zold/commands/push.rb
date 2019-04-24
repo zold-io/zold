@@ -52,9 +52,9 @@ module Zold
     # Raises when there are not enough successful nodes.
     class NoQuorum < StandardError; end
 
-    def initialize(wallets:, remotes:, log: Log::NULL)
-      @wallets = wallets
-      @remotes = remotes
+    def initialize(home:, log: Log::NULL)
+      @wallets = home.wallets
+      @remotes = home.remotes
       @log = log
     end
 

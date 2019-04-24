@@ -40,16 +40,17 @@ class FakeNode
 
   def run(args = ['--standalone', '--no-metronome'])
     WebMock.allow_net_connect!
-    FakeHome.new(log: @log).run do |home|
+    FakeHome.new(log: @log).run do |fake_home|
       RandomPort::Pool::SINGLETON.acquire do |port|
         node = Thread.new do
           Thread.current.name = 'fake_node'
           Thread.current.abort_on_exception = true
           Zold::VerboseThread.new(@log).run do
             require_relative '../../lib/zold/commands/node'
-            Zold::Node.new(wallets: home.wallets, remotes: home.remotes, copies: home.copies.root, log: @log).run(
+            home = Zold::Home.new(wallets: fake_home.wallets, remotes: fake_home.remotes, copies: fake_home.copies.root)
+            Zold::Node.new(home: home, log: @log).run(
               [
-                '--home', home.dir,
+                '--home', fake_home.dir,
                 '--network=test',
                 '--port', port.to_s,
                 '--host=localhost',

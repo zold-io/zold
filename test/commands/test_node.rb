@@ -24,6 +24,7 @@ require 'minitest/autorun'
 require 'tmpdir'
 require 'webmock/minitest'
 require_relative '../test__helper'
+require_relative '../../lib/zold/home'
 require_relative '../../lib/zold/wallet'
 require_relative '../../lib/zold/remotes'
 require_relative '../../lib/zold/id'
@@ -40,21 +41,19 @@ require_relative '../node/fake_node'
 # License:: MIT
 class TestNode < Zold::Test
   def test_push_and_fetch
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: test_log).run do |fake_home|
       FakeNode.new(log: test_log).run do |port|
-        wallets = home.wallets
-        wallet = home.create_wallet
-        remotes = home.remotes
+        wallet = fake_home.create_wallet
+        remotes = fake_home.remotes
         remotes.add('localhost', port)
-        Zold::Push.new(wallets: wallets, remotes: remotes, log: test_log).run(
+        Zold::Push.new(home: Zold::Home.new(wallets: fake_home.wallets, remotes: remotes), log: test_log).run(
           ['push', '--ignore-score-weakness', '--tolerate-edges', '--tolerate-quorum=1']
         )
-        copies = home.copies(wallet)
+        copies = fake_home.copies(wallet)
         begin
           retries ||= 0
           Zold::Fetch.new(
-            wallets: wallets, copies: copies.root,
-            remotes: remotes, log: test_log
+            home: Zold::Home.new(wallets: fake_home.wallets, remotes: remotes, copies: copies.root), log: test_log
           ).run(['fetch', '--ignore-score-weakness', '--tolerate-edges', '--tolerate-quorum=1'])
         rescue StandardError => _
           sleep 1

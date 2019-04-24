@@ -32,11 +32,12 @@ require_relative '../pull'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class Zold::Routines::Reconcile
-  def initialize(opts, wallets, remotes, copies, address, log: Log::NULL)
+  def initialize(opts, home, address, log: Log::NULL)
     @opts = opts
-    @wallets = wallets
-    @remotes = remotes
-    @copies = copies
+    @home = home
+    @wallets = @home.wallets
+    @remotes = @home.remotes
+    @copies = @home.copies
     @address = address
     @log = log
   end
@@ -63,7 +64,7 @@ class Zold::Routines::Reconcile
   private
 
   def pull(id)
-    Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
+    Zold::Pull.new(home: @home, log: @log).run(
       ['pull', "--network=#{Shellwords.escape(@opts['network'])}", id.to_s, '--quiet-if-absent']
     )
   end

@@ -20,33 +20,29 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'minitest/autorun'
-require 'tmpdir'
-require_relative '../test__helper'
-require_relative '../../lib/zold/wallets'
-require_relative '../../lib/zold/amount'
-require_relative '../../lib/zold/key'
-require_relative '../../lib/zold/id'
-require_relative '../../lib/zold/commands/invoice'
-require_relative '../../lib/zold/home'
+require_relative 'log'
 
-# INVOICE test.
-# Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
-# License:: MIT
-class TestInvoice < Zold::Test
-  def test_generates_invoice
-    Dir.mktmpdir do |dir|
-      id = Zold::Id.new
-      wallets = Zold::Wallets.new(dir)
-      home = Zold::Home.new(wallets: wallets)
-      wallets.acq(id) do |source|
-        source.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-        invoice = Zold::Invoice.new(home: home, log: test_log).run(
-          ['invoice', id.to_s, '--length=16']
-        )
-        assert_equal(33, invoice.length)
-      end
+module Zold
+  # Home class combines wallets, remotes and copies
+  # Constructor defaults to nil to make it compatible with another classes
+  class Home
+    def initialize(wallets:, remotes: nil, copies: nil, log: Log::NULL)
+      @wallets = wallets
+      @remotes = remotes
+      @copies = copies
+      @log = log
+    end
+
+    def wallets
+      @wallets
+    end
+
+    def copies
+      @copies
+    end
+
+    def remotes
+      @remotes
     end
   end
 end

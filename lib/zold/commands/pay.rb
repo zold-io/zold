@@ -28,6 +28,7 @@ require_relative 'args'
 require_relative '../id'
 require_relative '../amount'
 require_relative '../log'
+require_relative '../home'
 
 # PAY command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -38,10 +39,11 @@ module Zold
   class Pay
     prepend ThreadBadge
 
-    def initialize(wallets:, remotes:, copies:, log: Log::NULL)
-      @wallets = wallets
-      @remotes = remotes
-      @copies = copies
+    def initialize(home:, log: Log::NULL)
+      @home = home
+      @wallets = @home.wallets
+      @remotes = @home.remotes
+      @copies = @home.copies
       @log = log
     end
 
@@ -93,7 +95,7 @@ Available options:"
       invoice = mine[1]
       unless invoice.include?('@')
         require_relative 'invoice'
-        invoice = Invoice.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
+        invoice = Invoice.new(home: @home, log: @log).run(
           ['invoice', invoice, "--tolerate-quorum=#{Shellwords.escape(opts['tolerate-quorum'])}"] +
           ["--network=#{Shellwords.escape(opts['network'])}"] +
           (opts['tolerate-edges'] ? ['--tolerate-edges'] : [])

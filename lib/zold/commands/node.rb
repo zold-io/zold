@@ -65,11 +65,12 @@ module Zold
   class Node
     prepend ThreadBadge
 
-    def initialize(wallets:, remotes:, copies:, log: Log::NULL)
-      @remotes = remotes
-      @copies = copies
+    def initialize(home:, log: Log::NULL)
+      @home = home
+      @remotes = @home.remotes
+      @copies = @home.copies
       @log = log
-      @wallets = wallets
+      @wallets = @home.wallets
     end
 
     def run(args = [])
@@ -253,7 +254,8 @@ the node won\'t connect to the network like that; try to do "zold remote reset" 
         @log.info('Hungry pulling disabled because of --not-hungry')
       else
         hungry = ThreadPool.new('hungry', log: @log)
-        wts = HungryWallets.new(@wallets, @remotes, @copies, hungry, log: @log, network: opts['network'])
+        wts = HungryWallets.new(Zold::Home.new(wallets: @wallets, remotes: @remotes, copies: @copies),
+                                hungry, log: @log, network: opts['network'])
       end
       Front.set(:zache, Zache.new(dirty: true))
       Front.set(:wallets, wts)
@@ -337,7 +339,7 @@ the node won\'t connect to the network like that; try to do "zold remote reset" 
       invoice = opts['invoice']
       unless invoice.include?('@')
         require_relative 'invoice'
-        invoice = Invoice.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
+        invoice = Invoice.new(home: Zold::Home.new(wallets: @wallets, remotes: @remotes, copies: @copies), log: @log).run(
           ['invoice', invoice, "--network=#{Shellwords.escape(opts['network'])}"] +
           ["--tolerate-quorum=#{Shellwords.escape(opts['tolerate-quorum'])}"] +
           (opts['tolerate-edges'] ? ['--tolerate-edges'] : [])
@@ -456,12 +458,12 @@ the node won\'t connect to the network like that; try to do "zold remote reset" 
         end
       end
       require_relative 'routines/spread'
-      metronome.add(Routines::Spread.new(opts, @wallets, @remotes, @copies, log: @log))
+      metronome.add(Routines::Spread.new(opts, Zold::Home.new(wallets: @wallets, remotes: @remotes, copies: @copies), log: @log))
       require_relative 'routines/retire'
       metronome.add(Routines::Retire.new(opts, log: @log))
       if @remotes.master?(host, port)
         require_relative 'routines/reconcile'
-        metronome.add(Routines::Reconcile.new(opts, @wallets, @remotes, @copies, "#{host}:#{port}", log: @log))
+        metronome.add(Routines::Reconcile.new(opts, Zold::Home.new(wallets: @wallets, remotes: @remotes, copies: @copies), "#{host}:#{port}", log: @log))
       else
         @log.info('This is not master, no need to reconcile')
       end
