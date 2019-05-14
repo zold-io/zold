@@ -36,7 +36,7 @@ module Zold
       JsonPage.new(
         Http.new(uri: 'https://rubygems.org/api/v1/versions/zold/latest.json').get.body
       ).to_hash['version']
-    rescue StandardError => _
+    rescue StandardError => _e
       '0.0.0'
     end
   end

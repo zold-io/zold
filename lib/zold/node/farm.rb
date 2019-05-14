@@ -167,7 +167,7 @@ at #{host}:#{port}, strength is #{@strength}")
       loop do
         begin
           s << @pipeline.pop(true)
-        rescue ThreadError => _
+        rescue ThreadError
           sleep(0.25)
         end
         s.compact!

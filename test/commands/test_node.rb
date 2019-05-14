@@ -56,7 +56,7 @@ class TestNode < Zold::Test
             wallets: wallets, copies: copies.root,
             remotes: remotes, log: test_log
           ).run(['fetch', '--ignore-score-weakness', '--tolerate-edges', '--tolerate-quorum=1'])
-        rescue StandardError => _
+        rescue StandardError => _e
           sleep 1
           retry if (retries += 1) < 3
         end

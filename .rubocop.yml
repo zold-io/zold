@@ -5,6 +5,10 @@ AllCops:
   DisplayCopNames: true
   TargetRubyVersion: 2.5
 
+Lint/ToJSON:
+  Enabled: false
+Layout/AlignArguments:
+  Enabled: false
 Style/ClassAndModuleChildren:
   Enabled: false
 Layout/EmptyLineAfterGuardClause:
