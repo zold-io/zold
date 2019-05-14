@@ -69,7 +69,10 @@ module Zold
     # The "baseline" flag, when set to TRUE, means that we should NOT validate
     # the presence of positive incoming transactions in their correspondent
     # wallets. We shall just trust them.
-    def join(wallet, ledger: '/dev/null', baseline: false)
+    #
+    # If the "master" flag is set, this copy is coming from a master node
+    # and we should allow it to overwrite negative transactions.
+    def join(wallet, ledger: '/dev/null', baseline: false, master: false)
       if @id.nil?
         @id = wallet.id
         @key = wallet.key
@@ -95,10 +98,15 @@ module Zold
         seen += 1
         if txn.amount.negative?
           dup = @txns.find { |t| t.id == txn.id && t.amount.negative? }
-          if dup
+          if dup && !master
             @log.error("An attempt to overwrite existing transaction #{dup.to_text.inspect} \
 with a new one #{txn.to_text.inspect} from #{wallet.mnemo}")
             next
+          end
+          if dup && master
+            @log.debug("An overwrite to the existing transaction #{dup.to_text.inspect} \
+is coming from a master node: #{txn.to_text.inspect} from #{wallet.mnemo}")
+            @txns.reject! { |t| t.id == txn.id && t.amount.negative? }
           end
           unless Signature.new(@network).valid?(@key, wallet.id, txn)
             @log.error("Invalid RSA signature at the transaction ##{txn.id} of #{wallet.id}: #{txn.to_text.inspect}")

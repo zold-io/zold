@@ -14,7 +14,7 @@ Style/ClassAndModuleChildren:
 Layout/EmptyLineAfterGuardClause:
   Enabled: false
 Metrics/CyclomaticComplexity:
-  Max: 30
+  Max: 33
 Metrics/MethodLength:
   Enabled: false
 Layout/MultilineMethodCallIndentation:
@@ -34,7 +34,7 @@ Metrics/ParameterLists:
 Layout/AlignParameters:
   Enabled: false
 Metrics/PerceivedComplexity:
-  Max: 34
+  Max: 36
 Metrics/LineLength:
   Max: 120
 Style/MultilineBlockChain:

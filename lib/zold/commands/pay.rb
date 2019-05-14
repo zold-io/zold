@@ -148,6 +148,7 @@ the difference is #{(amount - from.balance).to_i} zents"
         @log.debug("Keygap \"#{'*' * opts['keygap'].length}\" injected into the RSA private key")
       end
       key = Zold::Key.new(text: pem)
+      from.refurbish
       txn = from.sub(amount, invoice, key, details, time: Txn.parse_time(opts['time']))
       @log.debug("#{amount} sent from #{from} to #{txn.bnf}: #{details}")
       @log.debug("Don't forget to do 'zold push #{from}'")

@@ -107,8 +107,9 @@ class TestPay < Zold::Test
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       amount = Zold::Amount.new(zld: 2.0)
+      wallets = home.wallets
       Threads.new(10).assert do
-        Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: test_log).run(
+        Zold::Pay.new(wallets: wallets, copies: home.dir, remotes: home.remotes, log: test_log).run(
           [
             'pay', '--force', '--private-key=fixtures/id_rsa',
             wallet.id.to_s, 'NOPREFIX@dddd0000dddd0000', amount.to_zld, '-'
