@@ -232,6 +232,7 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
         total_mem: total_mem,
         threads: "#{Thread.list.select { |t| t.status == 'run' }.count}/#{Thread.list.count}",
         wallets: total_wallets,
+        journal: DirItems.new(settings.journal_dir).fetch.count,
         remotes: all_remotes.count,
         nscore: all_remotes.map { |r| r[:score] }.inject(&:+) || 0,
         farm: settings.farm.to_json,

@@ -64,6 +64,7 @@ class FrontTest < Zold::Test
       assert_equal('zold-io/zold', json['repo'])
       assert(json['pid'].positive?, json)
       assert(json['cpus'].positive?, json)
+      assert(!json['journal'].negative?, json)
       assert(json['memory'].positive?, json)
       assert(!json['load'].negative?, json)
       assert(json['wallets'].positive?, json)
