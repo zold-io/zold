@@ -316,6 +316,7 @@ at #{response.headers['X-Zold-Path']}"
     def assert_host_info(host, port)
       raise 'Host can\'t be nil' if host.nil?
       raise 'Host can\'t be empty' if host.empty?
+      raise 'Host IP is wrong, can\'t be all zeros' if host == '0.0.0.0'
       raise 'Port can\'t be nil' if port.nil?
       raise 'Port has to be of type Integer' unless port.is_a?(Integer)
       raise 'Port can\'t be zero' if port.zero?

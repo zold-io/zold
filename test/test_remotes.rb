@@ -76,7 +76,7 @@ class TestRemotes < Zold::Test
       FileUtils.touch(file)
       remotes = Zold::Remotes.new(file: file)
       ips = (0..50)
-      ips.each { |i| remotes.add("0.0.0.#{i}", 9999) }
+      ips.each { |i| remotes.add("0.0.0.#{i + 1}", 9999) }
       remotes.iterate(Zold::Log::NULL) { raise 'Intended' }
       ips.each { |i| assert(1, remotes.all[i][:errors]) }
     end
@@ -87,7 +87,7 @@ class TestRemotes < Zold::Test
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
       remotes = Zold::Remotes.new(file: file)
-      5.times { |i| remotes.add("0.0.0.#{i}", 9999) }
+      5.times { |i| remotes.add("0.0.0.#{i + 1}", 9999) }
       total = 0
       remotes.iterate(Zold::Log::NULL) do
         total += 1
@@ -102,7 +102,7 @@ class TestRemotes < Zold::Test
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
       remotes = Zold::Remotes.new(file: file)
-      5.times { |i| remotes.add("0.0.0.#{i}", 9999) }
+      5.times { |i| remotes.add("0.0.0.#{i + 1}", 9999) }
       total = 0
       remotes.iterate(Zold::Log::NULL) do
         sleep 0.25
@@ -116,7 +116,7 @@ class TestRemotes < Zold::Test
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'rrr.csv'))
       remotes.clean
-      5.times { |i| remotes.add("0.0.0.#{i}", 8080) }
+      5.times { |i| remotes.add("0.0.0.#{i + 1}", 8080) }
       total = 0
       remotes.iterate(test_log) do
         sleep 0.25
