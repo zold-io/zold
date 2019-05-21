@@ -304,7 +304,7 @@ at #{response.headers['X-Zold-Path']}"
             master: master?(row[0], row[1].to_i)
           }
         end
-        raw.reject { |r| !r[:host] || r[:port].zero? }.map do |r|
+        raw.reject { |r| !r[:host] || r[:port].zero? || r[:host] == '0.0.0.0' }.map do |r|
           r[:home] = URI("http://#{r[:host]}:#{r[:port]}/")
           r
         end
