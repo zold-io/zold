@@ -1,5 +1,5 @@
 assets:
-  rubygems.yml: zerocracy/home#assets/rubygems.yml
+  rubygems.yml: yegor256/home#assets/rubygems.yml
 install: |
   export GEM_HOME=~/.ruby
   export GEM_PATH=$GEM_HOME:$GEM_PATH
