@@ -5,7 +5,7 @@ install: |
   export GEM_PATH=$GEM_HOME:$GEM_PATH
   sudo apt-get -y update
   sudo apt-get -y install libcurl4-openssl-dev
-  sudo gem install pdd
+  sudo gem install pdd -v 0.20.5
 release:
   script: |-
     export RUBYOPT="-W0"
