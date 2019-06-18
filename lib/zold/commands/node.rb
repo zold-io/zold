@@ -357,7 +357,7 @@ the node won\'t connect to the network like that; try to do "zold remote reset" 
     def farmer(opts)
       case opts['farmer'].downcase.strip
       when 'plain'
-        @log.debug('"Plain" farmer is used, only one CPU will be utilized')
+        @log.debug('"Plain" farmer is used, only one CPU core will be utilized')
         Farmers::Plain.new
       when 'fork'
         @log.debug('"Fork" farmer is used')
