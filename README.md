@@ -15,6 +15,7 @@
 
 [![Yard Docs](http://img.shields.io/badge/yard-docs-blue.svg)](http://rubydoc.info/github/zold-io/zold/master/frames)
 [![Maintainability](https://api.codeclimate.com/v1/badges/2861728929db934eb376/maintainability)](https://codeclimate.com/github/zold-io/zold/maintainability)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/yegor256/takes/blob/master/LICENSE.txt)
 [![Hits-of-Code](https://hitsofcode.com/github/zold-io/zold)](https://hitsofcode.com/github/zold-io/zold)
 
 To understand what Zold cryptocurrency is about you may want
@@ -39,8 +40,6 @@ More details you can find in the [White Paper](https://papers.zold.io/wp.pdf).
 You can also find us at the [Bitcointalk](https://bitcointalk.org/index.php?topic=5095078) forum.
 
 Join our [Telegram group](https://t.me/zold_io) to discuss it all live.
-
-The license is [MIT](https://github.com/zold-io/zold/blob/master/LICENSE.txt).
 
 ## How to Use
 
