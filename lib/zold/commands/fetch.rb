@@ -126,7 +126,7 @@ Available options:"
       end
       unless opts['quiet-if-absent']
         if done.value.zero?
-          raise NotFound, "No nodes out of #{nodes.value} have the wallet #{id}; \
+          raise NotFound, "No nodes out of #{nodes.value}, incl. #{masters.value} master, have the wallet #{id}; \
 run 'zold remote update' and try again"
         end
         if masters.value.zero? && !opts['tolerate-edges']
