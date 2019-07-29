@@ -43,6 +43,9 @@ end
 require_relative '../lib/zold/hands'
 Zold::Hands.start
 
+require 'minitest/reporters'
+Minitest::Reporters.use! [Minitest::Reporters::SpecReporter.new]
+
 module Zold
   class Test < Minitest::Test
     include Minitest::Hooks
