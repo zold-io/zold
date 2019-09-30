@@ -158,9 +158,9 @@ at #{response.headers['X-Zold-Path']}"
 
     def all
       list = Futex.new(@file).open(false) { load }
-      max_score = list.map { |r| r[:score] }.max || 0
+      max_score = list.empty? ? 0 : list.max_by { |r| r[:score] }[:score]
       max_score = 1 if max_score.zero?
-      max_errors = list.map { |r| r[:errors] }.max || 0
+      max_errors = list.empty? ? 0 : list.max_by { |r| r[:errors] }[:errors]
       max_errors = 1 if max_errors.zero?
       list.sort_by do |r|
         (1 - r[:errors] / max_errors) * 5 + (r[:score] / max_score)
