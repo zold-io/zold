@@ -27,6 +27,7 @@ require 'thin'
 require 'haml'
 require 'shellwords'
 require 'json'
+require 'digest'
 require 'sinatra/base'
 require 'concurrent'
 require 'backtrace'
@@ -210,6 +211,7 @@ from #{request.ip} in #{Age.new(@start, limit: 1)}")
         score: score.to_h,
         pid: Process.pid,
         processes: processes_count,
+        checksum: checksum,
         cpus: settings.zache.get(:cpus) do
           Concurrent.processor_count
         end,
@@ -540,6 +542,17 @@ time to stop; use --skip-oom to never quit")
     def total_wallets
       settings.zache.get(:wallets, lifetime: settings.opts['no-cache'] ? 0 : 60) do
         settings.wallets.count
+      end
+    end
+
+    def checksum
+      settings.zache.get(:checksum, lifetime: settings.opts['no-cache'] ? 0 : 60) do
+        Digest::MD5.hexdigest(
+          Dir[File.join(__dir__, '../**/*')]
+            .reject { |f| File.directory?(f) }
+            .map { |f| File.read(f) }
+            .join
+        )
       end
     end
 

@@ -379,6 +379,17 @@ class FrontTest < Zold::Test
     end
   end
 
+  def test_checksum_in_json
+    FakeNode.new(log: test_log).run(opts) do |port|
+      uri = URI("http://localhost:#{port}/")
+      response = Zold::Http.new(uri: uri).get
+      assert(
+        Zold::JsonPage.new(response.body).to_hash.key?('checksum'),
+        response.body
+      )
+    end
+  end
+
   private
 
   def opts(*extra)
