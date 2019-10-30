@@ -9,15 +9,15 @@ branches:
 os: Windows Server 2012
 environment:
   matrix:
-    - ruby_version: "26-x64"
+    - ruby_version: "25"
     - openssl_version : "2.1.1"
 install:
-  - set PATH=C:\Ruby%ruby_version%\bin;%PATH%
+  - set PATH=C:\Ruby%ruby_version%-64\bin;%PATH%
   - ps: |
-      $Env:PATH = "C:\Ruby${Env:ruby_version}\bin;${Env:PATH}"
+      $Env:PATH = "C:\Ruby${Env:ruby_version}-x64\bin;${Env:PATH}"
       if ($Env:ruby_version -match "^23" ) {
         # RubyInstaller; download OpenSSL headers from OpenKnapsack Project
-        $Env:openssl_dir = "C:\Ruby${Env:ruby_version}"
+        $Env:openssl_dir = "C:\Ruby${Env:ruby_version}-x64"
         appveyor DownloadFile http://dl.bintray.com/oneclick/OpenKnapsack/x64/openssl-${Env:ruby_version}j-x64-windows.tar.lzma
         7z e openssl-${Env:ruby_version}j-x64-windows.tar.lzma
         7z x -y -oC:\Ruby${Env:ruby_version} openssl-${Env:ruby_version}j-x64-windows.tar
