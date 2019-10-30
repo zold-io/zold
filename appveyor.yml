@@ -9,7 +9,7 @@ branches:
 os: Windows Server 2012
 environment:
   matrix:
-    - ruby_version: "25"
+    - ruby_version: "26"
     - openssl_version : "2.1.1"
 install:
   - set PATH=C:\Ruby%ruby_version%\bin;%PATH%
