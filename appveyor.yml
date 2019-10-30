@@ -11,9 +11,11 @@ environment:
   bundle_gemfile: integration-test/Gemfile.winrm
   bundler_url: https://rubygems.org/downloads/bundler-1.9.9.gem
   matrix:
-    - ruby_version: "26-x64"
+    - ruby_version: "26"
     - openssl_version : "2.1.1"
 install:
+  - set PATH=C:\Ruby%ruby_version%\bin;%PATH%
+  - bundle install
   - ps: |
       $Env:PATH = "C:\Ruby${Env:ruby_version}\bin;${Env:PATH}"
       if ($Env:ruby_version -match "^23" ) {
