@@ -13,7 +13,6 @@ environment:
     - openssl_version : "2.1.1"
 install:
   - set PATH=C:\Ruby%ruby_version%\bin;%PATH%
-  - bundle install
   - ps: |
       $Env:PATH = "C:\Ruby${Env:ruby_version}\bin;${Env:PATH}"
       if ($Env:ruby_version -match "^23" ) {
