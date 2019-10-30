@@ -13,9 +13,6 @@ environment:
   matrix:
     - ruby_version: "26-x64"
     - openssl_version : "2.1.1"
-  cache:
-    - C:\Ruby26\lib\ruby\gems\2.6.0  -> appveyor.yml
-    - C:\Ruby26\bin
 install:
   - ps: |
       $Env:PATH = "C:\Ruby${Env:ruby_version}\bin;${Env:PATH}"
@@ -29,7 +26,11 @@ install:
         # RubyInstaller2; openssl package seems to be installed already
         $Env:openssl_dir = "C:\msys64\mingw64"
       }
-  - bundle config --local path vendor/bundle
+  #- bundle config --local path vendor/bundle
+  - ruby --version
+  - gem --version
+  - appveyor DownloadFile -Url %bundler_url% -FileName bundler.gem
+  - gem install --local bundler.gem --no-document --force
 
   # Download & extract libcurl
   # Copy libcurl.{dll,lib} and add to PATH, so that libcurl.dll is found during the tests
