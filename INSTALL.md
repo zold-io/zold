@@ -114,3 +114,59 @@ If your node is behind a pfsense firewall, you will need to make some special co
     > CLI: curl <ip>:4096
     > Browser: http://<ip>:4096
 ```
+
+## Run in Kubernetes cluster
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: zold-node
+spec:
+  ports:
+    - port: 80
+      targetPort: 4096
+  selector:
+    app: zold-node
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zold-node
+spec:
+  selector:
+    matchLabels:
+      app: zold-node
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: zold-node
+    spec:
+      containers:
+        - name: zold-node
+          image: yegor256/zold
+          command:
+            - "/node.sh"
+          args:
+            # replace example.com with your domain
+            - "--host=example.com"
+            # replace invoice with your wallet id
+            - "--invoice=invoice"
+            - "--port=80"
+          ports:
+            - containerPort: 4096
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: zold-ingress
+spec:
+  rules:
+      # replace with your domain
+    - host: example.com
+      http:
+        paths:
+          - backend:
+              serviceName: zold-node
+              servicePort: 80
+```
