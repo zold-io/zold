@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2018-2019 Zerocracy, Inc.
+# Copyright (c) 2018-2020 Zerocracy, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the 'Software'), to deal
@@ -100,14 +100,16 @@ module Zold
     def paid
       txns = @wallet.txns
       scored = txns.map do |t|
+        next if t.amount.positive?
         pfx, body = t.details.split(' ', 2)
         next if pfx != PREFIX || body.nil?
         score = Score.parse(body)
-        next if !score.valid? || score.value != EXACT_SCORE
+        next unless score.valid?
+        next unless score.value == EXACT_SCORE || @ignore_score_weakness
         if score.strength < @strength && !@ignore_score_weakness
           next unless MILESTONES.find { |d, s| t.date < d && score.strength >= s }
         end
-        next if t.amount > MAX_PAYMENT
+        next if t.amount * -1 > MAX_PAYMENT
         t
       end.compact.uniq(&:details)
       scored.empty? ? Amount::ZERO : scored.map(&:amount).inject(&:+) * -1

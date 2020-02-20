@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2018-2019 Zerocracy, Inc.
+# Copyright (c) 2018-2020 Zerocracy, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the 'Software'), to deal
@@ -108,6 +108,40 @@ class TestTax < Zold::Test
       tax = Zold::Tax.new(wallet, strength: 6)
       assert_equal(amount, tax.paid)
       assert(tax.debt < Zold::Amount::ZERO, tax.debt)
+    end
+  end
+
+  def test_filters_out_incoming_payments
+    FakeHome.new(log: test_log).run do |home|
+      wallet = home.create_wallet
+      amount = Zold::Amount.new(zents: 95_596_800)
+      prefix = Zold::Prefixes.new(wallet).create(8)
+      score = Zold::Score.new(
+        time: Time.now, host: 'localhost', port: 4096,
+        invoice: "#{prefix}@#{wallet.id}", strength: 1
+      )
+      wallet.add(
+        Zold::Txn.new(
+          1,
+          Time.now,
+          amount,
+          'NOPREFIX', Zold::Id.new('0000111122223333'),
+          "TAXES #{score}"
+        )
+      )
+      wallet.add(
+        Zold::Txn.new(
+          2,
+          Time.now,
+          amount * -1,
+          'NOPREFIX', Zold::Id.new('912ecc24b32dbe74'),
+          "TAXES 6 5b5a21a9 b2.zold.io 1000 DCexx0hG 912ecc24b32dbe74 \
+386d4a ec9eae 306e3d 119d073 1c00dba 1376703 203589 5b55f7"
+        )
+      )
+      tax = Zold::Tax.new(wallet, strength: 6, ignore_score_weakness: true)
+      assert_equal(amount, tax.paid)
+      # assert(tax.debt < Zold::Amount::ZERO, tax.debt)
     end
   end
 
