@@ -79,10 +79,10 @@ module Zold
           'The invoice you want to collect money to or the wallet ID',
           required: true
         o.integer '--port',
-          "TCP port to open for the Net (default: #{Remotes::PORT})",
+          "TCP port to announce in Zold Network (default: #{Remotes::PORT})",
           default: Remotes::PORT
         o.integer '--bind-port',
-          "TCP port to listen on (default: #{Remotes::PORT})",
+          "TCP port to listen on, which may differ from --port if you are behind a proxy (default: #{Remotes::PORT})",
           default: Remotes::PORT
         o.string '--host',
           'Host name (will attempt to auto-detect it, if not specified)'
