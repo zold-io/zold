@@ -185,6 +185,14 @@ The `/etc/crontab` entry:
 
 ## Frequently Asked Questions
 
+> Is there a configuration file?
+
+Any command line flag can also be put in the `~/.zold` file, one per line, e.g.:
+```
+--home=~/.zold_home
+--verbose
+```
+
 > Where are my RSA private/public keys?
 
 They are in `~/.ssh/id_rsa` (private key) and `~/.ssh/id_rsa.pub` (public key).
@@ -193,6 +201,16 @@ If you lose the public key, it's not a problem, since your wallet has it.
 But the private key is your personal asset.
 Anyone can use your wallet if they have the private key.
 Keep it safe and secure!
+
+> How to use my RSA private key from https://wts.zold.io?
+
+Retrieve the key via https://wts.zold.io/key. It can then be used with
+the command line flag `--private-key` (e.g., for the `pay`, `node` and
+`taxes` commands).
+
+If you need the public key, you can generate it with
+`ssh-keygen -y -f .ssh/zold_key > .ssh/zold_key.pub`. It can then be used
+with the command line flag `--public-key` (e.g., for the `create` command).
 
 > What is the best way to check the balance of the rewards collected by nodes?
 
