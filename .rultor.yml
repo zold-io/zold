@@ -6,6 +6,7 @@ architect:
 assets:
   rubygems.yml: yegor256/home#assets/rubygems.yml
 install: |
+  git config --global --add safe.directory "$(pwd)"
   sudo apt-get -y update
   sudo apt-get -y install libcurl4-openssl-dev
   sudo bundle install --no-color "--gemfile=$(pwd)/Gemfile"
