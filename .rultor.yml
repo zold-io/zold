@@ -15,7 +15,6 @@ release:
 
     export RUBYOPT="-W0"
     sed -i "s/0\.0\.0/${tag}/g" lib/zold/version.rb
-    bundle install --no-color
     bundle exec rake --quiet
     git add lib/zold/version.rb
     git commit -m "version set to ${tag}"
@@ -24,6 +23,5 @@ release:
     gem push *.gem --config-file ../rubygems.yml
 merge:
   script: |-
-    bundle install
     bundle exec rake --quiet
     pdd -f /dev/null -v
