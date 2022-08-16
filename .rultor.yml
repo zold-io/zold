@@ -1,35 +1,29 @@
+docker:
+  image: yegor256/rultor-image:1.9.1
+architect:
+- yegor256
+- davvd
 assets:
   rubygems.yml: yegor256/home#assets/rubygems.yml
 install: |
-  export GEM_HOME=~/.ruby
-  export GEM_PATH=$GEM_HOME:$GEM_PATH
   sudo apt-get -y update
   sudo apt-get -y install libcurl4-openssl-dev
-  sudo gem install pdd -v 0.20.5
+  sudo bundle install --no-color "--gemfile=$(pwd)/Gemfile"
 release:
   script: |-
-    export RUBYOPT="-W0"
     [[ "${tag}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || exit -1
-    # gem build zold.gemspec
-    # gem install --local zold-0.0.0.gem
-    # zold --version | grep -vq '0.0.0' && exit -1
-    # zold remote update
+
+    export RUBYOPT="-W0"
     sed -i "s/0\.0\.0/${tag}/g" lib/zold/version.rb
     bundle install --no-color
-    rake --quiet
+    bundle exec rake --quiet
     git add lib/zold/version.rb
     git commit -m "version set to ${tag}"
     gem build zold.gemspec
     chmod 0600 ../rubygems.yml
     gem push *.gem --config-file ../rubygems.yml
-architect:
-- yegor256
 merge:
   script: |-
     bundle install
-    rake --quiet
+    bundle exec rake --quiet
     pdd -f /dev/null -v
-deploy:
-  script: |-
-    echo "There is nothing to deploy"
-    exit -1
