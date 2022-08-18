@@ -56,8 +56,8 @@ module Zold
 
     def to_json
       @entrance.to_json.merge(
-        'modified': @modified.size,
-        'push': @push.to_json
+        modified: @modified.size,
+        push: @push.to_json
       )
     end
 

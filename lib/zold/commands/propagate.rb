@@ -94,7 +94,7 @@ Available options:"
       end
       modified.uniq!
       @log.debug("Wallet #{id} propagated successfully, #{total} txns \
-in #{Age.new(start, limit: 20 + total * 0.005)}, #{modified.count} wallets affected")
+in #{Age.new(start, limit: 20 + (total * 0.005))}, #{modified.count} wallets affected")
       modified.each do |w|
         @wallets.acq(w, &:refurbish)
       end

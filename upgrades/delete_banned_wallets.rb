@@ -39,7 +39,7 @@ module Zold
         id = Id.new(name[0..15])
         next unless Id::BANNED.include?(id.to_s)
         path = File.join(@home, path)
-        File.rename(path, path + '-banned')
+        File.rename(path, "#{path}-banned")
         @log.info("Wallet file #{path} renamed, since wallet #{id} is banned")
       end
     end

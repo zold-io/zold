@@ -84,8 +84,8 @@ class TestCopies < Zold::Test
   def test_cleans_copies
     Dir.mktmpdir do |dir|
       copies = Zold::Copies.new(dir, log: test_log)
-      copies.add(content('h1'), 'zold.io', 4096, 10, time: Time.now - 25 * 60 * 60)
-      copies.add(content('h1'), 'zold.io', 4097, 20, time: Time.now - 26 * 60 * 60)
+      copies.add(content('h1'), 'zold.io', 4096, 10, time: Time.now - (25 * 60 * 60))
+      copies.add(content('h1'), 'zold.io', 4097, 20, time: Time.now - (26 * 60 * 60))
       assert(File.exist?(File.join(dir, "1#{Zold::Copies::EXT}")))
       copies.clean
       assert(copies.all.empty?, "#{copies.all.count} is not empty")
@@ -105,7 +105,7 @@ class TestCopies < Zold::Test
   def test_ignores_garbage
     Dir.mktmpdir do |dir|
       copies = Zold::Copies.new(dir, log: test_log)
-      copies.add(content('h1'), 'zold.io', 50, 80, time: Time.now - 25 * 60 * 60)
+      copies.add(content('h1'), 'zold.io', 50, 80, time: Time.now - (25 * 60 * 60))
       FileUtils.mkdir(File.join(dir, '55'))
       assert_equal(1, copies.all.count)
     end
@@ -125,7 +125,7 @@ class TestCopies < Zold::Test
   def test_ignores_too_old_scores
     Dir.mktmpdir do |dir|
       copies = Zold::Copies.new(dir, log: test_log)
-      copies.add(content('h1'), 'zold.io', 50, 80, time: Time.now - 1000 * 60 * 60)
+      copies.add(content('h1'), 'zold.io', 50, 80, time: Time.now - (1000 * 60 * 60))
       assert_equal(0, copies.all[0][:score])
     end
   end
@@ -139,7 +139,7 @@ class TestCopies < Zold::Test
       amount = Zold::Amount.new(zld: 1.99)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       wallet.sub(amount, 'NOPREFIX@0000111122223333', key, text, time: Time.parse('2018-01-01T01:01:01Z'))
-      IO.read(wallet.path)
+      File.read(wallet.path)
     end
   end
 end

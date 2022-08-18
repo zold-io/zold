@@ -45,9 +45,9 @@ module Zold
       def acq(id, exclusive: false)
         @wallets.acq(id, exclusive: exclusive) do |wallet|
           return yield wallet unless exclusive
-          before = wallet.exists? ? IO.read(wallet.path) : ''
+          before = wallet.exists? ? File.read(wallet.path) : ''
           res = yield wallet
-          after = wallet.exists? ? IO.read(wallet.path) : ''
+          after = wallet.exists? ? File.read(wallet.path) : ''
           unless before == after
             diff = Diffy::Diff.new(before, after, context: 0).to_s
             @log.info("The wallet #{id} was modified:\n  #{diff.gsub("\n", "\n  ")}")
@@ -70,7 +70,7 @@ module Zold
 
     def to_json
       @pipeline.to_json.merge(
-        'dir': @dir
+        dir: @dir
       )
     end
 
@@ -78,7 +78,7 @@ module Zold
     def push(id, body, wallets, log, lifetime: 6)
       DirItems.new(@dir).fetch.each do |f|
         f = File.join(@dir, f)
-        File.delete(f) if File.mtime(f) < Time.now - lifetime * 60 * 60
+        File.delete(f) if File.mtime(f) < Time.now - (lifetime * 60 * 60)
       end
       journal = File.join(@dir, "#{Time.now.utc.iso8601.gsub(/[^0-9]/, '-')}-#{id}")
       jlog = Logger.new(journal)
@@ -89,7 +89,7 @@ module Zold
       jlog.info("Zold gem version: #{Zold::VERSION}")
       modified = @pipeline.push(id, body, JournaledPipeline::Wallets.new(wallets, jlog), Log::Tee.new(log, jlog))
       jlog.info("push(#{id}): done")
-      FileUtils.mv(journal, journal + '-done')
+      FileUtils.mv(journal, "#{journal}-done")
       modified
     end
   end

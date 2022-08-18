@@ -42,7 +42,7 @@ class TestSafeEntrance < Zold::Test
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
       assert_raises Zold::SoftError do
-        Zold::SafeEntrance.new(FakeEntrance.new).push(wallet.id, IO.read(wallet.path))
+        Zold::SafeEntrance.new(FakeEntrance.new).push(wallet.id, File.read(wallet.path))
       end
     end
   end
@@ -52,7 +52,7 @@ class TestSafeEntrance < Zold::Test
       wallet = Zold::Wallet.new(File.join(home.dir, 'wallet.z'))
       wallet.init(Zold::Id.new, Zold::Key.new(file: 'fixtures/id_rsa.pub'), network: 'someothernetwork')
       assert_raises StandardError do
-        Zold::SafeEntrance.new(FakeEntrance.new).push(wallet.id, IO.read(wallet.path))
+        Zold::SafeEntrance.new(FakeEntrance.new).push(wallet.id, File.read(wallet.path))
       end
     end
   end

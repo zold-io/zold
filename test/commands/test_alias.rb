@@ -51,6 +51,6 @@ class TestAlias < Zold::Test
   private
 
   def read_alias_file(home)
-    IO.read(File.join(home.dir, 'aliases')).split(' ')
+    File.read(File.join(home.dir, 'aliases')).split
   end
 end

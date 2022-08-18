@@ -202,12 +202,12 @@ at #{host}:#{port}, strength is #{@strength}")
         .map(&:to_s)
         .uniq
         .join("\n")
-      Futex.new(@cache).open { |f| IO.write(f, body) }
+      Futex.new(@cache).open { |f| File.write(f, body) }
     end
 
     def load
       return [] unless File.exist?(@cache)
-      Futex.new(@cache).open(false) { |f| IO.readlines(f, "\n") }.reject(&:empty?).map do |t|
+      Futex.new(@cache).open(false) { |f| File.readlines(f, "\n") }.reject(&:empty?).map do |t|
         Score.parse(t)
       rescue StandardError => e
         @log.error(Backtrace.new(e).to_s)

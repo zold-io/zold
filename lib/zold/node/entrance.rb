@@ -47,10 +47,10 @@ module Zold
 
     def to_json
       {
-        'history': @history.join(', '),
-        'history_size': @history.count,
-        'speed': @speed.empty? ? 0 : (@speed.inject(&:+) / @speed.count),
-        'pipeline': @pipeline.to_json
+        history: @history.join(', '),
+        history_size: @history.count,
+        speed: @speed.empty? ? 0 : (@speed.inject(&:+) / @speed.count),
+        pipeline: @pipeline.to_json
       }
     end
 

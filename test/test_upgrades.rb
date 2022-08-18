@@ -83,11 +83,11 @@ class TestUpgrades < Zold::Test
   end
 
   def create_version_file(dir, version)
-    IO.write(File.join(dir, 'version'), version)
+    File.write(File.join(dir, 'version'), version)
   end
 
   def create_upgrade_file(dir, version)
-    IO.write(
+    File.write(
       File.join(dir, "#{version}.rb"),
       "puts \"#{expected_upgrade_script_output(version)}\""
     )

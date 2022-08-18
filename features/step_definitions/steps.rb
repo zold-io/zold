@@ -30,13 +30,13 @@ Before do
   @dir = Dir.mktmpdir('test')
   FileUtils.copy('fixtures/id_rsa', @dir)
   FileUtils.copy('fixtures/id_rsa.pub', @dir)
-  FileUtils.mkdir_p(@dir) unless File.exist?(@dir)
+  FileUtils.mkdir_p(@dir)
   Dir.chdir(@dir)
 end
 
 After do
   Dir.chdir(@cwd)
-  FileUtils.rm_rf(@dir) if File.exist?(@dir)
+  FileUtils.rm_rf(@dir)
 end
 
 When(%r{^I run ([a-z/-]+) with "([^"]*)"$}) do |cmd, args|
@@ -47,7 +47,7 @@ end
 
 When(/^I run bash with:$/) do |text|
   FileUtils.copy_entry(@cwd, File.join(@dir, 'zold'))
-  IO.write('run.sh', text)
+  File.write('run.sh', text)
   @stdout = `/bin/bash run.sh 2>&1`
   @exitstatus = $CHILD_STATUS.exitstatus
 end

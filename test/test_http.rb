@@ -137,13 +137,13 @@ class TestHttp < Zold::Test
       end
       latch.wait
       res = Tempfile.open do |f|
-        IO.write(f, 'How are you?')
+        File.write(f, 'How are you?')
         Zold::Http.new(uri: "http://127.0.0.1:#{port}/").put(f)
       end
       assert_equal(200, res.status, res)
       assert(body.include?('Content-Length: 12'), body)
       assert(body.include?('Content-Type: text/plain'))
-      headers = body.split("\n").select { |t| t =~ /^[a-zA-Z-]+:.+$/ }
+      headers = body.split("\n").grep(/^[a-zA-Z-]+:.+$/)
       assert_equal(headers.count, headers.uniq.count)
       thread.kill
       thread.join
@@ -188,7 +188,7 @@ class TestHttp < Zold::Test
       latch.wait
       content = "how are you\nmy friend"
       res = Tempfile.open do |f|
-        IO.write(f, content)
+        File.write(f, content)
         Zold::Http.new(uri: "http://localhost:#{port}/").put(f)
       end
       assert_equal(200, res.status, res)
@@ -215,7 +215,7 @@ class TestHttp < Zold::Test
       latch.wait
       body = Tempfile.open do |f|
         Zold::Http.new(uri: "http://localhost:#{port}/").get_file(f)
-        IO.read(f)
+        File.read(f)
       end
       assert(body.include?(content), body)
       thread.kill

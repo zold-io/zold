@@ -50,6 +50,7 @@ module Zold
   # The error, if connection fails
   class HttpError < HttpResponse
     def initialize(ex)
+      super()
       @ex = ex
     end
 
@@ -144,12 +145,12 @@ module Zold
         Typhoeus::Request.put(
           @uri,
           accept_encoding: 'gzip',
-          body: IO.read(file),
+          body: File.read(file),
           headers: headers.merge(
             'Content-Type': 'text/plain'
           ),
           connecttimeout: CONNECT_TIMEOUT,
-          timeout: 2 + File.size(file) * 0.01 / 1024
+          timeout: 2 + (File.size(file) * 0.01 / 1024)
         )
       )
     rescue StandardError => e
@@ -161,7 +162,7 @@ module Zold
     def headers
       headers = {
         'User-Agent': "Zold #{VERSION}",
-        'Connection': 'close',
+        Connection: 'close',
         'Accept-Encoding': 'gzip'
       }
       headers[Http::VERSION_HEADER] = Zold::VERSION

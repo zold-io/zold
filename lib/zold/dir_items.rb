@@ -41,7 +41,7 @@ module Zold
     def fetch(recursive: true)
       `find #{([@dir] + (recursive ? [] : ['-maxdepth', '1']) + ['-type', 'f', '-print']).join(' ')} 2>/dev/null`
         .strip
-        .split(' ')
+        .split
         .select { |f| f.start_with?(@dir) && f.length > @dir.length }
         .map { |f| f[(@dir.length + 1)..-1] }
     end

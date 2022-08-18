@@ -36,14 +36,12 @@ module Zold
       @log = log
     end
 
-    def run
+    def run(&block)
       start = Time.now
       Thread.current.name = @title
       begin
         loop do
-          VerboseThread.new(@log).run(true) do
-            yield
-          end
+          VerboseThread.new(@log).run(safe: true, &block)
         end
       ensure
         @log.debug("Endless loop \"#{@title}\" quit after #{Age.new(start)} of work")

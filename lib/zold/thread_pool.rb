@@ -110,7 +110,7 @@ it was alive for #{Age.new(@start)}: #{@threads.map { |t| "#{t.name}/#{t.status}
           name: t.name,
           status: t.status,
           alive: t.alive?,
-          vars: Hash[t.thread_variables.map { |v| [v.to_s, t.thread_variable_get(v)] }]
+          vars: t.thread_variables.map { |v| [v.to_s, t.thread_variable_get(v)] }.to_h
         }
       end
     end
@@ -120,7 +120,10 @@ it was alive for #{Age.new(@start)}: #{@threads.map { |t| "#{t.name}/#{t.status}
       @threads.map do |t|
         [
           "#{t.name}: status=#{t.status}; alive=#{t.alive?}",
-          'Vars: ' + t.thread_variables.map { |v| "#{v}=\"#{t.thread_variable_get(v)}\"" }.join('; '),
+          [
+            'Vars: ',
+            t.thread_variables.map { |v| "#{v}=\"#{t.thread_variable_get(v)}\"" }.join('; ')
+          ].join,
           t.backtrace.nil? ? 'NO BACKTRACE' : "  #{t.backtrace.join("\n  ")}"
         ].join("\n")
       end

@@ -88,9 +88,12 @@ Available options:"
         ].join("\n")
       )
       @log.info(
-        "\n" + Copies.new(File.join(@copies, wallet.id)).all.map do |c|
-          "##{c[:name]}: #{c[:score]} #{Wallet.new(c[:path]).mnemo}"
-        end.join("\n")
+        [
+          "\n",
+          Copies.new(File.join(@copies, wallet.id)).all.map do |c|
+            "##{c[:name]}: #{c[:score]} #{Wallet.new(c[:path]).mnemo}"
+          end.join("\n")
+        ].join
       )
       balance
     end

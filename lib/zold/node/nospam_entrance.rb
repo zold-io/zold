@@ -66,7 +66,7 @@ and '#{after[0..8]}' hash has already been seen #{Age.new(@zache.mtime(id.to_s))
     private
 
     def hash(id, body)
-      OpenSSL::Digest::SHA256.new(id.to_s + ' ' + body).hexdigest
+      OpenSSL::Digest.new('SHA256', "#{id} #{body}").hexdigest
     end
   end
 end

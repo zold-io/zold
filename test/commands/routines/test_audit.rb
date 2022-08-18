@@ -24,7 +24,7 @@ require 'minitest/autorun'
 require 'tmpdir'
 require 'webmock/minitest'
 require_relative '../../test__helper'
-require_relative '../../../lib/zold/commands/routines/audit.rb'
+require_relative '../../../lib/zold/commands/routines/audit'
 
 # Audit test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

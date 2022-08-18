@@ -163,7 +163,7 @@ at #{response.headers['X-Zold-Path']}"
       max_errors = list.empty? ? 0 : list.max_by { |r| r[:errors] }[:errors]
       max_errors = 1 if max_errors.zero?
       list.sort_by do |r|
-        (1 - r[:errors] / max_errors) * 5 + (r[:score] / max_score)
+        ((1 - (r[:errors] / max_errors)) * 5) + (r[:score] / max_score)
       end.reverse
     end
 
@@ -173,9 +173,7 @@ at #{response.headers['X-Zold-Path']}"
 
     def masters
       MASTERS.each do |r|
-        if block_given?
-          next unless yield(r[:host], r[:port])
-        end
+        next if block_given? && !yield(r[:host], r[:port])
         add(r[:host], r[:port])
       end
     end
@@ -270,7 +268,7 @@ at #{response.headers['X-Zold-Path']}"
       FileUtils.mkdir_p(File.dirname(@file))
       Futex.new(@file).open do
         list = yield(load)
-        IO.write(
+        File.write(
           @file,
           list.uniq { |r| "#{r[:host]}:#{r[:port]}" }.map do |r|
             [

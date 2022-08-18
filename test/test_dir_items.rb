@@ -43,9 +43,7 @@ class TestDirItems < Zold::Test
       end
       Threads.new(100).assert do
         start = Time.now
-        File.open(file, 'w+') do |f|
-          f.write('test')
-        end
+        File.write(file, 'test')
         test_log.info("Saved in #{Zold::Age.new(start)}")
         sleep 1
       end

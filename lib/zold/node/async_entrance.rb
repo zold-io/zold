@@ -51,9 +51,9 @@ module Zold
 
     def to_json
       @entrance.to_json.merge(
-        'queue': @queue.size,
-        'threads': @pool.count,
-        'queue_limit': @queue_limit
+        queue: @queue.size,
+        threads: @pool.count,
+        queue_limit: @queue_limit
       )
     end
 
@@ -100,7 +100,7 @@ module Zold
           uuid = SecureRandom.uuid
           file = File.join(@dir, "#{id}-#{uuid}#{Wallet::EXT}")
           next if File.exist?(file)
-          IO.write(file, body)
+          File.write(file, body)
           @queue << { id: id, file: file }
           @log.debug("Added #{id}/#{Size.new(body.length)} to the queue at pos.#{@queue.size} \
   in #{Age.new(start, limit: 0.05)}")
@@ -122,7 +122,7 @@ module Zold
     end
 
     def safe_read(file)
-      IO.read(file)
+      File.read(file)
     rescue Errno::ENOENT
       ''
     end
@@ -131,7 +131,7 @@ module Zold
       start = Time.now
       item = @queue.pop
       Thread.current.thread_variable_set(:wallet, item[:id].to_s)
-      body = IO.read(item[:file])
+      body = File.read(item[:file])
       FileUtils.rm_f(item[:file])
       @entrance.push(item[:id], body)
       @log.debug("Pushed #{item[:id]}/#{Size.new(body.length)} to #{@entrance.class.name} \

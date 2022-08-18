@@ -51,7 +51,7 @@ module Zold
     def legacy(wallet, hours: 24)
       raise 'You can\'t add legacy to a non-empty patch' unless @id.nil?
       wallet.txns.each do |txn|
-        @txns << txn if txn.amount.negative? && txn.date < Time.now - hours * 60 * 60
+        @txns << txn if txn.amount.negative? && txn.date < Time.now - (hours * 60 * 60)
       end
     end
 
@@ -170,18 +170,17 @@ doesn't have this transaction: #{txn.to_text.inspect}")
         added += 1
         next unless txn.amount.negative?
         File.open(ledger, 'a') do |f|
-          f.puts(
-            [
-              Time.now.utc.iso8601,
-              txn.id,
-              txn.date.utc.iso8601,
-              wallet.id,
-              txn.bnf,
-              txn.amount.to_i * -1,
-              txn.prefix,
-              txn.details
-            ].map(&:to_s).join(';') + "\n"
-          )
+          msg = [
+            Time.now.utc.iso8601,
+            txn.id,
+            txn.date.utc.iso8601,
+            wallet.id,
+            txn.bnf,
+            txn.amount.to_i * -1,
+            txn.prefix,
+            txn.details
+          ].map(&:to_s).join(';')
+          f.puts("#{msg}\n")
         end
       end
     end
@@ -214,7 +213,7 @@ doesn't have this transaction: #{txn.to_text.inspect}")
           end
         else
           FileUtils.mkdir_p(File.dirname(file))
-          IO.write(file, IO.read(f.path))
+          File.write(file, File.read(f.path))
         end
       end
       before != wallet.digest

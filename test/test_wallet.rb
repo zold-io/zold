@@ -119,21 +119,21 @@ class TestWallet < Zold::Test
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
       wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
-      before = IO.read(wallet.path)
-      IO.write(wallet.path, IO.read(wallet.path) + "\n\n\n")
+      before = File.read(wallet.path)
+      File.write(wallet.path, "#{File.read(wallet.path)}\n\n\n")
       wallet.refurbish
       assert_equal(amount * -2, wallet.balance)
-      assert_equal(before, IO.read(wallet.path))
+      assert_equal(before, File.read(wallet.path))
     end
   end
 
   def test_refurbishes_empty_wallet
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
-      before = IO.read(wallet.path)
-      IO.write(wallet.path, IO.read(wallet.path) + "\n\n\n")
+      before = File.read(wallet.path)
+      File.write(wallet.path, "#{File.read(wallet.path)}\n\n\n")
       wallet.refurbish
-      assert_equal(before, IO.read(wallet.path))
+      assert_equal(before, File.read(wallet.path))
     end
   end
 
@@ -179,7 +179,7 @@ class TestWallet < Zold::Test
       wallet.add(
         Zold::Txn.new(
           1,
-          Time.now - 100 * 60 * 60,
+          Time.now - (100 * 60 * 60),
           Zold::Amount.new(zld: 1.99),
           'NOPREFIX', Zold::Id.new, '-'
         )
@@ -210,7 +210,7 @@ class TestWallet < Zold::Test
   def test_returns_modified_time
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
-      assert(wallet.mtime > Time.now - 60 * 60)
+      assert(wallet.mtime > Time.now - (60 * 60))
     end
   end
 
@@ -224,7 +224,7 @@ class TestWallet < Zold::Test
   def test_raises_when_broken_format
     Dir.mktmpdir do |dir|
       file = File.join(dir, "0123456701234567#{Zold::Wallet::EXT}")
-      IO.write(file, 'broken head')
+      File.write(file, 'broken head')
       assert_raises(Zold::Head::CantParse) do
         Zold::Wallet.new(file).id
       end
@@ -280,18 +280,18 @@ class TestWallet < Zold::Test
         )
       end
       wallet = home.create_wallet
-      empty = IO.read(wallet.path)
+      empty = File.read(wallet.path)
       text = ''
       10.times do
-        IO.write(wallet.path, empty)
+        File.write(wallet.path, empty)
         txns.shuffle!
         txns.each { |t| wallet.add(t) }
         wallet.refurbish
         if text.empty?
-          text = IO.read(wallet.path)
+          text = File.read(wallet.path)
           next
         end
-        assert_equal(text, IO.read(wallet.path))
+        assert_equal(text, File.read(wallet.path))
       end
     end
   end

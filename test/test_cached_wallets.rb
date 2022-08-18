@@ -58,14 +58,14 @@ class TestCachedWallets < Zold::Test
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       body = wallets.acq(id, exclusive: true) do |wallet|
         wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-        IO.read(wallet.path)
+        File.read(wallet.path)
       end
       wallets.acq(id, exclusive: true) do |wallet|
         wallet.sub(Zold::Amount.new(zld: 1.0), "NOPREFIX@#{Zold::Id.new}", key)
       end
       assert_equal(1, wallets.acq(id, &:txns).count)
       wallets.acq(id, exclusive: true) do |wallet|
-        IO.write(wallet.path, body)
+        File.write(wallet.path, body)
       end
       assert_equal(0, wallets.acq(id, &:txns).count)
     end

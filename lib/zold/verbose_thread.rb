@@ -36,7 +36,7 @@ module Zold
       @log = log
     end
 
-    def run(safe = false)
+    def run(safe: false)
       Thread.current.report_on_exception = false
       yield
     rescue Errno::ENOMEM => e

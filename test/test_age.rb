@@ -30,7 +30,7 @@ require_relative '../lib/zold/age'
 # License:: MIT
 class TestAge < Zold::Test
   def test_prints_age
-    assert_equal('10m', Zold::Age.new(Time.now - 10 * 60).to_s)
+    assert_equal('10m', Zold::Age.new(Time.now - (10 * 60)).to_s)
     assert_equal('5.5s', Zold::Age.new(Time.now - 5.5).to_s)
     assert_equal('?', Zold::Age.new(nil).to_s)
     assert(!Zold::Age.new(Time.now.utc.iso8601).to_s.nil?)

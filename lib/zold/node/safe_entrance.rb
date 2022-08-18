@@ -60,7 +60,7 @@ module Zold
       raise 'Id must be of type Id' unless id.is_a?(Id)
       raise 'Body can\'t be nil' if body.nil?
       Tempfile.open(['', Wallet::EXT]) do |f|
-        IO.write(f, body)
+        File.write(f, body)
         wallet = Wallet.new(f.path)
         wallet.refurbish
         unless wallet.protocol == Zold::PROTOCOL

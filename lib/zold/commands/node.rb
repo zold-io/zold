@@ -208,7 +208,7 @@ module Zold
 the node won\'t connect to the network like that; try to do "zold remote reset" first'
         end
         pid = nohup(opts)
-        IO.write(opts['save-pid'], pid) if opts['save-pid']
+        File.write(opts['save-pid'], pid) if opts['save-pid']
         @log.debug("Process ID #{pid} saved into \"#{opts['save-pid']}\"")
         @log.info(pid)
         return
@@ -499,7 +499,7 @@ the node won\'t connect to the network like that; try to do "zold remote reset" 
         temp = Tempfile.new
         total = copy(@file, temp)
         unit = File.size(@file) / total
-        tail = total - @max / (2 * unit)
+        tail = total - (@max / (2 * unit))
         copy(temp, @file, tail)
         File.delete(temp)
         File.open(@file, 'a') do |f|

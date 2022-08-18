@@ -27,9 +27,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require_relative 'lib/zold/version'
 
 Gem::Specification.new do |s|
-  s.specification_version = 2 if s.respond_to? :specification_version=
   s.required_rubygems_version = Gem::Requirement.new('>= 0') if s.respond_to? :required_rubygems_version=
-  s.rubygems_version = '2.2'
   s.required_ruby_version = '>=2.5'
   s.name = 'zold'
   s.version = Zold::VERSION
@@ -58,7 +56,6 @@ and suggests a different architecture for digital wallet maintenance.'
   If you have any issues, report to our GitHub repo: https://github.com/zold-io/zold"
   s.files = `git ls-files`.split($RS)
   s.executables = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
-  s.test_files = s.files.grep(%r{^(test|features)/})
   s.rdoc_options = ['--charset=UTF-8']
   s.extra_rdoc_files = ['README.md', 'LICENSE.txt']
   s.add_runtime_dependency 'backtrace', '>=0.3'
@@ -67,16 +64,16 @@ and suggests a different architecture for digital wallet maintenance.'
   s.add_runtime_dependency 'futex', '>=0.8.5'
   s.add_runtime_dependency 'get_process_mem', '~>0.2'
   s.add_runtime_dependency 'haml', '5.0.4'
-  s.add_runtime_dependency 'json', '2.2.0'
+  s.add_runtime_dependency 'json', '>=2.2'
   s.add_runtime_dependency 'memory_profiler', '0.9.13'
   s.add_runtime_dependency 'mimic', '0.4.4'
   s.add_runtime_dependency 'openssl', '2.1.2'
   s.add_runtime_dependency 'rainbow', '3.0.0'
   s.add_runtime_dependency 'semantic', '1.6.1'
   s.add_runtime_dependency 'sinatra', '2.0.5'
-  s.add_runtime_dependency 'slop', '4.6.2'
+  s.add_runtime_dependency 'slop', '>=4.6'
   s.add_runtime_dependency 'sys-proctable', '1.2.1'
-  s.add_runtime_dependency 'thin', '1.7.2'
+  s.add_runtime_dependency 'thin', '>=1.7'
   s.add_runtime_dependency 'threads', '>=0.3'
   s.add_runtime_dependency 'total', '>=0.3'
   s.add_runtime_dependency 'typhoeus', '1.3.1'
@@ -95,8 +92,9 @@ and suggests a different architecture for digital wallet maintenance.'
   s.add_development_dependency 'random-port', '0.3.1'
   s.add_development_dependency 'rdoc', '6.1.1'
   s.add_development_dependency 'rspec-rails', '3.8.2'
-  s.add_development_dependency 'rubocop', '0.69.0'
-  s.add_development_dependency 'rubocop-rspec', '1.33.0'
+  s.add_development_dependency 'rubocop', '1.35.0'
+  s.add_development_dependency 'rubocop-rspec', '2.12.1'
   s.add_development_dependency 'webmock', '3.5.1'
   s.add_development_dependency 'xcop', '>=0.6'
+  s.metadata['rubygems_mfa_required'] = 'true'
 end

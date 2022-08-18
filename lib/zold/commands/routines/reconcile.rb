@@ -49,7 +49,7 @@ class Zold::Routines::Reconcile
       res = r.http('/wallets').get
       r.assert_code(200, res)
       missing = res.body.strip.split("\n").compact
-        .select { |i| /^[a-f0-9]{16}$/.match?(i) }
+        .grep(/^[a-f0-9]{16}$/)
         .reject { |i| @wallets.acq(Zold::Id.new(i), &:exists?) }
       missing.each { |i| pull(i) }
       if missing.empty?

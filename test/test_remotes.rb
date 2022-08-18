@@ -63,7 +63,7 @@ class TestRemotes < Zold::Test
         '',
         "\n\n\n\n"
       ].each do |t|
-        IO.write(file, t)
+        File.write(file, t)
         remotes = Zold::Remotes.new(file: file)
         assert(remotes.all.empty?, remotes.all)
       end

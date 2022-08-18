@@ -124,7 +124,7 @@ module Zold
             .max
           max = 0 if max.nil?
           name = (max + 1).to_s
-          IO.write(File.join(@dir, "#{name}#{Copies::EXT}"), content)
+          File.write(File.join(@dir, "#{name}#{Copies::EXT}"), content)
         else
           name = target[:name]
         end
@@ -150,7 +150,7 @@ module Zold
             path: File.join(@dir, "#{name}#{Copies::EXT}"),
             total: scores.count,
             master: scores.any? { |s| s[:master] },
-            score: scores.select { |s| s[:time] > Time.now - 24 * 60 * 60 }
+            score: scores.select { |s| s[:time] > Time.now - (24 * 60 * 60) }
               .map { |s| s[:score] }
               .inject(&:+) || 0
           }
@@ -182,7 +182,7 @@ module Zold
     private
 
     def save(list)
-      IO.write(
+      File.write(
         file,
         list.map do |r|
           [
