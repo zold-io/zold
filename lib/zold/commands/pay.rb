@@ -78,6 +78,9 @@ Available options:"
         o.integer '--tolerate-quorum',
           'The minimum number of nodes required for a successful fetch (default: 4)',
           default: 4
+        o.bool '--ignore-score-weakness',
+          'Don\'t complain when their score is too weak (when paying taxes)',
+          default: false
         o.bool '--dont-pay-taxes',
           'Don\'t pay taxes even if the wallet is in debt',
           default: false
@@ -128,8 +131,14 @@ Available options:"
       return unless debt
       require_relative 'taxes'
       Taxes.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-        ['taxes', 'pay', "--private-key=#{Shellwords.escape(opts['private-key'])}"] +
-        [id.to_s, "--keygap=#{Shellwords.escape(opts['keygap'])}"]
+        [
+          'taxes',
+          'pay',
+          "--private-key=#{Shellwords.escape(opts['private-key'])}",
+          opts['ignore-score-weakness'] ? '--ignore-score-weakness' : '',
+          id.to_s,
+          "--keygap=#{Shellwords.escape(opts['keygap'])}"
+        ]
       )
     end
 
