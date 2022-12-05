@@ -99,11 +99,14 @@ at #{response.headers['X-Zold-Path']}"
 
     def assert_score_strength(score)
       return if score.strength >= Score::STRENGTH
-      raise CantAssert, "Score #{score.strength} is too weak (<#{Score::STRENGTH}): #{score.reduced(4)}"
+      raise CantAssert, "Score #{score.strength} is too weak (<#{Score::STRENGTH}): #{score.reduced(4)}
+(use --ignore-score-strength to suppress this check)"
     end
 
     def assert_score_value(score, min)
-      raise CantAssert, "Score #{score.value} is too small (<#{min}): #{score.reduced(4)}" if score.value < min
+      return if score.value >= min
+      raise CantAssert, "Score #{score.value} is too small (<#{min}): #{score.reduced(4)}
+(use --ignore-score-size to suppress this check)"
     end
   end
 
