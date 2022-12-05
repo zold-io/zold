@@ -145,7 +145,7 @@ Available options:"
           opts['ignore-score-weakness'] ? '--ignore-score-weakness' : '',
           opts['ignore-score-size'] ? '--ignore-score-size' : '',
           id.to_s,
-          "--keygap=#{Shellwords.escape(opts['keygap'])}"
+          opts['keygap'].empty? ? '' : "--keygap=#{Shellwords.escape(opts['keygap'])}"
         ].reject(&:empty?)
       )
     end
