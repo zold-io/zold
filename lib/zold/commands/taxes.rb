@@ -184,6 +184,7 @@ the balance is #{wallet.balance}: #{tax.to_text}")
     def top_scores(opts)
       best = []
       @remotes.iterate(@log) do |r|
+        @log.debug("Testing #{r}...")
         uri = '/'
         res = r.http(uri).get
         r.assert_code(200, res)
