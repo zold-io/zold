@@ -82,6 +82,9 @@ Available options:"
         o.bool '--ignore-score-weakness',
           'Don\'t complain when their score is too weak',
           default: false
+        o.bool '--ignore-score-size',
+          'Don\'t complain when their score is too small',
+          default: false
         o.string '--keygap',
           'Keygap, if the private RSA key is not complete',
           default: ''
@@ -191,12 +194,8 @@ the balance is #{wallet.balance}: #{tax.to_text}")
         json = JsonPage.new(res.body, uri).to_hash
         score = Score.parse_json(json['score'])
         r.assert_valid_score(score)
-        if opts['ignore-score-weakness']
-          @log.debug('We ignore score weakeness...')
-        else
-          r.assert_score_strength(score)
-        end
-        r.assert_score_value(score, Tax::EXACT_SCORE)
+        r.assert_score_strength(score) unless opts['ignore-score-weakness']
+        r.assert_score_value(score, Tax::EXACT_SCORE) unless opts['ignore-score-size']
         @log.info("#{r}: #{Rainbow(score.value).green} to #{score.invoice}")
         best << score
       end
