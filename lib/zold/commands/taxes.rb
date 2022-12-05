@@ -191,7 +191,11 @@ the balance is #{wallet.balance}: #{tax.to_text}")
         json = JsonPage.new(res.body, uri).to_hash
         score = Score.parse_json(json['score'])
         r.assert_valid_score(score)
-        r.assert_score_strength(score) unless opts['ignore-score-weakness']
+        if opts['ignore-score-weakness']
+          @log.debug('We ignore score weakeness...')
+        else
+          r.assert_score_strength(score)
+        end
         r.assert_score_value(score, Tax::EXACT_SCORE)
         @log.info("#{r}: #{Rainbow(score.value).green} to #{score.invoice}")
         best << score
