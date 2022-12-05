@@ -17,7 +17,6 @@ module Zold
     end
 
     def run(args = [])
-      @log.debug("Alias.run(#{args.join(' ')})")
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = "Usage: zold alias [args]
     #{Rainbow('alias set <wallet> <alias>').green}

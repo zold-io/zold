@@ -48,7 +48,6 @@ module Zold
     # Sends a payment and returns the transaction just created in the
     # paying wallet, an instance of Zold::Txn
     def run(args = [])
-      @log.debug("Pay.run(#{args.join(' ')})")
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = "Usage: zold pay wallet target amount [details] [options]
 Where:

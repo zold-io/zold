@@ -46,7 +46,6 @@ module Zold
 
     # Returns list of Wallet IDs which were affected
     def run(args = [])
-      @log.debug("Propagate.run(#{args.join(' ')})")
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = "Usage: zold propagate [ID...] [options]
 Available options:"

@@ -70,7 +70,6 @@ module Zold
     end
 
     def run(args = [])
-      @log.debug("Fetch.run(#{args.join(' ')})")
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = "Usage: zold fetch [ID...] [options]
 Available options:"

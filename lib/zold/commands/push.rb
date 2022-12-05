@@ -59,7 +59,6 @@ module Zold
     end
 
     def run(args = [])
-      @log.debug("Push.run(#{args.join(' ')})")
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = "Usage: zold push [ID...] [options]
 Available options:"

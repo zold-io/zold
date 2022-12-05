@@ -51,7 +51,6 @@ module Zold
 
     # Returns the array of modified wallets (IDs)
     def run(args = [])
-      @log.debug("Merge.run(#{args.join(' ')})")
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = "Usage: zold merge [ID...] [options]
 Available options:"

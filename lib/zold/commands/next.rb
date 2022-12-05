@@ -39,7 +39,6 @@ module Zold
     end
 
     def run(args = [])
-      @log.debug("Next.run(#{args.join(' ')})")
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = "Usage: zold next [options] score
 Available options:"
