@@ -84,6 +84,9 @@ Available options:"
         o.bool '--dont-pay-taxes',
           'Don\'t pay taxes even if the wallet is in debt',
           default: false
+        o.bool '--pay-taxes-anyway',
+          'Pay taxes even if the wallet is not in debt',
+          default: false
         o.bool '--skip-propagate',
           'Don\'t propagate the paying wallet after successful pay',
           default: false
@@ -128,17 +131,18 @@ Available options:"
         raise "Wallet #{id} doesn't exist, do 'zold pull' first" unless wallet.exists?
         Tax.new(wallet).in_debt? && !opts['dont-pay-taxes']
       end
-      return unless debt
+      return unless debt || opts['pay-taxes-anyway']
       require_relative 'taxes'
       Taxes.new(wallets: @wallets, remotes: @remotes, log: @log).run(
         [
           'taxes',
           'pay',
           "--private-key=#{Shellwords.escape(opts['private-key'])}",
+          opts['pay-taxes-anyway'] ? '--pay-anyway' : '',
           opts['ignore-score-weakness'] ? '--ignore-score-weakness' : '',
           id.to_s,
           "--keygap=#{Shellwords.escape(opts['keygap'])}"
-        ]
+        ].reject(&:empty?)
       )
     end
 

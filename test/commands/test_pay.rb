@@ -172,11 +172,50 @@ class TestPay < Zold::Test
       Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: accumulating_log).run(
         [
           'pay', '--force', '--private-key=fixtures/id_rsa',
+          '--ignore-score-weakness', '--pay-taxes-anyway',
           source.id.to_s, target.id.to_s, amount.to_zld, 'For the car'
         ]
       )
       assert_equal accumulating_log.info_messages.grep(/^The tax debt/).size, 1,
         'No info_messages notified user of tax debt'
+    end
+  end
+
+  def test_pays_and_taxes
+    FakeHome.new(log: test_log).run do |home|
+      wallet = home.create_wallet
+      fund = Zold::Amount.new(zld: 19.99)
+      10.times do |i|
+        wallet.add(
+          Zold::Txn.new(
+            i + 1,
+            Time.now - 24 * 60 * 60 * 365 * 300,
+            fund,
+            'NOPREFIX', Zold::Id.new, '-'
+          )
+        )
+      end
+      score = Zold::Score.new(host: 'localhost', port: 80, strength: 1, invoice: 'NOPREFIX@0000000000000000')
+      10.times { score = score.next }
+      remotes = home.remotes
+      remotes.add(score.host, score.port)
+      stub_request(:get, "http://#{score.host}:#{score.port}/").to_return(
+        status: 200,
+        body: {
+          score: score.to_h
+        }.to_json
+      )
+      before = wallet.balance
+      target = home.create_wallet
+      Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: remotes, log: test_log).run(
+        [
+          'pay', '--force', '--private-key=fixtures/id_rsa',
+          '--ignore-score-weakness',
+          wallet.id.to_s, target.id.to_s, fund.to_zld, 'For the car'
+        ]
+      )
+      wallet.flush
+      assert(before.to_zld(6) != wallet.balance.to_zld(6))
     end
   end
 end

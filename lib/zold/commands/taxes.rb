@@ -75,6 +75,9 @@ Available options:"
           'The location of RSA private key (default: ~/.ssh/id_rsa)',
           require: true,
           default: '~/.ssh/id_rsa'
+        o.bool '--pay-anyway',
+          'Pay taxes anyway, even if the wallet is not in debt',
+          default: false
         o.bool '--ignore-score-weakness',
           'Don\'t complain when their score is too weak',
           default: false
@@ -123,7 +126,7 @@ Available options:"
       debt = total = tax.debt
       @log.info("The current debt of #{wallet.mnemo} is #{debt} (#{debt.to_i} zents), \
 the balance is #{wallet.balance}: #{tax.to_text}")
-      unless tax.in_debt?
+      unless tax.in_debt? || opts['pay-anyway']
         @log.debug("No need to pay taxes yet, while the debt is less than #{Tax::TRIAL} (#{Tax::TRIAL.to_i} zents)")
         return
       end
