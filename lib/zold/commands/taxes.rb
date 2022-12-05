@@ -61,6 +61,7 @@ module Zold
     end
 
     def run(args = [])
+      @log.debug("Taxes.run(#{args.join(' ')})")
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = "Usage: zold taxes command [options]
 Available commands:

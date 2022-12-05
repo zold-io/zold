@@ -50,6 +50,7 @@ module Zold
     end
 
     def run(args = [])
+      @log.debug("Clean.run(#{args.join(' ')})")
       opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
         o.banner = "Usage: zold clean [ID...] [options]
 Available options:"
