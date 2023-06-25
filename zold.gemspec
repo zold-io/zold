@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2018-2022 Zerocracy, Inc.
+# Copyright (c) 2018-2023 Zerocracy, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the 'Software'), to deal
@@ -83,20 +83,4 @@ and suggests a different architecture for digital wallet maintenance.'
   s.add_runtime_dependency 'usagewatch_ext', '~>0.2'
   s.add_runtime_dependency 'zache', '>=0.12'
   s.add_runtime_dependency 'zold-score', '~>0.4'
-  s.add_development_dependency 'codecov', '0.6.0'
-  s.add_development_dependency 'cucumber', '3.1.2'
-  s.add_development_dependency 'guard', '2.15.0'
-  s.add_development_dependency 'guard-minitest', '2.4.6'
-  s.add_development_dependency 'minitest', '5.11.3'
-  s.add_development_dependency 'minitest-fail-fast', '0.1.0'
-  s.add_development_dependency 'minitest-hooks', '1.5.0'
-  s.add_development_dependency 'minitest-reporters', '1.3.6'
-  s.add_development_dependency 'rake', '12.3.2'
-  s.add_development_dependency 'random-port', '0.3.1'
-  s.add_development_dependency 'rdoc', '6.1.1'
-  s.add_development_dependency 'rspec-rails', '3.8.2'
-  s.add_development_dependency 'rubocop', '0.69.0'
-  s.add_development_dependency 'rubocop-rspec', '1.33.0'
-  s.add_development_dependency 'webmock', '3.5.1'
-  s.add_development_dependency 'xcop', '>=0.6'
 end

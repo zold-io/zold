@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2018-2022 Zerocracy, Inc.
+# Copyright (c) 2018-2023 Zerocracy, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the 'Software'), to deal
@@ -35,10 +35,6 @@ ENV['RACK_ENV'] = 'test'
 
 require 'simplecov'
 SimpleCov.start
-if ENV['CI'] == 'true'
-  require 'codecov'
-  SimpleCov.formatter = SimpleCov::Formatter::Codecov
-end
 
 require_relative '../lib/zold/hands'
 Zold::Hands.start
