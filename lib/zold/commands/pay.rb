@@ -78,6 +78,9 @@ Available options:"
         o.integer '--tolerate-quorum',
           'The minimum number of nodes required for a successful fetch (default: 4)',
           default: 4
+        o.bool '--ignore-nodes-absence',
+          'Don\'t complain if there are not enough nodes in the network to pay taxes',
+          default: false
         o.bool '--ignore-score-weakness',
           'Don\'t complain when their score is too weak (when paying taxes)',
           default: false
@@ -143,6 +146,7 @@ Available options:"
           "--private-key=#{Shellwords.escape(opts['private-key'])}",
           opts['pay-taxes-anyway'] ? '--pay-anyway' : '',
           opts['ignore-score-weakness'] ? '--ignore-score-weakness' : '',
+          opts['ignore-nodes-absence'] ? '--ignore-nodes-absence' : '',
           opts['ignore-score-size'] ? '--ignore-score-size' : '',
           id.to_s,
           opts['keygap'].empty? ? '' : "--keygap=#{Shellwords.escape(opts['keygap'])}"
