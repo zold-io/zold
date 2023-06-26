@@ -32,7 +32,7 @@ gem 'minitest-hooks', '1.5.0', require: false
 gem 'minitest-reporters', '1.3.6', require: false
 gem 'rake', '12.3.2', require: false
 gem 'random-port', '0.3.1', require: false
-gem 'rdoc', '6.1.1', require: false
+gem 'rdoc', '6.1.2.1', require: false
 gem 'rspec-rails', '3.8.2', require: false
 gem 'rubocop', '0.69.0', require: false
 gem 'rubocop-rspec', '1.33.0', require: false
