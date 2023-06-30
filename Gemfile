@@ -35,7 +35,7 @@ gem 'random-port', '0.3.1', require: false
 gem 'rdoc', '6.1.1', require: false
 gem 'rspec-rails', '3.8.2', require: false
 gem 'rubocop', '0.69.0', require: false
-gem 'rubocop-rspec', '1.33.0', require: false
+gem 'rubocop-rspec', '1.44.1', require: false
 gem 'simplecov', '0.22.0', require: false
 gem 'webmock', '3.5.1', require: false
 gem 'xcop', '>=0.6', require: false
