@@ -24,7 +24,7 @@ source 'https://rubygems.org'
 gemspec
 
 gem 'cucumber', '3.1.2', require: false
-gem 'guard', '2.15.0', require: false
+gem 'guard', '2.18.1', require: false
 gem 'guard-minitest', '2.4.6', require: false
 gem 'minitest', '5.11.3', require: false
 gem 'minitest-fail-fast', '0.1.0', require: false
