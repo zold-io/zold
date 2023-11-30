@@ -63,9 +63,9 @@ class TestKey < Zold::Test
     Dir.mktmpdir do |dir|
       key = OpenSSL::PKey::RSA.new(2048)
       file = File.join(dir, 'temp')
-      IO.write(file, key.public_key.to_s)
+      File.write(file, key.public_key.to_s)
       pub = Zold::Key.new(file: file)
-      IO.write(file, key.to_s)
+      File.write(file, key.to_s)
       pvt = Zold::Key.new(file: file)
       text = 'How are you doing, dude?'
       signature = pvt.sign(text)
@@ -74,7 +74,7 @@ class TestKey < Zold::Test
   end
 
   def test_read_public_keys
-    Dir.new('fixtures/keys').select { |f| f =~ /\.pub$/ }.each do |f|
+    Dir.new('fixtures/keys').grep(/\.pub$/).each do |f|
       path = "fixtures/keys/#{f}"
       pub = Zold::Key.new(file: path)
       assert(pub.to_pub.length > 100)
@@ -82,7 +82,7 @@ class TestKey < Zold::Test
   end
 
   def test_signs_with_real_keys
-    Dir.new('fixtures/keys').select { |f| f =~ /[0-9]+$/ }.each do |f|
+    Dir.new('fixtures/keys').grep(/[0-9]+$/).each do |f|
       pvt = Zold::Key.new(file: "fixtures/keys/#{f}")
       pub = Zold::Key.new(file: "fixtures/keys/#{f}.pub")
       text = 'How are you doing, my friend?'

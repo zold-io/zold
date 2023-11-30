@@ -41,7 +41,7 @@ module Zold
         next if wallet.network == @network
         @log.info("Wallet #{wallet.id} #{Rainbow('renamed').red}, \
 since it's in \"#{wallet.network}\", while we are in \"#{@network}\" network")
-        File.rename(f, f + '-old')
+        File.rename(f, "#{f}-old")
       end
     end
   end

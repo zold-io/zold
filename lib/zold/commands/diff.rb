@@ -70,12 +70,12 @@ Available options:"
         patch.join(Wallet.new(c[:path]))
       end
       before = @wallets.acq(id) do |wallet|
-        IO.read(wallet.path)
+        File.read(wallet.path)
       end
       after = ''
       Tempfile.open(['', Wallet::EXT]) do |f|
         patch.save(f.path, overwrite: true)
-        after = IO.read(f)
+        after = File.read(f)
       end
       diff = Diffy::Diff.new(before, after, context: 0).to_s(:color)
       @log.info(diff)

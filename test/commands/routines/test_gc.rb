@@ -24,7 +24,7 @@ require 'minitest/autorun'
 require_relative '../../test__helper'
 require_relative '../../fake_home'
 require_relative '../../../lib/zold/wallets'
-require_relative '../../../lib/zold/commands/routines/gc.rb'
+require_relative '../../../lib/zold/commands/routines/gc'
 
 # Gc test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

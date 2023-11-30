@@ -20,6 +20,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative 'asserts.rb'
+require_relative 'asserts'
 wallet = Zold::Wallet.new('0123456789abcdef.z')
 assert_equal(Zold::Amount.new(zld: 512.0 - 16 - 32), wallet.balance)

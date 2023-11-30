@@ -145,7 +145,7 @@ Available options:"
       end
       if modified
         @log.info("#{cps.count} copies with the total score of #{score} successfully merged \
-into #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 0.1 + cps.count * 0.01)}")
+into #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 0.1 + (cps.count * 0.01))}")
       else
         @log.info("Nothing changed in #{id} after merge of #{cps.count} copies")
       end
@@ -157,14 +157,14 @@ into #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 0.1 + cps.count * 0
       @log.debug("Adding copy ##{name}#{master ? ' (master)' : ''} to the patch #{wallet.mnemo}...")
       if opts['depth'].positive?
         patch.join(wallet, ledger: opts['ledger'], baseline: baseline, master: master) do |txn|
-          trusted = IO.read(opts['trusted']).split(',')
+          trusted = File.read(opts['trusted']).split(',')
           if trusted.include?(txn.bnf.to_s)
             @log.debug("Won't PULL #{txn.bnf} since it is already trusted, among #{trusted.count} others")
           elsif trusted.count > opts['trusted-max']
             @log.debug("Won't PULL #{txn.bnf} since there are too many trusted wallets already: \
 #{trusted.count} > #{opts['trusted-max']}")
           else
-            IO.write(opts['trusted'], (trusted + [txn.bnf.to_s]).sort.uniq.join(','))
+            File.write(opts['trusted'], (trusted + [txn.bnf.to_s]).sort.uniq.join(','))
             Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
               ['pull', txn.bnf.to_s, "--network=#{Shellwords.escape(opts['network'])}", '--quiet-if-absent'] +
               ["--depth=#{opts['depth'] - 1}"] +

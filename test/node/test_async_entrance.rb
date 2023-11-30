@@ -49,7 +49,7 @@ class TestAsyncEntrance < Zold::Test
       wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
       basic = CountingEntrance.new
       Zold::AsyncEntrance.new(basic, File.join(home.dir, 'a/b/c'), log: test_log).start do |e|
-        e.push(wallet.id, IO.read(wallet.path))
+        e.push(wallet.id, File.read(wallet.path))
         assert_equal_wait(1) { basic.count }
       end
     end
@@ -64,7 +64,7 @@ class TestAsyncEntrance < Zold::Test
           amount = Zold::Amount.new(zld: 39.99)
           key = Zold::Key.new(file: 'fixtures/id_rsa')
           wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
-          5.times { e.push(wallet.id, IO.read(wallet.path)) }
+          5.times { e.push(wallet.id, File.read(wallet.path)) }
         end
         assert_equal_wait(true) { basic.count >= 20 }
       end
@@ -75,7 +75,7 @@ class TestAsyncEntrance < Zold::Test
     FakeHome.new(log: test_log).run do |home|
       wallet = home.create_wallet
       id = wallet.id
-      body = IO.read(wallet.path)
+      body = File.read(wallet.path)
       Zold::AsyncEntrance.new(BrokenEntrance.new, home.dir, log: test_log).start do |e|
         e.push(id, body)
       end
@@ -84,7 +84,9 @@ class TestAsyncEntrance < Zold::Test
 
   class CountingEntrance < FakeEntrance
     attr_reader :count
+
     def initialize
+      super
       @count = 0
     end
 

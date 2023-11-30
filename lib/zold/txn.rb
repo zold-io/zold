@@ -53,8 +53,8 @@ module Zold
     REGEX_DETAILS = Regexp.new("^#{RE_DETAILS}$")
     private_constant :REGEX_DETAILS
 
-    attr_reader :id, :date, :amount, :prefix, :bnf, :details, :sign
-    attr_writer :sign, :amount, :bnf
+    attr_accessor :amount, :bnf, :sign
+    attr_reader :id, :date, :prefix, :details
 
     # Make a new object of this class (you must read the White Paper
     # in order to understand this class).
@@ -152,15 +152,19 @@ module Zold
 
     # Pattern to match the transaction from text
     PTN = Regexp.new(
-      '^' + [
-        '(?<id>[0-9a-f]{4})',
-        '(?<date>[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z)',
-        '(?<amount>[0-9a-f]{16})',
-        "(?<prefix>#{RE_PREFIX})",
-        '(?<bnf>[0-9a-f]{16})',
-        "(?<details>#{RE_DETAILS})",
-        '(?<sign>[A-Za-z0-9+/]+={0,3})?'
-      ].join(';') + '$'
+      [
+        '^',
+        [
+          '(?<id>[0-9a-f]{4})',
+          '(?<date>[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z)',
+          '(?<amount>[0-9a-f]{16})',
+          "(?<prefix>#{RE_PREFIX})",
+          '(?<bnf>[0-9a-f]{16})',
+          "(?<details>#{RE_DETAILS})",
+          '(?<sign>[A-Za-z0-9+/]+={0,3})?'
+        ].join(';'),
+        '$'
+      ].join
     )
     private_constant :PTN
 
@@ -184,13 +188,16 @@ module Zold
     class CantParseTime < StandardError; end
 
     ISO8601 = Regexp.new(
-      '^' + [
-        '(?<year>\d{4})',
-        '-(?<month>\d{2})',
-        '-(?<day>\d{2})',
-        'T(?<hours>\d{2})',
-        ':(?<minutes>\d{2})',
-        ':(?<seconds>\d{2})Z'
+      [
+        '^',
+        [
+          '(?<year>\d{4})',
+          '-(?<month>\d{2})',
+          '-(?<day>\d{2})',
+          'T(?<hours>\d{2})',
+          ':(?<minutes>\d{2})',
+          ':(?<seconds>\d{2})Z'
+        ].join
       ].join
     )
     private_constant :ISO8601

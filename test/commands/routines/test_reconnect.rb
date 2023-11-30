@@ -25,7 +25,7 @@ require 'tmpdir'
 require 'webmock/minitest'
 require_relative '../../test__helper'
 require_relative '../../../lib/zold/remotes'
-require_relative '../../../lib/zold/commands/routines/reconnect.rb'
+require_relative '../../../lib/zold/commands/routines/reconnect'
 
 # Reconnect test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

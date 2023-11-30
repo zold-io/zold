@@ -42,7 +42,7 @@ module Zold
         @zents = zents
       elsif !zld.nil?
         raise "Float is required, while #{zld.class} provided: #{zld}" unless zld.is_a?(Float)
-        @zents = (zld * 2**FRACTION).to_i
+        @zents = (zld * (2**FRACTION)).to_i
       else
         raise 'You can\'t specify both coints and zld'
       end
@@ -60,7 +60,7 @@ module Zold
 
     # Convert to ZLD and return as a float.
     def to_f
-      @zents.to_f / 2**FRACTION
+      @zents.to_f / (2**FRACTION)
     end
 
     # Convert to ZLD and return as a string. If you need float, you should use <tt>to_f()</tt> later.

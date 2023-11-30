@@ -27,9 +27,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require_relative 'lib/zold/version'
 
 Gem::Specification.new do |s|
-  s.specification_version = 2 if s.respond_to? :specification_version=
   s.required_rubygems_version = Gem::Requirement.new('>= 0') if s.respond_to? :required_rubygems_version=
-  s.rubygems_version = '2.2'
   s.required_ruby_version = '>=2.5'
   s.name = 'zold'
   s.version = Zold::VERSION
@@ -58,7 +56,6 @@ and suggests a different architecture for digital wallet maintenance.'
   If you have any issues, report to our GitHub repo: https://github.com/zold-io/zold"
   s.files = `git ls-files`.split($RS)
   s.executables = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
-  s.test_files = s.files.grep(%r{^(test|features)/})
   s.rdoc_options = ['--charset=UTF-8']
   s.extra_rdoc_files = ['README.md', 'LICENSE.txt']
   s.add_runtime_dependency 'backtrace', '>=0.3'
@@ -70,10 +67,10 @@ and suggests a different architecture for digital wallet maintenance.'
   s.add_runtime_dependency 'json', '~>2.2'
   s.add_runtime_dependency 'memory_profiler', '~>0.9'
   s.add_runtime_dependency 'mimic', '~>0.4'
-  s.add_runtime_dependency 'openssl', '~>2.1'
+  s.add_runtime_dependency 'openssl', '~>3.1'
   s.add_runtime_dependency 'rainbow', '~>3.0'
   s.add_runtime_dependency 'semantic', '~>1.6'
-  s.add_runtime_dependency 'sinatra', '~>2.0'
+  s.add_runtime_dependency 'sinatra', '~>3.0'
   s.add_runtime_dependency 'slop', '~>4.6'
   s.add_runtime_dependency 'sys-proctable', '~>1.2'
   s.add_runtime_dependency 'thin', '~>1.7'
@@ -83,4 +80,5 @@ and suggests a different architecture for digital wallet maintenance.'
   s.add_runtime_dependency 'usagewatch_ext', '~>0.2'
   s.add_runtime_dependency 'zache', '>=0.12'
   s.add_runtime_dependency 'zold-score', '~>0.5'
+  s.metadata['rubygems_mfa_required'] = 'true'
 end

@@ -40,7 +40,7 @@ module Zold
     end
 
     def to_hash
-      raise CantParse, 'JSON is empty, can\'t parse' + (@uri.empty? ? '' : " at #{@uri}") if @text.empty?
+      raise CantParse, "JSON is empty, can't parse#{@uri.empty? ? '' : " at #{@uri}"}" if @text.empty?
       JSON.parse(@text)
     rescue JSON::ParserError => e
       raise CantParse, "Failed to parse JSON #{@uri.empty? ? '' : "at #{@uri}"} (#{short(e.message)}): #{short(@text)}"

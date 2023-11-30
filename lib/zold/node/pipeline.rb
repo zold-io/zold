@@ -53,7 +53,7 @@ module Zold
     # Show its internals.
     def to_json
       {
-        'ledger': File.exist?(@ledger) ? IO.read(@ledger).split("\n").count : 0
+        ledger: File.exist?(@ledger) ? File.read(@ledger).split("\n").count : 0
       }
     end
 
@@ -96,13 +96,13 @@ module Zold
           )
         end
         @mutex.synchronize do
-          txns = File.exist?(@ledger) ? IO.read(@ledger).strip.split("\n") : []
-          txns += IO.read(f.path).strip.split("\n")
-          IO.write(
+          txns = File.exist?(@ledger) ? File.read(@ledger).strip.split("\n") : []
+          txns += File.read(f.path).strip.split("\n")
+          File.write(
             @ledger,
             txns.map { |t| t.split(';') }
               .uniq { |t| "#{t[1]}-#{t[3]}" }
-              .reject { |t| Txn.parse_time(t[0]) < Time.now - 24 * 60 * 60 }
+              .reject { |t| Txn.parse_time(t[0]) < Time.now - (24 * 60 * 60) }
               .map { |t| t.join(';') }
               .join("\n")
               .strip

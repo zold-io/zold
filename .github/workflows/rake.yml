@@ -8,11 +8,11 @@ on:
     branches:
       - master
 jobs:
-  test:
+  rake:
     strategy:
       matrix:
-        os: [ubuntu-20.04, macos-12]
-        ruby: ['3.0']
+        os: [ubuntu-22.04, macos-12]
+        ruby: [3.2]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3

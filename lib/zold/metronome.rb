@@ -68,7 +68,7 @@ module Zold
               @log.debug("Routine #{r.class.name} ##{step} done \
 in #{Age.new(Thread.current.thread_variable_get(:start))}")
             rescue StandardError => e
-              @failures[r.class.name] = Time.now.utc.iso8601 + "\n" + Backtrace.new(e).to_s
+              @failures[r.class.name] = "#{Time.now.utc.iso8601}\n#{Backtrace.new(e)}"
               @log.error("Routine #{r.class.name} ##{step} failed \
 in #{Age.new(Thread.current.thread_variable_get(:start))}")
               raise e

@@ -87,11 +87,10 @@ Available options:"
           "Digest: #{wallet.digest}"
         ].join("\n")
       )
-      @log.info(
-        "\n" + Copies.new(File.join(@copies, wallet.id)).all.map do |c|
-          "##{c[:name]}: #{c[:score]} #{Wallet.new(c[:path]).mnemo}"
-        end.join("\n")
-      )
+      msg = Copies.new(File.join(@copies, wallet.id)).all.map do |c|
+        "##{c[:name]}: #{c[:score]} #{Wallet.new(c[:path]).mnemo}"
+      end.join("\n")
+      @log.info("\n#{msg}")
       balance
     end
   end

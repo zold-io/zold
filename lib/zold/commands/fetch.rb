@@ -170,7 +170,7 @@ run 'zold remote update' or use --tolerate-quorum=1"
             if wallet.balance.negative? && !wallet.root?
               raise FetchError, "The balance of #{id} is #{wallet.balance} and it's not a root wallet"
             end
-            copy = cps.add(IO.read(f), score.host, score.port, score.value, master: r.master?)
+            copy = cps.add(File.read(f), score.host, score.port, score.value, master: r.master?)
             @log.debug("#{r} returned #{wallet.mnemo} #{Age.new(json['mtime'])}/#{json['copies']}c \
 as copy ##{copy}/#{cps.all.count} in #{Age.new(start, limit: 4)}: \
 #{Rainbow(score.value).green} (#{json['version']})")
@@ -204,7 +204,7 @@ as copy ##{copy}/#{cps.all.count} in #{Age.new(start, limit: 4)}: \
       cps.all.each do |c|
         next unless json['digest'] == OpenSSL::Digest::SHA256.file(c[:path]).hexdigest &&
           json['size'] == File.size(c[:path])
-        copy = cps.add(IO.read(c[:path]), score.host, score.port, score.value, master: r.master?)
+        copy = cps.add(File.read(c[:path]), score.host, score.port, score.value, master: r.master?)
         @log.debug("No need to fetch #{id} from #{r}, it's the same content as copy ##{copy}")
         return true
       end

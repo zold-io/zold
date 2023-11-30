@@ -95,7 +95,7 @@ class TestRemote < Zold::Test
       )
       stub_request(:get, 'https://rubygems.org/api/v1/versions/zold/latest.json').to_return(
         status: 200,
-        body: '{"version": "9.9.9", "repo": "' + Zold::REPO + '"}'
+        body: "{\"version\": \"9.9.9\", \"repo\": \"#{Zold::REPO}\"}"
       )
       log = TestLogger.new
       cmd = Zold::Remote.new(remotes: remotes, log: log)

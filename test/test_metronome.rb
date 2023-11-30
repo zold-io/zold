@@ -75,6 +75,7 @@ class TestMetronome < Zold::Test
 
   class BrokenRoutine
     attr_reader :count
+
     def initialize
       @count = 0
     end

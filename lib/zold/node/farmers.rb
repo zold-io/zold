@@ -110,10 +110,8 @@ for #{score.value}/#{score.strength} at #{score.host}:#{score.port}")
             loop do
               begin
                 buffer << stdout.read_nonblock(16 * 1024)
-                # rubocop:disable Lint/HandleExceptions
               rescue IO::WaitReadable
-                # rubocop:enable Lint/HandleExceptions
-                # nothing to do here
+              # nothing to do here
               rescue StandardError => e
                 @log.error(buffer)
                 raise e

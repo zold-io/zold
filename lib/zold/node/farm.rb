@@ -156,7 +156,7 @@ at #{host}:#{port}, strength is #{@strength}")
       save(host, port, threads, [Score.new(host: host, port: port, invoice: @invoice, strength: @strength)])
       scores = load
       free = scores.reject { |s| @threads.exists?(s.to_mnemo) }
-      @pipeline << free[0] if @pipeline.size.zero? && !free.empty?
+      @pipeline << free[0] if @pipeline.empty? && !free.empty?
       after = scores.map(&:value).max.to_i
       return unless before != after && !after.zero?
       @log.debug("#{Thread.current.name}: best score of #{scores.count} is #{scores[0].reduced(4)}")
@@ -202,12 +202,12 @@ at #{host}:#{port}, strength is #{@strength}")
         .map(&:to_s)
         .uniq
         .join("\n")
-      Futex.new(@cache).open { |f| IO.write(f, body) }
+      Futex.new(@cache).open { |f| File.write(f, body) }
     end
 
     def load
       return [] unless File.exist?(@cache)
-      Futex.new(@cache).open(false) { |f| IO.readlines(f, "\n") }.reject(&:empty?).map do |t|
+      Futex.new(@cache).open(false) { |f| File.readlines(f, "\n") }.reject(&:empty?).map do |t|
         Score.parse(t)
       rescue StandardError => e
         @log.error(Backtrace.new(e).to_s)

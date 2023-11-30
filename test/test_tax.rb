@@ -49,7 +49,7 @@ class TestTax < Zold::Test
       wallet.add(
         Zold::Txn.new(
           1,
-          Time.now - a * 60 * 60,
+          Time.now - (a * 60 * 60),
           Zold::Amount.new(zld: 19.99),
           'NOPREFIX', Zold::Id.new, '-'
         )
@@ -66,7 +66,7 @@ class TestTax < Zold::Test
         wallet.add(
           Zold::Txn.new(
             i + 1,
-            Time.now - 24 * 60 * 60 * 365 * 10,
+            Time.now - (24 * 60 * 60 * 365 * 10),
             Zold::Amount.new(zld: i.to_f),
             'NOPREFIX', Zold::Id.new, '-'
           )
@@ -151,7 +151,7 @@ class TestTax < Zold::Test
       wallet.add(
         Zold::Txn.new(
           1,
-          Time.now - 24 * 60 * 60 * 365,
+          Time.now - (24 * 60 * 60 * 365),
           Zold::Amount.new(zld: 19.99),
           'NOPREFIX', Zold::Id.new, '-'
         )

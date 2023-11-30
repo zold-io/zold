@@ -4,17 +4,19 @@ AllCops:
     - 'assets/**/*'
   DisplayCopNames: true
   TargetRubyVersion: 2.5
+  NewCops: enable
+  SuggestExtensions: false
 
 Lint/ToJSON:
   Enabled: false
-Layout/AlignArguments:
+Layout/ArgumentAlignment:
   Enabled: false
 Style/ClassAndModuleChildren:
   Enabled: false
 Layout/EmptyLineAfterGuardClause:
   Enabled: false
 Metrics/CyclomaticComplexity:
-  Max: 33
+  Max: 45
 Metrics/MethodLength:
   Enabled: false
 Layout/MultilineMethodCallIndentation:
@@ -31,15 +33,15 @@ Layout/EndOfLine:
   EnforcedStyle: lf
 Metrics/ParameterLists:
   Max: 10
-Layout/AlignParameters:
+Layout/ParameterAlignment:
   Enabled: false
 Metrics/PerceivedComplexity:
-  Max: 36
+  Max: 45
 Metrics/LineLength:
   Max: 120
 Style/MultilineBlockChain:
   Enabled: false
 Layout/MultilineOperationIndentation:
   Enabled: false
-Naming/UncommunicativeMethodParamName:
+Naming/MethodParameterName:
   MinNameLength: 1

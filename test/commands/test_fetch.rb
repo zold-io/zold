@@ -47,13 +47,13 @@ class TestFetch < Zold::Test
       stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}").to_return(
         status: 200,
         body: {
-          'score': Zold::Score::ZERO.to_h,
-          'size': 10_000,
-          'mtime': Time.now.utc.iso8601
+          score: Zold::Score::ZERO.to_h,
+          size: 10_000,
+          mtime: Time.now.utc.iso8601
         }.to_json
       )
       stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}.bin")
-        .to_return(status: 200, body: IO.read(wallet.path))
+        .to_return(status: 200, body: File.read(wallet.path))
       stub_request(:get, "http://localhost:81/wallet/#{wallet.id}").to_return(status: 404)
       remotes = home.remotes
       remotes.add('localhost', 4096)
@@ -75,24 +75,24 @@ class TestFetch < Zold::Test
       stub_request(:get, "http://localhost:4096/wallet/#{wallet_a.id}").to_return(
         status: 200,
         body: {
-          'score': Zold::Score::ZERO.to_h,
-          'size': 10_000,
-          'mtime': Time.now.utc.iso8601
+          score: Zold::Score::ZERO.to_h,
+          size: 10_000,
+          mtime: Time.now.utc.iso8601
         }.to_json
       )
       stub_request(:get, "http://localhost:4096/wallet/#{wallet_a.id}.bin")
-        .to_return(status: 200, body: IO.read(wallet_a.path))
+        .to_return(status: 200, body: File.read(wallet_a.path))
       wallet_b = home.create_wallet
       stub_request(:get, "http://localhost:4096/wallet/#{wallet_b.id}").to_return(
         status: 200,
         body: {
-          'score': Zold::Score::ZERO.to_h,
-          'size': 10_000,
-          'mtime': Time.now.utc.iso8601
+          score: Zold::Score::ZERO.to_h,
+          size: 10_000,
+          mtime: Time.now.utc.iso8601
         }.to_json
       )
       stub_request(:get, "http://localhost:4096/wallet/#{wallet_b.id}.bin")
-        .to_return(status: 200, body: IO.read(wallet_b.path))
+        .to_return(status: 200, body: File.read(wallet_b.path))
       remotes = home.remotes
       remotes.add('localhost', 4096)
       copies_a = home.copies(wallet_a)
@@ -118,13 +118,13 @@ class TestFetch < Zold::Test
       stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}").to_return(
         status: 200,
         body: {
-          'score': Zold::Score::ZERO.to_h,
-          'size': 10_000,
-          'mtime': Time.now.utc.iso8601
+          score: Zold::Score::ZERO.to_h,
+          size: 10_000,
+          mtime: Time.now.utc.iso8601
         }.to_json
       )
       stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}.bin")
-        .to_return(status: 200, body: IO.read(wallet.path))
+        .to_return(status: 200, body: File.read(wallet.path))
       remotes = home.remotes
       remotes.add('localhost', 4096)
       copies = home.copies(wallet)
@@ -142,13 +142,13 @@ class TestFetch < Zold::Test
       stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}").to_return(
         status: 200,
         body: {
-          'score': Zold::Score::ZERO.to_h,
-          'size': 10_000,
-          'mtime': Time.now.utc.iso8601
+          score: Zold::Score::ZERO.to_h,
+          size: 10_000,
+          mtime: Time.now.utc.iso8601
         }.to_json
       )
       stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}.bin")
-        .to_return(status: 200, body: IO.read(wallet.path))
+        .to_return(status: 200, body: File.read(wallet.path))
       remotes = home.remotes
       remotes.add('localhost', 4096)
       copies = home.copies(wallet)

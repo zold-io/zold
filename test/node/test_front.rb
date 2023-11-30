@@ -129,7 +129,7 @@ class FrontTest < Zold::Test
           Zold::JsonPage.new(response.body).to_hash['all'].count, response.body
         )
         assert_match(
-          /(\d{4})-(\d{2})-(\d{2})T(\d{2})\:(\d{2})\:(\d{2})Z/,
+          /(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z/,
           Zold::JsonPage.new(response.body).to_hash['mtime'].to_s,
           response.body
         )
@@ -286,7 +286,7 @@ class FrontTest < Zold::Test
       Threads.new(10).assert(100) do
         start = Time.now
         Zold::Http.new(uri: URI("http://localhost:#{port}/")).get
-        times << Time.now - start
+        times << (Time.now - start)
       end
     end
     all = []
@@ -359,7 +359,7 @@ class FrontTest < Zold::Test
   end
 
   def test_push_fetch_in_multiple_threads
-    key = Zold::Key.new(text: IO.read('fixtures/id_rsa'))
+    key = Zold::Key.new(text: File.read('fixtures/id_rsa'))
     FakeNode.new(log: test_log).run(opts) do |port|
       FakeHome.new(log: test_log).run do |home|
         wallet = home.create_wallet(Zold::Id::ROOT)

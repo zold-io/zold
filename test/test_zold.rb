@@ -42,7 +42,7 @@ class TestZold < Zold::Test
         FileUtils.cp('fixtures/id_rsa.pub', dir)
         FileUtils.cp('fixtures/id_rsa', dir)
         script = File.join(dir, f)
-        IO.write(script, IO.read('fixtures/scripts/_head.sh') + IO.read(File.join('fixtures/scripts', f)))
+        File.write(script, File.read('fixtures/scripts/_head.sh') + File.read(File.join('fixtures/scripts', f)))
         bin = File.join(Dir.pwd, 'bin/zold')
         out = []
         Dir.chdir(dir) do

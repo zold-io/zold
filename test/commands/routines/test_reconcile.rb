@@ -25,7 +25,7 @@ require 'webmock/minitest'
 require_relative '../../test__helper'
 require_relative '../../fake_home'
 require_relative '../../../lib/zold/remotes'
-require_relative '../../../lib/zold/commands/routines/reconcile.rb'
+require_relative '../../../lib/zold/commands/routines/reconcile'
 
 # Reconcile test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

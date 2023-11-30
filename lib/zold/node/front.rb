@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-STDOUT.sync = true
+$stdout.sync = true
 
 require 'get_process_mem'
 require 'thin'
@@ -187,7 +187,7 @@ from #{request.ip} in #{Age.new(@start, limit: 1)}")
       error(400, "Log not found at #{settings.nohup_log}") unless File.exist?(settings.nohup_log)
       response.headers['Content-Type'] = 'text/plain'
       response.headers['Content-Disposition'] = "attachment; filename='#{File.basename(settings.nohup_log)}'"
-      IO.read(settings.nohup_log)
+      File.read(settings.nohup_log)
     end
 
     get '/favicon.ico' do
@@ -349,15 +349,17 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/copies} do
       fetch do |wallet|
         copies = Copies.new(File.join(settings.copies, wallet.id))
-        copies.load.map do |c|
-          "#{c[:name]}: #{c[:host]}:#{c[:port]} #{c[:score]} #{c[:time].utc.iso8601}"
-        end.join("\n") +
-        "\n\n" +
-        copies.all.map do |c|
-          w = Wallet.new(c[:path])
-          "#{c[:name]}: #{c[:score]} #{w.mnemo} \
+        [
+          copies.load.map do |c|
+            "#{c[:name]}: #{c[:host]}:#{c[:port]} #{c[:score]} #{c[:time].utc.iso8601}"
+          end.join("\n"),
+          "\n\n",
+          copies.all.map do |c|
+            w = Wallet.new(c[:path])
+            "#{c[:name]}: #{c[:score]} #{w.mnemo} \
 #{Size.new(File.size(c[:path]))}/#{Age.new(File.mtime(c[:path]))}"
-        end.join("\n")
+          end.join("\n")
+        ].join
       end
     end
 
@@ -366,7 +368,7 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
         name = params[:name]
         copy = Copies.new(File.join(settings.copies, wallet.id)).all.find { |c| c[:name] == name }
         error 404 if copy.nil?
-        IO.read(copy[:path])
+        File.read(copy[:path])
       end
     end
 
@@ -407,13 +409,13 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
 
     get '/ledger' do
       content_type('text/plain')
-      File.exist?(settings.ledger) ? IO.read(settings.ledger) : ''
+      File.exist?(settings.ledger) ? File.read(settings.ledger) : ''
     end
 
     get '/ledger.json' do
       content_type('application/json')
       pretty(
-        (File.exist?(settings.ledger) ? IO.read(settings.ledger).split("\n") : []).map do |t|
+        (File.exist?(settings.ledger) ? File.read(settings.ledger).split("\n") : []).map do |t|
           parts = t.split(';')
           {
             found: parts[0],
@@ -446,7 +448,7 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
         Thread.list.map do |t|
           [
             "#{t.name}: status=#{t.status}; alive=#{t.alive?}",
-            'Vars: ' + t.thread_variables.map { |v| "#{v}=\"#{t.thread_variable_get(v)}\"" }.join('; '),
+            "Vars: #{t.thread_variables.map { |v| "#{v}=\"#{t.thread_variable_get(v)}\"" }.join('; ')}",
             t.backtrace.nil? ? 'NO BACKTRACE' : "  #{t.backtrace.join("\n  ")}"
           ].join("\n")
         end
@@ -460,7 +462,7 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
 
     get '/queue' do
       content_type('text/plain')
-      DirItems.new(settings.async_dir).fetch.select { |f| /^[0-9a-f]{16}-/.match?(f) }.map do |f|
+      DirItems.new(settings.async_dir).fetch.grep(/^[0-9a-f]{16}-/).map do |f|
         Wallet.new(File.join(settings.async_dir, f)).mnemo
       rescue Errno::ENOENT
         f
@@ -488,7 +490,7 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
       content_type('text/plain')
       file = File.join(settings.journal_dir, params[:id])
       error(404, "Journal item not found at #{file}") unless File.exist?(file)
-      IO.read(file)
+      File.read(file)
     end
 
     not_found do

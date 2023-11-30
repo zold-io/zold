@@ -114,7 +114,7 @@ module Zold
       raise "File '#{path}' already exists" if File.exist?(path) && !overwrite
       raise "Invalid network name '#{network}'" unless network =~ /^[a-z]{4,16}$/
       FileUtils.mkdir_p(File.dirname(path))
-      IO.write(path, "#{network}\n#{PROTOCOL}\n#{id}\n#{pubkey.to_pub}\n\n")
+      File.write(path, "#{network}\n#{PROTOCOL}\n#{id}\n#{pubkey.to_pub}\n\n")
       @txns.flush
       @head.flush
     end
@@ -231,7 +231,7 @@ module Zold
     # in order to make sure two wallets with the same content are identical,
     # no matter whether they were formatted differently.
     def refurbish
-      IO.write(path, (@head.fetch + [''] + @txns.fetch.map(&:to_s)).join("\n") + "\n")
+      File.write(path, "#{(@head.fetch + [''] + @txns.fetch.map(&:to_s)).join("\n")}\n")
       @txns.flush
     end
 

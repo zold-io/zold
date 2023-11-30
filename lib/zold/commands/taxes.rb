@@ -154,7 +154,7 @@ the balance is #{wallet.balance}: #{tax.to_text}")
           @log.debug("The score has already been taxed: #{best}")
           next
         end
-        pem = IO.read(opts['private-key'])
+        pem = File.read(opts['private-key'])
         unless opts['keygap'].empty?
           pem = pem.sub('*' * opts['keygap'].length, opts['keygap'])
           @log.debug("Keygap \"#{'*' * opts['keygap'].length}\" injected into the RSA private key")

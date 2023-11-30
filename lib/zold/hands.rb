@@ -43,7 +43,7 @@ module Zold
 
     def self.threshold
       advised = Total::Mem.new.bytes / (128 * 1024 * 1024)
-      [Concurrent.processor_count * 4, [advised, 4].max].min
+      advised.clamp(4, Concurrent.processor_count * 4)
     rescue Total::CantDetect
       4
     end
@@ -66,13 +66,13 @@ module Zold
     end
 
     # Run this code in many threads
-    def self.exec(threads, set = (0..threads - 1).to_a)
+    def self.exec(threads, set = (0..threads - 1).to_a, &block)
       raise 'The thread pool is empty' if POOL.empty?
       raise "Number of threads #{threads} has to be positive" unless threads.positive?
       list = set.dup
       total = [threads, set.count].min
       if total == 1
-        list.each_with_index { |r, i| yield(r, i) }
+        list.each_with_index(&block)
       elsif total.positive?
         idx = Concurrent::AtomicFixnum.new
         mutex = Mutex.new

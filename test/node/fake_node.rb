@@ -78,7 +78,7 @@ class FakeNode
         begin
           yield port
         ensure
-          Zold::Http.new(uri: uri + '?halt=test').get
+          Zold::Http.new(uri: "#{uri}?halt=test").get
           node.join
           sleep 0.1 # stupid sleep to make sure all threads are terminated
         end

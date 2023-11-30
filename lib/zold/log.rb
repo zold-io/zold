@@ -64,12 +64,12 @@ module Zold
       when 'DEBUG'
         prefix = 'D: '
       end
-      colored(prefix, severity) + msg.to_s.rstrip.gsub(/\n/, "\n" + (' ' * prefix.length)) + "\n"
+      "#{colored(prefix, severity)}#{msg.to_s.rstrip.gsub("\n", "\n#{' ' * prefix.length}")}\n"
     end
 
     # Short formatter
     SHORT = proc do |_severity, _time, _target, msg|
-      msg.to_s.rstrip + "\n"
+      "#{msg.to_s.rstrip}\n"
     end
 
     # Full formatter
@@ -83,24 +83,24 @@ module Zold
     end
 
     # No logging at all
-    NULL = Logger.new(STDOUT)
+    NULL = Logger.new($stdout)
     NULL.level = Logger::UNKNOWN
     NULL.freeze
 
     # Everything, including debug
-    VERBOSE = Logger.new(STDOUT)
+    VERBOSE = Logger.new($stdout)
     VERBOSE.level = Logger::DEBUG
     VERBOSE.formatter = COMPACT
     VERBOSE.freeze
 
     # Info and errors, no debug info
-    REGULAR = Logger.new(STDOUT)
+    REGULAR = Logger.new($stdout)
     REGULAR.level = Logger::INFO
     REGULAR.formatter = COMPACT
     REGULAR.freeze
 
     # Errors only
-    ERRORS = Logger.new(STDOUT)
+    ERRORS = Logger.new($stdout)
     ERRORS.level = Logger::ERROR
     ERRORS.formatter = COMPACT
     ERRORS.freeze

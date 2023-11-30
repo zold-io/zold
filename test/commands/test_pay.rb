@@ -88,9 +88,9 @@ class TestPay < Zold::Test
       wallet = home.create_wallet
       amount = Zold::Amount.new(zld: 2.0)
       Tempfile.open do |f|
-        pem = IO.read('fixtures/id_rsa')
+        pem = File.read('fixtures/id_rsa')
         keygap = pem[100..120]
-        IO.write(f, pem.gsub(keygap, '*' * keygap.length))
+        File.write(f, pem.gsub(keygap, '*' * keygap.length))
         Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: test_log).run(
           [
             'pay', '--force', "--private-key=#{Shellwords.escape(f.path)}",
@@ -189,7 +189,7 @@ class TestPay < Zold::Test
         wallet.add(
           Zold::Txn.new(
             i + 1,
-            Time.now - 24 * 60 * 60 * 365 * 300,
+            Time.now - (24 * 60 * 60 * 365 * 300),
             fund,
             'NOPREFIX', Zold::Id.new, '-'
           )

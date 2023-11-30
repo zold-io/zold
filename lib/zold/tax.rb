@@ -94,7 +94,7 @@ module Zold
     end
 
     def debt
-      FEE * @wallet.txns.count * @wallet.age - paid
+      (FEE * @wallet.txns.count * @wallet.age) - paid
     end
 
     def paid
@@ -106,8 +106,10 @@ module Zold
         score = Score.parse(body)
         next unless score.valid?
         next unless score.value == EXACT_SCORE || @ignore_score_weakness
-        if score.strength < @strength && !@ignore_score_weakness
-          next unless MILESTONES.find { |d, s| t.date < d && score.strength >= s }
+        if score.strength < @strength && !@ignore_score_weakness && !MILESTONES.find do |d, s|
+             t.date < d && score.strength >= s
+           end
+          next
         end
         next if t.amount * -1 > MAX_PAYMENT
         t

@@ -29,7 +29,7 @@ require 'timeout'
 
 require 'minitest/fail_fast' if ENV['TEST_QUIET_LOG']
 
-STDOUT.sync = true
+$stdout.sync = true
 
 ENV['RACK_ENV'] = 'test'
 
@@ -57,8 +57,8 @@ module Zold
       end
     end
 
-    def assert_wait(max: 30)
-      assert_equal_wait(true, max: max) { yield }
+    def assert_wait(max: 30, &block)
+      assert_equal_wait(true, max: max, &block)
     end
 
     def assert_equal_wait(expected, max: 30)
@@ -87,6 +87,7 @@ module Zold
 
     class TestLogger
       attr_accessor :msgs
+
       def initialize(log = Zold::Log::NULL)
         @log = log
         @msgs = []

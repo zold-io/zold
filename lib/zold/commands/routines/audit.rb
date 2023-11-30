@@ -37,12 +37,11 @@ class Zold::Routines::Audit
 
   def exec(_ = 0)
     sleep(60) unless @opts['routine-immediately']
-    @log.info(
-      'Audit: ' + [
-        "memory used: #{Zold::Size.new(GetProcessMem.new.bytes.to_i)}",
-        "threads total: #{Thread.list.count}",
-        "wallets: #{@wallets.count}"
-      ].join('; ')
-    )
+    msg = [
+      "memory used: #{Zold::Size.new(GetProcessMem.new.bytes.to_i)}",
+      "threads total: #{Thread.list.count}",
+      "wallets: #{@wallets.count}"
+    ].join('; ')
+    @log.info("Audit: #{msg}")
   end
 end
