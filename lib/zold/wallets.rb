@@ -52,6 +52,11 @@ module Zold
       File.expand_path(@dir)
     end
 
+    # This wallet exists?
+    def exists?(id)
+      File.exist?(File.join(path, id.to_s + Wallet::EXT))
+    end
+
     # Returns the list of their IDs (as plain text)
     def all
       DirItems.new(path).fetch(recursive: false).select do |f|

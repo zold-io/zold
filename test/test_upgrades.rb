@@ -75,7 +75,7 @@ class TestUpgrades < Zold::Test
   private
 
   def run_upgrades(dir)
-    Zold::Upgrades.new(version_file(dir), dir, {}, network: 'test').run
+    Zold::Upgrades.new(version_file(dir), dir, { network: 'test' }).run
   end
 
   def version_file(dir)
