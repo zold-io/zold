@@ -58,10 +58,10 @@ and suggests a different architecture for digital wallet maintenance."
   s.executables = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
   s.rdoc_options = ['--charset=UTF-8']
   s.extra_rdoc_files = ['README.md', 'LICENSE.txt']
-  s.add_runtime_dependency 'backtrace', '>=0.3'
+  s.add_runtime_dependency 'backtrace', '~>0.3'
   s.add_runtime_dependency 'concurrent-ruby', '~>1.1'
   s.add_runtime_dependency 'diffy', '~>3.3'
-  s.add_runtime_dependency 'futex', '>=0.8.5'
+  s.add_runtime_dependency 'futex', '~>0.8'
   s.add_runtime_dependency 'get_process_mem', '~>0.2'
   s.add_runtime_dependency 'haml', '~>5.0'
   s.add_runtime_dependency 'json', '~>2.2'
@@ -74,11 +74,11 @@ and suggests a different architecture for digital wallet maintenance."
   s.add_runtime_dependency 'slop', '~>4.6'
   s.add_runtime_dependency 'sys-proctable', '~>1.2'
   s.add_runtime_dependency 'thin', '~>1.7'
-  s.add_runtime_dependency 'threads', '>=0.3'
-  s.add_runtime_dependency 'total', '>=0.3'
+  s.add_runtime_dependency 'threads', '~>0.3'
+  s.add_runtime_dependency 'total', '~>0.3'
   s.add_runtime_dependency 'typhoeus', '~>1.3'
   s.add_runtime_dependency 'usagewatch_ext', '~>0.2'
-  s.add_runtime_dependency 'zache', '>=0.12'
+  s.add_runtime_dependency 'zache', '~>0.12'
   s.add_runtime_dependency 'zold-score', '~>0.5'
   s.metadata['rubygems_mfa_required'] = 'true'
 end
