@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+ # frozen_string_literal: true
 
 # Copyright (c) 2018-2023 Zerocracy
 #

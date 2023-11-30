@@ -64,7 +64,7 @@ module Zold
           else
             @mutex.synchronize do
               unless @queue.include?(id)
-                @missed.put(id.to_s, lifetime: 5 * 60)
+                @missed.put(id.to_s, true, lifetime: 5 * 60)
                 @queue << id
                 @log.debug("Hungry queue got #{id}, at the pos no.#{@queue.size - 1}")
               end

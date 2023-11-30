@@ -70,7 +70,11 @@ Available options:"
       loop do
         id = Id.new
         return id if opts['skip-test']
-        found = false
+        found = @wallets.exists?(id)
+        if found
+          @log.debug("Wallet ID #{id} already exists locally, will try another one...")
+          next
+        end
         @remotes.iterate(@log) do |r|
           head = r.http("/wallet/#{id}/digest").get
           found = true if head.status == 200
