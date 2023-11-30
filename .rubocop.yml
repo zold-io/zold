@@ -7,6 +7,8 @@ AllCops:
   NewCops: enable
   SuggestExtensions: false
 
+Gemspec/RequireMFA:
+  Enabled: false
 Lint/ToJSON:
   Enabled: false
 Layout/ArgumentAlignment:
