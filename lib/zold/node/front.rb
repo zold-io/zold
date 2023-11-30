@@ -228,8 +228,10 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
         end,
         platform: RUBY_PLATFORM,
         load: settings.zache.get(:load, lifetime: settings.opts['no-cache'] ? 0 : 60) do
-          require 'usagewatch_ext'
-          Object.const_defined?('Usagewatch') ? Usagewatch.uw_load.to_f : 0.0
+          # doesn't work with Ruby 3.0+
+          # require 'usagewatch_ext'
+          # Object.const_defined?('Usagewatch') ? Usagewatch.uw_load.to_f : 0.0
+          0.0
         end,
         total_mem: total_mem,
         threads: "#{Thread.list.select { |t| t.status == 'run' }.count}/#{Thread.list.count}",
