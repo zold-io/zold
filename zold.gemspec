@@ -33,17 +33,17 @@ Gem::Specification.new do |s|
   s.version = Zold::VERSION
   s.license = 'MIT'
   s.summary = 'A fast cryptocurrency for micro payments'
-  s.description = 'In the last few years digital currencies have successfully demonstrated
-their ability to become an alternative financial instrument in many
-different markets. Most of the technologies available at the moment are
-based on the principles of Blockchain architecture, including
-dominating currencies like Bitcoin and Ethereum. Despite its
-popularity, Blockchain is not the best possible solution for all scenarios.
-One such example is for fast micro-payments.
-Zold is an experimental alternative that enables distributed transactions between
-anonymous users, making micro-payments financially feasible.
-It borrows the proof-of-work principle from Bitcoin,
-and suggests a different architecture for digital wallet maintenance.'
+  s.description = "In the last few years digital currencies have successfully demonstrated \
+their ability to become an alternative financial instrument in many \
+different markets. Most of the technologies available at the moment are \
+based on the principles of Blockchain architecture, including \
+dominating currencies like Bitcoin and Ethereum. Despite its \
+popularity, Blockchain is not the best possible solution for all scenarios. \
+One such example is for fast micro-payments. \
+Zold is an experimental alternative that enables distributed transactions between \
+anonymous users, making micro-payments financially feasible. \
+It borrows the proof-of-work principle from Bitcoin, \
+and suggests a different architecture for digital wallet maintenance."
   s.authors = ['Yegor Bugayenko']
   s.email = 'yegor256@gmail.com'
   s.homepage = 'http://github.com/zold-io/zold'
