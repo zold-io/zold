@@ -80,5 +80,4 @@ and suggests a different architecture for digital wallet maintenance."
   s.add_runtime_dependency 'usagewatch_ext', '~>0.2'
   s.add_runtime_dependency 'zache', '~>0.12'
   s.add_runtime_dependency 'zold-score', '~>0.5'
-  s.metadata['rubygems_mfa_required'] = 'false'
 end
