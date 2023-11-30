@@ -1,19 +1,19 @@
 docker:
-  image: yegor256/rultor-image:1.9.1
+  image: yegor256/rultor-image:1.22.0
 architect:
 - yegor256
 - davvd
 assets:
   rubygems.yml: yegor256/home#assets/rubygems.yml
 install: |
+  pdd -f /dev/null -v
   sudo apt-get -y update
   sudo apt-get -y install libcurl4-openssl-dev
-  sudo bundle install --no-color "--gemfile=$(pwd)/Gemfile"
-  sudo rm -rf "$(pwd)/Gemfile.lock"
+  bundle install --no-color
+  rm -rf "$(pwd)/Gemfile.lock"
 release:
   script: |-
     [[ "${tag}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || exit -1
-
     export RUBYOPT="-W0"
     sed -i "s/0\.0\.0/${tag}/g" lib/zold/version.rb
     bundle exec rake --quiet
@@ -25,4 +25,3 @@ release:
 merge:
   script: |-
     bundle exec rake --quiet
-    pdd -f /dev/null -v
