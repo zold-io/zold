@@ -67,7 +67,7 @@ and suggests a different architecture for digital wallet maintenance."
   s.add_runtime_dependency 'json', '~>2.2'
   s.add_runtime_dependency 'memory_profiler', '~>1.0'
   s.add_runtime_dependency 'mimic', '~>0.4'
-  s.add_runtime_dependency 'openssl', '~>3.1'
+  s.add_runtime_dependency 'openssl', '>=1.0'
   s.add_runtime_dependency 'rainbow', '~>3.0'
   s.add_runtime_dependency 'semantic', '~>1.6'
   s.add_runtime_dependency 'sinatra', '~>3.0'
