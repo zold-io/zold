@@ -87,6 +87,7 @@ Available options:"
     def create(id, opts)
       key = Zold::Key.new(file: opts['public-key'])
       @wallets.acq(id, exclusive: true) do |wallet|
+        raise "Wallet #{id} already exists" if wallet.exists?
         wallet.init(id, key, network: opts['network'])
         @log.debug("Wallet #{Rainbow(wallet).green} created at #{@wallets.path}")
       end
