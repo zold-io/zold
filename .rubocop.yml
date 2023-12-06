@@ -39,7 +39,7 @@ Layout/ParameterAlignment:
   Enabled: false
 Metrics/PerceivedComplexity:
   Max: 45
-Metrics/LineLength:
+Layout/LineLength:
   Max: 120
 Style/MultilineBlockChain:
   Enabled: false

@@ -37,6 +37,15 @@ class TestId < Zold::Test
     end
   end
 
+  def test_generates_different_ids
+    before = ''
+    500.times do
+      id = Zold::Id.new
+      assert id.to_s != before.to_s
+      before = id
+    end
+  end
+
   def test_list_of_banned_ids_is_not_empty
     assert(!Zold::Id::BANNED.empty?)
   end
