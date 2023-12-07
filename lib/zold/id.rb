@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'csv'
+require 'securerandom'
 
 # The ID of the wallet.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -38,7 +39,7 @@ module Zold
 
     def self.generate_id
       loop do
-        id = format('%016x', rand((2**32)..(2**64) - 1))
+        id = SecureRandom.hex(8)
         next if Id::BANNED.include?(id)
         return id
       end
