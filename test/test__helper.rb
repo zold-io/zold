@@ -36,7 +36,9 @@ ENV['RACK_ENV'] = 'test'
 require 'simplecov'
 SimpleCov.start
 
-require_relative '../lib/zold/hands'
+$LOAD_PATH.unshift('../lib')
+
+require 'zold/hands'
 Zold::Hands.start
 
 require 'minitest/reporters'
