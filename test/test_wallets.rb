@@ -35,7 +35,7 @@ require_relative '../lib/zold/amount'
 # License:: MIT
 class TestWallets < Zold::Test
   def test_adds_wallet
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       wallets = home.wallets
       id = Zold::Id.new
       wallets.acq(id) do |wallet|
@@ -46,7 +46,7 @@ class TestWallets < Zold::Test
   end
 
   def test_lists_wallets_and_ignores_garbage
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       wallets = home.wallets
       FileUtils.touch(File.join(home.dir, '0xaaaaaaaaaaaaaaaaaaahello'))
       FileUtils.mkdir_p(File.join(home.dir, 'a/b/c'))
@@ -76,7 +76,7 @@ class TestWallets < Zold::Test
         assert_equal(5, wallets.count)
       end
     end
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       wallets = home.wallets
       home.create_wallet
       assert_equal(1, wallets.count)

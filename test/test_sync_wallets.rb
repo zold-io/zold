@@ -37,7 +37,7 @@ require_relative '../lib/zold/amount'
 # License:: MIT
 class TestSyncWallets < Zold::Test
   def test_adds_wallet
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       wallets = home.wallets
       id = Zold::Id.new
       home.create_wallet(id)

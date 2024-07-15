@@ -67,7 +67,7 @@ class TestRemote < Zold::Test
         headers: {},
         body: '{"version": "0.0.0"}'
       )
-      cmd = Zold::Remote.new(remotes: remotes, log: test_log)
+      cmd = Zold::Remote.new(remotes: remotes, log: fake_log)
       cmd.run(%w[remote clean])
       assert(remotes.all.empty?)
       cmd.run(['remote', 'add', zero.host, zero.port.to_s, '--skip-ping'])
@@ -126,7 +126,7 @@ class TestRemote < Zold::Test
           score: zero.to_h
         }.to_json
       )
-      cmd = Zold::Remote.new(remotes: remotes, log: test_log)
+      cmd = Zold::Remote.new(remotes: remotes, log: fake_log)
       winners = cmd.run(%w[remote elect --ignore-score-value])
       assert_equal(1, winners.count)
     end
@@ -135,7 +135,7 @@ class TestRemote < Zold::Test
   def test_resets_remotes
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.txt'))
-      Zold::Remote.new(remotes: remotes, log: test_log).run(%w[remote reset])
+      Zold::Remote.new(remotes: remotes, log: fake_log).run(%w[remote reset])
     end
   end
 
@@ -164,7 +164,7 @@ class TestRemote < Zold::Test
         body: '{"version": "0.0.0"}'
       )
       stub_request(:get, 'http://localhost:8883/remotes').to_return(status: 404)
-      cmd = Zold::Remote.new(remotes: remotes, log: test_log)
+      cmd = Zold::Remote.new(remotes: remotes, log: fake_log)
       cmd.run(%w[remote clean])
       assert(remotes.all.empty?)
       cmd.run(['remote', 'add', score.host, score.port.to_s, '--skip-ping'])
@@ -179,7 +179,7 @@ class TestRemote < Zold::Test
   def test_select_selects_the_strongest_nodes
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.txt'))
-      cmd = Zold::Remote.new(remotes: remotes, log: test_log)
+      cmd = Zold::Remote.new(remotes: remotes, log: fake_log)
       (1..11).each do |i|
         cmd.run(%W[remote add localhost #{i} --skip-ping])
         remotes.rescore('localhost', i, i)
@@ -197,7 +197,7 @@ class TestRemote < Zold::Test
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.txt'))
       remotes.masters
       zero = Zold::Score::ZERO
-      cmd = Zold::Remote.new(remotes: remotes, log: test_log)
+      cmd = Zold::Remote.new(remotes: remotes, log: fake_log)
       (5000..5010).each do |port|
         stub_request(:get, "http://#{zero.host}:#{zero.port}/remotes").to_return(
           status: 200,
@@ -226,7 +226,7 @@ class TestRemote < Zold::Test
   def test_sets_masters
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.txt'))
-      cmd = Zold::Remote.new(remotes: remotes, log: test_log)
+      cmd = Zold::Remote.new(remotes: remotes, log: fake_log)
       cmd.run(%w[remote masters])
       assert(!remotes.all.empty?)
     end
@@ -235,7 +235,7 @@ class TestRemote < Zold::Test
   def test_select_doesnt_touch_masters
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.txt'))
-      cmd = Zold::Remote.new(remotes: remotes, log: test_log)
+      cmd = Zold::Remote.new(remotes: remotes, log: fake_log)
       cmd.run(%w[remote masters])
       cmd.run(%w[remote select --max-nodes=0])
       assert(!remotes.all.empty?)
@@ -255,7 +255,7 @@ class TestRemote < Zold::Test
           all: []
         }.to_json
       )
-      cmd = Zold::Remote.new(remotes: remotes, log: test_log)
+      cmd = Zold::Remote.new(remotes: remotes, log: fake_log)
       cmd.run(['remote', 'add', zero.host, zero.port.to_s, '--skip-ping'])
       cmd.run(['remote', 'update', '--ignore-score-weakness', '--depth=10'])
       assert_equal(1, remotes.all.count)

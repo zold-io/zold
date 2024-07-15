@@ -40,7 +40,7 @@ class TestList < Zold::Test
       wallets = Zold::Wallets.new(dir)
       wallets.acq(id) do |wallet|
         wallet.init(Zold::Id.new, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-        Zold::List.new(wallets: wallets, copies: File.join(dir, 'copies'), log: test_log).run
+        Zold::List.new(wallets: wallets, copies: File.join(dir, 'copies'), log: fake_log).run
       end
     end
   end

@@ -31,7 +31,7 @@ require_relative '../../lib/zold/commands/calculate'
 # License:: MIT
 class TestCalculate < Zold::Test
   def test_calculates_score
-    score = Zold::Calculate.new(log: test_log).run(
+    score = Zold::Calculate.new(log: fake_log).run(
       ['score', '--strength=2', '--max=8', '--invoice=NOSUFFIX@ffffffffffffffff']
     )
     assert(score.valid?)

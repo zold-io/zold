@@ -34,21 +34,21 @@ require_relative 'fake_entrance'
 # License:: MIT
 class TestAsyncEntrance < Zold::Test
   def test_renders_json
-    FakeHome.new(log: test_log).run do |home|
-      Zold::AsyncEntrance.new(FakeEntrance.new, home.dir, log: test_log).start do |e|
+    FakeHome.new(log: fake_log).run do |home|
+      Zold::AsyncEntrance.new(FakeEntrance.new, home.dir, log: fake_log).start do |e|
         assert_equal(0, e.to_json[:queue])
       end
     end
   end
 
   def test_sends_through_once
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       wallet = home.create_wallet
       amount = Zold::Amount.new(zld: 39.99)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
       basic = CountingEntrance.new
-      Zold::AsyncEntrance.new(basic, File.join(home.dir, 'a/b/c'), log: test_log).start do |e|
+      Zold::AsyncEntrance.new(basic, File.join(home.dir, 'a/b/c'), log: fake_log).start do |e|
         e.push(wallet.id, File.read(wallet.path))
         assert_equal_wait(1) { basic.count }
       end
@@ -56,9 +56,9 @@ class TestAsyncEntrance < Zold::Test
   end
 
   def test_sends_through
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       basic = CountingEntrance.new
-      Zold::AsyncEntrance.new(basic, File.join(home.dir, 'a/b/c'), log: test_log, queue_limit: 1000).start do |e|
+      Zold::AsyncEntrance.new(basic, File.join(home.dir, 'a/b/c'), log: fake_log, queue_limit: 1000).start do |e|
         Threads.new(20).assert do
           wallet = home.create_wallet
           amount = Zold::Amount.new(zld: 39.99)
@@ -72,11 +72,11 @@ class TestAsyncEntrance < Zold::Test
   end
 
   def test_handles_broken_entrance_gracefully
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       wallet = home.create_wallet
       id = wallet.id
       body = File.read(wallet.path)
-      Zold::AsyncEntrance.new(BrokenEntrance.new, home.dir, log: test_log).start do |e|
+      Zold::AsyncEntrance.new(BrokenEntrance.new, home.dir, log: fake_log).start do |e|
         e.push(id, body)
       end
     end

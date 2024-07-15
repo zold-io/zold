@@ -40,7 +40,7 @@ class TestShow < Zold::Test
       wallets = Zold::Wallets.new(dir)
       wallets.acq(id) do |wallet|
         wallet.init(Zold::Id.new, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-        balance = Zold::Show.new(wallets: wallets, copies: File.join(dir, 'c'), log: test_log).run(['show', id.to_s])
+        balance = Zold::Show.new(wallets: wallets, copies: File.join(dir, 'c'), log: fake_log).run(['show', id.to_s])
         assert_equal(Zold::Amount::ZERO, balance)
       end
     end

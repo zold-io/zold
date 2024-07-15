@@ -33,14 +33,14 @@ require_relative '../fake_home'
 class TestDeleteBannedWallets < Zold::Test
   def test_delete_them
     id = Zold::Id.new(Zold::Id::BANNED[0])
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       home.create_wallet(id)
       FileUtils.mkdir_p(File.join(home.dir, 'a/b/c'))
       File.rename(
         File.join(home.dir, "#{id}#{Zold::Wallet::EXT}"),
         File.join(home.dir, "a/b/c/#{id}#{Zold::Wallet::EXT}")
       )
-      Zold::DeleteBannedWallets.new(home.dir, test_log).exec
+      Zold::DeleteBannedWallets.new(home.dir, fake_log).exec
       assert(File.exist?(File.join(home.dir, "a/b/c/#{id}#{Zold::Wallet::EXT}-banned")))
     end
   end

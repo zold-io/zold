@@ -40,10 +40,10 @@ class TestEntrance < Zold::Test
   def test_pushes_wallet
     sid = Zold::Id::ROOT
     tid = Zold::Id.new
-    body = FakeHome.new(log: test_log).run do |home|
+    body = FakeHome.new(log: fake_log).run do |home|
       source = home.create_wallet(sid)
       target = home.create_wallet(tid)
-      Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: test_log).run(
+      Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: fake_log).run(
         [
           'pay', '--force', '--private-key=fixtures/id_rsa',
           source.id.to_s, target.id.to_s, '19.99', 'testing'
@@ -51,14 +51,14 @@ class TestEntrance < Zold::Test
       )
       File.read(source.path)
     end
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       source = home.create_wallet(sid)
       target = home.create_wallet(tid)
       ledger = File.join(home.dir, 'ledger.csv')
       e = Zold::Entrance.new(
         home.wallets,
         Zold::Pipeline.new(home.remotes, home.copies(source).root, 'x', ledger: ledger),
-        log: test_log
+        log: fake_log
       )
       modified = e.push(source.id, body)
       assert_equal(2, modified.count)
@@ -71,9 +71,9 @@ class TestEntrance < Zold::Test
   end
 
   def test_renders_json
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       wallet = home.create_wallet
-      e = Zold::Entrance.new(home.wallets, Zold::Pipeline.new(home.remotes, home.copies.root, 'x'), log: test_log)
+      e = Zold::Entrance.new(home.wallets, Zold::Pipeline.new(home.remotes, home.copies.root, 'x'), log: fake_log)
       e.push(wallet.id, File.read(wallet.path))
       assert(e.to_json[:history].include?(wallet.id.to_s))
       assert(!e.to_json[:speed].negative?)

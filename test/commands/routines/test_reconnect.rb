@@ -39,7 +39,7 @@ class TestReconnect < Zold::Test
       remotes.add('localhost', 4096)
       stub_request(:get, 'http://localhost:4096/remotes').to_return(status: 404)
       opts = { 'never-reboot' => true, 'routine-immediately' => true }
-      routine = Zold::Routines::Reconnect.new(opts, remotes, log: test_log)
+      routine = Zold::Routines::Reconnect.new(opts, remotes, log: fake_log)
       routine.exec
     end
   end

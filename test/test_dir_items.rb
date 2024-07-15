@@ -37,14 +37,14 @@ class TestDirItems < Zold::Test
     Dir.mktmpdir do |dir|
       file = File.join(dir, 'hey.txt')
       back = Thread.start do
-        Zold::Endless.new('test-diritems', log: test_log).run do
+        Zold::Endless.new('test-diritems', log: fake_log).run do
           Zold::DirItems.new(dir).fetch
         end
       end
       Threads.new(100).assert do
         start = Time.now
         File.write(file, 'test')
-        test_log.info("Saved in #{Zold::Age.new(start)}")
+        fake_log.info("Saved in #{Zold::Age.new(start)}")
         sleep 1
       end
       back.kill

@@ -39,18 +39,18 @@ require_relative '../../lib/zold/commands/pay'
 # License:: MIT
 class TestPay < Zold::Test
   def test_sends_from_wallet_to_wallet
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       source = home.create_wallet
       target = home.create_wallet
       amount = Zold::Amount.new(zld: 14.95)
-      Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: test_log).run(
+      Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: fake_log).run(
         [
           'pay', '--force', '--private-key=fixtures/id_rsa',
           source.id.to_s, target.id.to_s, amount.to_zld, 'For the car'
         ]
       )
       assert_equal(amount * -1, source.balance)
-      Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: test_log).run(
+      Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: fake_log).run(
         [
           'pay', '--private-key=fixtures/id_rsa',
           target.id.to_s, source.id.to_s, amount.to_zld, 'Refund'
@@ -62,7 +62,7 @@ class TestPay < Zold::Test
   end
 
   def test_pay_without_invoice
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       remotes = home.remotes
       remotes.add('localhost', 4096)
       json = home.create_wallet_json
@@ -73,7 +73,7 @@ class TestPay < Zold::Test
       home.wallets.acq(Zold::Id.new(id)) { |w| File.delete(w.path) }
       source = home.create_wallet
       amount = Zold::Amount.new(zld: 14.95)
-      Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: remotes, log: test_log).run(
+      Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: remotes, log: fake_log).run(
         [
           'pay', '--force', '--private-key=fixtures/id_rsa', '--tolerate-edges', '--tolerate-quorum=1',
           source.id.to_s, id, amount.to_zld, 'For the car'
@@ -84,14 +84,14 @@ class TestPay < Zold::Test
   end
 
   def test_pay_with_keygap
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       wallet = home.create_wallet
       amount = Zold::Amount.new(zld: 2.0)
       Tempfile.open do |f|
         pem = File.read('fixtures/id_rsa')
         keygap = pem[100..120]
         File.write(f, pem.gsub(keygap, '*' * keygap.length))
-        Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: test_log).run(
+        Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: fake_log).run(
           [
             'pay', '--force', "--private-key=#{Shellwords.escape(f.path)}",
             "--keygap=#{Shellwords.escape(keygap)}",
@@ -104,12 +104,12 @@ class TestPay < Zold::Test
   end
 
   def test_pay_in_many_threads
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       wallet = home.create_wallet
       amount = Zold::Amount.new(zld: 2.0)
       wallets = home.wallets
       Threads.new(10).assert do
-        Zold::Pay.new(wallets: wallets, copies: home.dir, remotes: home.remotes, log: test_log).run(
+        Zold::Pay.new(wallets: wallets, copies: home.dir, remotes: home.remotes, log: fake_log).run(
           [
             'pay', '--force', '--private-key=fixtures/id_rsa',
             wallet.id.to_s, 'NOPREFIX@dddd0000dddd0000', amount.to_zld, '-'
@@ -121,11 +121,11 @@ class TestPay < Zold::Test
   end
 
   def test_sends_from_root_wallet
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       source = home.create_wallet(Zold::Id::ROOT)
       target = home.create_wallet
       amount = Zold::Amount.new(zld: 14.95)
-      Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: test_log).run(
+      Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: fake_log).run(
         [
           'pay', '--private-key=fixtures/id_rsa',
           source.id.to_s, target.id.to_s, amount.to_zld, 'For the car'
@@ -136,7 +136,7 @@ class TestPay < Zold::Test
   end
 
   def test_sends_from_normal_wallet
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       source = home.create_wallet
       target = home.create_wallet
       amount = Zold::Amount.new(zld: 14.95)
@@ -146,7 +146,7 @@ class TestPay < Zold::Test
           'NOPREFIX', Zold::Id.new, '-'
         )
       )
-      Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: test_log).run(
+      Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: fake_log).run(
         [
           'pay', '--private-key=fixtures/id_rsa',
           source.id.to_s, target.id.to_s, amount.to_zld, 'here is the refund'
@@ -157,11 +157,11 @@ class TestPay < Zold::Test
   end
 
   def test_notifies_about_tax_status
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       source = home.create_wallet
       target = home.create_wallet
       amount = Zold::Amount.new(zld: 14.95)
-      accumulating_log = test_log.dup
+      accumulating_log = fake_log.dup
       class << accumulating_log
         attr_accessor :info_messages
 
@@ -182,7 +182,7 @@ class TestPay < Zold::Test
   end
 
   def test_pays_and_taxes
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       wallet = home.create_wallet
       fund = Zold::Amount.new(zld: 19.99)
       10.times do |i|
@@ -207,7 +207,7 @@ class TestPay < Zold::Test
       )
       before = wallet.balance
       target = home.create_wallet
-      Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: remotes, log: test_log).run(
+      Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: remotes, log: fake_log).run(
         [
           'pay', '--force', '--private-key=fixtures/id_rsa',
           '--ignore-score-weakness',

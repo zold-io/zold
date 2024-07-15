@@ -26,7 +26,7 @@ require_relative '../../lib/zold/node/trace'
 
 class TraceTest < Zold::Test
   def test_records_log_lines
-    trace = Zold::Trace.new(test_log, 2)
+    trace = Zold::Trace.new(fake_log, 2)
     trace.error('This should not be visible')
     trace.error('How are you, друг?')
     trace.error('Works?')

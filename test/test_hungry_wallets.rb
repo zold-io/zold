@@ -35,15 +35,15 @@ require_relative '../lib/zold/hungry_wallets'
 # License:: MIT
 class TestHungryWallets < Zold::Test
   def test_pulls_wallet
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       id = Zold::Id.new
       get = stub_request(:get, "http://localhost:4096/wallet/#{id}").to_return(status: 404)
       remotes = home.remotes
       remotes.add('localhost', 4096)
-      pool = Zold::ThreadPool.new('test', log: test_log)
+      pool = Zold::ThreadPool.new('test', log: fake_log)
       wallets = Zold::HungryWallets.new(
         home.wallets, remotes, File.join(home.dir, 'copies'),
-        pool, log: test_log
+        pool, log: fake_log
       )
       wallets.acq(id) { |w| assert(!w.exists?) }
       pool.join(2)
@@ -52,15 +52,15 @@ class TestHungryWallets < Zold::Test
   end
 
   def test_doesnt_pull_twice_if_not_found
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       id = Zold::Id.new
       get = stub_request(:get, "http://localhost:4096/wallet/#{id}").to_return(status: 404)
       remotes = home.remotes
       remotes.add('localhost', 4096)
-      pool = Zold::ThreadPool.new('test', log: test_log)
+      pool = Zold::ThreadPool.new('test', log: fake_log)
       wallets = Zold::HungryWallets.new(
         home.wallets, remotes, File.join(home.dir, 'copies'),
-        pool, log: test_log
+        pool, log: fake_log
       )
       3.times do
         wallets.acq(id) { |w| assert(!w.exists?) }
@@ -72,15 +72,15 @@ class TestHungryWallets < Zold::Test
   end
 
   def test_doesnt_pull_wallet_if_exists
-    FakeHome.new(log: test_log).run do |home|
-      pool = Zold::ThreadPool.new('test', log: test_log)
+    FakeHome.new(log: fake_log).run do |home|
+      pool = Zold::ThreadPool.new('test', log: fake_log)
       remotes = home.remotes
       remotes.add('localhost', 4096)
       wallet = home.create_wallet
       get = stub_request(:get, "http://localhost:4096/wallet/#{wallet.id}").to_return(status: 200)
       wallets = Zold::HungryWallets.new(
         home.wallets, remotes, File.join(home.dir, 'copies'),
-        pool, log: test_log
+        pool, log: fake_log
       )
       wallets.acq(wallet.id) { |w| assert(w.exists?) }
       pool.join(2)

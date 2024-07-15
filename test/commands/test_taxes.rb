@@ -38,7 +38,7 @@ require_relative '../../lib/zold/commands/taxes'
 # License:: MIT
 class TestTaxes < Zold::Test
   def test_pays_taxes
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       wallets = home.wallets
       wallet = home.create_wallet
       fund = Zold::Amount.new(zld: 19.99)
@@ -65,7 +65,7 @@ class TestTaxes < Zold::Test
       before = wallet.balance
       tax = Zold::Tax.new(wallet, ignore_score_weakness: true)
       debt = tax.debt
-      Zold::Taxes.new(wallets: wallets, remotes: remotes, log: test_log).run(
+      Zold::Taxes.new(wallets: wallets, remotes: remotes, log: fake_log).run(
         ['taxes', '--private-key=fixtures/id_rsa', '--ignore-score-weakness', 'pay', wallet.id.to_s]
       )
       wallet.flush

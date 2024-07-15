@@ -45,7 +45,7 @@ class FrontTest < Zold::Test
   def test_memory_leakage
     skip
     report = MemoryProfiler.report(top: 10) do
-      FakeNode.new(log: test_log).run(opts('--network=foo')) do |port|
+      FakeNode.new(log: fake_log).run(opts('--network=foo')) do |port|
         100.times do
           Zold::Http.new(uri: "http://localhost:#{port}/", network: 'foo').get
         end
@@ -55,7 +55,7 @@ class FrontTest < Zold::Test
   end
 
   def test_renders_front_json
-    FakeNode.new(log: test_log).run(opts('--network=foo')) do |port|
+    FakeNode.new(log: fake_log).run(opts('--network=foo')) do |port|
       res = Zold::Http.new(uri: "http://localhost:#{port}/", network: 'foo').get
       json = JSON.parse(res.body)
       assert_equal(Zold::VERSION, json['version'])
@@ -74,7 +74,7 @@ class FrontTest < Zold::Test
   end
 
   def test_renders_public_pages
-    FakeNode.new(log: test_log).run(opts) do |port|
+    FakeNode.new(log: fake_log).run(opts) do |port|
       {
         200 => [
           '/robots.txt',
@@ -117,7 +117,7 @@ class FrontTest < Zold::Test
   end
 
   def test_updates_list_of_remotes
-    FakeNode.new(log: test_log).run(['--no-metronome', '--ignore-score-weakness', '--no-cache']) do |port|
+    FakeNode.new(log: fake_log).run(['--no-metronome', '--ignore-score-weakness', '--no-cache']) do |port|
       (Zold::Remotes::MAX_NODES + 5).times do |i|
         score = Zold::Score.new(
           host: 'localhost', port: i + 1, invoice: 'NOPREFIX@ffffffffffffffff', strength: 1
@@ -138,7 +138,7 @@ class FrontTest < Zold::Test
   end
 
   def test_increments_score
-    FakeNode.new(log: test_log).run(opts('--threads=1')) do |port|
+    FakeNode.new(log: fake_log).run(opts('--threads=1')) do |port|
       3.times do |i|
         assert_equal_wait(true, max: 60) do
           response = Zold::Http.new(uri: "http://localhost:#{port}/").get
@@ -159,8 +159,8 @@ class FrontTest < Zold::Test
   ].each do |p|
     method = "test_wallet_page_#{p.gsub(/[^a-z]/, '_')}"
     define_method(method) do
-      FakeHome.new(log: test_log).run do |home|
-        FakeNode.new(log: test_log).run(opts) do |port|
+      FakeHome.new(log: fake_log).run do |home|
+        FakeNode.new(log: fake_log).run(opts) do |port|
           wallet = home.create_wallet(txns: 2)
           base = "http://localhost:#{port}"
           response = Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").put(wallet.path)
@@ -173,8 +173,8 @@ class FrontTest < Zold::Test
   end
 
   def test_renders_wallets_page
-    FakeHome.new(log: test_log).run do |home|
-      FakeNode.new(log: test_log).run(opts) do |port|
+    FakeHome.new(log: fake_log).run do |home|
+      FakeNode.new(log: fake_log).run(opts) do |port|
         wallet = home.create_wallet(txns: 2)
         base = "http://localhost:#{port}"
         response = Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").put(wallet.path)
@@ -188,8 +188,8 @@ class FrontTest < Zold::Test
   end
 
   def test_fetch_in_multiple_threads
-    FakeNode.new(log: test_log).run(opts) do |port|
-      FakeHome.new(log: test_log).run do |home|
+    FakeNode.new(log: fake_log).run(opts) do |port|
+      FakeHome.new(log: fake_log).run do |home|
         wallet = home.create_wallet
         base = "http://localhost:#{port}"
         Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").put(wallet.path)
@@ -209,8 +209,8 @@ class FrontTest < Zold::Test
   end
 
   def test_pushes_twice
-    FakeNode.new(log: test_log).run(opts) do |port|
-      FakeHome.new(log: test_log).run do |home|
+    FakeNode.new(log: fake_log).run(opts) do |port|
+      FakeHome.new(log: fake_log).run do |home|
         wallet = home.create_wallet
         base = "http://localhost:#{port}"
         assert_equal(
@@ -227,9 +227,9 @@ class FrontTest < Zold::Test
   end
 
   def test_pushes_many_wallets
-    FakeNode.new(log: test_log).run(opts) do |port|
+    FakeNode.new(log: fake_log).run(opts) do |port|
       base = "http://localhost:#{port}"
-      FakeHome.new(log: test_log).run do |home|
+      FakeHome.new(log: fake_log).run do |home|
         Threads.new(5).assert do
           wallet = home.create_wallet
           Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").put(wallet.path)
@@ -273,7 +273,7 @@ class FrontTest < Zold::Test
   end
 
   def test_gzip
-    FakeNode.new(log: test_log).run(opts) do |port|
+    FakeNode.new(log: fake_log).run(opts) do |port|
       response = Zold::Http.new(uri: URI("http://localhost:#{port}/version")).get
       assert_equal(200, response.status, response)
       assert_operator(300, :>, response.body.length.to_i, 'Expected the content to be small')
@@ -282,7 +282,7 @@ class FrontTest < Zold::Test
 
   def test_performance
     times = Queue.new
-    FakeNode.new(log: test_log).run(opts('--threads=4', '--strength=6')) do |port|
+    FakeNode.new(log: fake_log).run(opts('--threads=4', '--strength=6')) do |port|
       Threads.new(10).assert(100) do
         start = Time.now
         Zold::Http.new(uri: URI("http://localhost:#{port}/")).get
@@ -291,7 +291,7 @@ class FrontTest < Zold::Test
     end
     all = []
     all << times.pop(true) until times.empty?
-    test_log.info("Average response time is #{all.inject(&:+) / all.count}")
+    fake_log.info("Average response time is #{all.inject(&:+) / all.count}")
   end
 
   # The score exposed via the HTTP header must be reduced to the value of 16.
@@ -299,7 +299,7 @@ class FrontTest < Zold::Test
   # HTTP request. This value is enough to identify a valueable node, and filter
   # out those that are too weak.
   def test_score_is_reduced
-    FakeNode.new(log: test_log).run(opts('--threads=1', '--strength=1', '--farmer=plain')) do |port|
+    FakeNode.new(log: fake_log).run(opts('--threads=1', '--strength=1', '--farmer=plain')) do |port|
       scores = []
       50.times do
         res = Zold::Http.new(uri: URI("http://localhost:#{port}/")).get
@@ -311,7 +311,7 @@ class FrontTest < Zold::Test
   end
 
   def test_headers_are_being_set_correctly
-    FakeNode.new(log: test_log).run(opts('--expose-version=9.9.9')) do |port|
+    FakeNode.new(log: fake_log).run(opts('--expose-version=9.9.9')) do |port|
       response = Zold::Http.new(uri: URI("http://localhost:#{port}/")).get
       assert_equal('no-cache', response.headers['Cache-Control'])
       assert_equal('close', response.headers['Connection'])
@@ -325,7 +325,7 @@ class FrontTest < Zold::Test
 
   def test_alias_parameter
     name = SecureRandom.hex(4)
-    FakeNode.new(log: test_log).run(opts("--alias=#{name}")) do |port|
+    FakeNode.new(log: fake_log).run(opts("--alias=#{name}")) do |port|
       uri = URI("http://localhost:#{port}/")
       response = Zold::Http.new(uri: uri).get
       assert_match(
@@ -337,7 +337,7 @@ class FrontTest < Zold::Test
   end
 
   def test_default_alias_parameter
-    FakeNode.new(log: test_log).run(opts) do |port|
+    FakeNode.new(log: fake_log).run(opts) do |port|
       uri = URI("http://localhost:#{port}/")
       response = Zold::Http.new(uri: uri).get
       assert_match(
@@ -350,7 +350,7 @@ class FrontTest < Zold::Test
 
   def test_invalid_alias
     exception = assert_raises RuntimeError do
-      FakeNode.new(log: test_log).run(opts('--alias=invalid-alias')) do |port|
+      FakeNode.new(log: fake_log).run(opts('--alias=invalid-alias')) do |port|
         uri = URI("http://localhost:#{port}/")
         Zold::Http.new(uri: uri).get
       end
@@ -360,8 +360,8 @@ class FrontTest < Zold::Test
 
   def test_push_fetch_in_multiple_threads
     key = Zold::Key.new(text: File.read('fixtures/id_rsa'))
-    FakeNode.new(log: test_log).run(opts) do |port|
-      FakeHome.new(log: test_log).run do |home|
+    FakeNode.new(log: fake_log).run(opts) do |port|
+      FakeHome.new(log: fake_log).run do |home|
         wallet = home.create_wallet(Zold::Id::ROOT)
         base = "http://localhost:#{port}"
         Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").put(wallet.path)
@@ -380,7 +380,7 @@ class FrontTest < Zold::Test
   end
 
   def test_checksum_in_json
-    FakeNode.new(log: test_log).run(opts) do |port|
+    FakeNode.new(log: fake_log).run(opts) do |port|
       uri = URI("http://localhost:#{port}/")
       response = Zold::Http.new(uri: uri).get
       assert(

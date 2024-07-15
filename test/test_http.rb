@@ -76,7 +76,7 @@ class TestHttp < Zold::Test
     WebMock.allow_net_connect!
     RandomPort::Pool::SINGLETON.acquire do |port|
       thread = Thread.start do
-        Zold::VerboseThread.new(test_log).run do
+        Zold::VerboseThread.new(fake_log).run do
           server = TCPServer.new(port)
           server.accept
           sleep 400
@@ -95,7 +95,7 @@ class TestHttp < Zold::Test
     WebMock.allow_net_connect!
     RandomPort::Pool::SINGLETON.acquire do |port|
       thread = Thread.start do
-        Zold::VerboseThread.new(test_log).run do
+        Zold::VerboseThread.new(fake_log).run do
           server = TCPServer.new(port)
           client = server.accept
           client.puts("HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\n")
@@ -118,14 +118,14 @@ class TestHttp < Zold::Test
     RandomPort::Pool::SINGLETON.acquire do |port|
       latch = Concurrent::CountDownLatch.new(1)
       thread = Thread.start do
-        Zold::VerboseThread.new(test_log).run do
+        Zold::VerboseThread.new(fake_log).run do
           server = TCPServer.new('127.0.0.1', port)
           latch.count_down
           socket = server.accept
           loop do
             line = socket.gets
             break if line.eql?("\r\n")
-            test_log.info(line.inspect)
+            fake_log.info(line.inspect)
             body += line
           end
           socket.print("HTTP/1.1 200 OK\r\n")
@@ -163,7 +163,7 @@ class TestHttp < Zold::Test
     RandomPort::Pool::SINGLETON.acquire do |port|
       latch = Concurrent::CountDownLatch.new(1)
       thread = Thread.start do
-        Zold::VerboseThread.new(test_log).run do
+        Zold::VerboseThread.new(fake_log).run do
           server = TCPServer.new(port)
           latch.count_down
           socket = server.accept
@@ -204,7 +204,7 @@ class TestHttp < Zold::Test
       content = "how are you\nmy friend" * 1000
       latch = Concurrent::CountDownLatch.new(1)
       thread = Thread.start do
-        Zold::VerboseThread.new(test_log).run do
+        Zold::VerboseThread.new(fake_log).run do
           server = TCPServer.new(port)
           latch.count_down
           socket = server.accept

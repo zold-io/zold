@@ -36,7 +36,7 @@ require_relative '../lib/zold/patch'
 # License:: MIT
 class TestPatch < Zold::Test
   def test_builds_patch
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       first = home.create_wallet
       second = home.create_wallet
       third = home.create_wallet
@@ -49,7 +49,7 @@ class TestPatch < Zold::Test
       File.write(third.path, File.read(first.path))
       t = third.sub(Zold::Amount.new(zld: 10.0), "NOPREFIX@#{Zold::Id.new}", key)
       third.add(t.inverse(Zold::Id.new))
-      patch = Zold::Patch.new(home.wallets, log: test_log)
+      patch = Zold::Patch.new(home.wallets, log: fake_log)
       patch.join(first) { false }
       patch.join(second) { false }
       patch.join(third) { false }
@@ -59,12 +59,12 @@ class TestPatch < Zold::Test
   end
 
   def test_rejects_fake_positives
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       first = home.create_wallet
       second = home.create_wallet
       File.write(second.path, File.read(first.path))
       second.add(Zold::Txn.new(1, Time.now, Zold::Amount.new(zld: 11.0), 'NOPREFIX', Zold::Id.new, 'fake'))
-      patch = Zold::Patch.new(home.wallets, log: test_log)
+      patch = Zold::Patch.new(home.wallets, log: fake_log)
       patch.join(first) { false }
       patch.join(second) { false }
       assert_equal(false, patch.save(first.path, overwrite: true))
@@ -74,14 +74,14 @@ class TestPatch < Zold::Test
   end
 
   def test_accepts_negative_balance_in_root_wallet
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       first = home.create_wallet(Zold::Id::ROOT)
       second = home.create_wallet
       File.write(second.path, File.read(first.path))
       amount = Zold::Amount.new(zld: 333.0)
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       second.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
-      patch = Zold::Patch.new(home.wallets, log: test_log)
+      patch = Zold::Patch.new(home.wallets, log: fake_log)
       patch.join(first) { false }
       patch.join(second) { false }
       assert_equal(true, patch.save(first.path, overwrite: true))
@@ -91,7 +91,7 @@ class TestPatch < Zold::Test
   end
 
   def test_merges_similar_ids_but_different_signs
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       first = home.create_wallet(Zold::Id::ROOT)
       second = home.create_wallet
       File.write(second.path, File.read(first.path))
@@ -103,7 +103,7 @@ class TestPatch < Zold::Test
           Zold::Prefixes.new(first).create, Zold::Id.new, 'fake'
         )
       )
-      patch = Zold::Patch.new(home.wallets, log: test_log)
+      patch = Zold::Patch.new(home.wallets, log: fake_log)
       patch.join(first) { false }
       patch.join(second) { false }
       assert_equal(true, patch.save(first.path, overwrite: true))
@@ -113,7 +113,7 @@ class TestPatch < Zold::Test
   end
 
   def test_merges_fragmented_parts
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       first = home.create_wallet(Zold::Id::ROOT)
       second = home.create_wallet
       File.write(second.path, File.read(first.path))
@@ -137,7 +137,7 @@ class TestPatch < Zold::Test
           'NOPREFIX', Zold::Id.new, 'third payment'
         ).signed(key, first.id)
       )
-      patch = Zold::Patch.new(home.wallets, log: test_log)
+      patch = Zold::Patch.new(home.wallets, log: fake_log)
       patch.join(first) { false }
       patch.join(second) { false }
       assert_equal(true, patch.save(first.path, overwrite: true))
@@ -148,7 +148,7 @@ class TestPatch < Zold::Test
   end
 
   def test_protocols_new_txns
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       first = home.create_wallet(Zold::Id::ROOT)
       second = home.create_wallet
       File.write(second.path, File.read(first.path))
@@ -157,7 +157,7 @@ class TestPatch < Zold::Test
       target = Zold::Id.new
       second.sub(amount, "NOPREFIX@#{target}", key, 'some details')
       second.sub(amount * 2, "NOPREFIX@#{target}", key)
-      patch = Zold::Patch.new(home.wallets, log: test_log)
+      patch = Zold::Patch.new(home.wallets, log: fake_log)
       patch.legacy(first)
       Tempfile.open do |f|
         patch.join(second, ledger: f.path) { false }

@@ -38,7 +38,7 @@ class FarmersTest < Zold::Test
   def test_calculates_next_score
     before = Zold::Score.new(host: 'some-host', port: 9999, invoice: 'NOPREFIX4@ffffffffffffffff', strength: 3)
     TYPES.each do |farmer_class|
-      farmer = farmer_class.new(log: test_log)
+      farmer = farmer_class.new(log: fake_log)
       after = farmer.up(before)
       assert_equal(1, after.value)
       assert(!after.expired?)
@@ -49,7 +49,7 @@ class FarmersTest < Zold::Test
 
   def test_calculates_large_score
     TYPES.each do |type|
-      log = TestLogger.new(test_log)
+      log = TestLogger.new(fake_log)
       thread = Thread.start do
         farmer = type.new(log: log)
         farmer.up(Zold::Score.new(host: 'a', port: 1, invoice: 'NOPREFIX4@ffffffffffffffff', strength: 20))
@@ -62,9 +62,9 @@ class FarmersTest < Zold::Test
 
   def test_kills_farmer
     TYPES.each do |type|
-      farmer = type.new(log: test_log)
+      farmer = type.new(log: fake_log)
       thread = Thread.start do
-        Zold::VerboseThread.new(test_log).run do
+        Zold::VerboseThread.new(fake_log).run do
           farmer.up(Zold::Score.new(host: 'some-host', invoice: 'NOPREFIX4@ffffffffffffffff', strength: 32))
         end
       end

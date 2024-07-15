@@ -39,11 +39,11 @@ require_relative '../lib/zold/prefixes'
 # License:: MIT
 class TestTax < Zold::Test
   def test_print_fee
-    test_log.info("Fee in zents: #{Zold::Tax::FEE.to_i}")
+    fake_log.info("Fee in zents: #{Zold::Tax::FEE.to_i}")
   end
 
   def test_calculates_tax_for_one_year
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       wallet = home.create_wallet
       a = 10_000
       wallet.add(
@@ -60,7 +60,7 @@ class TestTax < Zold::Test
   end
 
   def test_calculates_debt
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       wallet = home.create_wallet
       (1..30).each do |i|
         wallet.add(
@@ -84,7 +84,7 @@ class TestTax < Zold::Test
   end
 
   def test_prints_tax_formula
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       wallet = home.create_wallet
       tax = Zold::Tax.new(wallet)
       assert(!tax.to_text.nil?)
@@ -92,7 +92,7 @@ class TestTax < Zold::Test
   end
 
   def test_takes_tax_payment_into_account
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       wallet = home.create_wallet
       amount = Zold::Amount.new(zents: 95_596_800)
       wallet.add(
@@ -112,7 +112,7 @@ class TestTax < Zold::Test
   end
 
   def test_filters_out_incoming_payments
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       wallet = home.create_wallet
       amount = Zold::Amount.new(zents: 95_596_800)
       prefix = Zold::Prefixes.new(wallet).create(8)
@@ -146,7 +146,7 @@ class TestTax < Zold::Test
   end
 
   def test_checks_existence_of_duplicates
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       wallet = home.create_wallet
       wallet.add(
         Zold::Txn.new(

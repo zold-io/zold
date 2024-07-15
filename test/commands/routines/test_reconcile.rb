@@ -33,7 +33,7 @@ require_relative '../../../lib/zold/commands/routines/reconcile'
 # License:: MIT
 class TestReconcile < Zold::Test
   def test_reconciles
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       remotes = home.remotes
       remotes.clean
       remotes.masters
@@ -43,7 +43,7 @@ class TestReconcile < Zold::Test
       stub_request(:get, "http://#{m[:host]}:#{m[:port]}/wallet/#{Zold::Id::ROOT}").to_return(status: 404)
       opts = { 'never-reboot' => true, 'routine-immediately' => true }
       routine = Zold::Routines::Reconcile.new(
-        opts, home.wallets, remotes, home.copies.root, 'some-fake-host:2096', log: test_log
+        opts, home.wallets, remotes, home.copies.root, 'some-fake-host:2096', log: fake_log
       )
       routine.exec
     end

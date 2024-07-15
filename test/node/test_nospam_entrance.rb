@@ -32,7 +32,7 @@ require_relative 'fake_entrance'
 # License:: MIT
 class TestNoSpamEntrance < Zold::Test
   def test_ignores_spam
-    Zold::NoSpamEntrance.new(RealEntrance.new, log: test_log).start do |e|
+    Zold::NoSpamEntrance.new(RealEntrance.new, log: fake_log).start do |e|
       id = Zold::Id.new
       content = 'hello'
       assert(!e.push(id, content).empty?)

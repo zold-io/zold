@@ -33,9 +33,9 @@ require_relative 'fake_entrance'
 # License:: MIT
 class TestNoDupEntrance < Zold::Test
   def test_ignores_dup
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       wallet = home.create_wallet
-      Zold::NoDupEntrance.new(RealEntrance.new, home.wallets, log: test_log).start do |e|
+      Zold::NoDupEntrance.new(RealEntrance.new, home.wallets, log: fake_log).start do |e|
         assert(e.push(wallet.id, File.read(wallet.path)).empty?)
       end
     end

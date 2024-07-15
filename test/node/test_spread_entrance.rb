@@ -36,15 +36,15 @@ require_relative 'fake_entrance'
 # License:: MIT
 class TestSpreadEntrance < Zold::Test
   def test_renders_json
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       wallet = home.create_wallet(Zold::Id.new)
       Zold::SpreadEntrance.new(
         Zold::Entrance.new(
           home.wallets,
           Zold::Pipeline.new(home.remotes, home.copies(wallet).root, 'x'),
-          log: test_log
+          log: fake_log
         ),
-        home.wallets, home.remotes, 'x', log: test_log
+        home.wallets, home.remotes, 'x', log: fake_log
       ).start do |e|
         assert_equal(0, e.to_json[:modified])
       end
@@ -52,12 +52,12 @@ class TestSpreadEntrance < Zold::Test
   end
 
   def test_ignores_duplicates
-    FakeHome.new(log: test_log).run do |home|
-      FakeNode.new(log: test_log).run(['--ignore-score-weakness']) do |port|
+    FakeHome.new(log: fake_log).run do |home|
+      FakeNode.new(log: fake_log).run(['--ignore-score-weakness']) do |port|
         wallet = home.create_wallet
         remotes = home.remotes
         remotes.add('localhost', port)
-        Zold::SpreadEntrance.new(FakeEntrance.new, home.wallets, remotes, 'x', log: test_log).start do |e|
+        Zold::SpreadEntrance.new(FakeEntrance.new, home.wallets, remotes, 'x', log: fake_log).start do |e|
           8.times { e.push(wallet.id, File.read(wallet.path)) }
           assert(e.to_json[:modified] < 2, "It's too big: #{e.to_json[:modified]}")
         end

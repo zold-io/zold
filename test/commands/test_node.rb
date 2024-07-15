@@ -40,13 +40,13 @@ require_relative '../node/fake_node'
 # License:: MIT
 class TestNode < Zold::Test
   def test_push_and_fetch
-    FakeHome.new(log: test_log).run do |home|
-      FakeNode.new(log: test_log).run do |port|
+    FakeHome.new(log: fake_log).run do |home|
+      FakeNode.new(log: fake_log).run do |port|
         wallets = home.wallets
         wallet = home.create_wallet
         remotes = home.remotes
         remotes.add('localhost', port)
-        Zold::Push.new(wallets: wallets, remotes: remotes, log: test_log).run(
+        Zold::Push.new(wallets: wallets, remotes: remotes, log: fake_log).run(
           ['push', '--ignore-score-weakness', '--tolerate-edges', '--tolerate-quorum=1']
         )
         copies = home.copies(wallet)
@@ -54,7 +54,7 @@ class TestNode < Zold::Test
           retries ||= 0
           Zold::Fetch.new(
             wallets: wallets, copies: copies.root,
-            remotes: remotes, log: test_log
+            remotes: remotes, log: fake_log
           ).run(['fetch', '--ignore-score-weakness', '--tolerate-edges', '--tolerate-quorum=1'])
         rescue StandardError => _e
           sleep 1

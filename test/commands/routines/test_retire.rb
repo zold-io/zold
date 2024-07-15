@@ -34,7 +34,7 @@ require_relative '../../../lib/zold/commands/routines/retire'
 class TestRetire < Zold::Test
   def test_retires
     opts = { 'never-reboot' => false, 'routine-immediately' => true }
-    routine = Zold::Routines::Retire.new(opts, log: test_log)
+    routine = Zold::Routines::Retire.new(opts, log: fake_log)
     routine.exec(10 * 24 * 60)
   end
 end

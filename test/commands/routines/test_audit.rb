@@ -32,9 +32,9 @@ require_relative '../../../lib/zold/commands/routines/audit'
 # License:: MIT
 class TestAudit < Zold::Test
   def test_audits
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       opts = { 'routine-immediately' => true }
-      routine = Zold::Routines::Audit.new(opts, home.wallets, log: test_log)
+      routine = Zold::Routines::Audit.new(opts, home.wallets, log: fake_log)
       routine.exec
     end
   end

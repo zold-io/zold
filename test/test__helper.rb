@@ -71,7 +71,7 @@ module Zold
             break
           end
         rescue StandardError => e
-          test_log.debug(e.message)
+          fake_log.debug(e.message)
         end
         sleep 1
         sec = Time.now - start
@@ -80,9 +80,9 @@ module Zold
       end
     end
 
-    def test_log
+    def fake_log
       require_relative '../lib/zold/log'
-      @test_log ||= ENV['TEST_QUIET_LOG'] ? Zold::Log::NULL : Zold::Log::VERBOSE
+      @fake_log ||= ENV['TEST_QUIET_LOG'] ? Zold::Log::NULL : Zold::Log::VERBOSE
     end
 
     class TestLogger

@@ -31,7 +31,7 @@ require_relative '../lib/zold/thread_pool'
 # License:: MIT
 class TestThreadPool < Zold::Test
   def test_closes_all_threads_right
-    pool = Zold::ThreadPool.new('test', log: test_log)
+    pool = Zold::ThreadPool.new('test', log: fake_log)
     idx = Concurrent::AtomicFixnum.new
     threads = 50
     threads.times do
@@ -44,7 +44,7 @@ class TestThreadPool < Zold::Test
   end
 
   def test_adds_and_stops
-    pool = Zold::ThreadPool.new('test', log: test_log)
+    pool = Zold::ThreadPool.new('test', log: fake_log)
     pool.add do
       sleep 60 * 60
     end
@@ -52,7 +52,7 @@ class TestThreadPool < Zold::Test
   end
 
   def test_stops_stuck_threads
-    pool = Zold::ThreadPool.new('test', log: test_log)
+    pool = Zold::ThreadPool.new('test', log: fake_log)
     pool.add do
       loop do
         # forever
@@ -62,12 +62,12 @@ class TestThreadPool < Zold::Test
   end
 
   def test_stops_empty_pool
-    pool = Zold::ThreadPool.new('test', log: test_log)
+    pool = Zold::ThreadPool.new('test', log: fake_log)
     pool.kill
   end
 
   def test_prints_to_json
-    pool = Zold::ThreadPool.new('test', log: test_log)
+    pool = Zold::ThreadPool.new('test', log: fake_log)
     pool.add do
       Thread.current.thread_variable_set(:foo, 1)
       loop do
@@ -83,7 +83,7 @@ class TestThreadPool < Zold::Test
   end
 
   def test_prints_to_text
-    pool = Zold::ThreadPool.new('test', log: test_log)
+    pool = Zold::ThreadPool.new('test', log: fake_log)
     assert(!pool.to_s.nil?)
   end
 end

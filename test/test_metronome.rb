@@ -30,7 +30,7 @@ require_relative '../lib/zold/metronome'
 # License:: MIT
 class TestMetronome < Zold::Test
   def test_start_and_stop
-    metronome = Zold::Metronome.new(test_log)
+    metronome = Zold::Metronome.new(fake_log)
     list = []
     metronome.add(FakeRoutine.new(list))
     metronome.start do
@@ -39,7 +39,7 @@ class TestMetronome < Zold::Test
   end
 
   def test_prints_to_text
-    metronome = Zold::Metronome.new(test_log)
+    metronome = Zold::Metronome.new(fake_log)
     metronome.add(FakeRoutine.new([]))
     metronome.start do |m|
       assert(!m.to_text.nil?)
@@ -47,14 +47,14 @@ class TestMetronome < Zold::Test
   end
 
   def test_prints_empty_to_text
-    metronome = Zold::Metronome.new(test_log)
+    metronome = Zold::Metronome.new(fake_log)
     metronome.start do |m|
       assert(!m.to_text.nil?)
     end
   end
 
   def test_continues_even_after_error
-    metronome = Zold::Metronome.new(test_log)
+    metronome = Zold::Metronome.new(fake_log)
     routine = BrokenRoutine.new
     metronome.add(routine)
     metronome.start do

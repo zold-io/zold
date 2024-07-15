@@ -31,33 +31,33 @@ require_relative '../../lib/zold/commands/remove'
 # License:: MIT
 class TestRemove < Zold::Test
   def test_removes_one_wallet
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       wallet = home.create_wallet
       assert_equal(1, home.wallets.all.count)
-      Zold::Remove.new(wallets: home.wallets, log: test_log).run(['remove', wallet.id.to_s])
+      Zold::Remove.new(wallets: home.wallets, log: fake_log).run(['remove', wallet.id.to_s])
       assert(home.wallets.all.empty?)
     end
   end
 
   def test_removes_wallets
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       home.create_wallet
       home.create_wallet
-      Zold::Remove.new(wallets: home.wallets, log: test_log).run(['remove'])
+      Zold::Remove.new(wallets: home.wallets, log: fake_log).run(['remove'])
       assert(home.wallets.all.empty?)
     end
   end
 
   def test_removes_no_wallets
-    FakeHome.new(log: test_log).run do |home|
-      Zold::Remove.new(wallets: home.wallets, log: test_log).run(['remove'])
+    FakeHome.new(log: fake_log).run do |home|
+      Zold::Remove.new(wallets: home.wallets, log: fake_log).run(['remove'])
       assert(home.wallets.all.empty?)
     end
   end
 
   def test_removes_absent_wallets
-    FakeHome.new(log: test_log).run do |home|
-      Zold::Remove.new(wallets: home.wallets, log: test_log).run(
+    FakeHome.new(log: fake_log).run do |home|
+      Zold::Remove.new(wallets: home.wallets, log: fake_log).run(
         ['remove', '7654321076543210', '--force']
       )
       assert(home.wallets.all.empty?)

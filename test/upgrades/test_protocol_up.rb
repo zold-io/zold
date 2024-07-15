@@ -31,9 +31,9 @@ require_relative '../fake_home'
 # License:: MIT
 class TestProtocolUp < Zold::Test
   def test_upgrades_protocol_in_wallet
-    FakeHome.new(log: test_log).run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       id = home.create_wallet.id
-      Zold::ProtocolUp.new(home.dir, test_log).exec
+      Zold::ProtocolUp.new(home.dir, fake_log).exec
       home.wallets.acq(id) do |wallet|
         assert_equal(Zold::PROTOCOL, wallet.protocol)
       end

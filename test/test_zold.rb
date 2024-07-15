@@ -37,7 +37,7 @@ class TestZold < Zold::Test
     method = "test_#{f.gsub(/\.sh$/, '').gsub(/[^a-z]/, '_')}"
     define_method(method) do
       start = Time.now
-      test_log.info("\n\n#{method} running (script at #{f})...")
+      fake_log.info("\n\n#{method} running (script at #{f})...")
       Dir.mktmpdir do |dir|
         FileUtils.cp('fixtures/id_rsa.pub', dir)
         FileUtils.cp('fixtures/id_rsa', dir)
@@ -50,7 +50,7 @@ class TestZold < Zold::Test
             stdin.close
             until stdout.eof?
               line = stdout.gets
-              test_log.info(line)
+              fake_log.info(line)
               out << line
             end
             code = thr.value.to_i
@@ -59,7 +59,7 @@ class TestZold < Zold::Test
         end
         sleep 1 # It's a workaround, I can't fix the bug (tests crash sporadically)
       end
-      test_log.info("\n\n#{f} done in #{Zold::Age.new(start)}")
+      fake_log.info("\n\n#{f} done in #{Zold::Age.new(start)}")
     end
   end
 

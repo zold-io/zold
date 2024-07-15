@@ -118,7 +118,7 @@ class TestRemotes < Zold::Test
       remotes.clean
       5.times { |i| remotes.add("0.0.0.#{i + 1}", 8080) }
       total = 0
-      remotes.iterate(test_log) do
+      remotes.iterate(fake_log) do
         sleep 0.25
         total += 1
       end
@@ -126,7 +126,7 @@ class TestRemotes < Zold::Test
     end
   end
 
-  def test_log_msg_of_iterates_when_fail
+  def fake_log_msg_of_iterates_when_fail
     Dir.mktmpdir do |dir|
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
@@ -138,7 +138,7 @@ class TestRemotes < Zold::Test
     end
   end
 
-  def test_log_msg_of_iterates_when_take_too_long
+  def fake_log_msg_of_iterates_when_take_too_long
     Dir.mktmpdir do |dir|
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
@@ -254,10 +254,10 @@ class TestRemotes < Zold::Test
         remotes.add('127.0.0.1', 8080 + t)
         remotes.error('127.0.0.1', 8080 + t)
         remotes.all
-        remotes.iterate(test_log) { remotes.all }
+        remotes.iterate(fake_log) { remotes.all }
         remotes.remove('127.0.0.1', 8080 + t)
       end
-      test_log.info("Total time: #{Zold::Age.new(start)}")
+      fake_log.info("Total time: #{Zold::Age.new(start)}")
     end
   end
 
@@ -298,7 +298,7 @@ class TestRemotes < Zold::Test
           'X-Zold-Error': 'hey you'
         }
       )
-      remotes.iterate(test_log) do |r|
+      remotes.iterate(fake_log) do |r|
         r.assert_code(200, r.http.get)
       end
     end
@@ -310,7 +310,7 @@ class TestRemotes < Zold::Test
       remotes.clean
       remotes.add('r5-example.org', 8080)
       stub_request(:get, 'http://r5-example.org:8080/').to_return(status: 200)
-      remotes.iterate(test_log) do |r|
+      remotes.iterate(fake_log) do |r|
         r.http.get
       end
       assert_requested(:get, 'http://r5-example.org:8080/', headers: { 'X-Zold-Network' => 'x13' })
