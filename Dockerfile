@@ -18,13 +18,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-FROM ruby:2.7
+FROM ruby:3.2
 
 RUN gem install zold
 EXPOSE 4096
 
 RUN echo "#!/bin/bash" > node.sh
-RUN echo "zold node --nohup \044\100" >> node.sh
+RUN echo "zold remote reset" >> node.sh
+RUN echo "zold node --nohup" >> node.sh
 RUN echo "tail -f zold.log" >> node.sh
 RUN chmod +x /node.sh
 
