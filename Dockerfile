@@ -22,11 +22,11 @@ FROM ruby:3.3
 
 LABEL "repository"="https://github.com/zold-io/zold"
 LABEL "maintainer"="Yegor Bugayenko"
-LABEL "version"="0.0.0"
+LABEL "version"="0.31.10"
 
 EXPOSE 4096
 
-RUN gem install zold:0.0.0
+RUN gem install zold:0.31.10
 
 RUN echo "#!/bin/bash" > node.sh
 RUN echo "zold remote reset" >> node.sh
