@@ -39,4 +39,4 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
       - run: bundle update
-      - run: bundle exec rake
+      - run: bundle exec rake --quiet
