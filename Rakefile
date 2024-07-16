@@ -74,7 +74,7 @@ desc 'Validate all XML/XSL/XSD/HTML files for formatting'
 Xcop::RakeTask.new :xcop do |task|
   task.license = 'LICENSE.txt'
   task.includes = ['**/*.xml', '**/*.xsl', '**/*.xsd', '**/*.html']
-  task.excludes = ['target/**/*', 'coverage/**/*', 'wp/**/*']
+  task.excludes = ['target/**/*', 'coverage/**/*', 'wp/**/*', '.yardoc/**/*', 'doc/**/*']
 end
 
 task :copyright do
