@@ -50,7 +50,7 @@ module Zold
   # The error, if connection fails
   class HttpError < HttpResponse
     def initialize(ex)
-      super(ex)
+      super
       @ex = ex
     end
 

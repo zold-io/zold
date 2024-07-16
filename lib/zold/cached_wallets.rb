@@ -42,7 +42,7 @@ module Zold
           @zache.clean
         end
       end
-      super(wallets)
+      super
     end
 
     def acq(id, exclusive: false)

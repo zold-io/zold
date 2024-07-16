@@ -58,7 +58,7 @@ module Zold
 
     configure do
       Haml::Options.defaults[:format] = :xhtml
-      set :views, (proc { File.expand_path(File.join(__dir__, '../../../views')) })
+      set :views, proc { File.expand_path(File.join(__dir__, '../../../views')) }
       Thread.current.name = 'sinatra'
       set :bind, '0.0.0.0'
       set :suppress_messages, true

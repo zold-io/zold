@@ -38,7 +38,7 @@ module Zold
       before = Thread.current.name || ''
       Thread.current.name = "#{before}:#{self.class.name.gsub(/^Zold::/, '')}"
       begin
-        super(args)
+        super
       ensure
         Thread.current.name = before
       end
