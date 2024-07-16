@@ -21,8 +21,8 @@
 docker:
   image: yegor256/rultor-image:1.23.1
 architect:
-- yegor256
-- davvd
+  - yegor256
+  - davvd
 assets:
   rubygems.yml: yegor256/home#assets/rubygems.yml
 install: |
