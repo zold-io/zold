@@ -30,7 +30,7 @@ gem 'minitest', '5.20.0', require: false
 gem 'minitest-fail-fast', '0.1.0', require: false
 gem 'minitest-hooks', '1.5.1', require: false
 gem 'minitest-reporters', '1.7.1', require: false
-gem 'rake', '13.1.0', require: false
+gem 'rake', '13.2.1', require: false
 gem 'random-port', '~>0', require: false
 gem 'rdoc', '6.6.0', require: false
 gem 'rspec-rails', '6.1.0', require: false
