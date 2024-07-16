@@ -27,7 +27,7 @@ require_relative '../fake_home'
 
 # Protocol up.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 class TestProtocolUp < Zold::Test
   def test_upgrades_protocol_in_wallet

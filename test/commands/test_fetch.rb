@@ -38,7 +38,7 @@ require_relative '../../lib/zold/commands/fetch'
 
 # FETCH test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 class TestFetch < Zold::Test
   def test_fetches_wallet

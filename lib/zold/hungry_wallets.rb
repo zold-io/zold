@@ -31,7 +31,7 @@ require_relative 'commands/fetch'
 # Wallets that PULL what's missing, in the background.
 #
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 module Zold
   # Wallets decorator that adds missing wallets to the queue to be pulled later.

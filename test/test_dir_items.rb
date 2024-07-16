@@ -30,7 +30,7 @@ require_relative '../lib/zold/dir_items'
 
 # DirItems test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 class TestDirItems < Zold::Test
   def test_intensive_write_in_threads

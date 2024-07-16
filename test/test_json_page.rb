@@ -26,7 +26,7 @@ require_relative '../lib/zold/json_page'
 
 # JsonPage test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 class TestJsonPage < Zold::Test
   def test_parses_json_page

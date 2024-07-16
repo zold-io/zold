@@ -24,7 +24,7 @@ require_relative 'txn'
 
 # Head of a wallet.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 module Zold
   # Head of the wallet.
@@ -53,7 +53,7 @@ module Zold
 
   # Cached head.
   # Author:: Yegor Bugayenko (yegor256@gmail.com)
-  # Copyright:: Copyright (c) 2018 Yegor Bugayenko
+  # Copyright:: Copyright (c) 2018-2024 Zerocracy
   # License:: MIT
   class CachedHead
     def initialize(head)

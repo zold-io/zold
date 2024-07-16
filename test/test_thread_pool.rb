@@ -27,7 +27,7 @@ require_relative '../lib/zold/thread_pool'
 
 # ThreadPool test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 class TestThreadPool < Zold::Test
   def test_closes_all_threads_right

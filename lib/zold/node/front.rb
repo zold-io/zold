@@ -47,7 +47,7 @@ require_relative 'soft_error'
 
 # The web front of the node.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 module Zold
   # Web front

@@ -35,7 +35,7 @@ require_relative '../lib/zold/prefixes'
 
 # Tax test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 class TestTax < Zold::Test
   def test_print_fee

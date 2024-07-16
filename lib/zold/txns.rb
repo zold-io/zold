@@ -24,7 +24,7 @@ require_relative 'txn'
 
 # Transactions in a wallet.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 module Zold
   # A collection of transactions
@@ -60,7 +60,7 @@ module Zold
 
   # Cached transactions.
   # Author:: Yegor Bugayenko (yegor256@gmail.com)
-  # Copyright:: Copyright (c) 2018 Yegor Bugayenko
+  # Copyright:: Copyright (c) 2018-2024 Zerocracy
   # License:: MIT
   class CachedTxns
     def initialize(txns)

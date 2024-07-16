@@ -29,7 +29,7 @@ require_relative '../age'
 
 # The entrance that ignores something we've seen already.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 module Zold
   # The no-spam entrance

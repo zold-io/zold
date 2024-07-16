@@ -30,7 +30,7 @@ require_relative '../lib/zold/prefixes'
 
 # Prefixes test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 class TestPrefixes < Zold::Test
   def test_creates_and_validates

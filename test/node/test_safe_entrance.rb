@@ -32,7 +32,7 @@ require_relative 'fake_entrance'
 
 # SafeEntrance test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 class TestSafeEntrance < Zold::Test
   def test_rejects_wallet_with_negative_balance

@@ -34,7 +34,7 @@ require_relative '../commands/push'
 
 # The pipeline that accepts new wallets and merges them.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 module Zold
   # The pipeline

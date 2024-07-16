@@ -27,7 +27,7 @@ require_relative '../lib/zold/hands'
 
 # Hands test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 class TestHands < Zold::Test
   def test_runs_in_many_threads

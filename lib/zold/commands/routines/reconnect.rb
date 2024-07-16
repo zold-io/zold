@@ -27,7 +27,7 @@ require_relative '../../node/farm'
 
 # Reconnect routine.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 class Zold::Routines::Reconnect
   def initialize(opts, remotes, farm = Zold::Farm::Empty.new, log: Log::NULL)

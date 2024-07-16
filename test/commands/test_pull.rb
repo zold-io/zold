@@ -30,7 +30,7 @@ require_relative '../../lib/zold/commands/pull'
 
 # PUSH test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 class TestPull < Zold::Test
   def test_pull_wallet

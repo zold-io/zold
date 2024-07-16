@@ -27,7 +27,7 @@ require_relative '../../lib/zold/commands/remove'
 
 # REMOVE test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 class TestRemove < Zold::Test
   def test_removes_one_wallet

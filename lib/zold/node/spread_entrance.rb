@@ -36,7 +36,7 @@ require_relative '../commands/clean'
 
 # The entrance that spreads what's been modified.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 module Zold
   # The entrance

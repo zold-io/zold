@@ -32,7 +32,7 @@ require_relative '../lib/zold/verbose_thread'
 
 # Remotes test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 class TestRemotes < Zold::Test
   def test_adds_remotes

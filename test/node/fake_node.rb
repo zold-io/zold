@@ -31,7 +31,7 @@ require_relative '../../lib/zold/node/front'
 
 # Fake node.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 class FakeNode
   def initialize(log: Zold::Log::NULL)

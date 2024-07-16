@@ -26,7 +26,7 @@ require_relative '../../size'
 
 # Audit and report as much as we can to the command line.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 class Zold::Routines::Audit
   def initialize(opts, wallets, log: Log::NULL)

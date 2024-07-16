@@ -34,7 +34,7 @@ require_relative '../../lib/zold/commands/pay'
 
 # ENTRANCE test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 class TestEntrance < Zold::Test
   def test_pushes_wallet

@@ -31,7 +31,7 @@ require_relative '../../lib/zold/commands/invoice'
 
 # INVOICE test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 class TestInvoice < Zold::Test
   def test_generates_invoice

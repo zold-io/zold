@@ -30,7 +30,7 @@ require_relative 'fake_entrance'
 
 # AsyncEntrance test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 class TestAsyncEntrance < Zold::Test
   def test_renders_json

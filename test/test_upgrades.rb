@@ -27,7 +27,7 @@ require_relative '../lib/zold/version_file'
 
 # Upgrade test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 class TestUpgrades < Zold::Test
   # @todo #327:30min Uncomment, when you're ready to work on upgrade manager's

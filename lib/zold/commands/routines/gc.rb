@@ -27,7 +27,7 @@ require_relative '../remove'
 # Gargage collecting. It goes through the list of all wallets and removes
 # those that are older than 10 days and don't have any transactions inside.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 class Zold::Routines::Gc
   def initialize(opts, wallets, log: Log::NULL)

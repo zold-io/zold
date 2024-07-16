@@ -33,7 +33,7 @@ require_relative '../commands/push'
 
 # The entrance thav validate the incoming wallet first.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 module Zold
   # The safe entrance

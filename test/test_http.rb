@@ -32,7 +32,7 @@ require_relative '../lib/zold/verbose_thread'
 
 # Http test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2024 Zerocracy
 # License:: MIT
 class TestHttp < Zold::Test
   def test_pings_broken_uri
