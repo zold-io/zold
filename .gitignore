@@ -9,3 +9,5 @@ rdoc/
 farm
 zold.log
 farm.lock
+.yardoc/
+doc/
