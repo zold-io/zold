@@ -25,12 +25,12 @@ architect:
   - davvd
 assets:
   rubygems.yml: yegor256/home#assets/rubygems.yml
+  docker-password: yegor256/home#assets/docker-password
 install: |
   pdd -f /dev/null -v
   sudo apt-get -y update
   sudo apt-get -y install libcurl4-openssl-dev
-  bundle install --no-color
-  rm -rf "$(pwd)/Gemfile.lock"
+  bundle update --no-color
 release:
   script: |-
     [[ "${tag}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || exit -1
@@ -42,6 +42,16 @@ release:
     gem build zold.gemspec
     chmod 0600 ../rubygems.yml
     gem push *.gem --config-file ../rubygems.yml
+
+    sed -i -e "s/0.0.0/${tag}/" Dockerfile
+    git add Dockerfile
+    git commit -m "version set to ${tag}"
+    repo=yegor256/zold
+    sudo docker build "$(pwd)" --tag "${repo}:${tag}"
+    sudo docker build "$(pwd)" --tag "${repo}:latest"
+    cat ../docker-password | sudo docker login --password-stdin -u yegor256
+    sudo docker push "${repo}:${tag}"
+    sudo docker push "${repo}:latest"
 merge:
   script: |-
     bundle exec rake --quiet
