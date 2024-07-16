@@ -23,7 +23,7 @@
 source 'https://rubygems.org'
 gemspec
 
-gem 'cucumber', '9.1.0', require: false
+gem 'cucumber', '9.2.0', require: false
 gem 'guard', '2.18.1', require: false
 gem 'guard-minitest', '2.4.6', require: false
 gem 'minitest', '5.24.1', require: false
