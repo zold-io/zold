@@ -33,7 +33,7 @@ gem 'minitest-reporters', '1.7.1', require: false
 gem 'rake', '13.2.1', require: false
 gem 'random-port', '~>0', require: false
 gem 'rspec-rails', '6.1.3', require: false
-gem 'rubocop', '1.65.0', require: false
+gem 'rubocop', '1.65.1', require: false
 gem 'rubocop-rspec', '3.0.3', require: false
 gem 'simplecov', '0.22.0', require: false
 gem 'webmock', '3.23.1', require: false
