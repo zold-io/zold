@@ -38,4 +38,4 @@ gem 'rubocop-rspec', '3.0.4', require: false
 gem 'simplecov', '0.22.0', require: false
 gem 'webmock', '3.23.1', require: false
 gem 'xcop', '>=0.6', require: false
-gem 'yard', '0.9.36', require: false
+gem 'yard', '0.9.37', require: false

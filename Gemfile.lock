@@ -308,7 +308,7 @@ GEM
       nokogiri (~> 1.10)
       rainbow (~> 3.0)
       slop (~> 4.4)
-    yard (0.9.36)
+    yard (0.9.37)
     zache (0.13.1)
     zeitwerk (2.6.17)
     zold-score (0.5.0)
@@ -333,7 +333,7 @@ DEPENDENCIES
   simplecov (= 0.22.0)
   webmock (= 3.23.1)
   xcop (>= 0.6)
-  yard (= 0.9.36)
+  yard (= 0.9.37)
   zold!
 
 BUNDLED WITH
