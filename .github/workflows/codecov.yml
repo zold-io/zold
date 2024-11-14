@@ -33,7 +33,7 @@ jobs:
           ruby-version: 3.2
       - run: bundle update
       - run: bundle exec rake --quiet
-      - uses: codecov/codecov-action@v4
+      - uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: coverage/.resultset.json
