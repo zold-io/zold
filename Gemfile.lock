@@ -151,7 +151,7 @@ GEM
       sinatra
       thin
     mini_mime (1.1.5)
-    minitest (5.25.1)
+    minitest (5.25.2)
     minitest-fail-fast (0.1.0)
       minitest (~> 5)
     minitest-hooks (1.5.2)
@@ -321,7 +321,7 @@ DEPENDENCIES
   cucumber (= 9.2.0)
   guard (= 2.19.0)
   guard-minitest (= 2.4.6)
-  minitest (= 5.25.1)
+  minitest (= 5.25.2)
   minitest-fail-fast (= 0.1.0)
   minitest-hooks (= 1.5.2)
   minitest-reporters (= 1.7.1)
