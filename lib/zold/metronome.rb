@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2018-2024 Zerocracy
+# Copyright (c) 2018-2025 Zerocracy
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the 'Software'), to deal
@@ -29,7 +29,7 @@ require_relative 'thread_pool'
 
 # Background routines.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018-2024 Zerocracy
+# Copyright:: Copyright (c) 2018-2025 Zerocracy
 # License:: MIT
 module Zold
   # Metronome

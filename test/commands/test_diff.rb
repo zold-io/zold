@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2018-2024 Zerocracy
+# Copyright (c) 2018-2025 Zerocracy
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the 'Software'), to deal
@@ -36,7 +36,7 @@ require_relative '../../lib/zold/commands/diff'
 
 # DIFF test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018-2024 Zerocracy
+# Copyright:: Copyright (c) 2018-2025 Zerocracy
 # License:: MIT
 class TestDiff < Zold::Test
   def test_diff_with_copies
