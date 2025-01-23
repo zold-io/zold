@@ -33,7 +33,7 @@ jobs:
   rake:
     strategy:
       matrix:
-        os: [ubuntu-22.04, macos-12]
+        os: [ubuntu-24.04, macos-15]
         ruby: [3.2]
     runs-on: ${{ matrix.os }}
     steps:
