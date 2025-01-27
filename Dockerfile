@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-FROM ruby:3.3
+FROM ruby:3.4
 
 LABEL "repository"="https://github.com/zold-io/zold"
 LABEL "maintainer"="Yegor Bugayenko"
