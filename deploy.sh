@@ -33,4 +33,3 @@ git add Gemfile.lock
 git add .gitignore
 git commit -m 'configs for heroku'
 git push heroku master -f
-

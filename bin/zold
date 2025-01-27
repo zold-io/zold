@@ -289,4 +289,3 @@ else
   log.debug("Failed in #{Zold::Age.new(start)}")
   exit(code)
 end
-

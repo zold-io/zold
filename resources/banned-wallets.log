@@ -11,20 +11,20 @@ Babel <3.9r> and hyphenation patterns for 83 language(s) loaded.
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
- ...                                              
-                                                  
+ ...
+
 l.1 0
      894a904d32c0ba3 (http://www.zold.io/ledger.html?wallet=0894a904d32c0ba3)
-? 
+?
 ! Emergency stop.
- ...                                              
-                                                  
+ ...
+
 l.1 0
      894a904d32c0ba3 (http://www.zold.io/ledger.html?wallet=0894a904d32c0ba3)
 You're in trouble here.  Try typing  <return>  to proceed.
 If that doesn't work, type  X <return>  to quit.
 
- 
+
 Here is how much of TeX's memory you used:
  8 strings out of 493014
  407 string characters out of 6133351

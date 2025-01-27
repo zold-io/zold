@@ -102,4 +102,3 @@ until zold fetch 0000000000000000 --ignore-score-weakness --tolerate-edges --tol
   fi
   sleep 2
 done
-
