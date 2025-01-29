@@ -315,6 +315,8 @@ GEM
 
 PLATFORMS
   arm64-darwin-22
+  arm64-darwin-23
+  arm64-darwin-24
   x86_64-linux
 
 DEPENDENCIES
@@ -337,4 +339,4 @@ DEPENDENCIES
   zold!
 
 BUNDLED WITH
-   2.5.6
+   2.5.16
