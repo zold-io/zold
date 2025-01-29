@@ -32,6 +32,7 @@ jobs:
         with:
           ruby-version: 3.3
           bundler-cache: true
+      - run: bundle config set --global path "$(pwd)/vendor/bundle"
       - run: bundle install
       - run: bundle exec rake --quiet
       - uses: codecov/codecov-action@v5

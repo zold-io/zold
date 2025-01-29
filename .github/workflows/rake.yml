@@ -42,5 +42,6 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
+      - run: bundle config set --global path "$(pwd)/vendor/bundle"
       - run: bundle install
       - run: bundle exec rake --quiet
