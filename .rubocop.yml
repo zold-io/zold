@@ -67,7 +67,7 @@ Layout/MultilineOperationIndentation:
   Enabled: false
 Naming/MethodParameterName:
   MinNameLength: 1
-required:
+require:
   - rubocop-rake
   - rubocop-minitest
   - rubocop-performance
