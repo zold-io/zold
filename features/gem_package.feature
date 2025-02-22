@@ -1,3 +1,7 @@
+# (The MIT License)
+# 
+# SPDX-FileCopyrightText: Copyright (c) 2018-2025 Zerocracy
+# SPDX-License-Identifier: MIT
 Feature: Gem Package
   As a source code writer I want to be able to
   package the Gem into .gem file

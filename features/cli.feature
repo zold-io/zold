@@ -1,3 +1,7 @@
+# (The MIT License)
+# 
+# SPDX-FileCopyrightText: Copyright (c) 2018-2025 Zerocracy
+# SPDX-License-Identifier: MIT
 Feature: Command Line Processing
   As an payment originator I want to be able to use
   Zold as a command line tool
