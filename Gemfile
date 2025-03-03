@@ -6,7 +6,7 @@
 source 'https://rubygems.org'
 gemspec
 
-gem 'cucumber', '9.2.0', require: false
+gem 'cucumber', '9.2.1', require: false
 gem 'guard', '2.19.0', require: false
 gem 'guard-minitest', '2.4.6', require: false
 gem 'minitest', '5.25.2', require: false
