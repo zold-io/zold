@@ -1,9 +1,9 @@
-*.gem
-.DS_Store
 .bundle/
+.DS_Store
 .idea/
 .yardoc/
 .zoldata
+*.gem
 coverage/
 doc/
 farm
