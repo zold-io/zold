@@ -29,7 +29,7 @@ It borrows the proof-of-work principle from Bitcoin, \
 and suggests a different architecture for digital wallet maintenance."
   s.authors = ['Yegor Bugayenko']
   s.email = 'yegor256@gmail.com'
-  s.homepage = 'http://github.com/zold-io/zold'
+  s.homepage = 'https://github.com/zold-io/zold'
   s.post_install_message = "Thanks for installing Zold #{Zold::VERSION}!
   Study our White Paper: https://papers.zold.io/wp.pdf
   Read our blog posts: https://blog.zold.io
