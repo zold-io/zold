@@ -24,6 +24,7 @@ Zold::Hands.start
 
 require 'minitest/reporters'
 Minitest::Reporters.use! [Minitest::Reporters::SpecReporter.new]
+Minitest.load :minitest_reporter
 
 module Zold
   class Test < Minitest::Test
