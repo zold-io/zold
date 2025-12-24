@@ -97,7 +97,7 @@ module Zold
         next if t.amount * -1 > MAX_PAYMENT
         t
       end.compact.uniq(&:details)
-      scored.empty? ? Amount::ZERO : scored.sum(&:amount) * -1
+      scored.sum(Amount::ZERO, &:amount) * -1
     end
   end
 end

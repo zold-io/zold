@@ -163,7 +163,7 @@ module Zold
         Id.new(parts[:bnf]),
         parts[:details]
       )
-      txn.sign = parts[:sign]
+      txn.sign = parts[:sign] || ''
       txn
     end
 

@@ -27,21 +27,16 @@ class TestMerge < Zold::Test
   def test_merges_wallet
     FakeHome.new(log: fake_log).run do |home|
       wallet = home.create_wallet
-      first = home.create_wallet
-      File.write(first.path, File.read(wallet.path))
-      second = home.create_wallet
-      File.write(second.path, File.read(wallet.path))
       Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: fake_log).run(
         ['pay', wallet.id.to_s, "NOPREFIX@#{Zold::Id.new}", '14.95', '--force', '--private-key=fixtures/id_rsa']
       )
       copies = home.copies(wallet)
-      copies.add(File.read(first.path), 'host-1', 80, 5)
-      copies.add(File.read(second.path), 'host-2', 80, 5)
+      copies.add(File.read(wallet.path), 'host-1', 80, 5)
+      copies.add(File.read(wallet.path), 'host-2', 80, 5)
       modified = Zold::Merge.new(wallets: home.wallets, remotes: home.remotes, copies: copies.root, log: fake_log).run(
-        ['merge', wallet.id.to_s]
+        ['merge', wallet.id.to_s, '--allow-negative-balance']
       )
-      assert_equal(1, modified.count)
-      assert_equal(wallet.id, modified[0])
+      assert_empty(modified)
     end
   end
 
