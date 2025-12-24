@@ -128,7 +128,7 @@ class TestWallet < Zold::Test
       wallet.sub(Zold::Amount.new(zents: 2), "NOPREFIX@#{Zold::Id.new}", key, time: time)
       wallet.add(Zold::Txn.new(2, time, Zold::Amount.new(zents: 3), 'NOPREFIX', Zold::Id.new, '-'))
       wallet.sub(Zold::Amount.new(zents: 4), "NOPREFIX@#{Zold::Id.new}", key, time: time)
-      assert_equal('3, 1, -2, -4', wallet.txns.map(&:amount).map(&:to_i).join(', '))
+      assert_equal('3, 1, -2, -4', wallet.txns.map { |t| t.amount.to_i }.join(', '))
     end
   end
 

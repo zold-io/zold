@@ -25,9 +25,9 @@ class TestPropagate < Zold::Test
       Zold::Propagate.new(wallets: home.wallets, log: fake_log).run(
         ['merge', wallet.id.to_s]
       )
-      assert(amount, friend.balance)
-      assert(1, friend.txns.count)
-      assert('', friend.txns[0].sign)
+      assert_equal(amount, friend.balance)
+      assert_equal(1, friend.txns.count)
+      assert_equal('', friend.txns[0].sign)
     end
   end
 end

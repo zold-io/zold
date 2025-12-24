@@ -52,11 +52,11 @@ class TestAmount < Zold::Test
 
   def test_multiplies
     amount = Zold::Amount.new(zld: 1.2)
-    assert(Zold::Amount.new(zld: 2.4), amount * 2)
+    assert_equal(Zold::Amount.new(zld: 2.4), amount * 2)
   end
 
   def test_divides
     amount = Zold::Amount.new(zld: 8.2)
-    assert(Zold::Amount.new(zld: 4.1), amount / 2)
+    assert_equal(Zold::Amount.new(zld: 4.1), amount / 2)
   end
 end

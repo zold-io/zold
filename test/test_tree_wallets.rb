@@ -21,7 +21,7 @@ class TestTreeWallets < Zold::Test
       id = Zold::Id.new('abcd0123abcd0123')
       wallets.acq(id, exclusive: true) do |wallet|
         wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-        assert(wallet.path.end_with?('/a/b/c/d/abcd0123abcd0123.z'), wallet.path)
+        assert(wallet.path.end_with?('/a/b/c/d/abcd0123abcd0123.z'))
       end
       assert_equal(1, wallets.all.count)
       assert_equal(id, wallets.all[0])

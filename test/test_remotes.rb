@@ -23,7 +23,7 @@ class TestRemotes < Zold::Test
       FileUtils.touch(file)
       remotes = Zold::Remotes.new(file: file)
       remotes.add('127.0.0.1')
-      assert(1, remotes.all.count)
+      assert_equal(1, remotes.all.count)
     end
   end
 
@@ -60,7 +60,7 @@ class TestRemotes < Zold::Test
       ips = (0..50)
       ips.each { |i| remotes.add("0.0.0.#{i + 1}", 9999) }
       remotes.iterate(Loog::NULL) { raise 'Intended' }
-      ips.each { |i| assert(1, remotes.all[i][:errors]) }
+      ips.each { |i| assert_equal(1, remotes.all[i][:errors]) }
     end
   end
 
@@ -140,7 +140,7 @@ class TestRemotes < Zold::Test
       remotes.add('127.0.0.1')
       remotes.add('LOCALHOST', 433)
       remotes.remove('localhost', 433)
-      assert(1, remotes.all.count)
+      assert_equal(1, remotes.all.count)
     end
   end
 

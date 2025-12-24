@@ -40,8 +40,8 @@ class TestMerge < Zold::Test
       modified = Zold::Merge.new(wallets: home.wallets, remotes: home.remotes, copies: copies.root, log: fake_log).run(
         ['merge', wallet.id.to_s]
       )
-      assert(1, modified.count)
-      assert(wallet.id, modified[0])
+      assert_equal(1, modified.count)
+      assert_equal(wallet.id, modified[0])
     end
   end
 
@@ -87,6 +87,7 @@ class TestMerge < Zold::Test
     end
   end
 
+  BASE_CMD = %w[merge 0123456789abcdef].freeze
   base = 'fixtures/merge'
   Dir.new(base).select { |f| File.directory?(File.join(base, f)) && !f.start_with?('.') }.each do |f|
     method = "test_#{f}"
@@ -99,9 +100,8 @@ class TestMerge < Zold::Test
         wallets = Zold::Wallets.new(dir)
         copies = File.join(dir, 'copies')
         remotes = Zold::Remotes.new(file: File.join(dir, 'remotes'))
-        Zold::Merge.new(wallets: wallets, remotes: remotes, copies: copies, log: fake_log).run(
-          %w[merge 0123456789abcdef] + File.read(File.join(dir, 'opts')).split("\n")
-        )
+        cmd = BASE_CMD + File.read(File.join(dir, 'opts')).split("\n")
+        Zold::Merge.new(wallets: wallets, remotes: remotes, copies: copies, log: fake_log).run(cmd)
         Dir.chdir(dir) do
           require File.join(dir, 'assert.rb')
         end

@@ -366,10 +366,8 @@ class FrontTest < Zold::Test
     FakeNode.new(log: fake_log).run(opts) do |port|
       uri = URI("http://localhost:#{port}/")
       response = Zold::Http.new(uri: uri).get
-      assert(
-        Zold::JsonPage.new(response.body).to_hash.key?('checksum'),
-        response.body
-      )
+      hash = Zold::JsonPage.new(response.body).to_hash
+      assert_includes(hash.keys, 'checksum')
     end
   end
 
