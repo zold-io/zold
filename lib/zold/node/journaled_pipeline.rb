@@ -59,7 +59,7 @@ module Zold
       )
     end
 
-    # Returns a list of modifed wallets (as Zold::Id)
+    # Returns a list of modified wallets (as Zold::Id)
     def push(id, body, wallets, log, lifetime: 6)
       DirItems.new(@dir).fetch.each do |f|
         f = File.join(@dir, f)

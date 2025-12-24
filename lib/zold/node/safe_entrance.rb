@@ -36,7 +36,7 @@ module Zold
       @entrance.to_json
     end
 
-    # Returns a list of modifed wallets (as Zold::Id)
+    # Returns a list of modified wallets (as Zold::Id)
     def push(id, body)
       raise 'Id can\'t be nil' if id.nil?
       raise 'Id must be of type Id' unless id.is_a?(Id)

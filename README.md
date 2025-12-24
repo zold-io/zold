@@ -287,7 +287,7 @@ network. You can see the full list of nodes at `/remotes` URL of your node.
 
 * `best` is the list of scores known to the farm at the moment (with their ages in minutes).
 
-`entrance` is the place where all new wallets arive and get merged and pushed
+`entrance` is the place where all new wallets arrive and get merged and pushed
 further. The health of this point is critical to the entire node. Some
 numbers it includes must be watched carefully.
 

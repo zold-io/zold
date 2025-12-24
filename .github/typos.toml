@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: Copyright (c) 2018-2025 Zerocracy
+# SPDX-License-Identifier: MIT
+
+[default.extend-words]
+# Ruby variable name for thread in Open3.popen2e
+thr = "thr"
+
+[files]
+# Hex wallet IDs contain letter sequences that look like typos
+extend-exclude = ["resources/banned-wallets.*"]
