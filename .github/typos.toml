@@ -7,4 +7,4 @@ thr = "thr"
 
 [files]
 # Hex wallet IDs contain letter sequences that look like typos
-extend-exclude = ["resources/banned-wallets.*"]
+extend-exclude = ["resources/banned-wallets.*", "fixtures/*"]
