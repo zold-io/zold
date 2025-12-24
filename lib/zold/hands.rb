@@ -49,7 +49,7 @@ module Zold
     end
 
     # Run this code in many threads
-    def self.exec(threads, set = (0..threads - 1).to_a, &block)
+    def self.exec(threads, set = (0..(threads - 1)).to_a, &block)
       raise 'The thread pool is empty' if POOL.empty?
       raise "Number of threads #{threads} has to be positive" unless threads.positive?
       list = set.dup

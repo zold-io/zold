@@ -17,7 +17,7 @@ class FarmTest < Zold::Test
         assert_wait { !farm.best.empty? && !farm.best[0].value.zero? }
         count = 0
         100.times { count += farm.to_json[:best].length }
-        assert(count.positive?)
+        assert_predicate(count, :positive?)
       end
     end
   end
@@ -26,7 +26,7 @@ class FarmTest < Zold::Test
     Dir.mktmpdir do |dir|
       farm = Zold::Farm.new('NOPREFIX7@ffffffffffffffff', File.join(dir, 'f'), log: fake_log, strength: 1)
       farm.start('localhost', 80, threads: 2) do
-        assert(!farm.to_text.nil?)
+        refute_nil(farm.to_text)
       end
     end
   end
@@ -53,11 +53,11 @@ class FarmTest < Zold::Test
       farm.start('localhost', 80, threads: 4) do
         assert_wait { !farm.best.empty? && !farm.best[0].value.zero? }
         cycles = 100
-        speed = (0..cycles - 1).map do
+        speed = (0..(cycles - 1)).sum do
           start = Time.now
           farm.best
           Time.now - start
-        end.inject(&:+) / cycles
+        end / cycles
         fake_log.info("Average speed is #{(speed * 1000).round(2)}ms in #{cycles} cycles")
       end
     end
@@ -69,8 +69,8 @@ class FarmTest < Zold::Test
       farm.start('localhost', 80, threads: 1) do
         assert_wait { !farm.best.empty? && farm.best[0].value >= 3 }
         score = farm.best[0]
-        assert(!score.expired?)
-        assert(score.value >= 3)
+        refute_predicate(score, :expired?)
+        assert_operator(score.value, :>=, 3)
       end
     end
   end
@@ -80,7 +80,7 @@ class FarmTest < Zold::Test
       farm = Zold::Farm.new('NOPREFIX2@cccccccccccccccc', File.join(dir, 'f'), log: fake_log, strength: 1)
       farm.start('example.com', 8080, threads: 0) do
         score = farm.best[0]
-        assert(!score.expired?)
+        refute_predicate(score, :expired?)
         assert_equal(0, score.value)
         assert_equal('example.com', score.host)
         assert_equal(8080, score.port)
@@ -94,10 +94,10 @@ class FarmTest < Zold::Test
       farm = Zold::Farm.new('NOPREFIX3@cccccccccccccccc', cache, log: fake_log, strength: 1)
       farm.start('example.com', 8080, threads: 0) do
         score = farm.best[0]
-        assert(!score.nil?, 'The list of best scores can\'t be empty!')
-        assert(File.exist?(cache), 'The cache file has to be created!')
+        refute_nil(score, 'The list of best scores can\'t be empty!')
+        assert_path_exists(cache, 'The cache file has to be created!')
         assert_equal(0, score.value)
-        assert(!score.expired?)
+        refute_predicate(score, :expired?)
         assert_equal('example.com', score.host)
         assert_equal(8080, score.port)
       end
@@ -119,7 +119,7 @@ class FarmTest < Zold::Test
         100.times do
           sleep(0.1)
           b = farm.best[0]
-          assert(!b.nil?)
+          refute_nil(b)
           break if b.value.zero?
         end
         assert_equal(0, farm.best[0].value)

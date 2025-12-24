@@ -16,7 +16,7 @@ module Zold
 
     def exec
       Dir.new(@home).each do |path|
-        next unless path =~ /^[a-f0-9]{16}$/
+        next unless /^[a-f0-9]{16}$/.match?(path)
         File.rename(path, "#{path}.z")
         @log.info("Renamed #{path} to #{path}.z")
       end

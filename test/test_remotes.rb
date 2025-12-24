@@ -47,7 +47,7 @@ class TestRemotes < Zold::Test
       ].each do |t|
         File.write(file, t)
         remotes = Zold::Remotes.new(file: file)
-        assert(remotes.all.empty?, remotes.all)
+        assert_empty(remotes.all, remotes.all)
       end
     end
   end
@@ -150,7 +150,7 @@ class TestRemotes < Zold::Test
       remotes.clean
       remotes.masters
       remotes.masters
-      assert(!remotes.all.empty?)
+      refute_empty(remotes.all)
     end
   end
 
@@ -186,7 +186,7 @@ class TestRemotes < Zold::Test
       Threads.new(5).assert do
         remotes.error(host)
       end
-      assert_equal(0, remotes.all.reject { |r| r[:host] == host }.size)
+      assert_equal(0, remotes.all.count { |r| r[:host] != host })
     end
   end
 
@@ -248,11 +248,11 @@ class TestRemotes < Zold::Test
       remotes = Zold::Remotes.new(file: File.join(dir, 'uu-90.csv'))
       remotes.clean
       remotes.add('192.168.0.1', 8081)
-      assert_equal remotes.all.last[:errors], 0
+      assert_equal 0, remotes.all.last[:errors]
       remotes.error('192.168.0.1', 8081)
-      assert_equal remotes.all.last[:errors], 1
+      assert_equal 1, remotes.all.last[:errors]
       remotes.unerror('192.168.0.1', 8081)
-      assert_equal remotes.all.last[:errors], 0
+      assert_equal 0, remotes.all.last[:errors]
     end
   end
 
@@ -265,7 +265,7 @@ class TestRemotes < Zold::Test
 
   def test_reads_mtime_from_empty_file
     Dir.mktmpdir do |dir|
-      assert(!Zold::Remotes.new(file: File.join(dir, 'file/is/absent')).mtime.nil?)
+      refute_nil(Zold::Remotes.new(file: File.join(dir, 'file/is/absent')).mtime)
     end
   end
 

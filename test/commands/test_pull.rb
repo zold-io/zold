@@ -28,7 +28,7 @@ class TestPull < Zold::Test
         ['--ignore-this-stupid-option', 'pull', id.to_s, '--tolerate-edges', '--tolerate-quorum=1']
       )
       home.wallets.acq(Zold::Id.new(id)) do |wallet|
-        assert(wallet.exists?)
+        assert_predicate(wallet, :exists?)
       end
     end
   end

@@ -15,7 +15,7 @@ class TestAge < Zold::Test
     assert_equal('10m', Zold::Age.new(Time.now - (10 * 60)).to_s)
     assert_equal('5.5s', Zold::Age.new(Time.now - 5.5).to_s)
     assert_equal('?', Zold::Age.new(nil).to_s)
-    assert(!Zold::Age.new(Time.now.utc.iso8601).to_s.nil?)
+    refute_nil(Zold::Age.new(Time.now.utc.iso8601).to_s)
   end
 
   def test_prints_all_ages
@@ -31,7 +31,7 @@ class TestAge < Zold::Test
       15 * 30 * 24 * 60 * 60,
       8 * 12 * 30 * 24 * 60 * 60
     ].each do |s|
-      assert(!Zold::Age.new(Time.now - s).to_s.nil?)
+      refute_nil(Zold::Age.new(Time.now - s).to_s)
     end
   end
 end

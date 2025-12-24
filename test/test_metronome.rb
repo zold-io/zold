@@ -24,14 +24,14 @@ class TestMetronome < Zold::Test
     metronome = Zold::Metronome.new(fake_log)
     metronome.add(FakeRoutine.new([]))
     metronome.start do |m|
-      assert(!m.to_text.nil?)
+      refute_nil(m.to_text)
     end
   end
 
   def test_prints_empty_to_text
     metronome = Zold::Metronome.new(fake_log)
     metronome.start do |m|
-      assert(!m.to_text.nil?)
+      refute_nil(m.to_text)
     end
   end
 
@@ -41,7 +41,7 @@ class TestMetronome < Zold::Test
     metronome.add(routine)
     metronome.start do
       assert_wait { routine.count >= 2 }
-      assert(routine.count > 1)
+      assert_operator(routine.count, :>, 1)
     end
   end
 

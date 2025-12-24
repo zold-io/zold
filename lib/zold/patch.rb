@@ -55,7 +55,7 @@ module Zold
     #
     # If the "master" flag is set, this copy is coming from a master node
     # and we should allow it to overwrite negative transactions.
-    def join(wallet, ledger: '/dev/null', baseline: false, master: false)
+    def join(wallet, ledger: File::NULL, baseline: false, master: false)
       if @id.nil?
         @id = wallet.id
         @key = wallet.key

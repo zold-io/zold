@@ -17,7 +17,7 @@ class TestKey < Zold::Test
     key = Zold::Key.new(file: 'fixtures/id_rsa.pub')
     assert(key.to_pub.start_with?('MIICI'))
     assert(key.to_pub.end_with?('EAAQ=='))
-    assert(!key.to_pub.include?("\n"))
+    refute_includes(key.to_pub, "\n")
     assert(Zold::Key.new(text: key.to_pub).to_pub.start_with?('MIICI'))
   end
 
@@ -59,7 +59,7 @@ class TestKey < Zold::Test
     Dir.new('fixtures/keys').grep(/\.pub$/).each do |f|
       path = "fixtures/keys/#{f}"
       pub = Zold::Key.new(file: path)
-      assert(pub.to_pub.length > 100)
+      assert_operator(pub.to_pub.length, :>, 100)
     end
   end
 

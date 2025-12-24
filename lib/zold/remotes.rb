@@ -228,7 +228,7 @@ at #{response.headers['X-Zold-Path']}"
     def unerror(host, port = PORT)
       assert_host_info(host, port)
       if_present(host, port) do |remote|
-        remote[:errors] -= 1 if (remote[:errors]).positive?
+        remote[:errors] -= 1 if remote[:errors].positive?
       end
     end
 

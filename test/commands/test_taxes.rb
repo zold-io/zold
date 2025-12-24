@@ -51,7 +51,7 @@ class TestTaxes < Zold::Test
         ['taxes', '--private-key=fixtures/id_rsa', '--ignore-score-weakness', 'pay', wallet.id.to_s]
       )
       wallet.flush
-      assert(tax.paid.positive?, tax.paid)
+      assert_predicate(tax.paid, :positive?, tax.paid)
       assert_equal((before - debt).to_zld(6), wallet.balance.to_zld(6))
     end
   end

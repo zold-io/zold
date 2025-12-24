@@ -28,8 +28,8 @@ class TestHttp < Zold::Test
     stub_request(:get, 'http://exception/').to_return { raise 'Intentionally' }
     res = Zold::Http.new(uri: 'http://exception/').get
     assert_equal(599, res.status)
-    assert(res.body.include?('Intentionally'))
-    assert(!res.headers['nothing'])
+    assert_includes(res.body, 'Intentionally')
+    refute(res.headers['nothing'])
   end
 
   def test_pings_live_uri
@@ -123,8 +123,8 @@ class TestHttp < Zold::Test
         Zold::Http.new(uri: "http://127.0.0.1:#{port}/").put(f)
       end
       assert_equal(200, res.status, res)
-      assert(body.include?('Content-Length: 12'), body)
-      assert(body.include?('Content-Type: text/plain'))
+      assert_includes(body, 'Content-Length: 12', body)
+      assert_includes(body, 'Content-Type: text/plain')
       headers = body.split("\n").grep(/^[a-zA-Z-]+:.+$/)
       assert_equal(headers.count, headers.uniq.count)
       thread.kill
@@ -174,7 +174,7 @@ class TestHttp < Zold::Test
         Zold::Http.new(uri: "http://localhost:#{port}/").put(f)
       end
       assert_equal(200, res.status, res)
-      assert(res.body.include?(content), res)
+      assert_includes(res.body, content, res)
       thread.kill
       thread.join
     end
@@ -199,7 +199,7 @@ class TestHttp < Zold::Test
         Zold::Http.new(uri: "http://localhost:#{port}/").get_file(f)
         File.read(f)
       end
-      assert(body.include?(content), body)
+      assert_includes(body, content, body)
       thread.kill
       thread.join
     end

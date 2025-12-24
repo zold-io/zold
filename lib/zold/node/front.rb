@@ -217,11 +217,11 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
           0.0
         end,
         total_mem: total_mem,
-        threads: "#{Thread.list.select { |t| t.status == 'run' }.count}/#{Thread.list.count}",
+        threads: "#{Thread.list.count { |t| t.status == 'run' }}/#{Thread.list.count}",
         wallets: total_wallets,
         journal: DirItems.new(settings.journal_dir).fetch.count,
         remotes: all_remotes.count,
-        nscore: all_remotes.map { |r| r[:score] }.inject(&:+) || 0,
+        nscore: all_remotes.sum { |r| r[:score] } || 0,
         farm: settings.farm.to_json,
         entrance: settings.entrance.to_json,
         date: Time.now.utc.iso8601,

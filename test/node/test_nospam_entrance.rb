@@ -17,9 +17,9 @@ class TestNoSpamEntrance < Zold::Test
     Zold::NoSpamEntrance.new(RealEntrance.new, log: fake_log).start do |e|
       id = Zold::Id.new
       content = 'hello'
-      assert(!e.push(id, content).empty?)
-      assert(e.push(id, content).empty?)
-      assert(e.push(id, content).empty?)
+      refute_empty(e.push(id, content))
+      assert_empty(e.push(id, content))
+      assert_empty(e.push(id, content))
     end
   end
 

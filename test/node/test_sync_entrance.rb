@@ -16,7 +16,7 @@ class TestSyncEntrance < Zold::Test
   def test_renders_json
     FakeHome.new(log: fake_log).run do |home|
       Zold::SyncEntrance.new(FakeEntrance.new, File.join(home.dir, 'x'), log: fake_log).start do |e|
-        assert(!e.to_json.nil?)
+        refute_nil(e.to_json)
       end
     end
   end

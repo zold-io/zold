@@ -16,7 +16,7 @@ class TestCalculate < Zold::Test
     score = Zold::Calculate.new(log: fake_log).run(
       ['score', '--strength=2', '--max=8', '--invoice=NOSUFFIX@ffffffffffffffff']
     )
-    assert(score.valid?)
+    assert_predicate(score, :valid?)
     assert_equal(8, score.value)
   end
 end

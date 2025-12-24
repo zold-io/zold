@@ -133,9 +133,7 @@ module Zold
             path: File.join(@dir, "#{name}#{Copies::EXT}"),
             total: scores.count,
             master: scores.any? { |s| s[:master] },
-            score: scores.select { |s| s[:time] > Time.now - (24 * 60 * 60) }
-              .map { |s| s[:score] }
-              .inject(&:+) || 0
+            score: scores.select { |s| s[:time] > Time.now - (24 * 60 * 60) }.sum { |s| s[:score] } || 0
           }
         end.select { |c| File.exist?(c[:path]) }
         if masters_first

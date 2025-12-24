@@ -71,14 +71,14 @@ module Zold
     # Returns the network ID of the wallet.
     def network
       n = @head.fetch[0]
-      raise "Invalid network name '#{n}'" unless n =~ /^[a-z]{4,16}$/
+      raise "Invalid network name '#{n}'" unless /^[a-z]{4,16}$/.match?(n)
       n
     end
 
     # Returns the protocol ID of the wallet file.
     def protocol
       v = @head.fetch[1]
-      raise "Invalid protocol version name '#{v}'" unless v =~ /^[0-9]+$/
+      raise "Invalid protocol version name '#{v}'" unless /^[0-9]+$/.match?(v)
       v.to_i
     end
 
@@ -95,7 +95,7 @@ module Zold
     # Creates an empty wallet with the specified ID and public key.
     def init(id, pubkey, overwrite: false, network: 'test')
       raise "File '#{path}' already exists" if File.exist?(path) && !overwrite
-      raise "Invalid network name '#{network}'" unless network =~ /^[a-z]{4,16}$/
+      raise "Invalid network name '#{network}'" unless /^[a-z]{4,16}$/.match?(network)
       FileUtils.mkdir_p(File.dirname(path))
       File.write(path, "#{network}\n#{PROTOCOL}\n#{id}\n#{pubkey.to_pub}\n\n")
       @txns.flush

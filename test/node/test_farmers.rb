@@ -23,7 +23,7 @@ class FarmersTest < Zold::Test
       farmer = farmer_class.new(log: fake_log)
       after = farmer.up(before)
       assert_equal(1, after.value)
-      assert(!after.expired?)
+      refute_predicate(after, :expired?)
       assert_equal('some-host', after.host)
       assert_equal(9999, after.port)
     end

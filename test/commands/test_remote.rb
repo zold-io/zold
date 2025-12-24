@@ -51,7 +51,7 @@ class TestRemote < Zold::Test
       )
       cmd = Zold::Remote.new(remotes: remotes, log: fake_log)
       cmd.run(%w[remote clean])
-      assert(remotes.all.empty?)
+      assert_empty(remotes.all)
       cmd.run(['remote', 'add', zero.host, zero.port.to_s, '--skip-ping'])
       cmd.run(%w[remote add localhost 2 --skip-ping])
       assert_equal(2, remotes.all.count)
@@ -84,14 +84,14 @@ class TestRemote < Zold::Test
       cmd.run(%w[remote clean])
       cmd.run(['remote', 'add', zero.host, zero.port.to_s, '--skip-ping'])
       cmd.run(['remote', 'update', '--ignore-score-weakness', '--skip-ping', '--reboot'])
-      assert(log.msgs.to_s.include?(', reboot!'))
+      assert_includes(log.msgs.to_s, ', reboot!')
       log.msgs = []
       stub_request(:get, 'https://rubygems.org/api/v1/versions/zold/latest.json').to_return(
         status: 200,
         body: "{\"version\": \"#{Zold::VERSION}\"}"
       )
       cmd.run(['remote', 'update', '--ignore-score-weakness', '--skip-ping', '--reboot'])
-      assert(!log.msgs.to_s.include?(', reboot!'))
+      refute_includes(log.msgs.to_s, ', reboot!')
     end
   end
 
@@ -148,7 +148,7 @@ class TestRemote < Zold::Test
       stub_request(:get, 'http://localhost:8883/remotes').to_return(status: 404)
       cmd = Zold::Remote.new(remotes: remotes, log: fake_log)
       cmd.run(%w[remote clean])
-      assert(remotes.all.empty?)
+      assert_empty(remotes.all)
       cmd.run(['remote', 'add', score.host, score.port.to_s, '--skip-ping'])
       cmd.run(['remote', 'update', '--ignore-score-weakness', '--skip-ping'])
       assert_equal(2, remotes.all.count)
@@ -210,7 +210,7 @@ class TestRemote < Zold::Test
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.txt'))
       cmd = Zold::Remote.new(remotes: remotes, log: fake_log)
       cmd.run(%w[remote masters])
-      assert(!remotes.all.empty?)
+      refute_empty(remotes.all)
     end
   end
 
@@ -220,7 +220,7 @@ class TestRemote < Zold::Test
       cmd = Zold::Remote.new(remotes: remotes, log: fake_log)
       cmd.run(%w[remote masters])
       cmd.run(%w[remote select --max-nodes=0])
-      assert(!remotes.all.empty?)
+      refute_empty(remotes.all)
     end
   end
 

@@ -22,7 +22,7 @@ class TestClean < Zold::Test
       copies.add('a1', 'host-1', 80, 1, time: Time.now - (26 * 60 * 60))
       copies.add('a2', 'host-2', 80, 2, time: Time.now - (26 * 60 * 60))
       Zold::Clean.new(wallets: home.wallets, copies: copies.root, log: fake_log).run(['clean', wallet.id.to_s])
-      assert(copies.all.empty?)
+      assert_empty(copies.all)
     end
   end
 
@@ -31,7 +31,7 @@ class TestClean < Zold::Test
       wallet = home.create_wallet
       copies = home.copies(wallet)
       Zold::Clean.new(wallets: home.wallets, copies: copies.root, log: fake_log).run(['clean'])
-      assert(copies.all.empty?)
+      assert_empty(copies.all)
     end
   end
 

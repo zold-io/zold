@@ -36,7 +36,7 @@ class TestCopies < Zold::Test
   def test_lists_empty_dir
     Dir.mktmpdir do |dir|
       copies = Zold::Copies.new(File.join(dir, 'xxx'), log: fake_log)
-      assert(copies.all.empty?, "#{copies.all.count} is not zero")
+      assert_empty(copies.all, "#{copies.all.count} is not zero")
     end
   end
 
@@ -47,8 +47,8 @@ class TestCopies < Zold::Test
       copies.add(content('z1'), host, 80, 5)
       copies.add(content('z1'), host, 80, 6)
       copies.add(content('z1'), host, 80, 7)
-      assert(copies.all.count == 1, "#{copies.all.count} is not equal to 1")
-      assert(copies.all[0][:score] == 7, "#{copies.all[0][:score]} is not 7")
+      assert_predicate(copies.all, :one?, "#{copies.all.count} is not equal to 1")
+      assert_equal(7, copies.all[0][:score], "#{copies.all[0][:score]} is not 7")
     end
   end
 
@@ -68,10 +68,10 @@ class TestCopies < Zold::Test
       copies = Zold::Copies.new(dir, log: fake_log)
       copies.add(content('h1'), 'zold.io', 4096, 10, time: Time.now - (25 * 60 * 60))
       copies.add(content('h1'), 'zold.io', 4097, 20, time: Time.now - (26 * 60 * 60))
-      assert(File.exist?(File.join(dir, "1#{Zold::Copies::EXT}")))
+      assert_path_exists(File.join(dir, "1#{Zold::Copies::EXT}"))
       copies.clean
-      assert(copies.all.empty?, "#{copies.all.count} is not empty")
-      assert(!File.exist?(File.join(dir, "1#{Zold::Copies::EXT}")))
+      assert_empty(copies.all, "#{copies.all.count} is not empty")
+      refute_path_exists(File.join(dir, "1#{Zold::Copies::EXT}"))
     end
   end
 
@@ -80,7 +80,7 @@ class TestCopies < Zold::Test
       copies = Zold::Copies.new(dir, log: fake_log)
       copies.add('broken wallet content', 'zold.io', 4096, 10, time: Time.now)
       copies.clean
-      assert(copies.all.empty?, "#{copies.all.count} is not empty")
+      assert_empty(copies.all, "#{copies.all.count} is not empty")
     end
   end
 

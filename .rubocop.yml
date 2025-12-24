@@ -18,6 +18,14 @@ Gemspec/RequireMFA:
   Enabled: false
 Lint/ToJSON:
   Enabled: false
+Minitest/UnspecifiedException:
+  Enabled: false
+Minitest/SkipWithoutReason:
+  Enabled: false
+Naming/PredicateMethod:
+  Enabled: false
+Minitest/MultipleAssertions:
+  Enabled: false
 Minitest/EmptyLineBeforeAssertionMethods:
   Enabled: false
 Layout/ArgumentAlignment:

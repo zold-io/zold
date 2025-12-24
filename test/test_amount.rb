@@ -13,8 +13,8 @@ require_relative '../lib/zold/amount'
 class TestAmount < Zold::Test
   def test_parses_zld
     amount = Zold::Amount.new(zld: 14.95)
-    assert(
-      amount.to_s.include?('14.95ZLD'),
+    assert_includes(
+      amount.to_s, '14.95ZLD',
       "#{amount} is not equal to '14.95ZLD'"
     )
   end
@@ -29,25 +29,24 @@ class TestAmount < Zold::Test
 
   def test_compares_with_zero
     amount = Zold::Amount.new(zld: 0.00001)
-    assert(!amount.zero?)
-    assert(amount.positive?)
-    assert(!amount.negative?)
-    assert(amount != Zold::Amount::ZERO)
+    refute_predicate(amount, :zero?)
+    assert_predicate(amount, :positive?)
+    refute_predicate(amount, :negative?)
+    refute_equal(amount, Zold::Amount::ZERO)
   end
 
   def test_parses_zents
     amount = Zold::Amount.new(zents: 900_000_000)
-    assert(
-      amount.to_s.include?('0.21ZLD'),
+    assert_includes(
+      amount.to_s, '0.21ZLD',
       "#{amount} is not equal to '0.21ZLD'"
     )
   end
 
   def test_compares_amounts
     amount = Zold::Amount.new(zents: 700_000_000)
-    assert(
-      amount > Zold::Amount::ZERO,
-      "#{amount} is not greater than zero"
+    assert_operator(
+      amount, :>, Zold::Amount::ZERO, "#{amount} is not greater than zero"
     )
   end
 

@@ -47,12 +47,12 @@ class TestZold < Zold::Test
 
   def test_help
     stdout = exec('--help')
-    assert(stdout.include?('Usage: zold'))
+    assert_includes(stdout, 'Usage: zold')
   end
 
   def test_show_version
     stdout = exec('--version')
-    assert(stdout.include?(Zold::VERSION))
+    assert_includes(stdout, Zold::VERSION)
   end
 
   def test_create_new_wallet
@@ -63,7 +63,7 @@ class TestZold < Zold::Test
         '--verbose --trace create --public-key=id_rsa.pub',
         dir
       )
-      assert(stdout.include?('created at'))
+      assert_includes(stdout, 'created at')
     end
   end
 
@@ -74,7 +74,7 @@ class TestZold < Zold::Test
     stdout = `cd #{dir} && #{bin} #{tail} 2>&1`
     unless $CHILD_STATUS.exitstatus.zero?
       puts stdout
-      assert_equal($CHILD_STATUS.exitstatus, 0)
+      assert_equal(0, $CHILD_STATUS.exitstatus)
     end
     stdout
   end

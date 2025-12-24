@@ -18,7 +18,7 @@ module Zold
 
     def exec
       Dir.new(@home).each do |path|
-        next unless path =~ /^[a-f0-9]{16}#{Wallet::EXT}$/
+        next unless /^[a-f0-9]{16}#{Wallet::EXT}$/o.match?(path)
         f = File.join(@home, path)
         wallet = Wallet.new(f)
         next if wallet.network == @network

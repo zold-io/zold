@@ -54,7 +54,7 @@ class TestMerge < Zold::Test
       modified = Zold::Merge.new(wallets: home.wallets, remotes: home.remotes, copies: copies.root, log: fake_log).run(
         ['merge', wallet.id.to_s]
       )
-      assert(modified.empty?)
+      assert_empty(modified)
     end
   end
 
@@ -68,7 +68,7 @@ class TestMerge < Zold::Test
       Zold::Merge.new(wallets: home.wallets, remotes: home.remotes, copies: copies.root, log: fake_log).run(
         ['merge', wallet.id.to_s]
       )
-      assert(!wallet.balance.zero?)
+      refute_predicate(wallet.balance, :zero?)
     end
   end
 

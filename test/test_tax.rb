@@ -69,7 +69,7 @@ class TestTax < Zold::Test
     FakeHome.new(log: fake_log).run do |home|
       wallet = home.create_wallet
       tax = Zold::Tax.new(wallet)
-      assert(!tax.to_text.nil?)
+      refute_nil(tax.to_text)
     end
   end
 
@@ -89,7 +89,7 @@ class TestTax < Zold::Test
       )
       tax = Zold::Tax.new(wallet, strength: 6)
       assert_equal(amount, tax.paid)
-      assert(tax.debt < Zold::Amount::ZERO, tax.debt)
+      assert_operator(tax.debt, :<, Zold::Amount::ZERO, tax.debt)
     end
   end
 
@@ -147,7 +147,7 @@ class TestTax < Zold::Test
       )
       tax.pay(Zold::Key.new(file: 'fixtures/id_rsa'), score)
       assert(tax.exists?(tax.details(score)))
-      assert(!tax.exists?('-'))
+      refute(tax.exists?('-'))
     end
   end
 end

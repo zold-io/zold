@@ -18,6 +18,6 @@ class TestGem < Zold::Test
 
   def test_last_version_live
     WebMock.allow_net_connect!
-    assert(!Zold::Gem.new.last_version.nil?)
+    refute_nil(Zold::Gem.new.last_version)
   end
 end

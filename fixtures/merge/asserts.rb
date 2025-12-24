@@ -8,6 +8,7 @@ require 'minitest'
 # Test only module
 module Assertions
   extend Minitest::Assertions
+
   class << self
     attr_accessor :assertions
   end

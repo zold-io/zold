@@ -44,14 +44,14 @@ class FrontTest < Zold::Test
       assert_equal(Zold::PROTOCOL, json['protocol'])
       assert_equal('foo', json['network'])
       assert_equal('zold-io/zold', json['repo'])
-      assert(json['pid'].positive?, json)
-      assert(json['cpus'].positive?, json)
-      assert(!json['journal'].negative?, json)
-      assert(json['memory'].positive?, json)
-      assert(!json['load'].negative?, json)
-      assert(json['wallets'].positive?, json)
-      assert(json['remotes'].zero?, json)
-      assert(json['nscore'].zero?, json)
+      assert_predicate(json['pid'], :positive?, json)
+      assert_predicate(json['cpus'], :positive?, json)
+      refute_predicate(json['journal'], :negative?, json)
+      assert_predicate(json['memory'], :positive?, json)
+      refute_predicate(json['load'], :negative?, json)
+      assert_predicate(json['wallets'], :positive?, json)
+      assert_predicate(json['remotes'], :zero?, json)
+      assert_predicate(json['nscore'], :zero?, json)
     end
   end
 
@@ -164,7 +164,7 @@ class FrontTest < Zold::Test
         assert_equal_wait(200) { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").get.status }
         response = Zold::Http.new(uri: "#{base}/wallets").get
         assert_equal(200, response.status, response.body)
-        assert(response.body.to_s.split("\n").include?(wallet.id.to_s), response.body)
+        assert_includes(response.body.to_s.split("\n"), wallet.id.to_s, response.body)
       end
     end
   end
@@ -185,7 +185,7 @@ class FrontTest < Zold::Test
             res.status
           end
         end
-        assert(threads.uniq.count > 1)
+        assert_operator(threads.uniq.count, :>, 1)
       end
     end
   end
@@ -237,17 +237,17 @@ class FrontTest < Zold::Test
       end
       if score.value >= 16
         assert_equal(
-          path, 'https://www.zold.io/images/logo-green.png',
+          'https://www.zold.io/images/logo-green.png', path,
           "Expected #{path} for score #{score.value}"
         )
       elsif score.value >= 4
         assert_equal(
-          path, 'https://www.zold.io/images/logo-orange.png',
+          'https://www.zold.io/images/logo-orange.png', path,
           "Expected #{path} for score #{score.value}"
         )
       else
         assert_equal(
-          path, 'https://www.zold.io/images/logo-red.png',
+          'https://www.zold.io/images/logo-red.png', path,
           "Expected #{path} for score #{score.value}"
         )
       end
@@ -273,7 +273,7 @@ class FrontTest < Zold::Test
     end
     all = []
     all << times.pop(true) until times.empty?
-    fake_log.info("Average response time is #{all.inject(&:+) / all.count}")
+    fake_log.info("Average response time is #{all.sum / all.count}")
   end
 
   # The score exposed via the HTTP header must be reduced to the value of 16.
@@ -288,7 +288,7 @@ class FrontTest < Zold::Test
         scores << Zold::Score.parse(res.headers[Zold::Http::SCORE_HEADER]).value
         sleep(0.1)
       end
-      assert(scores.uniq.sort.reverse[0] <= Zold::Front::MIN_SCORE)
+      assert_operator(scores.uniq.sort.reverse[0], :<=, Zold::Front::MIN_SCORE)
     end
   end
 
@@ -301,7 +301,7 @@ class FrontTest < Zold::Test
       assert_equal(app.settings.protocol.to_s, response.headers[Zold::Http::PROTOCOL_HEADER])
       assert_equal('*', response.headers['Access-Control-Allow-Origin'])
       assert(response.headers['X-Zold-Milliseconds'])
-      assert(!response.headers[Zold::Http::SCORE_HEADER].nil?)
+      refute_nil(response.headers[Zold::Http::SCORE_HEADER])
     end
   end
 
@@ -338,7 +338,7 @@ class FrontTest < Zold::Test
         Zold::Http.new(uri: uri).get
       end
     end
-    assert(exception.message.include?('should be a 4 to 16 char long'), exception.message)
+    assert_includes(exception.message, 'should be a 4 to 16 char long', exception.message)
   end
 
   def test_push_fetch_in_multiple_threads

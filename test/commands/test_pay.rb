@@ -158,7 +158,7 @@ class TestPay < Zold::Test
           source.id.to_s, target.id.to_s, amount.to_zld, 'For the car'
         ]
       )
-      assert_equal accumulating_log.info_messages.grep(/^The tax debt/).size, 1,
+      assert_equal 1, accumulating_log.info_messages.grep(/^The tax debt/).size,
         'No info_messages notified user of tax debt'
     end
   end
@@ -197,7 +197,7 @@ class TestPay < Zold::Test
         ]
       )
       wallet.flush
-      assert(before.to_zld(6) != wallet.balance.to_zld(6))
+      refute_equal(before.to_zld(6), wallet.balance.to_zld(6))
     end
   end
 end

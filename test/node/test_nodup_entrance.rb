@@ -18,7 +18,7 @@ class TestNoDupEntrance < Zold::Test
     FakeHome.new(log: fake_log).run do |home|
       wallet = home.create_wallet
       Zold::NoDupEntrance.new(RealEntrance.new, home.wallets, log: fake_log).start do |e|
-        assert(e.push(wallet.id, File.read(wallet.path)).empty?)
+        assert_empty(e.push(wallet.id, File.read(wallet.path)))
       end
     end
   end

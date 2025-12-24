@@ -12,7 +12,7 @@ class TraceTest < Zold::Test
     trace.error('This should not be visible')
     trace.error('How are you, друг?')
     trace.error('Works?')
-    assert(!trace.to_s.include?('visible'))
-    assert(trace.to_s.include?('друг'))
+    refute_includes(trace.to_s, 'visible')
+    assert_includes(trace.to_s, 'друг')
   end
 end

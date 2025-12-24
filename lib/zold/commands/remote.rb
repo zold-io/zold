@@ -286,7 +286,7 @@ Available options:"
         @log.info("There are #{total} known remotes \
 (#{@remotes.all.count { |r| r[:master] }} masters) \
 with the overall score of \
-#{@remotes.all.map { |r| r[:score] }.inject(&:+)}, after update in #{Age.new(st)}")
+#{@remotes.all.sum { |r| r[:score] }}, after update in #{Age.new(st)}")
       end
     end
 

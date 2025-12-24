@@ -52,7 +52,7 @@ class TestDirItems < Zold::Test
       found = Zold::DirItems.new(dir).fetch
       assert_equal(files.count, found.count)
       files.each do |f|
-        assert(found.include?(f), f)
+        assert_includes(found, f, f)
       end
     end
   end

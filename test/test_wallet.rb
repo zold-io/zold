@@ -23,7 +23,7 @@ class TestWallet < Zold::Test
   def test_reads_empty_wallet
     FakeHome.new(log: fake_log).run do |home|
       wallet = home.create_wallet
-      assert(wallet.txns.empty?)
+      assert_empty(wallet.txns)
       assert_equal(Zold::Amount::ZERO, wallet.balance)
     end
   end
@@ -31,7 +31,7 @@ class TestWallet < Zold::Test
   def test_generates_memo
     FakeHome.new(log: fake_log).run do |home|
       wallet = home.create_wallet
-      assert(!wallet.mnemo.nil?)
+      refute_nil(wallet.mnemo)
     end
   end
 
@@ -44,7 +44,7 @@ class TestWallet < Zold::Test
       wallet.txns
       wallet.sub(Zold::Amount.new(zld: 39.99), "NOPREFIX@#{Zold::Id.new}", key)
       time = Time.now - start
-      assert(time < 0.5, "Too slow: #{Zold::Age.new(start)} seconds")
+      assert_operator(time, :<, 0.5, "Too slow: #{Zold::Age.new(start)} seconds")
     end
   end
 
@@ -56,8 +56,8 @@ class TestWallet < Zold::Test
       wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
       wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
       wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
-      assert(
-        wallet.balance == amount * -3,
+      assert_equal(
+        wallet.balance, amount * -3,
         "#{wallet.balance} is not equal to #{amount * -3}"
       )
     end
@@ -77,7 +77,7 @@ class TestWallet < Zold::Test
       assert_raises do
         wallet.add(Zold::Txn.new(1, Time.now, amount * -1, 'NOPREFIX', id, '-'))
       end
-      assert(wallet.balance.zero?)
+      assert_predicate(wallet.balance, :zero?)
     end
   end
 
@@ -150,7 +150,7 @@ class TestWallet < Zold::Test
       key = Zold::Key.new(file: 'fixtures/id_rsa')
       txn = wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
       wallet.add(txn.inverse(Zold::Id.new))
-      assert(!Zold::Wallet.new(wallet.path).txns[1].sign.end_with?("\n"))
+      refute(Zold::Wallet.new(wallet.path).txns[1].sign.end_with?("\n"))
     end
   end
 
@@ -192,7 +192,7 @@ class TestWallet < Zold::Test
   def test_returns_modified_time
     FakeHome.new(log: fake_log).run do |home|
       wallet = home.create_wallet
-      assert(wallet.mtime > Time.now - (60 * 60))
+      assert_operator(wallet.mtime, :>, Time.now - (60 * 60))
     end
   end
 
@@ -242,8 +242,8 @@ class TestWallet < Zold::Test
       wallet.txns.each do |t|
         sum += t.amount unless t.amount.negative?
       end
-      assert(
-        sum == Zold::Amount.new(zents: 235_965_503_242),
+      assert_equal(
+        sum, Zold::Amount.new(zents: 235_965_503_242),
         "#{sum} (#{sum.to_i}) is not equal to #{Zold::Amount.new(zld: 54.94)}"
       )
     end
@@ -295,6 +295,6 @@ class TestWallet < Zold::Test
     diff = GetProcessMem.new.bytes.to_i - start
     GC.stress = false
     fake_log.debug("Memory diff is #{diff}")
-    assert(diff < 20_000_000)
+    assert_operator(diff, :<, 20_000_000)
   end
 end

@@ -22,7 +22,7 @@ require_relative '../commands/push'
 module Zold
   # The pipeline
   class Pipeline
-    def initialize(remotes, copies, address, ledger: '/dev/null', network: 'test')
+    def initialize(remotes, copies, address, ledger: File::NULL, network: 'test')
       @remotes = remotes
       @copies = copies
       @address = address

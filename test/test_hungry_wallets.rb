@@ -27,7 +27,7 @@ class TestHungryWallets < Zold::Test
         home.wallets, remotes, File.join(home.dir, 'copies'),
         pool, log: fake_log
       )
-      wallets.acq(id) { |w| assert(!w.exists?) }
+      wallets.acq(id) { |w| refute_predicate(w, :exists?) }
       pool.join(2)
       assert_requested(get, times: 1)
     end
@@ -45,7 +45,7 @@ class TestHungryWallets < Zold::Test
         pool, log: fake_log
       )
       3.times do
-        wallets.acq(id) { |w| assert(!w.exists?) }
+        wallets.acq(id) { |w| refute_predicate(w, :exists?) }
         sleep 0.2
       end
       pool.join(2)
@@ -64,7 +64,7 @@ class TestHungryWallets < Zold::Test
         home.wallets, remotes, File.join(home.dir, 'copies'),
         pool, log: fake_log
       )
-      wallets.acq(wallet.id) { |w| assert(w.exists?) }
+      wallets.acq(wallet.id) { |w| assert_predicate(w, :exists?) }
       pool.join(2)
       assert_requested(get, times: 0)
     end

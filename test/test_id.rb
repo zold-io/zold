@@ -15,7 +15,7 @@ class TestId < Zold::Test
   def test_generates_new_id
     50.times do
       id = Zold::Id.new
-      assert id.to_s.length == 16
+      assert_equal 16, id.to_s.length
     end
   end
 
@@ -23,31 +23,31 @@ class TestId < Zold::Test
     before = ''
     500.times do
       id = Zold::Id.new
-      assert id.to_s != before.to_s
+      refute_equal id.to_s, before.to_s
       before = id
     end
   end
 
   def test_list_of_banned_ids_is_not_empty
-    assert(!Zold::Id::BANNED.empty?)
+    refute_empty(Zold::Id::BANNED)
   end
 
   def test_checks_for_root
-    assert(Zold::Id::ROOT.root?)
+    assert_predicate(Zold::Id::ROOT, :root?)
   end
 
   def test_generates_id_only_once
     id = Zold::Id.new
     before = id.to_s
     5.times do
-      assert id.to_s == before
+      assert_equal id.to_s, before
     end
   end
 
   def test_parses_id
     hex = 'ff01889402fe0954'
     id = Zold::Id.new(hex)
-    assert(id.to_s == hex, "#{id} is not equal to #{hex}")
+    assert_equal(id.to_s, hex, "#{id} is not equal to #{hex}")
   end
 
   def test_compares_two_ids_by_text
@@ -56,6 +56,6 @@ class TestId < Zold::Test
   end
 
   def test_compares_two_ids
-    assert Zold::Id.new(Zold::Id::ROOT.to_s) == Zold::Id.new('0000000000000000')
+    assert_equal Zold::Id.new(Zold::Id::ROOT.to_s), Zold::Id.new('0000000000000000')
   end
 end

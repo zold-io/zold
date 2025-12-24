@@ -17,7 +17,7 @@ class TestRemove < Zold::Test
       wallet = home.create_wallet
       assert_equal(1, home.wallets.all.count)
       Zold::Remove.new(wallets: home.wallets, log: fake_log).run(['remove', wallet.id.to_s])
-      assert(home.wallets.all.empty?)
+      assert_empty(home.wallets.all)
     end
   end
 
@@ -26,14 +26,14 @@ class TestRemove < Zold::Test
       home.create_wallet
       home.create_wallet
       Zold::Remove.new(wallets: home.wallets, log: fake_log).run(['remove'])
-      assert(home.wallets.all.empty?)
+      assert_empty(home.wallets.all)
     end
   end
 
   def test_removes_no_wallets
     FakeHome.new(log: fake_log).run do |home|
       Zold::Remove.new(wallets: home.wallets, log: fake_log).run(['remove'])
-      assert(home.wallets.all.empty?)
+      assert_empty(home.wallets.all)
     end
   end
 
@@ -42,7 +42,7 @@ class TestRemove < Zold::Test
       Zold::Remove.new(wallets: home.wallets, log: fake_log).run(
         ['remove', '7654321076543210', '--force']
       )
-      assert(home.wallets.all.empty?)
+      assert_empty(home.wallets.all)
     end
   end
 end

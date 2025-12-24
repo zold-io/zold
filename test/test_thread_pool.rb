@@ -56,16 +56,16 @@ class TestThreadPool < Zold::Test
         # forever
       end
     end
-    assert(pool.to_json.is_a?(Array))
+    assert_kind_of(Array, pool.to_json)
     assert_equal('test', pool.to_json[0][:name])
     assert_equal('run', pool.to_json[0][:status])
-    assert_equal(true, pool.to_json[0][:alive])
+    assert(pool.to_json[0][:alive])
     assert_equal(1, pool.to_json[0][:vars]['foo'])
     pool.kill
   end
 
   def test_prints_to_text
     pool = Zold::ThreadPool.new('test', log: fake_log)
-    assert(!pool.to_s.nil?)
+    refute_nil(pool.to_s)
   end
 end

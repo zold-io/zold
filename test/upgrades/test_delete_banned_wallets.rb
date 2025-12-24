@@ -23,7 +23,7 @@ class TestDeleteBannedWallets < Zold::Test
         File.join(home.dir, "a/b/c/#{id}#{Zold::Wallet::EXT}")
       )
       Zold::DeleteBannedWallets.new(home.dir, fake_log).exec
-      assert(File.exist?(File.join(home.dir, "a/b/c/#{id}#{Zold::Wallet::EXT}-banned")))
+      assert_path_exists(File.join(home.dir, "a/b/c/#{id}#{Zold::Wallet::EXT}-banned"))
     end
   end
 end

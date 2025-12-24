@@ -18,7 +18,7 @@ module Zold
     def exec
       DirItems.new(@home).fetch.each do |path|
         name = File.basename(path)
-        next unless name =~ /^[a-f0-9]{16}#{Wallet::EXT}$/
+        next unless /^[a-f0-9]{16}#{Wallet::EXT}$/o.match?(name)
         id = Id.new(name[0..15])
         next unless Id::BANNED.include?(id.to_s)
         path = File.join(@home, path)

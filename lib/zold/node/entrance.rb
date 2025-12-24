@@ -32,7 +32,7 @@ module Zold
       {
         history: @history.join(', '),
         history_size: @history.count,
-        speed: @speed.empty? ? 0 : (@speed.inject(&:+) / @speed.count),
+        speed: @speed.empty? ? 0 : (@speed.sum / @speed.count),
         pipeline: @pipeline.to_json
       }
     end

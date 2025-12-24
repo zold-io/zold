@@ -106,7 +106,7 @@ Available options:"
       cps.each_with_index do |c, idx|
         wallet = Wallet.new(c[:path])
         baseline = idx.zero? && (c[:master] || opts['edge-baseline']) && !opts['no-baseline']
-        name = "#{c[:name]}/#{idx}/#{c[:score]}#{baseline ? '/baseline' : ''}"
+        name = "#{c[:name]}/#{idx}/#{c[:score]}#{'/baseline' if baseline}"
         merge_one(opts, patch, wallet, name, baseline: baseline, master: c[:master])
         score += c[:score]
       end
@@ -137,7 +137,7 @@ into #{@wallets.acq(id, &:mnemo)} in #{Age.new(start, limit: 0.1 + (cps.count * 
 
     def merge_one(opts, patch, wallet, name, baseline: false, master: false)
       start = Time.now
-      @log.debug("Adding copy ##{name}#{master ? ' (master)' : ''} to the patch #{wallet.mnemo}...")
+      @log.debug("Adding copy ##{name}#{' (master)' if master} to the patch #{wallet.mnemo}...")
       if opts['depth'].positive?
         patch.join(wallet, ledger: opts['ledger'], baseline: baseline, master: master) do |txn|
           trusted = File.read(opts['trusted']).split(',')

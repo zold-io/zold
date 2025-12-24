@@ -21,9 +21,9 @@ class TestCreate < Zold::Test
         ['create', '--public-key=fixtures/id_rsa.pub', '--skip-test']
       )
       wallets.acq(id) do |wallet|
-        assert(wallet.balance.zero?)
-        assert(
-          File.exist?(File.join(dir, "#{wallet.id}#{Zold::Wallet::EXT}")),
+        assert_predicate(wallet.balance, :zero?)
+        assert_path_exists(
+          File.join(dir, "#{wallet.id}#{Zold::Wallet::EXT}"),
           "Wallet file not found: #{wallet.id}#{Zold::Wallet::EXT}"
         )
       end

@@ -46,8 +46,8 @@ class TestEntrance < Zold::Test
       assert_equal(2, modified.count)
       assert_equal(Zold::Amount.new(zld: -19.99), source.balance)
       assert_equal(Zold::Amount.new(zld: 19.99), target.balance)
-      assert(modified.include?(sid))
-      assert(modified.include?(tid))
+      assert_includes(modified, sid)
+      assert_includes(modified, tid)
       assert_equal(1, File.read(ledger).split("\n").count)
     end
   end
@@ -57,8 +57,8 @@ class TestEntrance < Zold::Test
       wallet = home.create_wallet
       e = Zold::Entrance.new(home.wallets, Zold::Pipeline.new(home.remotes, home.copies.root, 'x'), log: fake_log)
       e.push(wallet.id, File.read(wallet.path))
-      assert(e.to_json[:history].include?(wallet.id.to_s))
-      assert(!e.to_json[:speed].negative?)
+      assert_includes(e.to_json[:history], wallet.id.to_s)
+      refute_predicate(e.to_json[:speed], :negative?)
     end
   end
 end

@@ -35,7 +35,7 @@ class TestPatch < Zold::Test
       patch.join(first) { false }
       patch.join(second) { false }
       patch.join(third) { false }
-      assert_equal(true, patch.save(first.path, overwrite: true, allow_negative_balance: true))
+      assert(patch.save(first.path, overwrite: true, allow_negative_balance: true))
       assert_equal(Zold::Amount.new(zld: -53.0), first.balance)
     end
   end
@@ -49,7 +49,7 @@ class TestPatch < Zold::Test
       patch = Zold::Patch.new(home.wallets, log: fake_log)
       patch.join(first) { false }
       patch.join(second) { false }
-      assert_equal(false, patch.save(first.path, overwrite: true))
+      refute(patch.save(first.path, overwrite: true))
       first.flush
       assert_equal(Zold::Amount::ZERO, first.balance)
     end
@@ -66,7 +66,7 @@ class TestPatch < Zold::Test
       patch = Zold::Patch.new(home.wallets, log: fake_log)
       patch.join(first) { false }
       patch.join(second) { false }
-      assert_equal(true, patch.save(first.path, overwrite: true))
+      assert(patch.save(first.path, overwrite: true))
       first.flush
       assert_equal(amount * -1, first.balance)
     end
@@ -88,7 +88,7 @@ class TestPatch < Zold::Test
       patch = Zold::Patch.new(home.wallets, log: fake_log)
       patch.join(first) { false }
       patch.join(second) { false }
-      assert_equal(true, patch.save(first.path, overwrite: true))
+      assert(patch.save(first.path, overwrite: true))
       first.flush
       assert_equal(Zold::Amount.new(zld: 2.0).to_s, first.balance.to_s)
     end
@@ -122,7 +122,7 @@ class TestPatch < Zold::Test
       patch = Zold::Patch.new(home.wallets, log: fake_log)
       patch.join(first) { false }
       patch.join(second) { false }
-      assert_equal(true, patch.save(first.path, overwrite: true))
+      assert(patch.save(first.path, overwrite: true))
       first.flush
       assert_equal(3, first.txns.count)
       assert_equal(Zold::Amount.new(zld: -6.0).to_s, first.balance.to_s)
@@ -146,9 +146,9 @@ class TestPatch < Zold::Test
         lines = File.read(f).split("\n")
         assert_equal(2, lines.count)
         parts = lines[0].split(';')
-        assert(!Zold::Txn.parse_time(parts[0]).nil?)
+        refute_nil(Zold::Txn.parse_time(parts[0]))
         assert_equal(1, parts[1].to_i)
-        assert(!Zold::Txn.parse_time(parts[2]).nil?)
+        refute_nil(Zold::Txn.parse_time(parts[2]))
         assert_equal(Zold::Id::ROOT.to_s, parts[3])
         assert_equal(target.to_s, parts[4])
         assert_equal(amount, Zold::Amount.new(zents: parts[5].to_i))
