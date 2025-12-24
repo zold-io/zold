@@ -5,7 +5,7 @@
 
 require 'shellwords'
 require_relative '../routines'
-require_relative '../../log'
+require 'loog'
 require_relative '../../id'
 require_relative '../../copies'
 require_relative '../pull'
@@ -15,7 +15,7 @@ require_relative '../pull'
 # Copyright:: Copyright (c) 2018-2025 Zerocracy
 # License:: MIT
 class Zold::Routines::Reconcile
-  def initialize(opts, wallets, remotes, copies, address, log: Log::NULL)
+  def initialize(opts, wallets, remotes, copies, address, log: Loog::NULL)
     @opts = opts
     @wallets = wallets
     @remotes = remotes

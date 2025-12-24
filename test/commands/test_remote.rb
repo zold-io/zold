@@ -11,7 +11,7 @@ require_relative '../../lib/zold/version'
 require_relative '../../lib/zold/wallets'
 require_relative '../../lib/zold/remotes'
 require_relative '../../lib/zold/key'
-require_relative '../../lib/zold/log'
+require 'loog'
 require_relative '../../lib/zold/commands/remote'
 
 # REMOTE test.

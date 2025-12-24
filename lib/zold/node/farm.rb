@@ -10,7 +10,7 @@ require 'futex'
 require 'concurrent'
 require 'json'
 require 'zold/score'
-require_relative '../log'
+require 'loog'
 require_relative '../thread_pool'
 require_relative '../age'
 require_relative '../endless'
@@ -41,7 +41,7 @@ module Zold
     # <tt>lifetime</tt> is the amount of seconds for a score to live in the farm, by default
     # it's the entire day, since the Score expires in 24 hours; can be decreased for the
     # purpose of unit testing.
-    def initialize(invoice, cache = File.join(Dir.pwd, 'farm'), log: Log::NULL,
+    def initialize(invoice, cache = File.join(Dir.pwd, 'farm'), log: Loog::NULL,
       farmer: Farmers::Plain.new, lifetime: 24 * 60 * 60, strength: Score::STRENGTH)
       @log = log
       @cache = File.expand_path(cache)

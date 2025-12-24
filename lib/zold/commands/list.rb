@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: MIT
 
 require_relative 'thread_badge'
-require_relative '../log'
+require 'loog'
 require_relative '../amount'
 require_relative '../wallet'
 require_relative '../size'
@@ -18,7 +18,7 @@ module Zold
   class List
     prepend ThreadBadge
 
-    def initialize(wallets:, copies:, log: Log::NULL)
+    def initialize(wallets:, copies:, log: Loog::NULL)
       @wallets = wallets
       @copies = copies
       @log = log

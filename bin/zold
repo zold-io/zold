@@ -23,7 +23,7 @@ require_relative '../lib/zold/tree_wallets'
 require_relative '../lib/zold/sync_wallets'
 require_relative '../lib/zold/cached_wallets'
 require_relative '../lib/zold/hungry_wallets'
-require_relative '../lib/zold/log'
+require 'loog'
 require_relative '../lib/zold/key'
 require_relative '../lib/zold/age'
 require_relative '../lib/zold/size'
@@ -38,7 +38,7 @@ Thread.current.name = 'main'
 Encoding.default_external = Encoding::UTF_8
 Encoding.default_internal = Encoding::UTF_8
 
-log = Zold::Log::REGULAR.dup
+log = Loog::REGULAR
 
 args = []
 unless ENV['RACK_ENV'] == 'test' || ARGV.find { |a| a == '--ignore-global-config' }
@@ -96,10 +96,6 @@ Available options:"
     "The name of the network we work in (default: #{Zold::Wallet::MAINET})",
     required: true,
     default: Zold::Wallet::MAINET
-  o.string '--pretty',
-    'Logging format, e.g. short, full, compact (default: short)',
-    required: true,
-    default: 'short'
   o.bool '-h', '--help', 'Show these instructions'
   o.bool '--trace', 'Show full stack trace in case of a problem'
   o.bool '--memory-dump', 'Dump memory snapshot afterwards, to the console', default: false
@@ -109,7 +105,7 @@ Available options:"
     Rainbow.enabled = false
   end
   o.on '--verbose', 'Enable extra logging information' do
-    log = Zold::Log::VERBOSE.dup
+    log = Loog::VERBOSE
   end
   o.on '-v', '--version', 'Show current version' do
     log.info(Zold::VERSION)
@@ -117,14 +113,6 @@ Available options:"
   end
 end
 
-case opts['pretty'].downcase.strip
-when 'short'
-  log.formatter = Zold::Log::SHORT
-when 'compact'
-  log.formatter = Zold::Log::COMPACT
-when 'full'
-  log.formatter = Zold::Log::FULL
-end
 
 log.debug("Gem location: #{File.dirname(File.dirname(__FILE__))}")
 

@@ -13,7 +13,7 @@ require 'zold/score'
 require_relative 'thread_badge'
 require_relative 'args'
 require_relative '../node/farm'
-require_relative '../log'
+require 'loog'
 require_relative '../age'
 require_relative '../json_page'
 require_relative '../http'
@@ -30,7 +30,7 @@ module Zold
   class Remote
     prepend ThreadBadge
 
-    def initialize(remotes:, farm: Farm::Empty.new, log: Log::NULL)
+    def initialize(remotes:, farm: Farm::Empty.new, log: Loog::NULL)
       @remotes = remotes
       @farm = farm
       @log = log

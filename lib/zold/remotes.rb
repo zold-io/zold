@@ -31,7 +31,7 @@ module Zold
 
     attr_reader :touched, :idx
 
-    def initialize(host:, port:, score:, idx:, master:, network: 'test', log: Log::NULL)
+    def initialize(host:, port:, score:, idx:, master:, network: 'test', log: Loog::NULL)
       @host = host
       @port = port
       @score = score

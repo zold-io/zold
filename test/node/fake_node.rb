@@ -7,7 +7,7 @@ require 'tmpdir'
 require 'webmock/minitest'
 require 'random-port'
 require_relative '../fake_home'
-require_relative '../../lib/zold/log'
+require 'loog'
 require_relative '../../lib/zold/http'
 require_relative '../../lib/zold/verbose_thread'
 require_relative '../../lib/zold/node/front'
@@ -17,7 +17,7 @@ require_relative '../../lib/zold/node/front'
 # Copyright:: Copyright (c) 2018-2025 Zerocracy
 # License:: MIT
 class FakeNode
-  def initialize(log: Zold::Log::NULL)
+  def initialize(log: Loog::NULL)
     @log = log
   end
 

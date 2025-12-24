@@ -14,7 +14,7 @@ require_relative 'verbose_thread'
 module Zold
   # Thread pool
   class ThreadPool
-    def initialize(title, log: Log::NULL)
+    def initialize(title, log: Loog::NULL)
       @title = title
       @log = log
       @threads = []

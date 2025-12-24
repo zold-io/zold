@@ -6,7 +6,7 @@
 require 'concurrent'
 require 'tempfile'
 require 'shellwords'
-require_relative '../log'
+require 'loog'
 require_relative '../remotes'
 require_relative '../copies'
 require_relative '../endless'
@@ -24,7 +24,7 @@ require_relative '../commands/clean'
 module Zold
   # The entrance
   class SpreadEntrance
-    def initialize(entrance, wallets, remotes, address, log: Log::NULL,
+    def initialize(entrance, wallets, remotes, address, log: Loog::NULL,
       ignore_score_weakeness: false, tolerate_edges: false)
       @entrance = entrance
       @wallets = wallets

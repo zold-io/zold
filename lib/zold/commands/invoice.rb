@@ -7,7 +7,7 @@ require 'slop'
 require 'shellwords'
 require_relative 'thread_badge'
 require_relative 'args'
-require_relative '../log'
+require 'loog'
 require_relative '../prefixes'
 
 # INVOICE command.
@@ -19,7 +19,7 @@ module Zold
   class Invoice
     prepend ThreadBadge
 
-    def initialize(wallets:, remotes:, copies:, log: Log::NULL)
+    def initialize(wallets:, remotes:, copies:, log: Loog::NULL)
       @wallets = wallets
       @remotes = remotes
       @copies = copies

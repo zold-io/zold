@@ -13,7 +13,7 @@ require_relative '../../node/farm'
 # Copyright:: Copyright (c) 2018-2025 Zerocracy
 # License:: MIT
 class Zold::Routines::Retire
-  def initialize(opts, log: Log::NULL)
+  def initialize(opts, log: Loog::NULL)
     @opts = opts
     @log = log
     @start = Time.now

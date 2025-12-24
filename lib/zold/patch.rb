@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: MIT
 
 require 'openssl'
-require_relative 'log'
+require 'loog'
 require_relative 'wallet'
 require_relative 'signature'
 
@@ -16,7 +16,7 @@ require_relative 'signature'
 module Zold
   # A patch
   class Patch
-    def initialize(wallets, log: Log::NULL)
+    def initialize(wallets, log: Loog::NULL)
       @wallets = wallets
       @txns = []
       @log = log

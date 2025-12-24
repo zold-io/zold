@@ -7,7 +7,7 @@ require 'slop'
 require 'rainbow'
 require_relative 'thread_badge'
 require_relative 'args'
-require_relative '../log'
+require 'loog'
 require_relative '../age'
 require_relative '../wallet'
 require_relative '../wallets'
@@ -22,7 +22,7 @@ module Zold
   class Propagate
     prepend ThreadBadge
 
-    def initialize(wallets:, log: Log::NULL)
+    def initialize(wallets:, log: Loog::NULL)
       @wallets = wallets
       @log = log
     end

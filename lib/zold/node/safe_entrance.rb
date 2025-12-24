@@ -6,7 +6,6 @@
 require 'concurrent'
 require 'tempfile'
 require_relative 'soft_error'
-require_relative '../log'
 require_relative '../remotes'
 require_relative '../copies'
 require_relative '../tax'

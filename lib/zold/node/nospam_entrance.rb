@@ -6,7 +6,7 @@
 require 'tempfile'
 require 'openssl'
 require 'zache'
-require_relative '../log'
+require 'loog'
 require_relative '../size'
 require_relative '../age'
 
@@ -17,7 +17,7 @@ require_relative '../age'
 module Zold
   # The no-spam entrance
   class NoSpamEntrance
-    def initialize(entrance, period: 60 * 60, log: Log::NULL)
+    def initialize(entrance, period: 60 * 60, log: Loog::NULL)
       @entrance = entrance
       @log = log
       @period = period

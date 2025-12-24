@@ -5,7 +5,7 @@
 
 require 'backtrace'
 require 'get_process_mem'
-require_relative 'log'
+require 'loog'
 require_relative 'size'
 
 # Verbose thread.
@@ -15,7 +15,7 @@ require_relative 'size'
 module Zold
   # Verbose thread
   class VerboseThread
-    def initialize(log = Log::NULL)
+    def initialize(log = Loog::NULL)
       @log = log
     end
 

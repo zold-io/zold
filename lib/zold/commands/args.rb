@@ -6,7 +6,7 @@
 require 'slop'
 require 'json'
 require 'net/http'
-require_relative '../log'
+require 'loog'
 require_relative '../id'
 require_relative '../http'
 

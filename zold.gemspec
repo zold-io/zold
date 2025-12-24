@@ -48,6 +48,7 @@ and suggests a different architecture for digital wallet maintenance."
   s.add_dependency 'get_process_mem', '~>0.2'
   s.add_dependency 'haml', '~>5.0'
   s.add_dependency 'json', '~>2.2'
+  s.add_dependency 'loog', '>0'
   s.add_dependency 'memory_profiler', '~>1.0'
   s.add_dependency 'mimic', '~>0.4'
   s.add_dependency 'openssl', '>=1.0'

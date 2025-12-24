@@ -6,7 +6,7 @@
 require 'rack/test'
 require 'tmpdir'
 require_relative '../test__helper'
-require_relative '../../lib/zold/log'
+require 'loog'
 require_relative '../../lib/zold/node/farm'
 
 class FarmTest < Zold::Test

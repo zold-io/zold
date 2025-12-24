@@ -48,7 +48,7 @@ module Zold
   class Node
     prepend ThreadBadge
 
-    def initialize(wallets:, remotes:, copies:, log: Log::NULL)
+    def initialize(wallets:, remotes:, copies:, log: Loog::NULL)
       @remotes = remotes
       @copies = copies
       @log = log

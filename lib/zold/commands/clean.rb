@@ -13,7 +13,7 @@ require 'zold/score'
 require_relative 'args'
 require_relative '../age'
 require_relative '../size'
-require_relative '../log'
+require 'loog'
 require_relative '../http'
 require_relative '../copies'
 require_relative '../thread_pool'
@@ -26,7 +26,7 @@ require_relative '../hands'
 module Zold
   # CLEAN command
   class Clean
-    def initialize(wallets:, copies:, log: Log::NULL)
+    def initialize(wallets:, copies:, log: Loog::NULL)
       @wallets = wallets
       @copies = copies
       @log = log

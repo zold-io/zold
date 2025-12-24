@@ -83,14 +83,14 @@ module Zold
     end
 
     def fake_log
-      require_relative '../lib/zold/log'
-      @fake_log ||= ENV['TEST_QUIET_LOG'] ? Zold::Log::NULL : Zold::Log::VERBOSE
+      require 'loog'
+      @fake_log ||= ENV['TEST_QUIET_LOG'] ? Loog::NULL : Loog::VERBOSE
     end
 
     class TestLogger
       attr_accessor :msgs
 
-      def initialize(log = Zold::Log::NULL)
+      def initialize(log = Loog::NULL)
         @log = log
         @msgs = []
       end

@@ -6,7 +6,7 @@
 require 'concurrent'
 require 'total'
 require_relative 'thread_pool'
-require_relative 'log'
+require 'loog'
 require_relative 'endless'
 
 # Multiple threads that can do something useful together.
@@ -32,7 +32,7 @@ module Zold
     end
 
     # Start
-    def self.start(max = Hands.threshold, log: Log::NULL)
+    def self.start(max = Hands.threshold, log: Loog::NULL)
       while POOL.count < max
         POOL.add do
           Endless.new('hands').run do

@@ -3,12 +3,12 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2025 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require_relative 'log'
+require 'loog'
 
 module Zold
   # Class to manage data upgrades (when zold itself upgrades).
   class Upgrades
-    def initialize(version, directory, opts, log: Log::VERBOSE)
+    def initialize(version, directory, opts, log: Loog::VERBOSE)
       raise 'network can\'t be nil' if opts[:network].nil?
       @version = version
       @directory = directory

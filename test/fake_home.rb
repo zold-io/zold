@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: MIT
 
 require 'tmpdir'
-require_relative '../lib/zold/log'
+require 'loog'
 require_relative '../lib/zold/id'
 require_relative '../lib/zold/wallet'
 require_relative '../lib/zold/wallets'
@@ -21,7 +21,7 @@ require_relative '../lib/zold/remotes'
 class FakeHome
   attr_reader :dir
 
-  def initialize(dir = __dir__, log: Zold::Log::NULL)
+  def initialize(dir = __dir__, log: Loog::NULL)
     @dir = dir
     @log = log
   end

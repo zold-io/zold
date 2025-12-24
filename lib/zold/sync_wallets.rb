@@ -5,7 +5,7 @@
 
 require 'futex'
 require 'delegate'
-require_relative 'log'
+require 'loog'
 
 # Synchronized collection of wallets.
 #
@@ -17,7 +17,7 @@ require_relative 'log'
 module Zold
   # Synchronized collection of wallets
   class SyncWallets < SimpleDelegator
-    def initialize(wallets, log: Log::NULL, dir: wallets.path)
+    def initialize(wallets, log: Loog::NULL, dir: wallets.path)
       @wallets = wallets
       @log = log
       @dir = dir

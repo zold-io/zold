@@ -8,7 +8,7 @@ require 'openssl'
 require 'csv'
 require 'futex'
 require 'backtrace'
-require_relative 'log'
+require 'loog'
 require_relative 'size'
 require_relative 'wallet'
 require_relative 'dir_items'
@@ -23,7 +23,7 @@ module Zold
     # Extension for copy files
     EXT = '.zc'
 
-    def initialize(dir, log: Log::NULL)
+    def initialize(dir, log: Loog::NULL)
       @dir = dir
       @log = log
     end

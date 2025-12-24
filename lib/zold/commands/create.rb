@@ -8,7 +8,7 @@ require 'rainbow'
 require_relative 'thread_badge'
 require_relative 'args'
 require_relative '../wallet'
-require_relative '../log'
+require 'loog'
 require_relative '../id'
 
 # CREATE command.
@@ -20,7 +20,7 @@ module Zold
   class Create
     prepend ThreadBadge
 
-    def initialize(wallets:, remotes:, log: Log::NULL)
+    def initialize(wallets:, remotes:, log: Loog::NULL)
       @wallets = wallets
       @remotes = remotes
       @log = log

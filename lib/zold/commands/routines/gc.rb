@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: MIT
 
 require_relative '../routines'
-require_relative '../../log'
+require 'loog'
 require_relative '../remove'
 
 # Gargage collecting. It goes through the list of all wallets and removes
@@ -13,7 +13,7 @@ require_relative '../remove'
 # Copyright:: Copyright (c) 2018-2025 Zerocracy
 # License:: MIT
 class Zold::Routines::Gc
-  def initialize(opts, wallets, log: Log::NULL)
+  def initialize(opts, wallets, log: Loog::NULL)
     @opts = opts
     @wallets = wallets
     @log = log

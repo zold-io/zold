@@ -6,7 +6,7 @@
 require 'slop'
 require 'zold/score'
 require_relative 'thread_badge'
-require_relative '../log'
+require 'loog'
 
 # NEXT command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -17,7 +17,7 @@ module Zold
   class Next
     prepend ThreadBadge
 
-    def initialize(log: Log::NULL)
+    def initialize(log: Loog::NULL)
       @log = log
     end
 

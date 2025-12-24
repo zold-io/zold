@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2025 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require_relative 'log'
+require 'loog'
 require_relative 'verbose_thread'
 require_relative 'age'
 
@@ -14,7 +14,7 @@ require_relative 'age'
 module Zold
   # Endless loop
   class Endless
-    def initialize(title, log: Log::NULL)
+    def initialize(title, log: Loog::NULL)
       @title = title
       @log = log
     end

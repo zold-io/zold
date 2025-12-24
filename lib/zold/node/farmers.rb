@@ -7,7 +7,7 @@ require 'open3'
 require 'backtrace'
 require 'zold/score'
 require 'shellwords'
-require_relative '../log'
+require 'loog'
 require_relative '../age'
 
 # Farmers.
@@ -27,7 +27,7 @@ module Zold
 
     # Plain and simple
     class Plain
-      def initialize(log: Log::NULL)
+      def initialize(log: Loog::NULL)
         @log = log
       end
 
@@ -38,7 +38,7 @@ module Zold
 
     # In a child process using fork
     class Fork
-      def initialize(log: Log::NULL)
+      def initialize(log: Loog::NULL)
         @log = log
       end
 
@@ -63,7 +63,7 @@ for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}")
 
     # In a child process
     class Spawn
-      def initialize(log: Log::NULL)
+      def initialize(log: Loog::NULL)
         @log = log
       end
 

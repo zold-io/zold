@@ -10,7 +10,7 @@ require 'zold/score'
 require_relative 'thread_badge'
 require_relative 'args'
 require_relative 'pay'
-require_relative '../log'
+require 'loog'
 require_relative '../json_page'
 require_relative '../id'
 require_relative '../tax'
@@ -37,7 +37,7 @@ module Zold
   class Taxes
     prepend ThreadBadge
 
-    def initialize(wallets:, remotes:, log: Log::NULL)
+    def initialize(wallets:, remotes:, log: Loog::NULL)
       @wallets = wallets
       @remotes = remotes
       @log = log

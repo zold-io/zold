@@ -10,7 +10,7 @@ require_relative 'thread_badge'
 require_relative 'args'
 require_relative '../id'
 require_relative '../amount'
-require_relative '../log'
+require 'loog'
 
 # PAY command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -21,7 +21,7 @@ module Zold
   class Pay
     prepend ThreadBadge
 
-    def initialize(wallets:, remotes:, copies:, log: Log::NULL)
+    def initialize(wallets:, remotes:, copies:, log: Loog::NULL)
       @wallets = wallets
       @remotes = remotes
       @copies = copies

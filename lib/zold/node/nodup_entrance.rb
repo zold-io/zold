@@ -5,7 +5,7 @@
 
 require 'tempfile'
 require 'openssl'
-require_relative '../log'
+require 'loog'
 require_relative '../size'
 require_relative '../wallet'
 
@@ -16,7 +16,7 @@ require_relative '../wallet'
 module Zold
   # The entrance that ignores dups
   class NoDupEntrance
-    def initialize(entrance, wallets, log: Log::NULL)
+    def initialize(entrance, wallets, log: Loog::NULL)
       @entrance = entrance
       @wallets = wallets
       @log = log

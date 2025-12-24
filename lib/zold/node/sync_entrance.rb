@@ -5,7 +5,7 @@
 
 require 'concurrent'
 require 'futex'
-require_relative '../log'
+require 'loog'
 require_relative '../id'
 require_relative '../verbose_thread'
 
@@ -16,7 +16,7 @@ require_relative '../verbose_thread'
 module Zold
   # The entrance that makes sure only one thread works with a wallet
   class SyncEntrance
-    def initialize(entrance, dir, timeout: 30, log: Log::NULL)
+    def initialize(entrance, dir, timeout: 30, log: Loog::NULL)
       @entrance = entrance
       @dir = dir
       @timeout = timeout

@@ -5,7 +5,7 @@
 
 require 'tempfile'
 require 'shellwords'
-require_relative '../log'
+require 'loog'
 require_relative '../remotes'
 require_relative '../copies'
 require_relative '../tax'

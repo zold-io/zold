@@ -10,7 +10,7 @@ require_relative '../fake_home'
 require_relative '../../lib/zold/wallets'
 require_relative '../../lib/zold/amount'
 require_relative '../../lib/zold/key'
-require_relative '../../lib/zold/log'
+require 'loog'
 require_relative '../../lib/zold/id'
 require_relative '../../lib/zold/commands/taxes'
 

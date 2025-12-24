@@ -21,7 +21,7 @@ require_relative 'soft_error'
 module Zold
   # The entrance
   class AsyncEntrance
-    def initialize(entrance, dir, log: Log::NULL,
+    def initialize(entrance, dir, log: Loog::NULL,
       threads: [Concurrent.processor_count, 8].max, queue_limit: 8)
       @entrance = entrance
       @dir = File.expand_path(dir)

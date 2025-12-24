@@ -17,7 +17,7 @@ require_relative 'thread_badge'
 require_relative 'args'
 require_relative '../thread_pool'
 require_relative '../hands'
-require_relative '../log'
+require 'loog'
 require_relative '../age'
 require_relative '../http'
 require_relative '../size'
@@ -45,7 +45,7 @@ module Zold
     # Raises when the wallet wasn't found in all visible nodes.
     class NotFound < Error; end
 
-    def initialize(wallets:, remotes:, copies:, log: Log::NULL)
+    def initialize(wallets:, remotes:, copies:, log: Loog::NULL)
       @wallets = wallets
       @remotes = remotes
       @copies = copies

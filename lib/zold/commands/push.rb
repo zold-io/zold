@@ -15,7 +15,7 @@ require_relative '../hands'
 require_relative '../age'
 require_relative '../size'
 require_relative '../tax'
-require_relative '../log'
+require 'loog'
 require_relative '../id'
 require_relative '../http'
 require_relative '../json_page'
@@ -35,7 +35,7 @@ module Zold
     # Raises when there are not enough successful nodes.
     class NoQuorum < StandardError; end
 
-    def initialize(wallets:, remotes:, log: Log::NULL)
+    def initialize(wallets:, remotes:, log: Loog::NULL)
       @wallets = wallets
       @remotes = remotes
       @log = log

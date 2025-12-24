@@ -4,12 +4,12 @@
 # SPDX-License-Identifier: MIT
 
 require 'semantic'
-require_relative 'log'
+require 'loog'
 
 module Zold
   # Read and write .zoldata/version.
   class VersionFile
-    def initialize(path, log: Log::VERBOSE)
+    def initialize(path, log: Loog::VERBOSE)
       @path = path
       @log = log
     end

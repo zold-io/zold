@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: MIT
 
 require_relative '../test__helper'
-require_relative '../../lib/zold/log'
+require 'loog'
 require_relative '../../lib/zold/commands/calculate'
 
 # SCORE test.

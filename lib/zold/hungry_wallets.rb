@@ -6,7 +6,7 @@
 require 'delegate'
 require 'zache'
 require 'shellwords'
-require_relative 'log'
+require 'loog'
 require_relative 'thread_pool'
 require_relative 'commands/pull'
 require_relative 'commands/fetch'
@@ -20,7 +20,7 @@ module Zold
   # Wallets decorator that adds missing wallets to the queue to be pulled later.
   class HungryWallets < SimpleDelegator
     def initialize(wallets, remotes, copies, pool,
-      log: Log::NULL, network: 'test')
+      log: Loog::NULL, network: 'test')
       @wallets = wallets
       @remotes = remotes
       @copies = copies

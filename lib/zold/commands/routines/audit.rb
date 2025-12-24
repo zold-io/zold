@@ -12,7 +12,7 @@ require_relative '../../size'
 # Copyright:: Copyright (c) 2018-2025 Zerocracy
 # License:: MIT
 class Zold::Routines::Audit
-  def initialize(opts, wallets, log: Log::NULL)
+  def initialize(opts, wallets, log: Loog::NULL)
     @opts = opts
     @wallets = wallets
     @log = log

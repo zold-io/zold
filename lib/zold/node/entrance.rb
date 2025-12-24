@@ -5,7 +5,7 @@
 
 require 'tempfile'
 require 'time'
-require_relative '../log'
+require 'loog'
 
 # The entrance of the web front.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -14,7 +14,7 @@ require_relative '../log'
 module Zold
   # The entrance
   class Entrance
-    def initialize(wallets, pipeline, log: Log::NULL)
+    def initialize(wallets, pipeline, log: Loog::NULL)
       @wallets = wallets
       @pipeline = pipeline
       @log = log

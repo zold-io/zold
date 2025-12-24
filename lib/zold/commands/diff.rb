@@ -9,7 +9,7 @@ require 'diffy'
 require 'rainbow'
 require_relative 'thread_badge'
 require_relative 'args'
-require_relative '../log'
+require 'loog'
 require_relative '../patch'
 require_relative '../wallet'
 
@@ -22,7 +22,7 @@ module Zold
   class Diff
     prepend ThreadBadge
 
-    def initialize(wallets:, copies:, log: Log::NULL)
+    def initialize(wallets:, copies:, log: Loog::NULL)
       @wallets = wallets
       @copies = copies
       @log = log

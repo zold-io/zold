@@ -7,7 +7,7 @@ require 'slop'
 require 'rainbow'
 require_relative 'thread_badge'
 require_relative 'args'
-require_relative '../log'
+require 'loog'
 
 # REMOVe command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -18,7 +18,7 @@ module Zold
   class Remove
     prepend ThreadBadge
 
-    def initialize(wallets:, log: Log::NULL)
+    def initialize(wallets:, log: Loog::NULL)
       @wallets = wallets
       @log = log
     end

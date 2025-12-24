@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: MIT
 
 require 'backtrace'
-require_relative 'log'
+require 'loog'
 require_relative 'age'
 require_relative 'endless'
 require_relative 'verbose_thread'
@@ -17,7 +17,7 @@ require_relative 'thread_pool'
 module Zold
   # Metronome
   class Metronome
-    def initialize(log = Log::NULL)
+    def initialize(log = Loog::NULL)
       @log = log
       @routines = []
       @threads = ThreadPool.new('metronome', log: log)

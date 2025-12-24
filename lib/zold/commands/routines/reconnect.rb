@@ -13,7 +13,7 @@ require_relative '../../node/farm'
 # Copyright:: Copyright (c) 2018-2025 Zerocracy
 # License:: MIT
 class Zold::Routines::Reconnect
-  def initialize(opts, remotes, farm = Zold::Farm::Empty.new, log: Log::NULL)
+  def initialize(opts, remotes, farm = Zold::Farm::Empty.new, log: Loog::NULL)
     @opts = opts
     @remotes = remotes
     @farm = farm

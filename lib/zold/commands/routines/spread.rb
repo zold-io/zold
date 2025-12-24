@@ -5,7 +5,7 @@
 
 require 'shellwords'
 require_relative '../routines'
-require_relative '../../log'
+require 'loog'
 require_relative '../../id'
 require_relative '../../copies'
 require_relative '../push'
@@ -15,7 +15,7 @@ require_relative '../push'
 # Copyright:: Copyright (c) 2018-2025 Zerocracy
 # License:: MIT
 class Zold::Routines::Spread
-  def initialize(opts, wallets, remotes, copies, log: Log::NULL)
+  def initialize(opts, wallets, remotes, copies, log: Loog::NULL)
     @opts = opts
     @wallets = wallets
     @remotes = remotes

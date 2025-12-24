@@ -7,7 +7,7 @@ require 'tmpdir'
 require 'webmock/minitest'
 require 'threads'
 require_relative 'test__helper'
-require_relative '../lib/zold/log'
+require 'loog'
 require_relative '../lib/zold/age'
 require_relative '../lib/zold/remotes'
 require_relative '../lib/zold/verbose_thread'
@@ -59,7 +59,7 @@ class TestRemotes < Zold::Test
       remotes = Zold::Remotes.new(file: file)
       ips = (0..50)
       ips.each { |i| remotes.add("0.0.0.#{i + 1}", 9999) }
-      remotes.iterate(Zold::Log::NULL) { raise 'Intended' }
+      remotes.iterate(Loog::NULL) { raise 'Intended' }
       ips.each { |i| assert(1, remotes.all[i][:errors]) }
     end
   end
@@ -71,7 +71,7 @@ class TestRemotes < Zold::Test
       remotes = Zold::Remotes.new(file: file)
       5.times { |i| remotes.add("0.0.0.#{i + 1}", 9999) }
       total = 0
-      remotes.iterate(Zold::Log::NULL) do
+      remotes.iterate(Loog::NULL) do
         total += 1
         raise 'Intended'
       end
@@ -86,7 +86,7 @@ class TestRemotes < Zold::Test
       remotes = Zold::Remotes.new(file: file)
       5.times { |i| remotes.add("0.0.0.#{i + 1}", 9999) }
       total = 0
-      remotes.iterate(Zold::Log::NULL) do
+      remotes.iterate(Loog::NULL) do
         sleep 0.25
         total += 1
       end
