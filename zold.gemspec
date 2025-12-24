@@ -37,8 +37,8 @@ and suggests a different architecture for digital wallet maintenance."
   Stay in touch with the community in Telegram: https://t.me/zold_io
   Follow us on Twitter: https://twitter.com/0crat
   If you have any issues, report to our GitHub repo: https://github.com/zold-io/zold"
-  s.executables = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
   s.files = `git ls-files | grep -v -E '^(test/|\\.|renovate|fixtures/|features/|cucumber\\.yml)'`.split($RS)
+  s.executables = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
   s.rdoc_options = ['--charset=UTF-8']
   s.extra_rdoc_files = ['README.md', 'LICENSE.txt']
   s.add_dependency 'backtrace', '~>0.3'
