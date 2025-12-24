@@ -3,7 +3,7 @@
 ---
 # yamllint disable rule:line-length
 docker:
-  image: yegor256/java
+  image: yegor256/python
 architect:
   - yegor256
 assets:
