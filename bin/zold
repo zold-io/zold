@@ -101,7 +101,7 @@ Available options:"
   o.bool '--memory-dump', 'Dump memory snapshot afterwards, to the console', default: false
   o.bool '--skip-upgrades', 'Don\'t upgrade the storage', default: false
   o.bool '--ignore-global-config', 'Don\'t read options from the ~/.zold file'
-  o.on '--no-colors', 'Disable colors in the ouput' do
+  o.on '--no-colors', 'Disable colors in the output' do
     Rainbow.enabled = false
   end
   o.on '--verbose', 'Enable extra logging information' do

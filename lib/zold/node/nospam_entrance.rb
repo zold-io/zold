@@ -33,7 +33,7 @@ module Zold
       @entrance.to_json
     end
 
-    # Returns a list of modifed wallets (as Zold::Id)
+    # Returns a list of modified wallets (as Zold::Id)
     def push(id, body)
       before = @zache.get(id.to_s, lifetime: @period) { '' }
       after = hash(id, body)

@@ -40,7 +40,7 @@ module Zold
       }
     end
 
-    # Returns a list of modifed wallets (as Zold::Id)
+    # Returns a list of modified wallets (as Zold::Id)
     def push(id, body, wallets, log)
       start = Time.now
       copies = Copies.new(File.join(@copies, id.to_s))

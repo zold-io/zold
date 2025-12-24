@@ -52,7 +52,7 @@ module Zold
           File.delete(file)
         end
       end
-      @log.info("#{@queue.size} wallets pre-loaded into async_entrace from #{@dir}") unless @queue.empty?
+      @log.info("#{@queue.size} wallets pre-loaded into async_entrance from #{@dir}") unless @queue.empty?
       @entrance.start do
         (0..@threads).map do |i|
           @pool.add do

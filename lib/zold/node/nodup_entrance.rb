@@ -31,7 +31,7 @@ module Zold
       @entrance.to_json
     end
 
-    # Returns a list of modifed wallets (as Zold::Id)
+    # Returns a list of modified wallets (as Zold::Id)
     def push(id, body)
       before = @wallets.acq(id) { |w| w.exists? ? w.digest : '' }
       after = OpenSSL::Digest::SHA256.new(body).hexdigest

@@ -278,7 +278,7 @@ class FrontTest < Zold::Test
 
   # The score exposed via the HTTP header must be reduced to the value of 16.
   # We need this in order to optimize the amount of data we transfer in each
-  # HTTP request. This value is enough to identify a valueable node, and filter
+  # HTTP request. This value is enough to identify a valuable node, and filter
   # out those that are too weak.
   def test_score_is_reduced
     FakeNode.new(log: fake_log).run(opts('--threads=1', '--strength=1', '--farmer=plain')) do |port|
