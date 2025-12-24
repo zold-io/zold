@@ -9,7 +9,7 @@ require 'loog'
 module Zold
   # Read and write .zoldata/version.
   class VersionFile
-    def initialize(path, log: Loog::VERBOSE)
+    def initialize(path, log: Loog::NULL)
       @path = path
       @log = log
     end

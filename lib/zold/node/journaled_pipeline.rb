@@ -8,6 +8,8 @@ require 'diffy'
 require 'fileutils'
 require_relative 'pipeline'
 require 'loog'
+require 'loog/tee'
+require 'logger'
 require_relative '../age'
 
 # The pipeline with journals.
@@ -64,7 +66,7 @@ module Zold
         File.delete(f) if File.mtime(f) < Time.now - (lifetime * 60 * 60)
       end
       journal = File.join(@dir, "#{Time.now.utc.iso8601.gsub(/[^0-9]/, '-')}-#{id}")
-      jlog = Loog::Logger.new(journal)
+      jlog = Logger.new(journal)
       jlog.info("push(#{id}, #{body.length} bytes): starting...")
       jlog.info("Time: #{Time.now.utc.iso8601}")
       jlog.info("Zold gem version: #{Zold::VERSION}")

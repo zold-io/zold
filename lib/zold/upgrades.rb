@@ -8,7 +8,7 @@ require 'loog'
 module Zold
   # Class to manage data upgrades (when zold itself upgrades).
   class Upgrades
-    def initialize(version, directory, opts, log: Loog::VERBOSE)
+    def initialize(version, directory, opts, log: Loog::NULL)
       raise 'network can\'t be nil' if opts[:network].nil?
       @version = version
       @directory = directory

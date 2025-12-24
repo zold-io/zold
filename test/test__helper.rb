@@ -9,8 +9,6 @@ require 'minitest/hooks/test'
 require 'concurrent'
 require 'timeout'
 
-require 'minitest/fail_fast' if ENV['TEST_QUIET_LOG']
-
 $stdout.sync = true
 
 ENV['RACK_ENV'] = 'test'
@@ -84,7 +82,7 @@ module Zold
 
     def fake_log
       require 'loog'
-      @fake_log ||= ENV['TEST_QUIET_LOG'] ? Loog::NULL : Loog::VERBOSE
+      @fake_log ||= ENV['TEST_QUIET_LOG'] == 'true' ? Loog::NULL : Loog::VERBOSE
     end
 
     class TestLogger
