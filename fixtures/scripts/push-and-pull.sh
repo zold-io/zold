@@ -5,25 +5,25 @@
 port=$(reserve_port)
 
 mkdir server
-cd server
+cd server || exit
 zold node --trace --invoice=PUSHNPULL@ffffffffffffffff --tolerate-edges --tolerate-quorum=1 \
-  --host=127.0.0.1 --port=${port} --bind-port=${port} \
+  --host=127.0.0.1 --port="${port}" --bind-port="${port}" \
   --threads=0 --standalone 2>&1 &
-pid=$!
+# shellcheck disable=SC2064
 trap "halt_nodes ${port}" EXIT
 cd ..
 
-wait_for_port ${port}
+wait_for_port "${port}"
 
 zold remote clean
-zold remote add 127.0.0.1 ${port}
+zold remote add 127.0.0.1 "${port}"
 zold remote trim
 zold remote show
 
 zold --public-key=id_rsa.pub create 0000000000000000
 target=$(zold create --public-key=id_rsa.pub)
-invoice=$(zold invoice ${target})
-zold pay --private-key=id_rsa 0000000000000000 ${invoice} 14.99Z 'To save the world!'
+invoice=$(zold invoice "${target}")
+zold pay --private-key=id_rsa 0000000000000000 "${invoice}" 14.99Z 'To save the world!'
 zold propagate
 zold propagate 0000000000000000
 zold show

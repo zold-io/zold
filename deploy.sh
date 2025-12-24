@@ -5,7 +5,7 @@
 set -e
 set -x
 
-cd $(dirname $0)
+cd "$(dirname "$0")"
 bundle update
 # rake
 trap 'git reset HEAD~1 && rm bonus.key && git checkout -- .gitignore' EXIT
