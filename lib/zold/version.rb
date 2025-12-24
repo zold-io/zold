@@ -8,7 +8,7 @@
 # Copyright:: Copyright (c) 2018-2025 Zerocracy
 # License:: MIT
 module Zold
-  VERSION = '0.0.0'
+  VERSION = '0.32.1'
   PROTOCOL = 2
   REPO = 'zold-io/zold'
 end
