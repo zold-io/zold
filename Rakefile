@@ -17,7 +17,7 @@ def version
   Gem::Specification.load(Dir['*.gemspec'].first).version
 end
 
-task default: %i[clean test features rubocop yard xcop copyright]
+task default: %i[clean test features rubocop yard]
 
 require 'rake/testtask'
 desc 'Run all unit tests'
@@ -34,7 +34,6 @@ require 'rubocop/rake_task'
 desc 'Run RuboCop on all directories'
 RuboCop::RakeTask.new(:rubocop) do |task|
   task.fail_on_error = true
-  task.requires << 'rubocop-rspec'
 end
 
 require 'yard'
@@ -50,20 +49,4 @@ Cucumber::Rake::Task.new(:features) do |t|
 end
 Cucumber::Rake::Task.new(:'features:html') do |t|
   t.profile = 'html_report'
-end
-
-require 'xcop/rake_task'
-desc 'Validate all XML/XSL/XSD/HTML files for formatting'
-Xcop::RakeTask.new :xcop do |task|
-  task.license = 'LICENSE.txt'
-  task.includes = ['**/*.xml', '**/*.xsl', '**/*.xsd', '**/*.html']
-  task.excludes = ['target/**/*', 'coverage/**/*', 'wp/**/*', '.yardoc/**/*', 'doc/**/*']
-end
-
-task :copyright do
-  sh "grep -q -r '2018-#{Date.today.strftime('%Y')}' \
-    --include '*.rb' \
-    --include '*.txt' \
-    --include 'Rakefile' \
-    ."
 end

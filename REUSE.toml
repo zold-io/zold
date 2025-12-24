@@ -4,6 +4,11 @@
 version = 1
 [[annotations]]
 path = [
+    ".ruby-version",
+    "**/*.zc",
+    "fixtures/**",
+    "Guardfile",
+    "resources/**",
     ".DS_Store",
     ".gitattributes",
     ".gitignore",

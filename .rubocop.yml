@@ -10,6 +10,10 @@ AllCops:
   TargetRubyVersion: 2.5
   NewCops: enable
   SuggestExtensions: false
+plugins:
+  - rubocop-rake
+  - rubocop-minitest
+  - rubocop-performance
 Gemspec/RequireMFA:
   Enabled: false
 Lint/ToJSON:
@@ -50,7 +54,3 @@ Layout/MultilineOperationIndentation:
   Enabled: false
 Naming/MethodParameterName:
   MinNameLength: 1
-require:
-  - rubocop-rake
-  - rubocop-minitest
-  - rubocop-performance
