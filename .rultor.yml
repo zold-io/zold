@@ -12,7 +12,7 @@ assets:
 install: |
   pdd -f /dev/null -v
   sudo apt-get -y update
-  sudo apt-get install --yes libcurl4-openssl-dev
+  sudo apt-get install --yes libcurl4-openssl-dev netcat-openbsd
   bundle update --no-color
 release:
   pre: false
