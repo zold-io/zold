@@ -5,11 +5,11 @@ FROM ruby:3.4
 
 LABEL "repository"="https://github.com/zold-io/zold"
 LABEL "maintainer"="Yegor Bugayenko"
-LABEL "version"="0.0.0"
+LABEL "version"="0.32.1"
 
 EXPOSE 4096
 
-RUN gem install zold:0.0.0
+RUN gem install zold:0.32.1
 
 RUN printf '%s\n' \
     '#!/usr/bin/env bash' \
