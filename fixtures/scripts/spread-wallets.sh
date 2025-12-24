@@ -9,7 +9,7 @@ function start_node {
   zold remote clean
   zold node --trace --invoice=SPREADWALLETS@ffffffffffffffff --tolerate-edges --tolerate-quorum=1 \
     --host=127.0.0.1 --port="${port}" --bind-port="${port}" \
-    --threads=0 > log.txt 2>&1 &
+    --threads=0 --never-reboot > log.txt 2>&1 &
   pid=$!
   echo "${pid}" > pid
   cd ..
