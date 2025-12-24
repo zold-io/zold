@@ -84,7 +84,7 @@ Available options:"
       mine = Args.new(opts, @log).take || return
       raise 'Payer wallet ID is required as the first argument' if mine[0].nil?
       id = Id.new(mine[0])
-      raise 'Recepient\'s invoice or wallet ID is required as the second argument' if mine[1].nil?
+      raise 'Recipient\'s invoice or wallet ID is required as the second argument' if mine[1].nil?
       invoice = mine[1]
       unless invoice.include?('@')
         require_relative 'invoice'

@@ -50,7 +50,7 @@ module Zold
     # We need this in order to make sure any test is faster than a minute. This
     # should help spotting tests that hang out sometimes. The number of seconds
     # to wait can be increased, but try to make it as little as possible,
-    # in order to catch problems ealier.
+    # in order to catch problems earlier.
     def around
       Timeout.timeout(180) do
         Thread.current.name = 'test'

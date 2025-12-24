@@ -41,7 +41,7 @@ class TestWallets < Zold::Test
     end
   end
 
-  def test_substracts_dir_path_from_full_path
+  def test_subtracts_dir_path_from_full_path
     Dir.mktmpdir do |dir|
       Dir.chdir(dir) do
         wallets = Zold::Wallets.new(Dir.pwd)

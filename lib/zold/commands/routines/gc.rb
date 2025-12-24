@@ -7,7 +7,7 @@ require_relative '../routines'
 require 'loog'
 require_relative '../remove'
 
-# Gargage collecting. It goes through the list of all wallets and removes
+# Garbage collecting. It goes through the list of all wallets and removes
 # those that are older than 10 days and don't have any transactions inside.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018-2025 Zerocracy

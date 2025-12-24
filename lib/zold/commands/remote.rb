@@ -80,7 +80,7 @@ Available options:"
           'Don\'t elect master nodes, only edges',
           default: false
         o.bool '--masters-too',
-          'Give no priviledges to masters, treat them as other nodes',
+          'Give no privileges to masters, treat them as other nodes',
           default: false
         o.integer '--min-score',
           "The minimum score required for winning the election (default: #{Tax::EXACT_SCORE})",
