@@ -4,7 +4,7 @@
 [default.extend-words]
 # Ruby variable name for thread in Open3.popen2e
 thr = "thr"
-912ecc24b32dbe74 = "912ecc24b32dbe74"
+dbe = "dbe"
 
 [files]
 # Hex wallet IDs contain letter sequences that look like typos
