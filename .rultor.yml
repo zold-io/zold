@@ -27,6 +27,7 @@ release:
     chmod 0600 ../rubygems.yml
     gem push *.gem --config-file ../rubygems.yml
 
+    while ! gem install "zold:${tag}"; do sleep 10; done
     sed -i -e "s/0.0.0/${tag}/" Dockerfile
     git add Dockerfile
     git commit -m "version set to ${tag}"
