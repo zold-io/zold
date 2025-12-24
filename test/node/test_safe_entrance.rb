@@ -3,7 +3,6 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2025 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'minitest/autorun'
 require_relative '../fake_home'
 require_relative '../test__helper'
 require_relative '../../lib/zold/wallet'

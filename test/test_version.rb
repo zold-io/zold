@@ -5,7 +5,6 @@
 
 require 'semantic'
 require 'zold/version'
-require 'minitest/autorun'
 
 class TestVersion < Zold::Test
   def test_has_version

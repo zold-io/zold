@@ -5,7 +5,6 @@
 
 require_relative '../lib/zold/gem'
 require 'webmock/minitest'
-require 'minitest/autorun'
 
 class TestGem < Zold::Test
   def test_last_version
