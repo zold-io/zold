@@ -1,9 +1,10 @@
+*.gem
 .bundle/
+.claude/
 .DS_Store
 .idea/
 .yardoc/
 .zoldata
-*.gem
 coverage/
 doc/
 farm

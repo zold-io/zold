@@ -62,5 +62,5 @@ and suggests a different architecture for digital wallet maintenance."
   s.add_dependency 'typhoeus', '~>1.3'
   s.add_dependency 'usagewatch_ext', '~>0.2'
   s.add_dependency 'zache', '~>0.12'
-  s.add_dependency 'zold-score', '~>0.5'
+  s.add_dependency 'zold-score', '>0'
 end
