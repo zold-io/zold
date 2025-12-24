@@ -18,6 +18,8 @@ Gemspec/RequireMFA:
   Enabled: false
 Lint/ToJSON:
   Enabled: false
+Minitest/EmptyLineBeforeAssertionMethods:
+  Enabled: false
 Layout/ArgumentAlignment:
   Enabled: false
 Style/ClassAndModuleChildren:
