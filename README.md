@@ -12,7 +12,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/yegor256/takes/blob/master/LICENSE.txt)
 [![Hits-of-Code](https://hitsofcode.com/github/zold-io/zold)](https://hitsofcode.com/github/zold-io/zold)
 
-To understand what Zold cryptocurrency is about you may want
+To understand what Zold cryptocurrency is about, you may want
 to watch [this video][video] first. Then, you may
 want to read [this blog][blog] post.
 Then, you have to read the [Green Paper][green-paper]
@@ -21,15 +21,15 @@ features:
 
 * No Blockchain
 * No General Ledger
-* Very fast, because de-centralized
+* Very fast, because decentralized
 * 100 times cheaper than Bitcoin
 * Proof-of-work
 * Unique consensus protocol
-* Pre-mined with total capacity of 2 billion ZLD
+* Pre-mined with a total capacity of 2 billion ZLD
 * Anonymous
 * Written in Ruby
 
-More details you can find in the [White Paper][white-paper].
+You can find more details in the [White Paper][white-paper].
 
 You can also find us at the [Bitcointalk][bitcointalk] forum.
 
@@ -39,7 +39,7 @@ Join our [Telegram group][telegram] to discuss it all live.
 
 You can try the [web wallet][wts], but the best way
 to use Zold is through the command line tool, which has all the features
-and should remind you Git, if you are a programmer.
+and should remind you of Git, if you are a programmer.
 
 First, install [Ruby 2.3+][ruby], [Rubygems][rubygems], and the [gem][zold-gem].
 Here is [how][install].
@@ -102,15 +102,15 @@ That's it.
 
 ## How to Start a Node
 
-You also can contribute to Zold by running a node on your server.
-In order to do that just run (with your own wallet ID, of course):
+You can also contribute to Zold by running a node on your server.
+In order to do that, just run (with your own wallet ID, of course):
 
 ```bash
 zold node --invoice=5f96e731e48ae21f
 ```
 
 Then, open the page `localhost:4096` in your browser
-(you may need to open the inbound port at your [IP firewall]).
+(you may need to open the inbound port in your [IP firewall]).
 If you see a simple JSON document, everything is fine.
 Next, hit `Ctrl`+`c` and run it again, but with `--nohup`:
 
@@ -138,15 +138,15 @@ If you are lost, run this:
 zold node --help
 ```
 
-You can run a node in a docker container also, using [yegor256/zold][docker]
+You can also run a node in a Docker container, using [yegor256/zold][docker]
 built from this [Dockerfile][dockerfile].
 
 ```bash
 docker run -d -p 4096:4096 yegor256/zold /node.sh --host=<your host IP> --invoice=5f96e731e48ae21f
 ```
 
-To store zold data between container restarts create a volume or bind
-a directory from host:
+To store Zold data between container restarts, create a volume or bind
+a directory from the host:
 
 ```bash
 docker volume create zold
@@ -158,12 +158,12 @@ You may find this blog post useful: [How to Run Zold Node?][node-blog]
 
 ## If Your File System is on Fire (or How to Reduce Your Hard Disk Usage)
 
-At the moment, the file system is utilised too aggressively and if you
-like to calm this process down and have a bit of spare memory, you may
+At the moment, the file system is utilized too aggressively and if you
+would like to calm this process down and have a bit of spare memory, you may
 find the following approach handy (directly applicable to FreeBSD OS).
 
 The application data can be moved to [a memory-backed memory disk][freebsd-disk]
-with a periodical syncing of `farm`, `zold.log` and `.zolddata` to the
+with periodic syncing of `farm`, `zold.log` and `.zolddata` to the
 hard disk.
 
 The `/etc/fstab` entry:
@@ -200,7 +200,7 @@ But the private key is your personal asset.
 Anyone can use your wallet if they have the private key.
 Keep it safe and secure!
 
-> How to use my RSA private key from <https://wts.zold.io>?
+> How do I use my RSA private key from <https://wts.zold.io>?
 
 Retrieve the key via <https://wts.zold.io/key>. It can then be used with
 the command line flag `--private-key` (e.g., for the `pay`, `node` and
@@ -214,12 +214,12 @@ with the command line flag `--public-key` (e.g., for the `create` command).
 
 You just do `zold pull <Wallet_ID>` and the rewards (taxes) will be visible there.
 
-> Can I setup multiple nodes with one wallet address?
+> Can I set up multiple nodes with one wallet address?
 
 Yes, you can run many nodes with the same wallet ID.
 
 > Is there a way to increase the number of threads in order to maximize
-> computing power of multiple core machines?
+> computing power of multi-core machines?
 
 Yes, you can use `--threads` command line argument for your node
 and the number of threads will be as big as you wish.
@@ -230,19 +230,19 @@ When you open up the front web page of your node, you will see a JSON document
 with a lot of technical details. Here is the explanation of the majority of them:
 
 `version` is the current version of the running software.
-The node is supposed to update update itself automatically (if you run it via `zold-nohup`)
+The node is supposed to update itself automatically (if you run it via `zold-nohup`)
 every time it discovers another node with a higher version.
 
 `network` is the name of the network the node belongs to.
 The production network's name is `zold`.
-For testing purposes you can start a node in a test network, using `--network=test`.
+For testing purposes, you can start a node in a test network, using `--network=test`.
 
 `score` is the current score your node is exposing to the network now.
 All other nodes are using this information in order to decide how much
-they can trust your node with the information it provides, about wallets.
+they can trust your node with the information it provides about wallets.
 The higher the score, the better.
 
-* `value` is the amount of suffixes the score contains; this is the
+* `value` is the number of suffixes the score contains; this is the
   number all other nodes rely on.
 
 * `host` is the host name of the node, it must be equal to the public
@@ -259,7 +259,7 @@ The higher the score, the better.
 * `time` is the ISO-8601 UTC date and time of when your node
   started to calculate the score.
 
-* `strength` is the amount of tailing zeros the hash contains.
+* `strength` is the number of trailing zeros the hash contains.
 
 * `hash` is the SHA-256 hash of the score text.
 
@@ -268,10 +268,10 @@ The higher the score, the better.
 
 `pid` is the Unix process ID of the running software.
 
-`cpus` is the amount of CPUs detected on the server.
+`cpus` is the number of CPUs detected on the server.
 
-`threads` is the amount of running threads vs. the total amount of
-threads in the Ruby process. If the second number is over 100 there
+`threads` is the number of running threads vs. the total number of
+threads in the Ruby process. If the second number is over 100, there
 is definitely something wrong with the software.
 
 `wallets` is the total number of wallets managed by the server.
@@ -285,7 +285,7 @@ network. You can see the full list of nodes at `/remotes` URL of your node.
 
 `farm` is the score calculating software.
 
-* `threads` is the amount of threads this software module is using.
+* `threads` is the number of threads this software module is using.
   This number is configured via the `--threads` command line option.
   The bigger the number, the more intensively the software will use
   your CPUs. It is recommended to make this number equal to the
@@ -304,7 +304,7 @@ To be continued...
 
 `date` is the current date and time on the server.
 
-`hours_alive` is the time in hours your server is alive without a reboot.
+`hours_alive` is the time in hours your server has been alive without a reboot.
 
 ## HTTP RESTful API
 
@@ -333,7 +333,7 @@ is a more or less complete list of them:
 
 * `GET /wallet/ID/age`: returns the age of the wallet, in seconds
 
-* `GET /wallet/ID/txns`: returns the amount of transactions in the wallet
+* `GET /wallet/ID/txns`: returns the number of transactions in the wallet
 
 * `GET /wallet/ID/debt`: returns the tax debt of the wallet in zents
 
@@ -342,7 +342,7 @@ is a more or less complete list of them:
 * `GET /wallet/ID/mnemo`: returns the mnemo short string of the wallet
 
 * `GET /wallet/ID/txns.json`: returns the full list of transactions
-  in the wallet in JSON document
+  in the wallet as a JSON document
 
 * `GET /wallet/ID.txt`: returns the text presentation of the wallet
 
@@ -355,7 +355,7 @@ is a more or less complete list of them:
 * `GET /wallet/ID/copy/NAME`: returns the entire content of a single copy
   of the wallet
 
-* `PUT /wallet/ID`: accepts a new content of the wallet, in order to
+* `PUT /wallet/ID`: accepts new content for the wallet, in order to
   modify the one stored on the server (PUSH operation)
 
 * `GET /wallets`: returns the list of all wallets maintained by the node,
@@ -367,7 +367,7 @@ is a more or less complete list of them:
 
 * `GET /ledger.json`: returns the list of recently visible transactions, in JSON
 
-There are a few other entry points, which exist most for debugging purposes,
+There are a few other entry points, which exist mostly for debugging purposes;
 they may not be supported by alternative implementations of the node software:
 
 * `GET /pid`: returns the process ID of the software
@@ -388,7 +388,7 @@ they may not be supported by alternative implementations of the node software:
 
 * `GET /journal/item?id=ID`: returns the content of a single journal entry
 
-There could be other entry points, not documented here.
+There may be other entry points not documented here.
 
 ## SDK
 
@@ -469,7 +469,7 @@ Zold::Push.new(wallets: wallets, remotes: remotes).run(%w[push 17737fee5b825835]
 
 By default, all commands will work quietly, reporting absolutely nothing
   to the console.
-To change that, you can use `log` argument of their constructors.
+To change that, you can use the `log` argument of their constructors.
 For example, `Loog::VERBOSE` will print a lot of information to the console:
 
 ```ruby
