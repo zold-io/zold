@@ -12,6 +12,7 @@ gem 'guard', '~>2.19', require: false
 gem 'guard-minitest', '~>2.4', require: false
 gem 'minitest', '~>6.0', require: false
 gem 'minitest-hooks', '~>1.5', require: false
+gem 'minitest-mock', '~>5.27', require: false
 gem 'minitest-reporters', '~>1.7', require: false
 gem 'rake', '~>13.2', require: false
 gem 'random-port', '~>0', require: false

@@ -171,6 +171,7 @@ GEM
       prism (~> 1.5)
     minitest-hooks (1.5.3)
       minitest (> 5.3)
+    minitest-mock (5.27.0)
     minitest-reporters (1.7.1)
       ansi
       builder
@@ -373,6 +374,7 @@ DEPENDENCIES
   guard-minitest (~> 2.4)
   minitest (~> 6.0)
   minitest-hooks (~> 1.5)
+  minitest-mock (~> 5.27)
   minitest-reporters (~> 1.7)
   rake (~> 13.2)
   random-port (~> 0)
