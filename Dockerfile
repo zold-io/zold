@@ -11,13 +11,14 @@ EXPOSE 4096
 
 RUN gem install zold:0.0.0
 
-RUN echo "#!/usr/bin/env bash" > node.sh
-RUN echo "zold remote reset" >> node.sh
-RUN echo "zold node --nohup \044\100" >> node.sh
-RUN echo "tail -f zold.log" >> node.sh
-RUN chmod +x /node.sh
-
-RUN mkdir /zold
+RUN printf '%s\n' \
+    '#!/usr/bin/env bash' \
+    'zold remote reset' \
+    'zold node --nohup $@' \
+    'tail -f zold.log' \
+    > node.sh && \
+    chmod +x /node.sh && \
+    mkdir /zold
 WORKDIR /zold
 
 CMD ["/node.sh"]
