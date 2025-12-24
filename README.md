@@ -52,7 +52,7 @@ zold --help
 
 You will need RSA private and public keys in `~/.ssh`.
 If you don't have them yet, run this in order to generate a new pair
-(just hit <kbd>Enter</kbd> when it asks you for a password):
+(just hit `Enter` when it asks you for a password):
 
 ```bash
 ssh-keygen -t rsa -b 4096
@@ -69,7 +69,7 @@ $ zold create
 Then, push it to the network:
 
 ```bash
-$ zold push 5f96e731e48ae21f
+zold push 5f96e731e48ae21f
 ```
 
 Then, give this ID to your friend, who is going to pay you.
@@ -112,7 +112,7 @@ zold node --invoice=5f96e731e48ae21f
 Then, open the page `localhost:4096` in your browser
 (you may need to open the inbound port at your [IP firewall]).
 If you see a simple JSON document, everything is fine.
-Next, hit <kbd>Ctrl</kbd>+<kbd>c</kbd> and run it again, but with `--nohup`:
+Next, hit `Ctrl`+`c` and run it again, but with `--nohup`:
 
 ```bash
 zold node --nohup --invoice=5f96e731e48ae21f
@@ -145,11 +145,13 @@ built from this [Dockerfile][dockerfile].
 docker run -d -p 4096:4096 yegor256/zold /node.sh --host=<your host IP> --invoice=5f96e731e48ae21f
 ```
 
-To store zold data between container restarts create a volume or bind a directory from host:
+To store zold data between container restarts create a volume or bind
+a directory from host:
 
 ```bash
 docker volume create zold
-docker run -d -p 4096:4096 -v zold:/zold yegor256/zold /node.sh --host=<your host IP> --invoice=5f96e731e48ae21f
+docker run -d -p 4096:4096 -v zold:/zold yegor256/zold \
+  /node.sh --host=<your host IP> --invoice=5f96e731e48ae21f
 ```
 
 You may find this blog post useful: [How to Run Zold Node?][node-blog]
@@ -165,21 +167,26 @@ with a periodical syncing of `farm`, `zold.log` and `.zolddata` to the
 hard disk.
 
 The `/etc/fstab` entry:
-```
+
+```text
 md /usr/home/zold/app-in-mem mfs rw,-M,-n,-s512m,-wzold:zold,-p0755 2 0
 ```
 
 The `/etc/crontab` entry:
-```
-*/10    *       *       *       *       zold    /usr/local/bin/rsync -aubv /usr/home/zold/app-in-mem/farm /usr/home/zold/app-in-mem/zold.log /usr/home/zold/app-in-mem/.zoldata /usr/home/zold/app/
+
+```text
+*/10 * * * * zold /usr/local/bin/rsync -aubv \
+  /usr/home/zold/app-in-mem/farm /usr/home/zold/app-in-mem/zold.log \
+  /usr/home/zold/app-in-mem/.zoldata /usr/home/zold/app/
 ```
 
 ## Frequently Asked Questions
 
 > Is there a configuration file?
 
-Any command line flag can also be put in the `~/.zold` file, one per line, e.g.:
-```
+Any command line flag can also be put in the `~/.zold` file, one per line:
+
+```text
 --home=~/.zold_home
 --verbose
 ```
@@ -193,9 +200,9 @@ But the private key is your personal asset.
 Anyone can use your wallet if they have the private key.
 Keep it safe and secure!
 
-> How to use my RSA private key from https://wts.zold.io?
+> How to use my RSA private key from <https://wts.zold.io>?
 
-Retrieve the key via https://wts.zold.io/key. It can then be used with
+Retrieve the key via <https://wts.zold.io/key>. It can then be used with
 the command line flag `--private-key` (e.g., for the `pay`, `node` and
 `taxes` commands).
 
@@ -211,7 +218,8 @@ You just do `zold pull <Wallet_ID>` and the rewards (taxes) will be visible ther
 
 Yes, you can run many nodes with the same wallet ID.
 
-> Is there a way to increase the number of threads in order to maximize computing power of multiple core machines?
+> Is there a way to increase the number of threads in order to maximize
+> computing power of multiple core machines?
 
 Yes, you can use `--threads` command line argument for your node
 and the number of threads will be as big as you wish.
@@ -285,7 +293,8 @@ network. You can see the full list of nodes at `/remotes` URL of your node.
 
 * `pipeline` is ... something not important to you.
 
-* `best` is the list of scores known to the farm at the moment (with their ages in minutes).
+* `best` is the list of scores known to the farm at the moment
+  (with their ages in minutes).
 
 `entrance` is the place where all new wallets arrive and get merged and pushed
 further. The health of this point is critical to the entire node. Some
@@ -332,7 +341,8 @@ is a more or less complete list of them:
 
 * `GET /wallet/ID/mnemo`: returns the mnemo short string of the wallet
 
-* `GET /wallet/ID/txns.json`: returns the full list of transactions in the wallet in JSON document
+* `GET /wallet/ID/txns.json`: returns the full list of transactions
+  in the wallet in JSON document
 
 * `GET /wallet/ID.txt`: returns the text presentation of the wallet
 
@@ -342,7 +352,8 @@ is a more or less complete list of them:
 
 * `GET /wallet/ID/copies`: returns the list of copies of the wallet
 
-* `GET /wallet/ID/copy/NAME`: returns the entire content of a single copy of the wallet
+* `GET /wallet/ID/copy/NAME`: returns the entire content of a single copy
+  of the wallet
 
 * `PUT /wallet/ID`: accepts a new content of the wallet, in order to
   modify the one stored on the server (PUSH operation)
@@ -359,23 +370,23 @@ is a more or less complete list of them:
 There are a few other entry points, which exist most for debugging purposes,
 they may not be supported by alternative implementations of the node software:
 
-  * `GET /pid`: returns the process ID of the software
+* `GET /pid`: returns the process ID of the software
 
-  * `GET /trace`: returns the entire log of the node
+* `GET /trace`: returns the entire log of the node
 
-  * `GET /farm`: returns the statistics of the Farm
+* `GET /farm`: returns the statistics of the Farm
 
-  * `GET /metronome`: returns the statistics of the Metronome
+* `GET /metronome`: returns the statistics of the Metronome
 
-  * `GET /threads`: returns the statistics of all Ruby threads
+* `GET /threads`: returns the statistics of all Ruby threads
 
-  * `GET /ps`: returns the statistics of all currently running Unix processes
+* `GET /ps`: returns the statistics of all currently running Unix processes
 
-  * `GET /queue`: returns the statistics of the node queue
+* `GET /queue`: returns the statistics of the node queue
 
-  * `GET /journal`: returns the journal, in HTML
+* `GET /journal`: returns the journal, in HTML
 
-  * `GET /journal/item?id=ID`: returns the content of a single journal entry
+* `GET /journal/item?id=ID`: returns the content of a single journal entry
 
 There could be other entry points, not documented here.
 
@@ -385,10 +396,11 @@ Here is how you use Zold SDK from your Ruby app. First, you should
 add `zold` [gem][zold-gem] to your [`Gemfile`][gemfile] or just:
 
 ```bash
-$ gem install zold
+gem install zold
 ```
 
-Then, you will need a directory where wallets and other supplementary data will be kept.
+Then, you will need a directory where wallets and other supplementary data
+will be kept.
 This can be any directory, including a temporary one. If it doesn't exist,
 it will automatically be created:
 
@@ -431,7 +443,9 @@ You can also pull a wallet from the network:
 
 ```ruby
 require 'zold/commands/pull'
-Zold::Pull.new(wallets: wallets, remotes: remotes, copies: copies).run(['pull', '00000000000ff1ce'])
+Zold::Pull.new(wallets: wallets, remotes: remotes, copies: copies).run(
+  ['pull', '00000000000ff1ce']
+)
 ```
 
 Then, you can make a payment:
@@ -471,7 +485,9 @@ give them `--network=zold` argument, for example:
 
 ```ruby
 require 'zold/commands/push'
-Zold::Push.new(wallets: wallets, remotes: remotes).run(%w[push 17737fee5b825835 --network=zold])
+Zold::Push.new(wallets: wallets, remotes: remotes).run(
+  %w[push 17737fee5b825835 --network=zold]
+)
 ```
 
 If anything doesn't work as explained above, please
