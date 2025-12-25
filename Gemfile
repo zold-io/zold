@@ -7,7 +7,7 @@ source 'https://rubygems.org'
 gemspec
 
 gem 'csv', '~>3.3', require: false
-gem 'cucumber', '~>9.2', require: false
+gem 'cucumber', '~>10.0', require: false
 gem 'guard', '~>2.19', require: false
 gem 'guard-minitest', '~>2.4', require: false
 gem 'minitest', '~>6.0', require: false
