@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2025 Zerocracy
 # SPDX-License-Identifier: MIT
 
-FROM ruby:3.4
+FROM ruby:4.0
 
 LABEL "repository"="https://github.com/zold-io/zold"
 LABEL "maintainer"="Yegor Bugayenko"
