@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# SPDX-FileCopyrightText: Copyright (c) 2018-2025 Zerocracy
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
 require 'tmpdir'
@@ -15,7 +15,7 @@ require_relative '../lib/zold/wallet'
 
 # Copies test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018-2025 Zerocracy
+# Copyright:: Copyright (c) 2018-2026 Zerocracy
 # License:: MIT
 class TestCopies < Zold::Test
   def test_adds_and_removes_copies

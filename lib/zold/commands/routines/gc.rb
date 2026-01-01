@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# SPDX-FileCopyrightText: Copyright (c) 2018-2025 Zerocracy
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
 require_relative '../routines'
@@ -10,7 +10,7 @@ require_relative '../remove'
 # Garbage collecting. It goes through the list of all wallets and removes
 # those that are older than 10 days and don't have any transactions inside.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018-2025 Zerocracy
+# Copyright:: Copyright (c) 2018-2026 Zerocracy
 # License:: MIT
 class Zold::Routines::Gc
   def initialize(opts, wallets, log: Loog::NULL)

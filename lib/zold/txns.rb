@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-# SPDX-FileCopyrightText: Copyright (c) 2018-2025 Zerocracy
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
 require_relative 'txn'
 
 # Transactions in a wallet.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018-2025 Zerocracy
+# Copyright:: Copyright (c) 2018-2026 Zerocracy
 # License:: MIT
 module Zold
   # A collection of transactions
@@ -43,7 +43,7 @@ module Zold
 
   # Cached transactions.
   # Author:: Yegor Bugayenko (yegor256@gmail.com)
-  # Copyright:: Copyright (c) 2018-2025 Zerocracy
+  # Copyright:: Copyright (c) 2018-2026 Zerocracy
   # License:: MIT
   class CachedTxns
     def initialize(txns)

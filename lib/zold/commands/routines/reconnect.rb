@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# SPDX-FileCopyrightText: Copyright (c) 2018-2025 Zerocracy
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
 require 'shellwords'
@@ -10,7 +10,7 @@ require_relative '../../node/farm'
 
 # Reconnect routine.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018-2025 Zerocracy
+# Copyright:: Copyright (c) 2018-2026 Zerocracy
 # License:: MIT
 class Zold::Routines::Reconnect
   def initialize(opts, remotes, farm = Zold::Farm::Empty.new, log: Loog::NULL)
