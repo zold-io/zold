@@ -15,6 +15,9 @@ function start_node {
   cd ..
 }
 
+echo "Installing old version of zold"
+gem install zold --version 0.0.1
+
 high=$(reserve_port)
 start_node "${high}" 9.9.9 --standalone
 
@@ -33,6 +36,14 @@ if [ -n "$(pgrep -f "zold.*${low}")" ]; then
   echo "The score finder process is still there, it's a bug"
   exit 1
 fi
+
+echo "Check if old version has been uninstalled"
+zold_gems=$(gem list zold)
+if [[ "${zold_gems}" == *"zold"* ]]; then
+   echo "Old versions of Zold gem have not been uninstalled"
+   exit 16
+fi
+sleep 5
 
 echo "High node logs (port ${high}):"
 cat "${high}/log"
