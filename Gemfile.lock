@@ -58,7 +58,7 @@ GEM
       securerandom (>= 0.3)
       tzinfo (~> 2.0, >= 2.0.5)
       uri (>= 0.13.1)
-    addressable (2.8.8)
+    addressable (2.8.10)
       public_suffix (>= 2.0.2, < 8.0)
     ansi (1.5.0)
     ast (2.4.3)
@@ -206,7 +206,7 @@ GEM
     psych (5.3.1)
       date
       stringio
-    public_suffix (7.0.0)
+    public_suffix (7.0.5)
     racc (1.8.1)
     rack (2.2.22)
     rack-protection (3.2.0)
@@ -346,7 +346,7 @@ GEM
     usagewatch_ext (0.2.1)
       usagewatch (~> 0.0.6)
     useragent (0.16.11)
-    webmock (3.26.1)
+    webmock (3.26.2)
       addressable (>= 2.8.0)
       crack (>= 0.3.2)
       hashdiff (>= 0.4.0, < 2.0.0)
