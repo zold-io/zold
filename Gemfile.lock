@@ -167,7 +167,7 @@ GEM
       sinatra
       thin
     mini_mime (1.1.5)
-    minitest (6.0.2)
+    minitest (6.0.5)
       drb (~> 2.0)
       prism (~> 1.5)
     minitest-hooks (1.5.3)
@@ -198,7 +198,7 @@ GEM
     pp (0.6.3)
       prettyprint
     prettyprint (0.2.0)
-    prism (1.8.0)
+    prism (1.8.1)
     pry (0.16.0)
       coderay (~> 1.1)
       method_source (~> 1.0)
