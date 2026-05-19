@@ -356,7 +356,7 @@ GEM
       nokogiri (~> 1.8)
       rainbow (~> 3.0)
       slop (~> 4.4)
-    yard (0.9.42)
+    yard (0.9.43)
     zache (0.15.2)
     zeitwerk (2.7.5)
     zold-score (0.6.0)
