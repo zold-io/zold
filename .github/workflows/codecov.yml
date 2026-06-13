@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
+# SPDX-License-Identifier: MIT
+---
+# yamllint disable rule:line-length
+name: codecov
+'on':
+  push:
+    branches:
+      - master
+jobs:
+  codecov:
+    timeout-minutes: 15
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 4.0.5
+          bundler-cache: true
+      - run: bundle config set --global path "$(pwd)/vendor/bundle"
+      - run: bundle install --no-color
+      - run: bundle exec rake --quiet
+      - uses: codecov/codecov-action@v6
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage/.resultset.json
+          fail_ci_if_error: true

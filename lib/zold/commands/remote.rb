@@ -1,24 +1,7 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2018 Yegor Bugayenko
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the 'Software'), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
+# SPDX-License-Identifier: MIT
 
 require 'slop'
 require 'semantic'
@@ -26,25 +9,28 @@ require 'rainbow'
 require 'net/http'
 require 'json'
 require 'time'
+require 'zold/score'
+require_relative 'thread_badge'
 require_relative 'args'
 require_relative '../node/farm'
-require_relative '../log'
+require 'loog'
 require_relative '../age'
 require_relative '../json_page'
 require_relative '../http'
 require_relative '../remotes'
-require_relative '../score'
 require_relative '../wallet'
 require_relative '../gem'
 
 # REMOTE command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2026 Zerocracy
 # License:: MIT
 module Zold
   # Remote command
   class Remote
-    def initialize(remotes:, farm: Farm::Empty.new, log: Log::Quiet.new)
+    prepend ThreadBadge
+
+    def initialize(remotes:, farm: Farm::Empty.new, log: Loog::NULL)
       @remotes = remotes
       @farm = farm
       @log = log
@@ -60,6 +46,8 @@ Available commands:
       Remove all registered remote nodes
     #{Rainbow('remote reset').green}
       Restore it back to the default list of nodes
+    #{Rainbow('remote masters').green}
+      Add all \"master\" nodes to the list
     #{Rainbow('remote add').green} host [port]
       Add a new remote node
     #{Rainbow('remote remove').green} host [port]
@@ -69,12 +57,12 @@ Available commands:
     #{Rainbow('remote trim').green}
       Remove the least reliable nodes
     #{Rainbow('remote select [options]').green}
-      Select the strongest n nodes.
+      Select the most reliable N nodes
     #{Rainbow('remote update').green}
       Check each registered remote node for availability
 Available options:"
         o.integer '--tolerate',
-          'Maximum level of errors we are able to tolerate',
+          "Maximum level of errors we are able to tolerate (default: #{Remotes::TOLERANCE})",
           default: Remotes::TOLERANCE
         o.bool '--ignore-score-weakness',
           'Don\'t complain when their score is too weak',
@@ -85,19 +73,40 @@ Available options:"
         o.array '--ignore-node',
           'Ignore this node and never add it to the list',
           default: []
+        o.bool '--ignore-if-exists',
+          'Ignore the node while adding if it already exists in the list',
+          default: false
+        o.bool '--ignore-masters',
+          'Don\'t elect master nodes, only edges',
+          default: false
+        o.bool '--masters-too',
+          'Give no privileges to masters, treat them as other nodes',
+          default: false
         o.integer '--min-score',
           "The minimum score required for winning the election (default: #{Tax::EXACT_SCORE})",
           default: Tax::EXACT_SCORE
         o.integer '--max-winners',
           'The maximum amount of election winners the election (default: 1)',
           default: 1
+        o.integer '--retry',
+          'How many times to retry each node before reporting a failure (default: 2)',
+          default: 2
         o.bool '--skip-ping',
           'Don\'t ping back the node when adding it (not recommended)',
           default: false
+        o.bool '--ignore-ping',
+          'Don\'t fail if ping fails, just report the problem in the log',
+          default: false
+        o.integer '--depth',
+          'The amount of update cycles to run, in order to fetch as many nodes as possible (default: 2)',
+          default: 2
+        o.integer '--threads',
+          "How many threads to use for updating, electing, etc. (default: #{[Concurrent.processor_count, 4].min})",
+          default: [Concurrent.processor_count, 4].min
         o.string '--network',
-          "The name of the network we work in (default: #{Wallet::MAIN_NETWORK}",
+          "The name of the network we work in (default: #{Wallet::MAINET})",
           required: true,
-          default: Wallet::MAIN_NETWORK
+          default: Wallet::MAINET
         o.bool '--reboot',
           'Exit if any node reports version higher than we have',
           default: false
@@ -111,7 +120,7 @@ Available options:"
         #  - Remove note from the --max-nodes option saying that it applies to the select
         #  subcommand only.
         o.integer '--max-nodes',
-          "This applies only to the select subcommand. Number of nodes to limit to. Defaults to #{Remotes::MAX_NODES}.",
+          "Number of nodes to limit to (default: #{Remotes::MAX_NODES})",
           default: Remotes::MAX_NODES
         o.bool '--help', 'Print instructions'
       end
@@ -124,7 +133,9 @@ Available options:"
       when 'clean'
         clean
       when 'reset'
-        reset
+        reset(opts)
+      when 'masters'
+        masters(opts)
       when 'add'
         add(mine[1], mine[2] ? mine[2].to_i : Remotes::PORT, opts)
       when 'remove'
@@ -135,7 +146,6 @@ Available options:"
         trim(opts)
       when 'update'
         update(opts)
-        update(opts, false)
       when 'select'
         select(opts)
       else
@@ -148,42 +158,61 @@ Available options:"
     def show
       @remotes.all.each do |r|
         score = Rainbow("/#{r[:score]}").color(r[:score].positive? ? :green : :red)
-        @log.info(r[:host] + Rainbow(":#{r[:port]}").gray + score)
+        @log.info(
+          [
+            "#{r[:host]}:#{r[:port]}#{score}",
+            r[:errors].positive? ? " #{r[:errors]} errors" : '',
+            r[:master] ? ' [master]' : ''
+          ].join
+        )
       end
     end
 
     def clean
+      before = @remotes.all.count
       @remotes.clean
-      @log.debug('All remote nodes deleted')
+      @log.debug("All #{before} remote nodes deleted")
     end
 
-    def reset
-      @remotes.reset
-      @log.debug("Remote nodes set back to default, #{@remotes.all.count} total")
+    def reset(opts)
+      clean
+      masters(opts)
+    end
+
+    def masters(opts)
+      @remotes.masters do |host, port|
+        !opts['ignore-node'].include?("#{host}:#{port}")
+      end
+      @log.debug("Masters nodes were added to the list, #{@remotes.all.count} total")
     end
 
     def add(host, port, opts)
       if opts['ignore-node'].include?("#{host}:#{port}")
-        @log.info("#{host}:#{port} won't be added since it's in the --ignore-node list")
+        @log.debug("#{host}:#{port} won't be added since it's in the --ignore-node list")
         return
       end
-      unless opts['skip-ping']
-        res = Http.new(uri: "http://#{host}:#{port}/version", score: nil, network: opts['network']).get
-        raise "The node #{host}:#{port} is not responding (code is #{res.code})" unless res.code == '200'
+      if opts['ignore-if-exists'] && @remotes.exists?(host, port)
+        @log.debug("#{host}:#{port} already exists, won't add because of --ignore-if-exists")
+        return
       end
-      @remotes.add(host, port)
-      @log.info("#{host}:#{port} added to the list, #{@remotes.all.count} total")
+      return unless ping(host, port, opts)
+      if @remotes.exists?(host, port)
+        @log.debug("#{host}:#{port} already exists among #{@remotes.all.count} others")
+      else
+        @remotes.add(host, port)
+        @log.debug("#{host}:#{port} added to the list, #{@remotes.all.count} total")
+      end
     end
 
     def remove(host, port, _)
       @remotes.remove(host, port)
-      @log.info("#{host}:#{port} removed from the list, #{@remotes.all.count} total")
+      @log.debug("#{host}:#{port} removed from the list, #{@remotes.all.count} total")
     end
 
     # Returns an array of Zold::Score
     def elect(opts)
       scores = []
-      @remotes.iterate(@log, farm: @farm) do |r|
+      @remotes.iterate(@log, farm: @farm, threads: opts['threads']) do |r|
         uri = '/'
         res = r.http(uri).get
         r.assert_code(200, res)
@@ -193,59 +222,58 @@ Available options:"
         r.assert_score_ownership(score)
         r.assert_score_strength(score) unless opts['ignore-score-weakness']
         r.assert_score_value(score, opts['min-score']) unless opts['ignore-score-value']
+        if r.master? && opts['--ignore-masters']
+          @log.debug("#{r} ignored, it's a master node")
+          next
+        end
         scores << score
       end
       scores = scores.sample(opts['max-winners'])
       if scores.empty?
         @log.info("No winners elected out of #{@remotes.all.count} remotes")
       else
-        scores.each { |s| @log.info("Elected: #{s}") }
+        scores.each { |s| @log.info("Elected: #{s.reduced(4)}") }
       end
-      scores
+      scores.sort_by(&:value).reverse
     end
 
     def trim(opts)
       all = @remotes.all
       all.each do |r|
         next if r[:errors] <= opts['tolerate']
-        remove(r[:host], r[:port], opts)
-        @log.info("#{r[:host]}:#{r[:port]} removed because of #{r[:errors]} errors (over #{opts['tolerate']})")
+        @remotes.remove(r[:host], r[:port]) if !opts['masters-too'] || !r[:master]
+        @log.debug("#{r[:host]}:#{r[:port]} removed because of #{r[:errors]} errors (over #{opts['tolerate']})")
       end
-      @log.info("The list of #{all.count} remotes trimmed, #{@remotes.all.count} nodes left there")
+      @log.info("The list of #{all.count} remotes trimmed down to #{@remotes.all.count} nodes \
+(#{@remotes.all.count { |r| r[:master] }} masters)")
     end
 
-    def update(opts, deep = true)
+    def update(opts)
+      st = Time.now
+      seen = Set.new
       capacity = []
-      @remotes.iterate(@log, farm: @farm) do |r|
-        start = Time.now
-        uri = '/remotes'
-        res = r.http(uri).get
-        r.assert_code(200, res)
-        json = JsonPage.new(res.body, uri).to_hash
-        score = Score.parse_json(json['score'])
-        r.assert_valid_score(score)
-        r.assert_score_ownership(score)
-        r.assert_score_strength(score) unless opts['ignore-score-weakness']
-        @remotes.rescore(score.host, score.port, score.value)
-        gem = Zold::Gem.new
-        if Semantic::Version.new(VERSION) < Semantic::Version.new(json['version']) ||
-           Semantic::Version.new(VERSION) < Semantic::Version.new(gem.last_version)
-          if opts['reboot']
-            @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, reboot! \
-(use --never-reboot to avoid this from happening)")
-            terminate
+      opts['depth'].times do
+        @remotes.iterate(@log, farm: @farm, threads: opts['threads']) do |r|
+          if seen.include?(r.to_mnemo)
+            @log.debug("#{r} seen already, won't check again")
+            next
           end
-          @log.debug("#{r}: their version #{json['version']} is higher than mine #{VERSION}, \
-it's recommended to reboot, but I don't do it because of --never-reboot")
-        end
-        if deep
-          json['all'].each do |s|
-            add(s['host'], s['port'], opts)
-            @log.info("#{s['host']}:#{s['port']} found at #{r} and added")
+          seen << r.to_mnemo
+          start = Time.now
+          update_one(r, opts) do |json, score|
+            r.assert_valid_score(score)
+            r.assert_score_ownership(score)
+            r.assert_score_strength(score) unless opts['ignore-score-weakness']
+            @remotes.rescore(score.host, score.port, score.value)
+            reboot(r, json, opts)
+            json['all'].each do |s|
+              next if @remotes.exists?(s['host'], s['port'])
+              add(s['host'], s['port'], opts)
+            end
+            capacity << { host: score.host, port: score.port, count: json['all'].count }
+            @log.debug("#{r}: the score is #{Rainbow(score.value).green} (#{json['version']}) in #{Age.new(start)}")
           end
         end
-        capacity << { host: score.host, port: score.port, count: json['all'].count }
-        @log.info("#{r}: the score is #{Rainbow(score.value).green} (#{json['version']}) in #{Age.new(start)}")
       end
       max_capacity = capacity.map { |c| c[:count] }.max || 0
       capacity.each do |c|
@@ -255,21 +283,80 @@ it's recommended to reboot, but I don't do it because of --never-reboot")
       if total.zero?
         @log.info("The list of remotes is #{Rainbow('empty').red}, run 'zold remote reset'!")
       else
-        @log.info("There are #{total} known remotes")
+        @log.info("There are #{total} known remotes \
+(#{@remotes.all.count { |r| r[:master] }} masters) \
+with the overall score of \
+#{@remotes.all.sum { |r| r[:score] }}, after update in #{Age.new(st)}")
       end
     end
 
-    def select(opts)
-      selected = @remotes.all.sort_by { |r| r[:score] }.reverse.first(opts['max-nodes'])
-      (@remotes.all - selected).each do |r|
-        @remotes.remove(r[:host], r[:port])
+    def update_one(r, opts)
+      attempt = 0
+      begin
+        uri = '/remotes'
+        res = r.http(uri).get
+        r.assert_code(200, res)
+        json = JsonPage.new(res.body, uri).to_hash
+        score = Score.parse_json(json['score'])
+        yield json, score
+      rescue JsonPage::CantParse, Score::CantParse, RemoteNode::CantAssert => e
+        attempt += 1
+        if attempt < opts['retry']
+          @log.debug("#{r} failed to read, trying again (attempt no.#{attempt}): #{e.message}")
+          retry
+        end
+        raise e
       end
+    end
+
+    def reboot(r, json, opts)
+      return unless json['repo'] == Zold::REPO
+      mine = Semantic::Version.new(VERSION)
+      if mine < Semantic::Version.new(json['version'])
+        if opts['reboot']
+          @log.info("#{r}: their version #{json['version']} is higher than mine #{VERSION}, reboot! \
+(use --never-reboot to avoid this from happening)")
+          terminate
+        end
+        @log.debug("#{r}: their version #{json['version']} is higher than mine #{VERSION}, \
+it's recommended to reboot, but I don't do it because of --never-reboot")
+      end
+      if mine < Semantic::Version.new(Zold::Gem.new.last_version)
+        if opts['reboot']
+          @log.info("#{r}: the version of the gem is higher than mine #{VERSION}, reboot! \
+(use --never-reboot to avoid this from happening)")
+          terminate
+        end
+        @log.debug("#{r}: gem version is higher than mine #{VERSION}, \
+it's recommended to reboot, but I don't do it because of --never-reboot")
+      end
+      @log.debug("#{r}: gem version is lower or equal to mine #{VERSION}, no need to reboot")
+    end
+
+    def select(opts)
+      @remotes.all.shuffle.sort_by { |r| r[:errors] }.reverse.each_with_index do |r, idx|
+        next if idx < opts['max-nodes']
+        next if r[:master] && !opts['masters-too']
+        @remotes.remove(r[:host], r[:port])
+        @log.debug("Remote #{r[:host]}:#{r[:port]}/#{r[:score]}/#{r[:errors]}e removed from the list")
+      end
+      @log.info("#{@remotes.all.count} best remote nodes were selected to stay in the list \
+(#{@remotes.all.count { |r| r[:master] }} masters)")
     end
 
     def terminate
       @log.info("All threads before exit: #{Thread.list.map { |t| "#{t.name}/#{t.status}" }.join(', ')}")
       require_relative '../node/front'
       Front.stop!
+    end
+
+    def ping(host, port, opts)
+      return true if opts['skip-ping']
+      res = Http.new(uri: "http://#{host}:#{port}/version", network: opts['network']).get
+      return true if res.status == 200
+      raise "The node #{host}:#{port} is not responding, #{res.status}:#{res.status_line}" unless opts['ignore-ping']
+      @log.error("The node #{host}:#{port} is not responding but we --ignore-ping, #{res.status}:#{res.status_line}")
+      false
     end
   end
 end

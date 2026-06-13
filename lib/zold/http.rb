@@ -1,40 +1,61 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2018 Yegor Bugayenko
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the 'Software'), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
+# SPDX-License-Identifier: MIT
 
 require 'rainbow'
 require 'uri'
-require 'timeout'
-require 'net/http'
 require 'backtrace'
+require 'zold/score'
+require 'typhoeus'
 require_relative 'version'
-require_relative 'type'
 
 # HTTP page.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2026 Zerocracy
 # License:: MIT
 module Zold
+  # Some clients waits for status method in response
+  class HttpResponse < SimpleDelegator
+    def status
+      code.zero? ? 599 : code
+    end
+
+    def status_line
+      status_message || ''
+    end
+
+    def to_s
+      "#{status}: #{status_line}\n#{body}"
+    end
+  end
+
+  # The error, if connection fails
+  class HttpError < HttpResponse
+    def initialize(ex)
+      super
+      @ex = ex
+    end
+
+    def body
+      Backtrace.new(@ex).to_s
+    end
+
+    def status
+      599
+    end
+
+    def status_line
+      @ex.message || ''
+    end
+
+    def headers
+      {}
+    end
+  end
+
   # Http page
-  class Http < Dry::Struct
+  class Http
     # HTTP header we add to each HTTP request, in order to inform
     # the other node about the score. If the score is big enough,
     # the remote node will add us to its list of remote nodes.
@@ -55,94 +76,82 @@ module Zold
     PROTOCOL_HEADER = 'X-Zold-Protocol'
 
     # Read timeout in seconds
-    READ_TIMEOUT = 4
+    READ_TIMEOUT = 2
+    private_constant :READ_TIMEOUT
 
     # Connect timeout in seconds
-    CONNECT_TIMEOUT = 4
+    CONNECT_TIMEOUT = 0.8
+    private_constant :CONNECT_TIMEOUT
 
-    # @todo #98:30m/DEV The following two statements are seen as issues by rubocop
-    #  raising a Lint/AmbiguousBlockAssociation offense. It is somthing
-    #  that could be solved by changing the TargetRubyVersion in .rubocop.yml
-    #  that is already taken care of in another issue. I am leaving a todo
-    #  to check that rubocop doesn't complain anymore, otherwise find another
-    #  solution
-    attribute :uri, (Types::Class.constructor { |v| v.is_a?(URI) ? v : URI(v) })
-    attribute :score, (Types::Class.constructor { |v| v.nil? ? Score::ZERO : v })
-    attribute :network, Types::Strict::String.optional.default('test')
-
-    def get
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = uri.scheme == 'https'
-      http.read_timeout = Http::READ_TIMEOUT
-      http.open_timeout = Http::CONNECT_TIMEOUT
-      path = uri.path
-      path += '?' + uri.query if uri.query
-      Timeout.timeout(Http::READ_TIMEOUT + Http::CONNECT_TIMEOUT) do
-        http.request_get(path, headers)
-      end
-    rescue StandardError => e
-      Error.new(e)
+    def initialize(uri:, score: Score::ZERO, network: 'test')
+      @uri = uri.is_a?(URI) ? uri : URI(uri)
+      @score = score
+      @network = network
     end
 
-    def put(body)
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = uri.scheme == 'https'
-      http.read_timeout = Http::READ_TIMEOUT
-      http.open_timeout = Http::CONNECT_TIMEOUT
-      path = uri.path
-      path += '?' + uri.query if uri.query
-      Timeout.timeout(Http::READ_TIMEOUT + Http::CONNECT_TIMEOUT) do
-        http.request_put(
-          path, body,
-          headers.merge(
-            'Content-Type': 'text/plain',
-            'Content-Length': body.length.to_s
-          )
+    def get(timeout: READ_TIMEOUT)
+      HttpResponse.new(
+        Typhoeus::Request.get(
+          @uri,
+          accept_encoding: 'gzip',
+          headers: headers,
+          connecttimeout: CONNECT_TIMEOUT,
+          timeout: timeout
         )
+      )
+    rescue StandardError => e
+      HttpError.new(e)
+    end
+
+    def get_file(file)
+      File.open(file, 'w') do |f|
+        request = Typhoeus::Request.new(
+          @uri,
+          accept_encoding: 'gzip',
+          headers: headers,
+          connecttimeout: CONNECT_TIMEOUT
+        )
+        request.on_body do |chunk|
+          f.write(chunk)
+        end
+        request.run
+        response = new HttpResponse(request)
+        raise "Invalid response code #{response.status}" unless response.status == 200
+        response
       end
     rescue StandardError => e
-      Error.new(e)
+      HttpError.new(e)
+    end
+
+    def put(file)
+      HttpResponse.new(
+        Typhoeus::Request.put(
+          @uri,
+          accept_encoding: 'gzip',
+          body: File.read(file),
+          headers: headers.merge(
+            'Content-Type': 'text/plain'
+          ),
+          connecttimeout: CONNECT_TIMEOUT,
+          timeout: 2 + (File.size(file) * 0.01 / 1024)
+        )
+      )
+    rescue StandardError => e
+      HttpError.new(e)
     end
 
     private
 
-    # The error, if connection fails
-    class Error
-      def initialize(ex)
-        @ex = ex
-      end
-
-      def to_s
-        "#{code}: #{message}\n#{body}"
-      end
-
-      def body
-        Backtrace.new(@ex).to_s
-      end
-
-      def code
-        '599'
-      end
-
-      def message
-        @ex.message
-      end
-
-      def header
-        {}
-      end
-    end
-
     def headers
       headers = {
         'User-Agent': "Zold #{VERSION}",
-        'Connection': 'close',
+        Connection: 'close',
         'Accept-Encoding': 'gzip'
       }
       headers[Http::VERSION_HEADER] = Zold::VERSION
       headers[Http::PROTOCOL_HEADER] = Zold::PROTOCOL.to_s
-      headers[Http::NETWORK_HEADER] = network
-      headers[Http::SCORE_HEADER] = score.reduced(4).to_text if score.valid? && !score.expired? && score.value > 3
+      headers[Http::NETWORK_HEADER] = @network
+      headers[Http::SCORE_HEADER] = @score.reduced(4).to_s if @score.valid? && !@score.expired? && @score.value > 3
       headers
     end
   end

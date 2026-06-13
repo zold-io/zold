@@ -1,53 +1,53 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2018 Yegor Bugayenko
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the 'Software'), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
+# SPDX-License-Identifier: MIT
 
-require 'minitest/autorun'
 require 'tmpdir'
+require_relative 'test__helper'
 require_relative '../lib/zold/id'
 
 # ID test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2026 Zerocracy
 # License:: MIT
-class TestId < Minitest::Test
+class TestId < Zold::Test
   def test_generates_new_id
     50.times do
       id = Zold::Id.new
-      assert id.to_s.length == 16
+      assert_equal 16, id.to_s.length
     end
+  end
+
+  def test_generates_different_ids
+    before = ''
+    500.times do
+      id = Zold::Id.new
+      refute_equal id.to_s, before.to_s
+      before = id
+    end
+  end
+
+  def test_list_of_banned_ids_is_not_empty
+    refute_empty(Zold::Id::BANNED)
+  end
+
+  def test_checks_for_root
+    assert_predicate(Zold::Id::ROOT, :root?)
   end
 
   def test_generates_id_only_once
     id = Zold::Id.new
     before = id.to_s
     5.times do
-      assert id.to_s == before
+      assert_equal id.to_s, before
     end
   end
 
   def test_parses_id
     hex = 'ff01889402fe0954'
     id = Zold::Id.new(hex)
-    assert(id.to_s == hex, "#{id} is not equal to #{hex}")
+    assert_equal(id.to_s, hex, "#{id} is not equal to #{hex}")
   end
 
   def test_compares_two_ids_by_text
@@ -56,6 +56,6 @@ class TestId < Minitest::Test
   end
 
   def test_compares_two_ids
-    assert Zold::Id.new(Zold::Id::ROOT.to_s) == Zold::Id.new('0000000000000000')
+    assert_equal Zold::Id.new(Zold::Id::ROOT.to_s), Zold::Id.new('0000000000000000')
   end
 end

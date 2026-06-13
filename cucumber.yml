@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
+# SPDX-License-Identifier: MIT
+---
 default: --format pretty
 travis: --format progress
 html_report: --format progress --format html --out=features_report.html

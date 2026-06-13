@@ -1,26 +1,8 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2018 Yegor Bugayenko
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the 'Software'), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
+# SPDX-License-Identifier: MIT
 
-require 'minitest/autorun'
 require 'tmpdir'
 require 'webmock/minitest'
 require_relative '../test__helper'
@@ -36,31 +18,27 @@ require_relative '../node/fake_node'
 
 # NODE test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2026 Zerocracy
 # License:: MIT
-class TestNode < Minitest::Test
-  # @todo #306:30min This test is failing from time to time
-  #  We should find a way to check that tests involved in thread concurrency
-  #  are always working
+class TestNode < Zold::Test
   def test_push_and_fetch
-    skip
-    FakeHome.new.run do |home|
-      FakeNode.new(log: test_log).run do |port|
+    FakeHome.new(log: fake_log).run do |home|
+      FakeNode.new(log: fake_log).run do |port|
         wallets = home.wallets
         wallet = home.create_wallet
         remotes = home.remotes
         remotes.add('localhost', port)
-        Zold::Push.new(wallets: wallets, remotes: remotes, log: test_log).run(
-          ['push', '--ignore-score-weakness']
+        Zold::Push.new(wallets: wallets, remotes: remotes, log: fake_log).run(
+          ['push', '--ignore-score-weakness', '--tolerate-edges', '--tolerate-quorum=1']
         )
         copies = home.copies(wallet)
         begin
           retries ||= 0
           Zold::Fetch.new(
             wallets: wallets, copies: copies.root,
-            remotes: remotes, log: test_log
-          ).run(['fetch', '--ignore-score-weakness'])
-        rescue StandardError => _
+            remotes: remotes, log: fake_log
+          ).run(['fetch', '--ignore-score-weakness', '--tolerate-edges', '--tolerate-quorum=1'])
+        rescue StandardError => _e
           sleep 1
           retry if (retries += 1) < 3
         end

@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
+# SPDX-License-Identifier: MIT
 Feature: Gem Package
   As a source code writer I want to be able to
   package the Gem into .gem file
@@ -10,7 +12,7 @@ Feature: Gem Package
     require 'rubygems'
     spec = Gem::Specification::load('./spec.rb')
     if spec.executables.empty?
-      fail 'no executables: ' + File.read('./spec.rb')
+      fail 'no executables: ' + IO.read('./spec.rb')
     end
     """
     When I run bash with:

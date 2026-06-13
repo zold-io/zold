@@ -1,31 +1,62 @@
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
+# SPDX-License-Identifier: MIT
+---
 AllCops:
   Exclude:
     - 'bin/**/*'
     - 'assets/**/*'
+    - 'vendor/**/*'
   DisplayCopNames: true
-  TargetRubyVersion: 2.3.3
-
+  TargetRubyVersion: 2.5
+  NewCops: enable
+  SuggestExtensions: false
+plugins:
+  - rubocop-rake
+  - rubocop-minitest
+  - rubocop-performance
+Gemspec/RequireMFA:
+  Enabled: false
+Lint/ToJSON:
+  Enabled: false
+Minitest/UnspecifiedException:
+  Enabled: false
+Minitest/SkipWithoutReason:
+  Enabled: false
+Naming/PredicateMethod:
+  Enabled: false
+Minitest/MultipleAssertions:
+  Enabled: false
+Minitest/EmptyLineBeforeAssertionMethods:
+  Enabled: false
+Layout/ArgumentAlignment:
+  Enabled: false
+Style/ClassAndModuleChildren:
+  Enabled: false
+Layout/EmptyLineAfterGuardClause:
+  Enabled: false
 Metrics/CyclomaticComplexity:
-  Max: 25
+  Max: 45
 Metrics/MethodLength:
   Enabled: false
 Layout/MultilineMethodCallIndentation:
   Enabled: false
 Metrics/AbcSize:
   Enabled: false
+Metrics/BlockNesting:
+  Max: 4
 Metrics/BlockLength:
-  Max: 100
+  Max: 130
 Metrics/ClassLength:
-  Max: 400
+  Max: 600
 Layout/EndOfLine:
   EnforcedStyle: lf
 Metrics/ParameterLists:
   Max: 10
-Layout/AlignParameters:
+Layout/ParameterAlignment:
   Enabled: false
 Metrics/PerceivedComplexity:
-  Max: 25
-Metrics/LineLength:
+  Max: 45
+Layout/LineLength:
   Max: 120
 Style/MultilineBlockChain:
   Enabled: false
@@ -33,5 +64,5 @@ Layout/MultilineOperationIndentation:
   Enabled: false
 Security/Eval:
   Enabled: false
-Naming/UncommunicativeMethodParamName:
+Naming/MethodParameterName:
   MinNameLength: 1

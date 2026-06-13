@@ -1,45 +1,32 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
-#
-# Copyright (c) 2018 Yegor Bugayenko
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the 'Software'), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
+# SPDX-License-Identifier: MIT
 
 STDOUT.sync = true
 
-unless Gem.win_platform?
-  # For debug in production, see https://github.com/frsyuki/sigdump
-  ENV['SIGDUMP_PATH'] = File.join(Dir.pwd, "sigdump-#{Process.pid}.log")
-  require 'sigdump/setup'
-end
+start = Time.now
 
 require 'slop'
 require 'rainbow'
+require 'backtrace'
+require 'memory_profiler'
+require 'get_process_mem'
 require_relative '../lib/zold'
 require_relative '../lib/zold/version'
 require_relative '../lib/zold/wallet'
+require_relative '../lib/zold/dir_items'
+require_relative '../lib/zold/hands'
 require_relative '../lib/zold/wallets'
 require_relative '../lib/zold/tree_wallets'
 require_relative '../lib/zold/sync_wallets'
 require_relative '../lib/zold/cached_wallets'
-require_relative '../lib/zold/log'
+require_relative '../lib/zold/hungry_wallets'
+require 'loog'
 require_relative '../lib/zold/key'
+require_relative '../lib/zold/age'
+require_relative '../lib/zold/size'
 require_relative '../lib/zold/amount'
 require_relative '../lib/zold/copies'
 require_relative '../lib/zold/remotes'
@@ -51,195 +38,225 @@ Thread.current.name = 'main'
 Encoding.default_external = Encoding::UTF_8
 Encoding.default_internal = Encoding::UTF_8
 
-log = Zold::Log::Regular.new
+log = Loog::REGULAR
 
 args = []
 unless ENV['RACK_ENV'] == 'test' || ARGV.find { |a| a == '--ignore-global-config' }
   config = File.expand_path('~/.zold')
   if File.exist?(config)
-    body = File.read(config)
+    body = IO.read(config)
     extra = body.split(/[\r\n]+/).map(&:strip)
     args += extra
-    log.debug("Found #{body.split(/\n/).length} lines in #{config}")
-  else
-    log.debug("Default config file #{config} not found")
   end
 end
 args += ARGV
 
-begin
-  opts = Slop.parse(args, strict: false, suppress_errors: true) do |o|
-    o.banner = "Usage: zold [options] command [arguments]
+opts = Slop.parse(args, strict: false, suppress_errors: true) do |o|
+  o.banner = "Usage: zold [options] command [arguments]
 Available commands:
-    #{Rainbow('remote').green} command [options]
-      Manage remote nodes
-    #{Rainbow('create').green} [options]
-      Creates a new wallet with a random ID
-    #{Rainbow('fetch').green} [ID...] [options]
-      Fetch wallet copies from remote nodes
-    #{Rainbow('clean').green} [ID...] [options]
-      Remove expired local copies
-    #{Rainbow('merge').green} [ID...] [options]
-      Merge remote copies with the HEAD
-    #{Rainbow('propagate').green} [ID...] [options]
-      Propagate transactions to receiving wallets
-    #{Rainbow('pull').green} [ID...] [options]
-      Fetch and then merge
-    #{Rainbow('remove').green} [ID...] [options]
-      Remove the wallet(s) from the local storage
-    #{Rainbow('show').green} [ID...] [options]
-      Show all available information about the wallet
-    #{Rainbow('pay').green} from to amount details [options]
-      Pay ZOLD from one wallet to another
-    #{Rainbow('invoice').green} ID [options]
-      Generate invoice unique ID for a payment
-    #{Rainbow('push').green} [ID...] [options]
-      Push all/some local wallets or the ones required
-    #{Rainbow('taxes').green} command [ID...] [options]
-      Pay taxes, check their status
-    #{Rainbow('node').green} [options]
-      Run node at the given TCP port
-    #{Rainbow('alias').green} [alias] [wallet ID]
-      Set an alias for a wallet
-    #{Rainbow('next').green} score
-      Generate next score from the provided one
-    #{Rainbow('score').green} [options]
-      Generate score for the given host and port
+  #{Rainbow('remote').green} command [options]
+    Manage remote nodes
+  #{Rainbow('create').green} [options]
+    Creates a new wallet with a random ID
+  #{Rainbow('fetch').green} [ID...] [options]
+    Fetch wallet copies from remote nodes
+  #{Rainbow('clean').green} [ID...] [options]
+    Remove expired local copies
+  #{Rainbow('merge').green} [ID...] [options]
+    Merge remote copies with the HEAD
+  #{Rainbow('propagate').green} [ID...] [options]
+    Propagate transactions to receiving wallets
+  #{Rainbow('pull').green} [ID...] [options]
+    Fetch and then merge
+  #{Rainbow('remove').green} [ID...] [options]
+    Remove the wallet(s) from the local storage
+  #{Rainbow('show').green} [ID...] [options]
+    Show all available information about the wallet
+  #{Rainbow('pay').green} from to amount details [options]
+    Pay ZOLD from one wallet to another
+  #{Rainbow('invoice').green} ID [options]
+    Generate invoice unique ID for a payment
+  #{Rainbow('push').green} [ID...] [options]
+    Push all/some local wallets or the ones required
+  #{Rainbow('taxes').green} command [ID...] [options]
+    Pay taxes, check their status
+  #{Rainbow('node').green} [options]
+    Run node at the given TCP port
+  #{Rainbow('alias').green} [alias] [wallet ID]
+    Set an alias for a wallet
+  #{Rainbow('next').green} score
+    Generate next score from the provided one
+  #{Rainbow('score').green} [options]
+    Generate score for the given host and port
 Available options:"
-    o.string '--home',
-      "Home directory (default: #{Dir.pwd})",
-      default: Dir.pwd
-    o.string '--network',
-      "The name of the network we work in (default: #{Zold::Wallet::MAIN_NETWORK}",
-      required: true,
-      default: Zold::Wallet::MAIN_NETWORK
-    o.bool '-h', '--help', 'Show these instructions'
-    o.bool '--trace', 'Show full stack trace in case of a problem'
-    o.bool '--skip-upgrades', 'Don\'t upgrade the storage', default: false
-    o.bool '--ignore-global-config', 'Don\'t read options from the ~/.zold file'
-    o.on '--no-colors', 'Disable colors in the ouput' do
-      Rainbow.enabled = false
-    end
-    o.on '--verbose', 'Enable extra logging information' do
-      log = Zold::Log::Verbose.new
-    end
-    o.on '-v', '--version', 'Show current version' do
-      log.info(Zold::VERSION)
-      exit
-    end
+  o.string '--home',
+    "Home directory (default: #{Dir.pwd})",
+    default: Dir.pwd
+  o.string '--network',
+    "The name of the network we work in (default: #{Zold::Wallet::MAINET})",
+    required: true,
+    default: Zold::Wallet::MAINET
+  o.bool '-h', '--help', 'Show these instructions'
+  o.bool '--trace', 'Show full stack trace in case of a problem'
+  o.bool '--memory-dump', 'Dump memory snapshot afterwards, to the console', default: false
+  o.bool '--skip-upgrades', 'Don\'t upgrade the storage', default: false
+  o.bool '--ignore-global-config', 'Don\'t read options from the ~/.zold file'
+  o.on '--no-colors', 'Disable colors in the output' do
+    Rainbow.enabled = false
   end
-
-  log = Zold::Log::Sync.new(log)
-
-  commands = opts.arguments.reject { |a| a.start_with?('-') }
-  command = commands[0]
-
-  if command.nil?
-    raise 'A command required, try --help' unless opts.help?
-    log.info(opts.to_s)
+  o.on '--verbose', 'Enable extra logging information' do
+    log = Loog::VERBOSE
+  end
+  o.on '-v', '--version', 'Show current version' do
+    log.info(Zold::VERSION)
     exit
   end
+end
 
-  args = opts.arguments
-  args << '--help' if opts.help?
-  args << "--network=#{opts['network']}"
 
-  FileUtils.mkdir_p(opts[:home])
-  Dir.chdir(opts[:home])
+log.debug("Gem location: #{File.dirname(File.dirname(__FILE__))}")
 
-  zoldata = File.expand_path(File.join(Dir.pwd, '.zoldata'))
+commands = opts.arguments.reject { |a| a.start_with?('-') }
+command = commands[0]
 
-  unless opts['skip-upgrades']
-    Zold::Upgrades.new(Zold::VersionFile.new(File.join(zoldata, 'version')), 'upgrades').run
-    # @todo #384:30min This is a workaround, move this code into Upgrades, somehow.
-    #  We should find a way to run these arbitrary scripts and pass arguments
-    #  to them. Each of them may need its own set of arguments.
-    require_relative '../upgrades/2'
-    Zold::UpgradeTo2.new(Dir.pwd, log).exec
-    require_relative '../upgrades/protocol_up'
-    Zold::ProtocolUp.new(Dir.pwd, log).exec
-    require_relative '../upgrades/rename_foreign_wallets'
-    Zold::RenameForeignWallets.new(Dir.pwd, opts['network'], log).exec
-    if command == 'node'
-      require_relative '../upgrades/move_wallets_into_tree'
-      Zold::MoveWalletsIntoTree.new(Dir.pwd, log).exec
+if command.nil?
+  raise 'A command required, try --help' unless opts.help?
+  log.info(opts.to_s)
+  exit
+end
+
+args = opts.arguments
+args << '--help' if opts.help?
+args << "--network=#{opts['network']}"
+
+home = File.expand_path(opts[:home])
+FileUtils.mkdir_p(home)
+Dir.chdir(home)
+log.debug("Home directory: #{home}")
+
+zdata = File.join(home, '.zoldata')
+
+unless opts['skip-upgrades']
+  Zold::Upgrades.new(
+    Zold::VersionFile.new(File.join(zdata, 'version')),
+    'upgrades',
+    { command: command, network: opts['network']}
+  ).run
+end
+
+locks = File.join(zdata, 'locks')
+Zold::DirItems.new(locks).fetch.each do |f|
+  file = File.join(locks, f)
+  if File.mtime(file) < Time.now - 60
+    File.delete(file)
+  end
+end
+wallets = Zold::SyncWallets.new(
+  Zold::CachedWallets.new(
+    command == 'node' ? Zold::TreeWallets.new(home) : Zold::Wallets.new(home)
+  ),
+  log: log,
+  dir: locks
+)
+fremotes = File.join(zdata, 'remotes')
+remotes = Zold::Remotes.new(file: fremotes, network: opts['network'])
+if File.exist?(fremotes)
+  log.debug("Remote nodes: #{remotes.all.count} total")
+else
+  remotes.masters
+  log.debug("Default remotes have been set: #{remotes.all.count} total")
+end
+copies = File.join(zdata, 'copies')
+
+log.debug("Network: #{opts['network']} (#{opts['network'] == Zold::Wallet::MAINET ? 'main' : 'test'} net)")
+log.debug("Memory footprint at start is #{Zold::Size.new(GetProcessMem.new.bytes.to_i)}")
+
+Zold::Hands.start(log: log)
+
+cmd = lambda do
+  begin
+    case command
+    when 'node'
+      require_relative '../lib/zold/commands/node'
+      Zold::Node.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)
+    when 'create'
+      require_relative '../lib/zold/commands/create'
+      Zold::Create.new(wallets: wallets, remotes: remotes, log: log).run(args)
+    when 'remote'
+      require_relative '../lib/zold/commands/remote'
+      Zold::Remote.new(remotes: remotes, log: log).run(args)
+    when 'invoice'
+      require_relative '../lib/zold/commands/invoice'
+      Zold::Invoice.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)
+    when 'pay'
+      require_relative '../lib/zold/commands/pay'
+      Zold::Pay.new(wallets: wallets, copies: copies, remotes: remotes, log: log).run(args)
+    when 'show'
+      require_relative '../lib/zold/commands/show'
+      Zold::Show.new(wallets: wallets, copies: copies, log: log).run(args)
+    when 'list'
+      require_relative '../lib/zold/commands/list'
+      Zold::List.new(wallets: wallets, copies: copies, log: log).run(args)
+    when 'fetch'
+      require_relative '../lib/zold/commands/fetch'
+      Zold::Fetch.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)
+    when 'clean'
+      require_relative '../lib/zold/commands/clean'
+      Zold::Clean.new(wallets: wallets, copies: copies, log: log).run(args)
+    when 'remove'
+      require_relative '../lib/zold/commands/remove'
+      Zold::Remove.new(wallets: wallets, log: log).run(args)
+    when 'diff'
+      require_relative '../lib/zold/commands/diff'
+      Zold::Diff.new(wallets: wallets, copies: copies, log: log).run(args)
+    when 'merge'
+      require_relative '../lib/zold/commands/merge'
+      Zold::Merge.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)
+    when 'propagate'
+      require_relative '../lib/zold/commands/propagate'
+      Zold::Propagate.new(wallets: wallets, log: log).run(args)
+    when 'pull'
+      require_relative '../lib/zold/commands/pull'
+      Zold::Pull.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)
+    when 'taxes'
+      require_relative '../lib/zold/commands/taxes'
+      Zold::Taxes.new(wallets: wallets, remotes: remotes, log: log).run(args)
+    when 'push'
+      require_relative '../lib/zold/commands/push'
+      Zold::Push.new(wallets: wallets, remotes: remotes, log: log).run(args)
+    when 'alias'
+      require_relative '../lib/zold/commands/alias'
+      Zold::Alias.new(wallets: wallets, log: log).run(args)
+    when 'score'
+      require_relative '../lib/zold/commands/calculate'
+      Zold::Calculate.new(log: log).run(args)
+    when 'next'
+      require_relative '../lib/zold/commands/next'
+      Zold::Next.new(log: log).run(args)
+    else
+      raise "Command '#{command}' is not supported"
     end
+    return 0
+  rescue StandardError => ex
+    log.error("#{ex.message} (#{ex.class.name})")
+    log.error(Backtrace.new(ex)) if opts['trace']
+    return -1
   end
+end
 
-  wallets = Zold::SyncWallets.new(
-    Zold::CachedWallets.new(
-      command == 'node' ? Zold::TreeWallets.new('.') : Zold::Wallets.new('.')
-    ),
-    File.join(zoldata, 'locks'), log: log
-  )
-  remotes = Zold::Remotes.new(file: File.join(zoldata, 'remotes'), network: opts['network'])
-  copies = File.join(zoldata, 'copies')
+code = 0
+if opts['memory-dump']
+  MemoryProfiler.report(top: 20) { code = cmd.call }.pretty_print
+else
+  code = cmd.call
+end
 
-  log.debug("Network: #{opts['network']}")
+Zold::Hands.stop
 
-  case command
-  when 'node'
-    require_relative '../lib/zold/commands/node'
-    Zold::Node.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)
-  when 'create'
-    require_relative '../lib/zold/commands/create'
-    Zold::Create.new(wallets: wallets, log: log).run(args)
-  when 'remote'
-    require_relative '../lib/zold/commands/remote'
-    Zold::Remote.new(remotes: remotes, log: log).run(args)
-  when 'invoice'
-    require_relative '../lib/zold/commands/invoice'
-    Zold::Invoice.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)
-  when 'pay'
-    require_relative '../lib/zold/commands/pay'
-    Zold::Pay.new(wallets: wallets, remotes: remotes, log: log).run(args)
-  when 'show'
-    require_relative '../lib/zold/commands/show'
-    Zold::Show.new(wallets: wallets, log: log).run(args)
-  when 'list'
-    require_relative '../lib/zold/commands/list'
-    Zold::List.new(wallets: wallets, log: log).run(args)
-  when 'fetch'
-    require_relative '../lib/zold/commands/fetch'
-    Zold::Fetch.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)
-  when 'clean'
-    require_relative '../lib/zold/commands/clean'
-    Zold::Clean.new(wallets: wallets, copies: copies, log: log).run(args)
-  when 'remove'
-    require_relative '../lib/zold/commands/remove'
-    Zold::Remove.new(wallets: wallets, log: log).run(args)
-  when 'diff'
-    require_relative '../lib/zold/commands/diff'
-    Zold::Diff.new(wallets: wallets, copies: copies, log: log).run(args)
-  when 'merge'
-    require_relative '../lib/zold/commands/merge'
-    Zold::Merge.new(wallets: wallets, copies: copies, log: log).run(args)
-  when 'propagate'
-    require_relative '../lib/zold/commands/propagate'
-    Zold::Propagate.new(wallets: wallets, log: log).run(args)
-  when 'pull'
-    require_relative '../lib/zold/commands/pull'
-    Zold::Pull.new(wallets: wallets, remotes: remotes, copies: copies, log: log).run(args)
-  when 'taxes'
-    require_relative '../lib/zold/commands/taxes'
-    Zold::Taxes.new(wallets: wallets, remotes: remotes, log: log).run(args)
-  when 'push'
-    require_relative '../lib/zold/commands/push'
-    Zold::Push.new(wallets: wallets, remotes: remotes, log: log).run(args)
-  when 'alias'
-    require_relative '../lib/zold/commands/alias'
-    Zold::Alias.new(wallets: wallets, log: log).run(args)
-  when 'score'
-    require_relative '../lib/zold/commands/calculate'
-    Zold::Calculate.new(log: log).run(args)
-  when 'next'
-    require_relative '../lib/zold/commands/next'
-    Zold::Next.new(log: log).run(args)
-  else
-    raise "Command '#{command}' is not supported"
-  end
-rescue StandardError => ex
-  log.error("#{ex.message} (#{ex.class.name})")
-  puts(ex.backtrace) if opts['trace']
-  exit -1
+log.debug("Memory footprint at the end is #{Zold::Size.new(GetProcessMem.new.bytes.to_i)}")
+if code.zero?
+  log.debug("Successfully finished in #{Zold::Age.new(start)}")
+else
+  log.debug("Failed in #{Zold::Age.new(start)}")
+  exit(code)
 end

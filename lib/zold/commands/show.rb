@@ -1,42 +1,32 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2018 Yegor Bugayenko
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the 'Software'), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
+# SPDX-License-Identifier: MIT
 
 require 'slop'
 require 'rainbow'
+require_relative 'thread_badge'
 require_relative 'args'
-require_relative '../log'
+require 'loog'
 require_relative '../id'
 require_relative '../amount'
 require_relative '../wallet'
+require_relative '../tax'
+require_relative '../size'
+require_relative '../age'
 
 # SHOW command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2026 Zerocracy
 # License:: MIT
 module Zold
   # Show command
   class Show
-    def initialize(wallets:, log: Log::Quiet.new)
+    prepend ThreadBadge
+
+    def initialize(wallets:, copies:, log: Loog::NULL)
       @wallets = wallets
+      @copies = copies
       @log = log
     end
 
@@ -49,11 +39,11 @@ Available options:"
       mine = Args.new(opts, @log).take || return
       if mine.empty?
         require_relative 'list'
-        List.new(wallets: @wallets, log: @log).run(args)
+        List.new(wallets: @wallets, copies: @copies, log: @log).run(args)
       else
         total = Amount::ZERO
         mine.map { |i| Id.new(i) }.each do |id|
-          @wallets.find(id) do |w|
+          @wallets.acq(id) do |w|
             total += show(w, opts)
           end
         end
@@ -68,9 +58,22 @@ Available options:"
       wallet.txns.each do |t|
         @log.info(t.to_text)
       end
-      msg = "The balance of #{wallet}: #{balance}"
-      msg += " (net:#{wallet.network})" if wallet.network != Wallet::MAIN_NETWORK
-      @log.info(msg)
+      @log.info(
+        [
+          '',
+          "The balance of #{wallet}: #{balance} (#{balance.to_i} zents)",
+          "Network: #{wallet.network}",
+          "Transactions: #{wallet.txns.count}",
+          "Taxes: #{Tax.new(wallet).paid} paid, the debt is #{Tax.new(wallet).debt}",
+          "File size: #{Size.new(wallet.size)}, #{Copies.new(File.join(@copies, wallet.id)).all.count} copies",
+          "Modified: #{wallet.mtime.utc.iso8601} (#{Age.new(wallet.mtime.utc.iso8601)} ago)",
+          "Digest: #{wallet.digest}"
+        ].join("\n")
+      )
+      msg = Copies.new(File.join(@copies, wallet.id)).all.map do |c|
+        "##{c[:name]}: #{c[:score]} #{Wallet.new(c[:path]).mnemo}"
+      end.join("\n")
+      @log.info("\n#{msg}")
       balance
     end
   end

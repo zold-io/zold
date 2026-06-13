@@ -1,0 +1,81 @@
+-# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
+-# SPDX-License-Identifier: MIT
+
+- # (The MIT License)
+- #
+- # Copyright (c) 2018-2026 Zerocracy
+- #
+- # Permission is hereby granted, free of charge, to any person obtaining a copy
+- # of this software and associated documentation files (the 'Software'), to deal
+- # in the Software without restriction, including without limitation the rights
+- # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+- # copies of the Software, and to permit persons to whom the Software is
+- # furnished to do so, subject to the following conditions:
+- #
+- # The above copyright notice and this permission notice shall be included in all
+- # copies or substantial portions of the Software.
+- #
+- # THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+- # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+- # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+- # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+- # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+- # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+- # SOFTWARE.
+
+!!! 5
+%html
+  %head
+    %title= title
+    %meta{charset:'UTF-8'}
+    %meta{name: 'viewport', content: 'width=device-width, initial-scale=1.0'}
+    %meta{name: 'keywords', content: 'Zold, Cryptocurrency, Payments, Online Payments'}
+    %meta{name: 'description', content: description}
+    %link{rel: 'shortcut icon', href: '//www.zold.io/images/logo.png'}
+    %link{href: '//cdn.jsdelivr.net/gh/yegor256/tacit@gh-pages/tacit-css-1.4.2.min.css', rel: 'stylesheet'}
+    %link{href: '//www.zold.io/0.13.3/css/main.min.css', rel: 'stylesheet'}
+    %meta{name: 'twitter:creator', content: '@0crat'}
+    %meta{name: 'twitter:site', content: '@0crat'}
+    %meta{name: 'twitter:title', property: 'og:title', content: 'Zold'}
+    %meta{name: 'twitter:description', property: 'og:description', content: 'Experimental Non-Blockchain Cryptocurrency for Fast Micropayments'}
+    %meta{name: 'twitter:url', property: 'og:url', content: request.url}
+    %meta{name: 'telegram:channel', content: 'zold_io'}
+    %meta{name: 'og:image', content: '//blog.zold.io/images/ledger.jpg'}
+    %meta{name: 'twitter:image', content: '//blog.zold.io/images/ledger.jpg'}
+    %meta{name: 'twitter:card', content: 'summary'}
+    %meta{name: 'twitter:image:alt', content: 'Zold'}
+  %body
+    %section
+      %header
+        %nav
+          %ul
+            %li
+              %a{href: '/'}
+                %img.logo{src: '//www.zold.io/images/logo.svg', alt: 'Zold logo'}
+        %nav
+          %ul
+            %li
+              %a{href: '/'} Home
+            %li
+              %a{href: '/queue'} Queue
+            %li
+              %a{href: '/remotes'} Remotes
+            %li
+              %a{href: '/threads'} Threads
+            %li
+              %a{href: '/wallets'} Wallets
+            %li
+              %a{href: '/ledger'} Ledger
+            %li
+              %a{href: '/journal'} Journal
+            %li
+              %a{href: '/farm'} Farm
+            %li
+              %a{href: '/metronome'} Metronome
+      = yield
+      %footer
+        %p.footnotes
+          = Zold::VERSION
+        %p
+          %a{href: 'https://github.com/zold-io/zold/stargazers'}
+            %img{src: '//img.shields.io/github/stars/zold-io/zold.svg?style=flat-square', alt: 'GitHub stars'}

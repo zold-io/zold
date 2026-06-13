@@ -1,24 +1,7 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2018 Yegor Bugayenko
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the 'Software'), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
+# SPDX-License-Identifier: MIT
 
 require 'time'
 require_relative 'id'
@@ -29,26 +12,49 @@ require_relative 'signature'
 # The transaction.
 #
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2026 Zerocracy
 # License:: MIT
 module Zold
   # A single transaction
   class Txn
+    # When can't parse them.
+    class CantParse < StandardError; end
+
     # Regular expression for details
-    RE_DETAILS = '[a-zA-Z0-9 @\!\?\*_\-\.:,\']+'
+    RE_DETAILS = '[a-zA-Z0-9 @\!\?\*_\-\.:,\'/]+'
+    private_constant :RE_DETAILS
 
     # Regular expression for prefix
     RE_PREFIX = '[a-zA-Z0-9]+'
+    private_constant :RE_PREFIX
 
-    attr_reader :id, :date, :amount, :prefix, :bnf, :details, :sign
-    attr_writer :sign, :amount, :bnf
+    # To validate the prefix
+    REGEX_PREFIX = Regexp.new("^#{RE_PREFIX}$")
+    private_constant :REGEX_PREFIX
+
+    # To validate details
+    REGEX_DETAILS = Regexp.new("^#{RE_DETAILS}$")
+    private_constant :REGEX_DETAILS
+
+    attr_accessor :amount, :bnf, :sign
+    attr_reader :id, :date, :prefix, :details
+
+    # Make a new object of this class (you must read the White Paper
+    # in order to understand this class).
+    #
+    # +id+:: is the ID of the transaction, an integer
+    # +date+:: is the date/time of the transaction
+    # +amount+:: is the amount, an instance of class +Amount+
+    # +prefix+:: is the prefix from the Invoice (read the WP)
+    # +bnf+:: is the wallet ID of the paying or receiving wallet
+    # +details+:: is the details, in plain text
     def initialize(id, date, amount, prefix, bnf, details)
       raise 'The ID can\'t be NIL' if id.nil?
       raise "ID of transaction can't be negative: #{id}" if id < 1
       @id = id
       raise 'The time can\'t be NIL' if date.nil?
       raise 'Time have to be of type Time' unless date.is_a?(Time)
-      raise "Time can't be in the future: #{date}" if date > Time.now
+      raise "Time can't be in the future: #{date.utc.iso8601}" if date > Time.now
       @date = date
       raise 'The amount can\'t be NIL' if amount.nil?
       raise 'The amount has to be of type Amount' unless amount.is_a?(Amount)
@@ -58,14 +64,14 @@ module Zold
       raise 'The bnf has to be of type Id' unless bnf.is_a?(Id)
       @bnf = bnf
       raise 'Prefix can\'t be NIL' if prefix.nil?
-      raise "Prefix is too short: \"#{prefix}\"" if prefix.length < 8
-      raise "Prefix is too long: \"#{prefix}\"" if prefix.length > 32
-      raise "Prefix is wrong: \"#{prefix}\" (#{Txn::RE_PREFIX})" unless prefix =~ Regexp.new("^#{Txn::RE_PREFIX}$")
+      raise "Prefix is too short: #{prefix.inspect}" if prefix.length < 8
+      raise "Prefix is too long: #{prefix.inspect}" if prefix.length > 32
+      raise "Prefix is wrong: #{prefix.inspect} (#{RE_PREFIX})" unless REGEX_PREFIX.match?(prefix)
       @prefix = prefix
       raise 'Details can\'t be NIL' if details.nil?
       raise 'Details can\'t be empty' if details.empty?
-      raise "Details are too long: \"#{details}\"" if details.length > 512
-      raise "Wrong details \"#{details}\" (#{Txn::RE_DETAILS})" unless details =~ Regexp.new("^#{Txn::RE_DETAILS}$")
+      raise "Details are too long: #{details.inspect}" if details.length > 512
+      raise "Wrong details #{details.inspect} (#{RE_DETAILS})" unless REGEX_DETAILS.match?(details)
       @details = details
     end
 
@@ -92,8 +98,20 @@ module Zold
       ].join(';')
     end
 
+    def to_json
+      {
+        id: @id,
+        date: @date.utc.iso8601,
+        amount: @amount.to_i,
+        prefix: @prefix,
+        bnf: @bnf.to_s,
+        details: @details,
+        sign: @sign
+      }
+    end
+
     def to_text
-      start = @amount.negative? ? "##{@id}" : '-'
+      start = @amount.negative? ? "##{@id}" : "(#{@id})"
       "#{start} #{@date.utc.iso8601} #{@amount} #{@bnf} #{@details}"
     end
 
@@ -115,31 +133,65 @@ module Zold
       t
     end
 
-    def self.parse(line, idx = 0)
-      regex = Regexp.new(
-        '^' + [
+    # Pattern to match the transaction from text
+    PTN = Regexp.new(
+      [
+        '^',
+        [
           '(?<id>[0-9a-f]{4})',
           '(?<date>[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z)',
           '(?<amount>[0-9a-f]{16})',
-          "(?<prefix>#{Txn::RE_PREFIX})",
+          "(?<prefix>#{RE_PREFIX})",
           '(?<bnf>[0-9a-f]{16})',
-          "(?<details>#{Txn::RE_DETAILS})",
+          "(?<details>#{RE_DETAILS})",
           '(?<sign>[A-Za-z0-9+/]+={0,3})?'
-        ].join(';') + '$'
-      )
+        ].join(';'),
+        '$'
+      ].join
+    )
+    private_constant :PTN
+
+    def self.parse(line, idx = 0)
       clean = line.strip
-      parts = regex.match(clean)
-      raise "Invalid line ##{idx}: #{line.inspect} #{regex}" unless parts
+      parts = PTN.match(clean)
+      raise CantParse, "Invalid line ##{idx}: #{line.inspect} (doesn't match #{PTN})" unless parts
       txn = Txn.new(
         Hexnum.parse(parts[:id]).to_i,
-        Time.parse(parts[:date]),
-        Amount.new(coins: Hexnum.parse(parts[:amount]).to_i),
+        parse_time(parts[:date]),
+        Amount.new(zents: Hexnum.parse(parts[:amount]).to_i),
         parts[:prefix],
         Id.new(parts[:bnf]),
         parts[:details]
       )
-      txn.sign = parts[:sign]
+      txn.sign = parts[:sign] || ''
       txn
+    end
+
+    # When time can't be parsed.
+    class CantParseTime < StandardError; end
+
+    ISO8601 = Regexp.new(
+      [
+        '^',
+        [
+          '(?<year>\d{4})',
+          '-(?<month>\d{2})',
+          '-(?<day>\d{2})',
+          'T(?<hours>\d{2})',
+          ':(?<minutes>\d{2})',
+          ':(?<seconds>\d{2})Z'
+        ].join
+      ].join
+    )
+    private_constant :ISO8601
+
+    def self.parse_time(iso)
+      parts = ISO8601.match(iso)
+      raise CantParseTime, "Invalid ISO 8601 date \"#{iso}\"" if parts.nil?
+      Time.gm(
+        parts[:year].to_i, parts[:month].to_i, parts[:day].to_i,
+        parts[:hours].to_i, parts[:minutes].to_i, parts[:seconds].to_i
+      )
     end
   end
 end

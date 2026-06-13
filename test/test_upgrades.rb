@@ -1,35 +1,17 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2018 Yegor Bugayenko
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the 'Software'), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
+# SPDX-License-Identifier: MIT
 
-require 'minitest/autorun'
 require_relative 'test__helper'
 require_relative '../lib/zold/upgrades'
 require_relative '../lib/zold/version_file'
 
 # Upgrade test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2026 Zerocracy
 # License:: MIT
-class TestUpgrades < Minitest::Test
+class TestUpgrades < Zold::Test
   def test_no_version_file_is_ok
     Dir.mktmpdir do |dir|
       script_version = '0.0.1'
@@ -68,7 +50,7 @@ class TestUpgrades < Minitest::Test
   private
 
   def run_upgrades(dir)
-    Zold::Upgrades.new(version_file(dir), dir).run
+    Zold::Upgrades.new(version_file(dir), dir, { network: 'test' }).run
   end
 
   def version_file(dir)
@@ -76,11 +58,11 @@ class TestUpgrades < Minitest::Test
   end
 
   def create_version_file(dir, version)
-    IO.write(File.join(dir, 'version'), version)
+    File.write(File.join(dir, 'version'), version)
   end
 
   def create_upgrade_file(dir, version)
-    IO.write(
+    File.write(
       File.join(dir, "#{version}.rb"),
       "puts \"#{expected_upgrade_script_output(version)}\""
     )

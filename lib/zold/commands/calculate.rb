@@ -1,37 +1,23 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2018 Yegor Bugayenko
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the 'Software'), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
+# SPDX-License-Identifier: MIT
 
 require 'slop'
-require_relative '../log'
-require_relative '../score'
+require 'zold/score'
+require_relative 'thread_badge'
+require 'loog'
 
 # SCORE command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2026 Zerocracy
 # License:: MIT
 module Zold
   # Calculate score
   class Calculate
-    def initialize(log: Log::Quiet.new)
+    prepend ThreadBadge
+
+    def initialize(log: Loog::NULL)
       @log = log
     end
 
@@ -76,12 +62,12 @@ Available options:"
       strength = opts[:strength]
       raise "Invalid strength: #{strength}" if strength <= 0 || strength > 8
       score = Zold::Score.new(
-        time: Time.parse(opts[:time]), host: opts[:host], port: opts[:port].to_i,
+        time: Txn.parse_time(opts[:time]), host: opts[:host], port: opts[:port].to_i,
         invoice: opts[:invoice], strength: strength
       )
       loop do
         msg = score.to_s
-        msg += (score.value.positive? ? ' ' + score.hash : '') unless opts['hide-hash']
+        msg += (score.value.positive? ? " #{score.hash}" : '') unless opts['hide-hash']
         msg += " #{(Time.now - mstart).round(2)}s" unless opts['hide-time']
         @log.info(msg)
         break if score.value >= opts[:max].to_i

@@ -1,24 +1,7 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2018 Yegor Bugayenko
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the 'Software'), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
+# SPDX-License-Identifier: MIT
 
 require 'tmpdir'
 require 'slop'
@@ -30,17 +13,17 @@ Before do
   @dir = Dir.mktmpdir('test')
   FileUtils.copy('fixtures/id_rsa', @dir)
   FileUtils.copy('fixtures/id_rsa.pub', @dir)
-  FileUtils.mkdir_p(@dir) unless File.exist?(@dir)
+  FileUtils.mkdir_p(@dir)
   Dir.chdir(@dir)
 end
 
 After do
   Dir.chdir(@cwd)
-  FileUtils.rm_rf(@dir) if File.exist?(@dir)
+  FileUtils.rm_rf(@dir)
 end
 
 When(%r{^I run ([a-z/-]+) with "([^"]*)"$}) do |cmd, args|
-  home = File.join(File.dirname(__FILE__), '../..')
+  home = File.expand_path(File.join(File.dirname(__FILE__), '../..'))
   @stdout = `ruby -I#{home}/lib #{home}/#{cmd} #{args} 2>&1`
   @exitstatus = $CHILD_STATUS.exitstatus
 end
@@ -55,7 +38,7 @@ end
 When(/^I have "([^"]*)" file with content:$/) do |file, text|
   FileUtils.mkdir_p(File.dirname(file)) unless File.exist?(file)
   File.open(file, 'w:ASCII-8BIT') do |f|
-    f.write(text.gsub(/\\xFF/, 0xFF.chr))
+    f.write(text.gsub('\\xFF', 0xFF.chr))
   end
 end
 

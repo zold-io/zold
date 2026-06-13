@@ -1,42 +1,26 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2018 Yegor Bugayenko
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the 'Software'), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
+# SPDX-License-Identifier: MIT
 
 require 'backtrace'
-require_relative 'log'
+require 'loog'
 require_relative 'age'
+require_relative 'endless'
 require_relative 'verbose_thread'
+require_relative 'thread_pool'
 
 # Background routines.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2026 Zerocracy
 # License:: MIT
 module Zold
   # Metronome
   class Metronome
-    def initialize(log = Log::Quiet.new)
+    def initialize(log = Loog::NULL)
       @log = log
       @routines = []
-      @threads = []
-      @starts = {}
+      @threads = ThreadPool.new('metronome', log: log)
       @failures = {}
     end
 
@@ -44,13 +28,7 @@ module Zold
       [
         Time.now.utc.iso8601,
         'Current threads:',
-        @threads.map do |t|
-          [
-            "#{t.name}: status=#{t.status}; alive=#{t.alive?}",
-            "Most recent start: #{Age.new(@starts[t])} ago",
-            t.backtrace.nil? ? 'NO BACKTRACE' : "  #{t.backtrace.join("\n  ")}"
-          ].join("\n")
-        end,
+        @threads.to_s,
         'Failures:',
         @failures.map { |r, f| "#{r}\n#{f}\n" }
       ].flatten.join("\n\n")
@@ -62,23 +40,22 @@ module Zold
     end
 
     def start
-      alive = true
       @routines.each_with_index do |r, idx|
-        @threads << Thread.start do
-          Thread.current.abort_on_exception = true
-          Thread.current.name = "#{r.class.name}-#{idx}"
+        @threads.add do
           step = 0
-          while alive
-            @starts[Thread.current] = Time.now
+          Endless.new("#{r.class.name}-#{idx}", log: @log).run do
+            Thread.current.thread_variable_set(:start, Time.now)
+            step += 1
             begin
               r.exec(step)
-              @log.info("Routine #{r.class.name} ##{step} done in #{Age.new(@starts[Thread.current])}")
+              @log.debug("Routine #{r.class.name} ##{step} done \
+in #{Age.new(Thread.current.thread_variable_get(:start))}")
             rescue StandardError => e
-              @failures[r.class.name] = Time.now.utc.iso8601 + "\n" + Backtrace.new(e).to_s
-              @log.error("Routine #{r.class.name} ##{step} failed in #{Age.new(@starts[Thread.current])}")
-              @log.error(Backtrace.new(e).to_s)
+              @failures[r.class.name] = "#{Time.now.utc.iso8601}\n#{Backtrace.new(e)}"
+              @log.error("Routine #{r.class.name} ##{step} failed \
+in #{Age.new(Thread.current.thread_variable_get(:start))}")
+              raise e
             end
-            step += 1
             sleep(1)
           end
         end
@@ -86,19 +63,7 @@ module Zold
       begin
         yield(self)
       ensure
-        alive = false
-        @log.info("Stopping the metronome with #{@threads.count} threads: #{@threads.map(&:name).join(', ')}")
-        start = Time.now
-        @threads.each do |t|
-          tstart = Time.now
-          if t.join(60)
-            @log.info("Thread #{t.name} finished in #{Age.new(tstart)}")
-          else
-            t.exit
-            @log.info("Thread #{t.name} killed in #{Age.new(tstart)}")
-          end
-        end
-        @log.info("Metronome stopped in #{Age.new(start)}, #{@failures.count} failures")
+        @threads.kill
       end
     end
   end

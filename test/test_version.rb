@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
+# SPDX-License-Identifier: MIT
+
 require 'semantic'
 require 'zold/version'
-require 'minitest/autorun'
 
-class TestVersion < Minitest::Test
+class TestVersion < Zold::Test
   def test_has_version
     assert Semantic::Version.new(Zold::VERSION)
   end

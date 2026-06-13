@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025 Yegor Bugayenko
+# SPDX-License-Identifier: MIT
+
+version = 1
+[[annotations]]
+path = [
+    ".ruby-version",
+    "**/*.zc",
+    "fixtures/**",
+    "Guardfile",
+    "resources/**",
+    ".DS_Store",
+    ".gitattributes",
+    ".gitignore",
+    ".pdd",
+    "**.csv",
+    "**.json",
+    "**.md",
+    "**.txt",
+    "**/.DS_Store",
+    "**/.gitignore",
+    "**/.pdd",
+    "**/*.csv",
+    "**/*.jpg",
+    "**/*.json",
+    "**/*.md",
+    "**/*.pdf",
+    "**/*.png",
+    "**/*.svg",
+    "**/*.txt",
+    "**/*.vm",
+    "**/CNAME",
+    "**/Gemfile.lock",
+    "Gemfile.lock",
+    "README.md",
+    "renovate.json",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "Copyright (c) 2025 Yegor Bugayenko"
+SPDX-License-Identifier = "MIT"

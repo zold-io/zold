@@ -1,14 +1,20 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
+# SPDX-License-Identifier: MIT
+
 require 'slop'
 require 'rainbow'
+require_relative 'thread_badge'
 require_relative 'args'
-require_relative '../log'
+require 'loog'
 
 module Zold
   # Command to set an alias for wallet ID
   class Alias
-    def initialize(wallets:, log: Log::Quiet.new)
+    prepend ThreadBadge
+
+    def initialize(wallets:, log: Loog::NULL)
       @wallets = wallets
       @log = log
     end

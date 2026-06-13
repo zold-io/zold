@@ -1,26 +1,8 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2018 Yegor Bugayenko
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the 'Software'), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
+# SPDX-License-Identifier: MIT
 
-require 'minitest/autorun'
 require 'tmpdir'
 require_relative '../test__helper'
 require_relative '../../lib/zold/wallets'
@@ -29,20 +11,20 @@ require_relative '../../lib/zold/commands/create'
 
 # CREATE test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2026 Zerocracy
 # License:: MIT
-class TestCreate < Minitest::Test
+class TestCreate < Zold::Test
   def test_creates_wallet
     Dir.mktmpdir do |dir|
       wallets = Zold::Wallets.new(dir)
-      id = Zold::Create.new(wallets: wallets, log: test_log).run(
-        ['create', '--public-key=fixtures/id_rsa.pub']
+      id = Zold::Create.new(wallets: wallets, remotes: nil, log: fake_log).run(
+        ['create', '--public-key=fixtures/id_rsa.pub', '--skip-test']
       )
-      wallets.find(id) do |wallet|
-        assert(wallet.balance.zero?)
-        assert(
-          File.exist?(File.join(dir, "#{wallet.id}#{Zold::Wallet::EXTENSION}")),
-          "Wallet file not found: #{wallet.id}#{Zold::Wallet::EXTENSION}"
+      wallets.acq(id) do |wallet|
+        assert_predicate(wallet.balance, :zero?)
+        assert_path_exists(
+          File.join(dir, "#{wallet.id}#{Zold::Wallet::EXT}"),
+          "Wallet file not found: #{wallet.id}#{Zold::Wallet::EXT}"
         )
       end
     end

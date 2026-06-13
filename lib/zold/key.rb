@@ -1,34 +1,16 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2018 Yegor Bugayenko
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the 'Software'), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
+# SPDX-License-Identifier: MIT
 
 gem 'openssl'
 require 'openssl'
 require 'base64'
 require 'tempfile'
-require_relative 'atomic_file'
 
 # The RSA key (either private or public).
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2026 Zerocracy
 # License:: MIT
 module Zold
   # A key
@@ -38,7 +20,7 @@ module Zold
         unless file.nil?
           path = File.expand_path(file)
           raise "Can't find RSA key at #{file} (#{path})" unless File.exist?(path)
-          return AtomicFile.new(path).read
+          return File.read(path)
         end
         unless text.nil?
           return text if text.start_with?('-----')
@@ -50,6 +32,13 @@ module Zold
         end
         raise 'Either file or text must be set'
       end
+    end
+
+    # Public key of the root wallet
+    ROOT = Key.new(file: File.expand_path(File.join(File.dirname(__FILE__), '../../resources/root.pub')))
+
+    def root?
+      to_s == ROOT.to_s
     end
 
     def ==(other)
@@ -65,11 +54,11 @@ module Zold
     end
 
     def sign(text)
-      Base64.encode64(rsa.sign(OpenSSL::Digest::SHA256.new, text)).delete("\n")
+      Base64.encode64(rsa.sign(OpenSSL::Digest.new('SHA256'), text)).delete("\n")
     end
 
     def verify(signature, text)
-      rsa.verify(OpenSSL::Digest::SHA256.new, Base64.decode64(signature), text)
+      rsa.verify(OpenSSL::Digest.new('SHA256'), Base64.decode64(signature), text)
     end
 
     private

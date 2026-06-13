@@ -1,42 +1,26 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2018 Yegor Bugayenko
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the 'Software'), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
+# SPDX-License-Identifier: MIT
 
-require 'minitest/autorun'
 require 'tmpdir'
 require 'time'
 require_relative 'fake_home'
 require_relative 'test__helper'
 require_relative '../lib/zold/id'
+require_relative '../lib/zold/age'
 require_relative '../lib/zold/copies'
+require_relative '../lib/zold/dir_items'
 require_relative '../lib/zold/wallet'
 
 # Copies test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2026 Zerocracy
 # License:: MIT
-class TestCopies < Minitest::Test
+class TestCopies < Zold::Test
   def test_adds_and_removes_copies
     Dir.mktmpdir do |dir|
-      copies = Zold::Copies.new(File.join(dir, 'my/a/copies'), log: test_log)
+      copies = Zold::Copies.new(File.join(dir, 'my/a/copies'), log: fake_log)
       copies.add(content('alpha'), '192.168.0.1', 80, 1)
       copies.add(content('beta'), '192.168.0.2', 80, 3)
       copies.add(content('beta'), '192.168.0.3', 80, 7)
@@ -51,48 +35,59 @@ class TestCopies < Minitest::Test
 
   def test_lists_empty_dir
     Dir.mktmpdir do |dir|
-      copies = Zold::Copies.new(File.join(dir, 'xxx'), log: test_log)
-      assert(copies.all.empty?, "#{copies.all.count} is not zero")
+      copies = Zold::Copies.new(File.join(dir, 'xxx'), log: fake_log)
+      assert_empty(copies.all, "#{copies.all.count} is not zero")
     end
   end
 
   def test_overwrites_host
     Dir.mktmpdir do |dir|
-      copies = Zold::Copies.new(File.join(dir, 'my/a/copies-2'), log: test_log)
+      copies = Zold::Copies.new(File.join(dir, 'my/a/copies-2'), log: fake_log)
       host = 'b1.zold.io'
       copies.add(content('z1'), host, 80, 5)
       copies.add(content('z1'), host, 80, 6)
       copies.add(content('z1'), host, 80, 7)
-      assert(copies.all.count == 1, "#{copies.all.count} is not equal to 1")
-      assert(copies.all[0][:score] == 7, "#{copies.all[0][:score]} is not 7")
+      assert_predicate(copies.all, :one?, "#{copies.all.count} is not equal to 1")
+      assert_equal(7, copies.all[0][:score], "#{copies.all[0][:score]} is not 7")
+    end
+  end
+
+  def test_master_first
+    Dir.mktmpdir do |dir|
+      copies = Zold::Copies.new(File.join(dir, 'my/a/copies-2'), log: fake_log)
+      copies.add(content('z1'), 'edge-1', 80, 100, master: false)
+      copies.add(content('z2'), 'master', 80, 1, master: true)
+      copies.add(content('z1'), 'edge-2', 80, 50, master: false)
+      copies.add(content('z1'), 'edge-3', 80, 400, master: false)
+      assert(copies.all[0][:master])
     end
   end
 
   def test_cleans_copies
     Dir.mktmpdir do |dir|
-      copies = Zold::Copies.new(dir, log: test_log)
-      copies.add(content('h1'), 'zold.io', 4096, 10, Time.now - 25 * 60 * 60)
-      copies.add(content('h1'), 'zold.io', 4097, 20, Time.now - 26 * 60 * 60)
-      assert(File.exist?(File.join(dir, "1#{Zold::Copies::EXT}")))
+      copies = Zold::Copies.new(dir, log: fake_log)
+      copies.add(content('h1'), 'zold.io', 4096, 10, time: Time.now - (25 * 60 * 60))
+      copies.add(content('h1'), 'zold.io', 4097, 20, time: Time.now - (26 * 60 * 60))
+      assert_path_exists(File.join(dir, "1#{Zold::Copies::EXT}"))
       copies.clean
-      assert(copies.all.empty?, "#{copies.all.count} is not empty")
-      assert(!File.exist?(File.join(dir, "1#{Zold::Copies::EXT}")))
+      assert_empty(copies.all, "#{copies.all.count} is not empty")
+      refute_path_exists(File.join(dir, "1#{Zold::Copies::EXT}"))
     end
   end
 
   def test_cleans_broken_copies
     Dir.mktmpdir do |dir|
-      copies = Zold::Copies.new(dir, log: test_log)
-      copies.add('broken wallet content', 'zold.io', 4096, 10, Time.now)
+      copies = Zold::Copies.new(dir, log: fake_log)
+      copies.add('broken wallet content', 'zold.io', 4096, 10, time: Time.now)
       copies.clean
-      assert(copies.all.empty?, "#{copies.all.count} is not empty")
+      assert_empty(copies.all, "#{copies.all.count} is not empty")
     end
   end
 
   def test_ignores_garbage
     Dir.mktmpdir do |dir|
-      copies = Zold::Copies.new(dir, log: test_log)
-      copies.add(content('h1'), 'zold.io', 50, 80, Time.now - 25 * 60 * 60)
+      copies = Zold::Copies.new(dir, log: fake_log)
+      copies.add(content('h1'), 'zold.io', 50, 80, time: Time.now - (25 * 60 * 60))
       FileUtils.mkdir(File.join(dir, '55'))
       assert_equal(1, copies.all.count)
     end
@@ -100,7 +95,7 @@ class TestCopies < Minitest::Test
 
   def test_sorts_them_by_score
     Dir.mktmpdir do |dir|
-      copies = Zold::Copies.new(dir, log: test_log)
+      copies = Zold::Copies.new(dir, log: fake_log)
       copies.add(content('content-1'), '1.zold.io', 80, 1)
       copies.add(content('content-2'), '2.zold.io', 80, 2)
       copies.add(content('content-3'), '3.zold.io', 80, 50)
@@ -111,8 +106,8 @@ class TestCopies < Minitest::Test
 
   def test_ignores_too_old_scores
     Dir.mktmpdir do |dir|
-      copies = Zold::Copies.new(dir, log: test_log)
-      copies.add(content('h1'), 'zold.io', 50, 80, Time.now - 1000 * 60 * 60)
+      copies = Zold::Copies.new(dir, log: fake_log)
+      copies.add(content('h1'), 'zold.io', 50, 80, time: Time.now - (1000 * 60 * 60))
       assert_equal(0, copies.all[0][:score])
     end
   end
@@ -121,7 +116,7 @@ class TestCopies < Minitest::Test
 
   def content(text)
     id = Zold::Id.new('aaaabbbbccccdddd')
-    FakeHome.new.run do |home|
+    FakeHome.new(log: fake_log).run do |home|
       wallet = home.create_wallet(id)
       amount = Zold::Amount.new(zld: 1.99)
       key = Zold::Key.new(file: 'fixtures/id_rsa')

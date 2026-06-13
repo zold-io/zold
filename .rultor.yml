@@ -1,47 +1,42 @@
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
+# SPDX-License-Identifier: MIT
+---
+# yamllint disable rule:line-length
+docker:
+  image: yegor256/python
+architect:
+  - yegor256
 assets:
-  rubygems.yml: zerocracy/home#assets/rubygems.yml
-  id_rsa: zerocracy/home#assets/heroku-key
-  id_rsa.pub: zerocracy/home#assets/heroku-key.pub
+  rubygems.yml: yegor256/home#assets/rubygems.yml
+  docker-password: yegor256/home#assets/docker-password
 install: |
-  export GEM_HOME=~/.ruby
-  export GEM_PATH=$GEM_HOME:$GEM_PATH
+  pdd -f /dev/null -v
   sudo apt-get -y update
-  sudo gem install pdd
+  sudo apt-get install --yes libcurl4-openssl-dev netcat-openbsd
+  bundle update --no-color
 release:
+  pre: false
   script: |-
-    export RUBYOPT="-W0"
     [[ "${tag}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || exit -1
-    rm -rf *.gem
+    export RUBYOPT="-W0"
     sed -i "s/0\.0\.0/${tag}/g" lib/zold/version.rb
-    bundle install --no-color
-    rake --quiet
+    bundle exec rake --quiet
     git add lib/zold/version.rb
     git commit -m "version set to ${tag}"
     gem build zold.gemspec
     chmod 0600 ../rubygems.yml
     gem push *.gem --config-file ../rubygems.yml
-    git remote add heroku git@heroku.com:zold.git
-    rm -rf ~/.ssh
-    mkdir ~/.ssh
-    mv ../id_rsa ../id_rsa.pub ~/.ssh
-    chmod -R 600 ~/.ssh/*
-    echo -e "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null" > ~/.ssh/config
-    sed -i -s 's|Gemfile.lock||g' .gitignore
-    bundle update
-    trap 'git reset HEAD~1' EXIT
-    git add Gemfile.lock
-    git add .gitignore
-    git fetch
-    git commit -m 'config' && git push -f heroku $(git symbolic-ref --short HEAD):master
-    curl -f --connect-timeout 15 --retry 5 --retry-delay 30 http://b1.zold.io > /dev/null
-architect:
-- yegor256
+
+    while ! gem install "zold:${tag}"; do sleep 10; done
+    sed -i -e "s/0.0.0/${tag}/" Dockerfile
+    git add Dockerfile
+    git commit -m "version set to ${tag}"
+    repo=yegor256/zold
+    sudo docker build "$(pwd)" --tag "${repo}:${tag}"
+    sudo docker build "$(pwd)" --tag "${repo}:latest"
+    cat ../docker-password | sudo docker login --password-stdin -u yegor256
+    sudo docker push "${repo}:${tag}"
+    sudo docker push "${repo}:latest"
 merge:
   script: |-
-    bundle install
-    rake --quiet
-    pdd -f /dev/null -v
-deploy:
-  script: |-
-    echo "There is nothing to deploy"
-    exit -1
+    bundle exec rake --quiet

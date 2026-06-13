@@ -1,131 +1,124 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2018 Yegor Bugayenko
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the 'Software'), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
+# SPDX-License-Identifier: MIT
 
 require 'concurrent'
-require_relative '../log'
+require 'futex'
+require 'securerandom'
 require_relative '../age'
 require_relative '../size'
 require_relative '../id'
-require_relative '../verbose_thread'
+require_relative '../endless'
+require_relative '../thread_pool'
+require_relative '../dir_items'
+require_relative 'soft_error'
 
 # The async entrance of the web front.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# Copyright:: Copyright (c) 2018-2026 Zerocracy
 # License:: MIT
 module Zold
   # The entrance
   class AsyncEntrance
-    # How many threads to use for processing
-    THREADS = Concurrent.processor_count * 8
-
-    # Queue length
-    MAX_QUEUE = Concurrent.processor_count * 64
-
-    def initialize(entrance, dir, log: Log::Quiet.new)
-      raise 'Entrance can\'t be nil' if entrance.nil?
+    def initialize(entrance, dir, log: Loog::NULL,
+      threads: [Concurrent.processor_count, 8].max, queue_limit: 8)
       @entrance = entrance
-      raise 'Directory can\'t be nil' if dir.nil?
-      raise 'Directory must be of type String' unless dir.is_a?(String)
-      @dir = dir
-      raise 'Log can\'t be nil' if log.nil?
+      @dir = File.expand_path(dir)
       @log = log
-      @mutex = Mutex.new
+      @threads = threads
+      @pool = ThreadPool.new('async-entrance', log: log)
+      @queue = Queue.new
+      @queue_limit = queue_limit
     end
 
     def to_json
-      json = {
-        'queue': queue.count,
-        'pool.length': @pool.length,
-        'pool.running': @pool.running?
-      }
-      opts = queue
-      json['queue_age'] = opts.empty? ? 0 : Time.now - File.mtime(File.join(@dir, opts[0]))
-      @entrance.to_json.merge(json)
+      @entrance.to_json.merge(
+        queue: @queue.size,
+        threads: @pool.count,
+        queue_limit: @queue_limit
+      )
     end
 
     def start
+      raise 'Block must be given to start()' unless block_given?
+      FileUtils.mkdir_p(@dir)
+      DirItems.new(@dir).fetch.each do |f|
+        file = File.join(@dir, f)
+        if /^[0-9a-f]{16}-/.match?(f)
+          id = f.split('-')[0]
+          @queue << { id: Id.new(id), file: file }
+        else
+          File.delete(file)
+        end
+      end
+      @log.info("#{@queue.size} wallets pre-loaded into async_entrance from #{@dir}") unless @queue.empty?
       @entrance.start do
-        FileUtils.mkdir_p(@dir)
-        @pool = Concurrent::FixedThreadPool.new(
-          AsyncEntrance::THREADS, max_queue: AsyncEntrance::MAX_QUEUE, fallback_policy: :abort
-        )
-        AsyncEntrance::THREADS.times do |t|
-          @pool.post do
-            Thread.current.name = "async-e##{t}"
-            loop do
-              VerboseThread.new(@log).run(true) { take }
-              break if @pool.shuttingdown?
-              sleep Random.rand(100) / 100
+        (0..@threads).map do |i|
+          @pool.add do
+            Endless.new("async-e##{i}", log: @log).run do
+              take
             end
           end
         end
         begin
           yield(self)
         ensure
-          @log.info("Stopping async entrance, pool length is #{@pool.length}, queue length is #{@pool.queue_length}")
-          @pool.shutdown
-          if @pool.wait_for_termination(10)
-            @log.info('Async entrance terminated peacefully')
-          else
-            @pool.kill
-            @log.info('Async entrance was killed')
-          end
+          @pool.kill
         end
       end
     end
 
     # Always returns an array with a single ID of the pushed wallet
     def push(id, body)
-      raise "Queue is too long (#{queue.count} wallets), try again later" if queue.count > AsyncEntrance::MAX_QUEUE
-      @mutex.synchronize do
-        AtomicFile.new(File.join(@dir, id.to_s)).write(body)
+      if @queue.size > @queue_limit
+        raise(
+          SoftError,
+          "Queue is too long (#{@queue.size} wallets), can't add #{id}/#{Size.new(body.length)}, try again later"
+        )
+      end
+      start = Time.now
+      unless exists?(id, body)
+        loop do
+          uuid = SecureRandom.uuid
+          file = File.join(@dir, "#{id}-#{uuid}#{Wallet::EXT}")
+          next if File.exist?(file)
+          File.write(file, body)
+          @queue << { id: id, file: file }
+          @log.debug("Added #{id}/#{Size.new(body.length)} to the queue at pos.#{@queue.size} \
+  in #{Age.new(start, limit: 0.05)}")
+          break
+        end
       end
       [id]
     end
 
     private
 
-    def take
-      id = ''
-      body = ''
-      @mutex.synchronize do
-        opts = queue
-        unless opts.empty?
-          file = File.join(@dir, opts[0])
-          id = opts[0]
-          body = File.read(file)
-          File.delete(file)
-        end
+    # Returns TRUE if a file for this wallet is already in the queue.
+    def exists?(id, body)
+      DirItems.new(@dir).fetch.each do |f|
+        next unless f.start_with?("#{id}-")
+        return true if safe_read(File.join(@dir, f)) == body
       end
-      return if id.empty? || body.empty?
-      start = Time.now
-      @entrance.push(Id.new(id), body)
-      @log.debug("Pushed #{id}/#{Size.new(body.length)} to #{@entrance.class.name} in #{Age.new(start)}")
+      false
     end
 
-    def queue
-      Dir.new(@dir)
-        .select { |f| f =~ /^[0-9a-f]{16}$/ }
-        .sort_by { |f| File.mtime(File.join(@dir, f)) }
+    def safe_read(file)
+      File.read(file)
+    rescue Errno::ENOENT
+      ''
+    end
+
+    def take
+      start = Time.now
+      item = @queue.pop
+      Thread.current.thread_variable_set(:wallet, item[:id].to_s)
+      body = File.read(item[:file])
+      FileUtils.rm_f(item[:file])
+      @entrance.push(item[:id], body)
+      @log.debug("Pushed #{item[:id]}/#{Size.new(body.length)} to #{@entrance.class.name} \
+in #{Age.new(start, limit: 0.1)}#{"(#{@queue.size} still in the queue)" unless @queue.empty?}")
     end
   end
 end

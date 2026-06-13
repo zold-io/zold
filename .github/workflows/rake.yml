@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
+# SPDX-License-Identifier: MIT
+---
+# yamllint disable rule:line-length
+name: rake
+'on':
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  rake:
+    strategy:
+      matrix:
+        os: [ubuntu-24.04, macos-15]
+        ruby: [3.3]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - run: bundle config set --global path "$(pwd)/vendor/bundle"
+      - run: bundle install --no-color
+      - run: bundle exec rake --quiet
