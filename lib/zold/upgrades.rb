@@ -17,7 +17,7 @@ module Zold
     end
 
     def run
-      Dir.glob("#{@directory}/*.rb").grep(/^(\d+)\.rb$/).sort.each do |script|
+      Dir.glob("#{@directory}/*.rb").grep(/\d\.\d\.\d\.rb/).sort.each do |script|
         @version.apply(script)
       end
       command = @opts[:command]
