@@ -15,4 +15,9 @@ class TestHexnum < Zold::Test
       assert_equal(n, Zold::Hexnum.parse(Zold::Hexnum.new(n, 6).to_s).to_i)
     end
   end
+
+  def test_keeps_width_for_large_negative_amounts
+    text = Zold::Hexnum.new(-((2**52) + 1), 16).to_s
+    assert_equal(16, text.length, "Hexnum#to_s must not produce a string longer than 16 chars, got #{text.inspect}")
+  end
 end
