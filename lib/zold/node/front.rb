@@ -184,8 +184,7 @@ from #{request.ip} in #{Age.new(@start, limit: 1)}")
     end
 
     get '/' do
-      content_type('application/json')
-      pretty(
+      data = {
         repo: Zold::REPO,
         version: settings.opts['expose-version'],
         alias: settings.node_alias,
@@ -227,7 +226,23 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
         date: Time.now.utc.iso8601,
         hours_alive: ((Time.now - settings.start) / (60 * 60)).round(2),
         home: 'https://www.zold.io'
-      )
+      }
+      if request.preferred_type('application/json', 'text/html') == 'text/html'
+        content_type('text/html')
+        haml(
+          :home,
+          layout: :layout,
+          locals: data.merge(
+            title: "Zold #{settings.address}",
+            description: "Zold node at #{settings.address}",
+            address: settings.address,
+            node_alias: settings.node_alias
+          )
+        )
+      else
+        content_type('application/json')
+        pretty(data)
+      end
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})} do

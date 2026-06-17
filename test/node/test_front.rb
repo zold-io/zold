@@ -7,6 +7,7 @@ require 'json'
 require 'time'
 require 'securerandom'
 require 'threads'
+require 'typhoeus'
 require 'zold/score'
 require 'memory_profiler'
 require_relative '../test__helper'
@@ -52,6 +53,26 @@ class FrontTest < Zold::Test
       assert_predicate(json['wallets'], :positive?, json)
       assert_predicate(json['remotes'], :zero?, json)
       assert_predicate(json['nscore'], :zero?, json)
+    end
+  end
+
+  def test_renders_front_html_when_accept_text_html
+    FakeNode.new(log: fake_log).run(opts('--network=foo')) do |port|
+      res = Typhoeus::Request.get(
+        "http://localhost:#{port}/",
+        headers: {
+          'Accept' => 'text/html',
+          Zold::Http::NETWORK_HEADER => 'foo',
+          Zold::Http::PROTOCOL_HEADER => Zold::PROTOCOL.to_s,
+          Zold::Http::VERSION_HEADER => Zold::VERSION
+        },
+        connecttimeout: 0.8,
+        timeout: 2
+      )
+      assert_equal(200, res.code, res.body)
+      assert_match(%r{^text/html}, res.headers['Content-Type'].to_s)
+      assert_match(/This is a Zold node/, res.body)
+      assert_match(/<html/, res.body)
     end
   end
 

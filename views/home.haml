@@ -1,0 +1,55 @@
+-# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
+-# SPDX-License-Identifier: MIT
+
+%p
+  This is a Zold node.
+  Network:
+  %code= network
+  %br
+  Protocol:
+  %code= protocol
+  %br
+  Version:
+  %code= version
+  %br
+  Alias:
+  %code= node_alias
+  %br
+  Address:
+  %code= address
+
+%table
+  %tbody
+    %tr
+      %th Score
+      %td.right= score[:value]
+    %tr
+      %th Wallets
+      %td.right= wallets
+    %tr
+      %th Remotes
+      %td.right= remotes
+    %tr
+      %th Network score
+      %td.right= nscore
+    %tr
+      %th Threads
+      %td.right= threads
+    %tr
+      %th Hours alive
+      %td.right= hours_alive
+    %tr
+      %th Memory
+      %td.right= Zold::Size.new(memory)
+    %tr
+      %th Date
+      %td.right= date
+
+%p
+  The same data is available as JSON when the
+  %code Accept
+  header asks for
+  %code application/json
+  rather than for
+  %code text/html
+  \.
