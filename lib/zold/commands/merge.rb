@@ -41,8 +41,11 @@ Available options:"
           'Don\'t propagate after merge',
           default: false
         o.bool '--skip-legacy',
-          'Don\'t make legacy transactions (older than 24 hours) immutable',
+          'Don\'t make legacy transactions immutable',
           default: false
+        o.integer '--legacy-hours',
+          'After how many hours a negative transaction becomes legacy and immutable (default: 24)',
+          default: 24
         o.bool '--quiet-if-absent',
           'Don\'t fail if the wallet is absent',
           default: false
@@ -96,7 +99,7 @@ Available options:"
         @wallets.acq(id) do |w|
           if w.exists?
             s = Time.now
-            patch.legacy(w)
+            patch.legacy(w, hours: opts['legacy-hours'])
             @log.debug("Local copy of #{id} merged legacy in #{Age.new(s)}: #{patch}")
           else
             @log.debug("There is no local copy to merge legacy of #{id}")

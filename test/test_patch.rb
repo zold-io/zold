@@ -157,4 +157,20 @@ class TestPatch < Zold::Test
       end
     end
   end
+
+  def test_legacy_respects_custom_hours
+    FakeHome.new(log: fake_log).run do |home|
+      wallet = home.create_wallet
+      key = Zold::Key.new(file: 'fixtures/id_rsa')
+      target = "NOPREFIX@#{Zold::Id.new}"
+      wallet.sub(Zold::Amount.new(zld: 1.0), target, key, 'old', time: Time.now - (48 * 60 * 60))
+      wallet.sub(Zold::Amount.new(zld: 1.0), target, key, 'fresh', time: Time.now - (1 * 60 * 60))
+      strict = Zold::Patch.new(home.wallets, log: fake_log)
+      strict.legacy(wallet, hours: 6)
+      assert_equal('1 txns', strict.to_s)
+      lax = Zold::Patch.new(home.wallets, log: fake_log)
+      lax.legacy(wallet, hours: 72)
+      assert_equal('nothing', lax.to_s)
+    end
+  end
 end
