@@ -16,17 +16,17 @@ module Zold
     class CantParse < StandardError; end
 
     def initialize(text, uri = '')
-      raise 'JSON text can\'t be nil' if text.nil?
-      raise 'JSON must be of type String' unless text.is_a?(String)
+      raise(RuntimeError, 'JSON text can\'t be nil') if text.nil?
+      raise(RuntimeError, 'JSON must be of type String') unless text.is_a?(String)
       @text = text
       @uri = uri
     end
 
     def to_hash
-      raise CantParse, "JSON is empty, can't parse#{" at #{@uri}" unless @uri.empty?}" if @text.empty?
+      raise(CantParse, "JSON is empty, can't parse#{" at #{@uri}" unless @uri.empty?}") if @text.empty?
       JSON.parse(@text)
     rescue JSON::ParserError => e
-      raise CantParse, "Failed to parse JSON #{"at #{@uri}" unless @uri.empty?} (#{short(e.message)}): #{short(@text)}"
+      raise(CantParse, "Failed to parse JSON #{"at #{@uri}" unless @uri.empty?} (#{short(e.message)}): #{short(@text)}")
     end
 
     private

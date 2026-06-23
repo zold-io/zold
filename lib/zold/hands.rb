@@ -16,17 +16,14 @@ require_relative 'endless'
 module Zold
   # Hands
   class Hands
-    # Pool of threads
     POOL = ThreadPool.new('default')
     private_constant :POOL
 
-    # Queue of jobs
     QUEUE = Queue.new
     private_constant :QUEUE
 
     def self.threshold
-      advised = Total::Mem.new.bytes / (128 * 1024 * 1024)
-      advised.clamp(4, Concurrent.processor_count * 4)
+      (Total::Mem.new.bytes / (128 * 1024 * 1024)).clamp(4, Concurrent.processor_count * 4)
     rescue Total::CantDetect
       4
     end
@@ -50,8 +47,8 @@ module Zold
 
     # Run this code in many threads
     def self.exec(threads, set = (0..(threads - 1)).to_a, &block)
-      raise 'The thread pool is empty' if POOL.empty?
-      raise "Number of threads #{threads} has to be positive" unless threads.positive?
+      raise(RuntimeError, 'The thread pool is empty') if POOL.empty?
+      raise(RuntimeError, "Number of threads #{threads} has to be positive") unless threads.positive?
       list = set.dup
       total = [threads, set.count].min
       if total == 1
@@ -72,14 +69,14 @@ module Zold
               end
             rescue StandardError => e
               errors << e
-              raise e
+              raise(e)
             ensure
               latch.count_down
             end
           )
         end
         latch.wait
-        raise errors.to_a[0] unless errors.empty?
+        raise(errors.to_a.first) unless errors.empty?
       end
     end
   end

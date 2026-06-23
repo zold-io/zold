@@ -3,10 +3,10 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require_relative '../test__helper'
 require_relative '../../lib/zold/id'
 require_relative '../../upgrades/delete_banned_wallets'
 require_relative '../fake_home'
+require_relative '../test__helper'
 
 # Delete banned wallets.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -14,7 +14,7 @@ require_relative '../fake_home'
 # License:: MIT
 class TestDeleteBannedWallets < Zold::Test
   def test_delete_them
-    id = Zold::Id.new(Zold::Id::BANNED[0])
+    id = Zold::Id.new(Zold::Id::BANNED.first)
     FakeHome.new(log: fake_log).run do |home|
       home.create_wallet(id)
       FileUtils.mkdir_p(File.join(home.dir, 'a/b/c'))

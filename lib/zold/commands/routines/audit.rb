@@ -4,8 +4,8 @@
 # SPDX-License-Identifier: MIT
 
 require 'get_process_mem'
-require_relative '../routines'
 require_relative '../../size'
+require_relative '../routines'
 
 # Audit and report as much as we can to the command line.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -20,8 +20,8 @@ class Zold::Routines::Audit
 
   def exec(_ = 0)
     sleep(60) unless @opts['routine-immediately']
-    msg = [
-      "memory used: #{Zold::Size.new(GetProcessMem.new.bytes.to_i)}",
+    msg = [ # rubocop:disable Elegant/NoRedundantVariable
+      "memory used: #{Zold::Size.new(GetProcessMem.new.bytes.truncate)}",
       "threads total: #{Thread.list.count}",
       "wallets: #{@wallets.count}"
     ].join('; ')

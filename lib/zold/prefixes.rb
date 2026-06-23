@@ -18,8 +18,8 @@ module Zold
     end
 
     def create(length = 8)
-      raise "Length #{length} is too small" if length < 8
-      raise "Length #{length} is too big" if length > 32
+      raise(RuntimeError, "Length #{length} is too small") if length < 8
+      raise(RuntimeError, "Length #{length} is too big") if length > 32
       key = @wallet.key.to_pub
       prefix = ''
       rnd = Random.new

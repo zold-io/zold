@@ -3,14 +3,14 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
+require_relative '../lib/zold/amount'
+require_relative '../lib/zold/id'
+require_relative '../lib/zold/key'
+require_relative '../lib/zold/patch'
+require_relative '../lib/zold/prefixes'
+require_relative '../lib/zold/wallet'
 require_relative 'fake_home'
 require_relative 'test__helper'
-require_relative '../lib/zold/key'
-require_relative '../lib/zold/id'
-require_relative '../lib/zold/wallet'
-require_relative '../lib/zold/prefixes'
-require_relative '../lib/zold/amount'
-require_relative '../lib/zold/patch'
 
 # Patch test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -29,8 +29,7 @@ class TestPatch < Zold::Test
       first.sub(Zold::Amount.new(zld: 3.0), "NOPREFIX@#{Zold::Id.new}", key)
       second.sub(Zold::Amount.new(zld: 44.0), "NOPREFIX@#{Zold::Id.new}", key)
       File.write(third.path, File.read(first.path))
-      t = third.sub(Zold::Amount.new(zld: 10.0), "NOPREFIX@#{Zold::Id.new}", key)
-      third.add(t.inverse(Zold::Id.new))
+      third.add(third.sub(Zold::Amount.new(zld: 10.0), "NOPREFIX@#{Zold::Id.new}", key).inverse(Zold::Id.new))
       patch = Zold::Patch.new(home.wallets, log: fake_log)
       patch.join(first) { false }
       patch.join(second) { false }
@@ -61,8 +60,7 @@ class TestPatch < Zold::Test
       second = home.create_wallet
       File.write(second.path, File.read(first.path))
       amount = Zold::Amount.new(zld: 333.0)
-      key = Zold::Key.new(file: 'fixtures/id_rsa')
-      second.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
+      second.sub(amount, "NOPREFIX@#{Zold::Id.new}", Zold::Key.new(file: 'fixtures/id_rsa'))
       patch = Zold::Patch.new(home.wallets, log: fake_log)
       patch.join(first) { false }
       patch.join(second) { false }
@@ -77,8 +75,7 @@ class TestPatch < Zold::Test
       first = home.create_wallet(Zold::Id::ROOT)
       second = home.create_wallet
       File.write(second.path, File.read(first.path))
-      key = Zold::Key.new(file: 'fixtures/id_rsa')
-      second.sub(Zold::Amount.new(zld: 7.0), "NOPREFIX@#{Zold::Id.new}", key)
+      second.sub(Zold::Amount.new(zld: 7.0), "NOPREFIX@#{Zold::Id.new}", Zold::Key.new(file: 'fixtures/id_rsa'))
       first.add(
         Zold::Txn.new(
           1, Time.now, Zold::Amount.new(zld: 9.0),
@@ -145,13 +142,13 @@ class TestPatch < Zold::Test
         patch.join(second, ledger: f.path) { false }
         lines = File.read(f).split("\n")
         assert_equal(2, lines.count)
-        parts = lines[0].split(';')
-        refute_nil(Zold::Txn.parse_time(parts[0]))
-        assert_equal(1, parts[1].to_i)
+        parts = lines.first.split(';')
+        refute_nil(Zold::Txn.parse_time(parts.first))
+        assert_equal(1, Integer(parts[1], 10))
         refute_nil(Zold::Txn.parse_time(parts[2]))
         assert_equal(Zold::Id::ROOT.to_s, parts[3])
         assert_equal(target.to_s, parts[4])
-        assert_equal(amount, Zold::Amount.new(zents: parts[5].to_i))
+        assert_equal(amount, Zold::Amount.new(zents: Integer(parts[5], 10)))
         assert_equal('NOPREFIX', parts[6])
         assert_equal('some details', parts[7])
       end

@@ -4,8 +4,8 @@
 # SPDX-License-Identifier: MIT
 
 require 'concurrent'
-require_relative 'test__helper'
 require_relative '../lib/zold/hands'
+require_relative 'test__helper'
 
 # Hands test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -22,9 +22,9 @@ class TestHands < Zold::Test
   end
 
   def test_runs_with_empty_set
-    Zold::Hands.exec(5, []) do
-      # nothing
-    end
+    done = Concurrent::AtomicFixnum.new
+    Zold::Hands.exec(5, []) { |_| done.increment }
+    assert_equal(0, done.value)
   end
 
   def test_runs_with_index
@@ -39,11 +39,11 @@ class TestHands < Zold::Test
   end
 
   def test_runs_with_exceptions
-    assert_raises do
+    assert_raises(RuntimeError) do
       Zold::Hands.exec(5) do |i|
         if i == 4
-          sleep 0.1
-          raise 'intended'
+          sleep(0.1)
+          raise(RuntimeError, 'intended')
         end
       end
     end

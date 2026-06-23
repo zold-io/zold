@@ -22,14 +22,15 @@ module Zold
     end
 
     def run(args = [])
-      opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
-        o.banner = "Usage: zold next [options] score
-Available options:"
-        o.bool '--low-priority',
-          'Set the lowest priority to this process',
-          default: false
-        o.bool '--help', 'Print instructions'
-      end
+      opts =
+        Slop.parse(args, help: true, suppress_errors: true) do |o|
+          o.banner = <<~BANNER
+            Usage: zold next [options] score
+            Available options:
+          BANNER
+          o.bool('--low-priority', 'Set the lowest priority to this process', default: false)
+          o.bool('--help', 'Print instructions')
+        end
       if opts.help?
         @log.info(opts.to_s)
         return

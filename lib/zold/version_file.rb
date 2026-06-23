@@ -3,8 +3,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'semantic'
 require 'loog'
+require 'semantic'
 
 module Zold
   # Read and write .zoldata/version.

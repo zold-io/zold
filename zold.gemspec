@@ -10,7 +10,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require_relative 'lib/zold/version'
 
 Gem::Specification.new do |s|
-  s.required_rubygems_version = Gem::Requirement.new('>= 0') if s.respond_to? :required_rubygems_version=
+  s.required_rubygems_version = Gem::Requirement.new('>= 0') if s.respond_to?(:required_rubygems_version=)
   s.required_ruby_version = '>=2.5'
   s.name = 'zold'
   s.version = Zold::VERSION
@@ -41,27 +41,28 @@ and suggests a different architecture for digital wallet maintenance."
   s.executables = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
   s.rdoc_options = ['--charset=UTF-8']
   s.extra_rdoc_files = ['README.md', 'LICENSE.txt']
-  s.add_dependency 'backtrace', '~>0.3'
-  s.add_dependency 'concurrent-ruby', '~>1.1'
-  s.add_dependency 'diffy', '~>3.3'
-  s.add_dependency 'futex', '~>0.8'
-  s.add_dependency 'get_process_mem', '~>0.2'
-  s.add_dependency 'haml', '~>5.0'
-  s.add_dependency 'json', '~>2.2'
-  s.add_dependency 'loog', '>0'
-  s.add_dependency 'memory_profiler', '~>1.0'
-  s.add_dependency 'mimic', '~>0.4'
-  s.add_dependency 'openssl', '>=1.0'
-  s.add_dependency 'rainbow', '~>3.0'
-  s.add_dependency 'semantic', '~>1.6'
-  s.add_dependency 'sinatra', '~>3.0'
-  s.add_dependency 'slop', '~>4.6'
-  s.add_dependency 'sys-proctable', '~>1.2'
-  s.add_dependency 'thin', '~>1.7'
-  s.add_dependency 'threads', '~>0.3'
-  s.add_dependency 'total', '~>0.3'
-  s.add_dependency 'typhoeus', '~>1.3'
-  s.add_dependency 'usagewatch_ext', '~>0.2'
-  s.add_dependency 'zache', '~>0.12'
-  s.add_dependency 'zold-score', '>0'
+  s.add_dependency('backtrace', '~>0.3')
+  s.add_dependency('concurrent-ruby', '~>1.1')
+  s.add_dependency('diffy', '~>3.3')
+  s.add_dependency('futex', '~>0.8')
+  s.add_dependency('get_process_mem', '~>0.2')
+  s.add_dependency('haml', '~>5.0')
+  s.add_dependency('json', '~>2.2')
+  s.add_dependency('loog', '>0')
+  s.add_dependency('memory_profiler', '~>1.0')
+  s.add_dependency('mimic', '~>0.4')
+  s.add_dependency('openssl', '>=1.0')
+  s.add_dependency('rainbow', '~>3.0')
+  s.add_dependency('semantic', '~>1.6')
+  s.add_dependency('sinatra', '~>3.0')
+  s.add_dependency('slop', '~>4.6')
+  s.add_dependency('sys-proctable', '~>1.2')
+  s.add_dependency('thin', '~>1.7')
+  s.add_dependency('threads', '~>0.3')
+  s.add_dependency('total', '~>0.3')
+  s.add_dependency('typhoeus', '~>1.3')
+  s.add_dependency('usagewatch_ext', '~>0.2')
+  s.add_dependency('zache', '~>0.12')
+  s.add_dependency('zold-score', '>0')
+  s.metadata['rubygems_mfa_required'] = 'true'
 end

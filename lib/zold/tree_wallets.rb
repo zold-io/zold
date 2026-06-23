@@ -3,9 +3,9 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 require 'pathname'
+require_relative 'dir_items'
 require_relative 'id'
 require_relative 'wallet'
-require_relative 'dir_items'
 
 # The local collection of wallets.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -41,16 +41,14 @@ module Zold
     end
 
     def acq(id, exclusive: false)
-      raise 'The flag can\'t be nil' if exclusive.nil?
-      raise 'Id can\'t be nil' if id.nil?
-      raise 'Id must be of type Id' unless id.is_a?(Id)
-      yield Wallet.new(
-        File.join(path, (id.to_s.split('', 5).take(4) + [id.to_s]).join('/') + Wallet::EXT)
-      )
+      raise(RuntimeError, 'The flag can\'t be nil') if exclusive.nil?
+      raise(RuntimeError, 'Id can\'t be nil') if id.nil?
+      raise(RuntimeError, 'Id must be of type Id') unless id.is_a?(Id)
+      yield(Wallet.new(File.join(path, (id.to_s.split('', 5).take(4) + [id.to_s]).join('/') + Wallet::EXT)))
     end
 
     def count
-      `find #{@dir} -name "*.z" | wc -l`.strip.to_i
+      Integer(`find #{@dir} -name "*.z" | wc -l`.strip, 10)
     end
   end
 end

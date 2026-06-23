@@ -6,8 +6,8 @@
 require_relative 'thread_badge'
 require 'loog'
 require_relative '../amount'
-require_relative '../wallet'
 require_relative '../size'
+require_relative '../wallet'
 
 # LIST command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

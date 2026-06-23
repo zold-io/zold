@@ -7,8 +7,8 @@ require 'backtrace'
 require 'loog'
 require_relative 'age'
 require_relative 'endless'
-require_relative 'verbose_thread'
 require_relative 'thread_pool'
+require_relative 'verbose_thread'
 
 # Background routines.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -48,13 +48,17 @@ module Zold
             step += 1
             begin
               r.exec(step)
-              @log.debug("Routine #{r.class.name} ##{step} done \
-in #{Age.new(Thread.current.thread_variable_get(:start))}")
+              @log.debug(
+                "Routine #{r.class.name} ##{step} done " \
+                "in #{Age.new(Thread.current.thread_variable_get(:start))}"
+              )
             rescue StandardError => e
               @failures[r.class.name] = "#{Time.now.utc.iso8601}\n#{Backtrace.new(e)}"
-              @log.error("Routine #{r.class.name} ##{step} failed \
-in #{Age.new(Thread.current.thread_variable_get(:start))}")
-              raise e
+              @log.error(
+                "Routine #{r.class.name} ##{step} failed " \
+                "in #{Age.new(Thread.current.thread_variable_get(:start))}"
+              )
+              raise(e)
             end
             sleep(1)
           end

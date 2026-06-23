@@ -3,14 +3,14 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require_relative '../fake_home'
-require_relative 'fake_node'
-require_relative '../test__helper'
 require_relative '../../lib/zold/id'
 require_relative '../../lib/zold/node/entrance'
 require_relative '../../lib/zold/node/pipeline'
 require_relative '../../lib/zold/node/spread_entrance'
+require_relative '../fake_home'
+require_relative '../test__helper'
 require_relative 'fake_entrance'
+require_relative 'fake_node'
 
 # SpreadEntrance test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

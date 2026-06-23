@@ -3,16 +3,16 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'tmpdir'
 require 'loog'
+require 'tmpdir'
+require_relative '../lib/zold/cached_wallets'
 require_relative '../lib/zold/id'
+require_relative '../lib/zold/key'
+require_relative '../lib/zold/remotes'
+require_relative '../lib/zold/sync_wallets'
+require_relative '../lib/zold/version'
 require_relative '../lib/zold/wallet'
 require_relative '../lib/zold/wallets'
-require_relative '../lib/zold/sync_wallets'
-require_relative '../lib/zold/cached_wallets'
-require_relative '../lib/zold/key'
-require_relative '../lib/zold/version'
-require_relative '../lib/zold/remotes'
 
 # Fake home dir.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -29,7 +29,7 @@ class FakeHome
   def run
     Dir.mktmpdir do |dir|
       FileUtils.copy(File.expand_path(File.join(__dir__, '../fixtures/id_rsa')), File.join(dir, 'id_rsa'))
-      yield FakeHome.new(dir, log: @log)
+      yield(FakeHome.new(dir, log: @log))
     end
   end
 
@@ -43,22 +43,16 @@ class FakeHome
       w.init(id, Zold::Key.new(file: File.expand_path(File.join(__dir__, '../fixtures/id_rsa.pub'))))
       File.write(target.path, File.read(w.path))
       txns.times do |i|
-        w.add(
-          Zold::Txn.new(
-            1, Time.now,
-            Zold::Amount.new(zld: (i + 1).to_f),
-            'NOPREFIX', Zold::Id.new, '-'
-          )
-        )
+        w.add(Zold::Txn.new(1, Time.now, Zold::Amount.new(zld: Float(i + 1)), 'NOPREFIX', Zold::Id.new, '-'))
       end
     end
     target
   end
 
   def create_wallet_json(id = Zold::Id.new)
-    require 'zold/score'
+    require('zold/score')
     score = Zold::Score::ZERO
-    Dir.mktmpdir 'wallets' do |external_dir|
+    Dir.mktmpdir('wallets') do |external_dir|
       wallet = create_wallet(id, external_dir)
       {
         version: Zold::VERSION,
@@ -69,7 +63,7 @@ class FakeHome
         wallets: 1,
         mtime: wallet.mtime.utc.iso8601,
         digest: wallet.digest,
-        balance: wallet.balance.to_i,
+        balance: wallet.balance.to_zents,
         body: File.read(wallet.path)
       }.to_json
     end

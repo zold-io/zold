@@ -3,12 +3,12 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'tmpdir'
 require 'time'
-require_relative 'test__helper'
+require 'tmpdir'
+require_relative '../lib/zold/amount'
 require_relative '../lib/zold/id'
 require_relative '../lib/zold/txn'
-require_relative '../lib/zold/amount'
+require_relative 'test__helper'
 
 # Txn test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -16,10 +16,9 @@ require_relative '../lib/zold/amount'
 # License:: MIT
 class TestTxn < Zold::Test
   def test_prints_and_parses
-    time = Time.now
     txn = Zold::Txn.parse(
       Zold::Txn.new(
-        123, time, Zold::Amount.new(zld: -99.95),
+        123, Time.now, Zold::Amount.new(zld: -99.95),
         'NOPREFIX', Zold::Id.new,
         'Some details to see 123. Works, or not.'
       ).to_s
@@ -30,9 +29,10 @@ class TestTxn < Zold::Test
   end
 
   def test_converts_to_json
-    time = Time.now
+    # rubocop:disable Elegant/NoRedundantVariable
     txn = Zold::Txn.new(
-      123, time, Zold::Amount.new(zld: -99.95),
+      # rubocop:enable Elegant/NoRedundantVariable
+      123, Time.now, Zold::Amount.new(zld: -99.95),
       'NOPREFIX', Zold::Id.new('0123012301230123'),
       'Some details to see'
     )
@@ -50,7 +50,9 @@ class TestTxn < Zold::Test
       'For a pizza to my friend: John! Good? Works.',
       'ZLD exchange to 0.00104 BTC at 3NimQKG2kuseH3cz3hdbdEHbqai9kj, rate is 0.00026, fee is 0.08'
     ].each do |details|
+      # rubocop:disable Elegant/NoRedundantVariable
       txn = Zold::Txn.parse(
+        # rubocop:enable Elegant/NoRedundantVariable
         Zold::Txn.new(
           123, Time.now, Zold::Amount.new(zld: -99.95),
           'NOPREFIX', Zold::Id.new,
@@ -63,9 +65,8 @@ class TestTxn < Zold::Test
 
   def test_prints_and_parses_time
     10.times do |i|
-      time = Time.now + (i * 12_345)
-      iso = time.utc.iso8601
-      assert_equal(time.to_s, Zold::Txn.parse_time(iso).to_s)
+      time = (Time.now + (i * 12_345)).utc
+      assert_equal(time.to_s, Zold::Txn.parse_time(time.iso8601).to_s)
     end
   end
 end

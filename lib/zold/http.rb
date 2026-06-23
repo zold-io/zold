@@ -3,11 +3,11 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'rainbow'
-require 'uri'
 require 'backtrace'
-require 'zold/score'
+require 'rainbow'
 require 'typhoeus'
+require 'uri'
+require 'zold/score'
 require_relative 'version'
 
 # HTTP page.
@@ -56,30 +56,17 @@ module Zold
 
   # Http page
   class Http
-    # HTTP header we add to each HTTP request, in order to inform
-    # the other node about the score. If the score is big enough,
-    # the remote node will add us to its list of remote nodes.
     SCORE_HEADER = 'X-Zold-Score'
 
-    # HTTP header we add, in order to inform the node about our
-    # version. This is done mostly in order to let the other node
-    # reboot itself, if the version is higher.
     VERSION_HEADER = 'X-Zold-Version'
 
-    # HTTP header we add, in order to inform the node about our
-    # network. This is done in order to isolate test networks from
-    # production one.
     NETWORK_HEADER = 'X-Zold-Network'
 
-    # HTTP header we add, in order to inform the node about our
-    # protocol.
     PROTOCOL_HEADER = 'X-Zold-Protocol'
 
-    # Read timeout in seconds
     READ_TIMEOUT = 2
     private_constant :READ_TIMEOUT
 
-    # Connect timeout in seconds
     CONNECT_TIMEOUT = 0.8
     private_constant :CONNECT_TIMEOUT
 
@@ -115,8 +102,8 @@ module Zold
           f.write(chunk)
         end
         request.run
-        response = new HttpResponse(request)
-        raise "Invalid response code #{response.status}" unless response.status == 200
+        response = new(HttpResponse(request))
+        raise(RuntimeError, "Invalid response code #{response.status}") unless response.status == 200
         response
       end
     rescue StandardError => e
@@ -129,9 +116,7 @@ module Zold
           @uri,
           accept_encoding: 'gzip',
           body: File.read(file),
-          headers: headers.merge(
-            'Content-Type': 'text/plain'
-          ),
+          headers: headers.merge('Content-Type': 'text/plain'),
           connecttimeout: CONNECT_TIMEOUT,
           timeout: 2 + (File.size(file) * 0.01 / 1024)
         )
@@ -143,11 +128,7 @@ module Zold
     private
 
     def headers
-      headers = {
-        'User-Agent': "Zold #{VERSION}",
-        Connection: 'close',
-        'Accept-Encoding': 'gzip'
-      }
+      headers = { 'User-Agent': "Zold #{VERSION}", Connection: 'close', 'Accept-Encoding': 'gzip' }
       headers[Http::VERSION_HEADER] = Zold::VERSION
       headers[Http::PROTOCOL_HEADER] = Zold::PROTOCOL.to_s
       headers[Http::NETWORK_HEADER] = @network

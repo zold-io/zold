@@ -3,9 +3,9 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 require 'pathname'
+require_relative 'dir_items'
 require_relative 'id'
 require_relative 'wallet'
-require_relative 'dir_items'
 
 # The local collection of wallets.
 #
@@ -25,9 +25,7 @@ module Zold
     #  the full path let's subtract the prefix from it if it's equal
     #  to the current directory in Dir.pwd.
     def to_s
-      mine = Pathname.new(File.expand_path(@dir))
-      home = Pathname.new(File.expand_path(Dir.pwd))
-      mine.relative_path_from(home).to_s
+      Pathname.new(File.expand_path(@dir)).relative_path_from(Pathname.new(File.expand_path(Dir.pwd))).to_s
     end
 
     def path
@@ -53,10 +51,10 @@ module Zold
     end
 
     def acq(id, exclusive: false)
-      raise 'The flag can\'t be nil' if exclusive.nil?
-      raise 'Id can\'t be nil' if id.nil?
-      raise "Id must be of type Id, #{id.class.name} instead" unless id.is_a?(Id)
-      yield Wallet.new(File.join(path, id.to_s + Wallet::EXT))
+      raise(RuntimeError, 'The flag can\'t be nil') if exclusive.nil?
+      raise(RuntimeError, 'Id can\'t be nil') if id.nil?
+      raise(RuntimeError, "Id must be of type Id, #{id.class.name} instead") unless id.is_a?(Id)
+      yield(Wallet.new(File.join(path, id.to_s + Wallet::EXT)))
     end
 
     def count

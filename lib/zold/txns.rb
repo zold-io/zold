@@ -19,12 +19,10 @@ module Zold
       @file = file
     end
 
-    def flush
-      # nothing
-    end
+    def flush; end
 
     def fetch
-      raise "Wallet file '#{@file}' is absent" unless File.exist?(@file)
+      raise(RuntimeError, "Wallet file '#{@file}' is absent") unless File.exist?(@file)
       txns = []
       i = 0
       File.open(@file) do |f|
@@ -36,7 +34,7 @@ module Zold
           txns << Txn.parse(line, i)
         end
       end
-      raise CantParse, "Not enough lines in #{@file}, just #{i}" if i < 4
+      raise(CantParse, "Not enough lines in #{@file}, just #{i}") if i < 4
       txns.sort
     end
   end

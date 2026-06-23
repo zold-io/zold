@@ -16,7 +16,7 @@ module Zold
       @length = length
     end
 
-    def to_i
+    def value
       @num
     end
 
@@ -27,8 +27,7 @@ module Zold
     def self.parse(txt)
       n = Integer("0x#{txt}", 16)
       if txt.start_with?('f')
-        max = Integer("0x#{'f' * txt.length}", 16)
-        n = n - max - 1
+        n = n - Integer("0x#{'f' * txt.length}", 16) - 1
       end
       Hexnum.new(n, txt.length)
     end

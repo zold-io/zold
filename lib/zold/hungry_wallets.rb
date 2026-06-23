@@ -4,12 +4,12 @@
 # SPDX-License-Identifier: MIT
 
 require 'delegate'
-require 'zache'
-require 'shellwords'
 require 'loog'
-require_relative 'thread_pool'
-require_relative 'commands/pull'
+require 'shellwords'
+require 'zache'
 require_relative 'commands/fetch'
+require_relative 'commands/pull'
+require_relative 'thread_pool'
 
 # Wallets that PULL what's missing, in the background.
 #
@@ -19,8 +19,10 @@ require_relative 'commands/fetch'
 module Zold
   # Wallets decorator that adds missing wallets to the queue to be pulled later.
   class HungryWallets < SimpleDelegator
-    def initialize(wallets, remotes, copies, pool,
-      log: Loog::NULL, network: 'test')
+    def initialize(
+      wallets, remotes, copies, pool,
+      log: Loog::NULL, network: 'test'
+    )
       @wallets = wallets
       @remotes = remotes
       @copies = copies
@@ -42,8 +44,10 @@ module Zold
           if @queue.size > 256
             @log.error("Hungry queue is full with #{@queue.size} wallets, can't add #{id}")
           elsif @missed.exists?(id.to_s)
-            @log.debug("Hungry queue has seen #{id} just #{Age.new(@missed.mtime(id.to_s))} ago \
-(among #{@missed.size} others) and it was not found")
+            @log.debug(
+              "Hungry queue has seen #{id} just #{Age.new(@missed.mtime(id.to_s))} ago " \
+              "(among #{@missed.size} others) and it was not found"
+            )
           else
             @mutex.synchronize do
               unless @queue.include?(id)
@@ -54,7 +58,7 @@ module Zold
             end
           end
         end
-        yield wallet
+        yield(wallet)
       end
     end
 
@@ -63,7 +67,7 @@ module Zold
     def pull
       id = @mutex.synchronize { @queue.pop }
       if id.nil?
-        sleep 0.2
+        sleep(0.2)
         return
       end
       if @remotes.all.empty?

@@ -10,6 +10,5 @@
 module Zold
   # Soft error
   class SoftError < StandardError
-    # Nothing special
   end
 end

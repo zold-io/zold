@@ -3,18 +3,18 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'slop'
 require 'json'
 require 'rainbow'
+require 'slop'
 require 'zold/score'
-require_relative 'thread_badge'
 require_relative 'args'
 require_relative 'pay'
+require_relative 'thread_badge'
 require 'loog'
-require_relative '../json_page'
-require_relative '../id'
-require_relative '../tax'
 require_relative '../http'
+require_relative '../id'
+require_relative '../json_page'
+require_relative '../tax'
 
 # Zold module.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -44,56 +44,54 @@ module Zold
     end
 
     def run(args = [])
-      opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
-        o.banner = "Usage: zold taxes command [options]
-Available commands:
-    #{Rainbow('taxes pay').green} wallet
-      Pay taxes for the given wallet
-    #{Rainbow('taxes show').green}
-      Show taxes status for the given wallet
-    #{Rainbow('taxes debt').green}
-      Show current debt
-Available options:"
-        o.string '--private-key',
-          'The location of RSA private key (default: ~/.ssh/id_rsa)',
-          require: true,
-          default: '~/.ssh/id_rsa'
-        o.bool '--pay-anyway',
-          'Pay taxes anyway, even if the wallet is not in debt',
-          default: false
-        o.bool '--ignore-score-weakness',
-          'Don\'t complain when their score is too weak',
-          default: false
-        o.bool '--ignore-score-size',
-          'Don\'t complain when their score is too small',
-          default: false
-        o.string '--keygap',
-          'Keygap, if the private RSA key is not complete',
-          default: ''
-        o.bool '--ignore-nodes-absence',
-          'Don\'t complain if there are not enough nodes in the network to pay taxes',
-          default: false
-        o.bool '--help', 'Print instructions'
-      end
+      opts =
+        Slop.parse(args, help: true, suppress_errors: true) do |o|
+          o.banner = <<~BANNER
+            Usage: zold taxes command [options]
+            Available commands:
+                #{Rainbow('taxes pay').green} wallet
+                  Pay taxes for the given wallet
+                #{Rainbow('taxes show').green}
+                  Show taxes status for the given wallet
+                #{Rainbow('taxes debt').green}
+                  Show current debt
+            Available options:
+          BANNER
+          o.string(
+            '--private-key',
+            'The location of RSA private key (default: ~/.ssh/id_rsa)',
+            require: true,
+            default: '~/.ssh/id_rsa'
+          )
+          o.bool('--pay-anyway', 'Pay taxes anyway, even if the wallet is not in debt', default: false)
+          o.bool('--ignore-score-weakness', 'Don\'t complain when their score is too weak', default: false)
+          o.bool('--ignore-score-size', 'Don\'t complain when their score is too small', default: false)
+          o.string('--keygap', 'Keygap, if the private RSA key is not complete', default: '')
+          o.bool(
+            '--ignore-nodes-absence',
+            'Don\'t complain if there are not enough nodes in the network to pay taxes',
+            default: false
+          )
+          o.bool('--help', 'Print instructions')
+        end
       mine = Args.new(opts, @log).take || return
-      command = mine[0]
-      case command
+      case mine.first
       when 'show'
-        raise 'At least one wallet ID is required' unless mine[1]
+        raise(RuntimeError, 'At least one wallet ID is required') unless mine[1]
         mine[1..-1].each do |id|
           @wallets.acq(Id.new(id)) do |w|
             show(w, opts)
           end
         end
       when 'debt'
-        raise 'At least one wallet ID is required' unless mine[1]
+        raise(RuntimeError, 'At least one wallet ID is required') unless mine[1]
         mine[1..-1].each do |id|
           @wallets.acq(Id.new(id)) do |w|
             debt(w, opts)
           end
         end
       when 'pay'
-        raise 'At least one wallet ID is required' unless mine[1]
+        raise(RuntimeError, 'At least one wallet ID is required') unless mine[1]
         mine[1..-1].each do |id|
           @wallets.acq(Id.new(id), exclusive: true) do |w|
             pay(w, opts)
@@ -107,16 +105,18 @@ Available options:"
     private
 
     def pay(wallet, opts)
-      raise 'The wallet is absent' unless wallet.exists?
+      raise(RuntimeError, 'The wallet is absent') unless wallet.exists?
       tax = Tax.new(wallet)
       debt = total = tax.debt
-      @log.info("The current debt of #{wallet.mnemo} is #{debt} (#{debt.to_i} zents), \
-the balance is #{wallet.balance}: #{tax.to_text}")
+      @log.info(
+        "The current debt of #{wallet.mnemo} is #{debt} (#{debt.to_zents} zents), " \
+        "the balance is #{wallet.balance}: #{tax.to_text}"
+      )
       unless tax.in_debt? || opts['pay-anyway']
-        @log.debug("No need to pay taxes yet, while the debt is less than #{Tax::TRIAL} (#{Tax::TRIAL.to_i} zents)")
+        @log.debug("No need to pay taxes yet, while the debt is less than #{Tax::TRIAL} (#{Tax::TRIAL.to_zents} zents)")
         return
       end
-      top = top_scores(opts)
+      top = scores(opts)
       everybody = top.dup
       paid = 0
       while debt > Tax::TRIAL
@@ -128,7 +128,7 @@ the balance is #{wallet.balance}: #{tax.to_text}")
             "the residual amount to pay is #{debt} (trial amount is #{Tax::TRIAL});",
             "the formula ingredients are #{tax.to_text}"
           ].join(' ')
-          raise msg unless opts['ignore-nodes-absence']
+          raise(msg) unless opts['ignore-nodes-absence']
           @log.info(msg)
           break
         end
@@ -145,14 +145,16 @@ the balance is #{wallet.balance}: #{tax.to_text}")
         txn = tax.pay(Zold::Key.new(text: pem), best)
         debt += txn.amount
         paid += 1
-        @log.info("#{txn.amount * -1} of taxes paid from #{wallet.id} to #{txn.bnf} \
-(payment no.#{paid}, txn ##{txn.id}/#{wallet.txns.count}), #{debt} left to pay")
+        @log.info(
+          "#{txn.amount * -1} of taxes paid from #{wallet.id} to #{txn.bnf} " \
+          "(payment no.#{paid}, txn ##{txn.id}/#{wallet.txns.count}), #{debt} left to pay"
+        )
       end
       @log.info('The wallet is in good standing, all taxes paid') unless tax.in_debt?
     end
 
     def debt(wallet, _)
-      raise 'The wallet is absent' unless wallet.exists?
+      raise(RuntimeError, 'The wallet is absent') unless wallet.exists?
       tax = Tax.new(wallet)
       @log.info(tax.debt)
       @log.debug(tax.to_text)
@@ -160,21 +162,19 @@ the balance is #{wallet.balance}: #{tax.to_text}")
     end
 
     def show(wallet, _)
-      raise 'The wallet is absent' unless wallet.exists?
-      tax = Tax.new(wallet)
-      @log.info(tax.to_text)
+      raise(RuntimeError, 'The wallet is absent') unless wallet.exists?
+      @log.info(Tax.new(wallet).to_text)
       @log.info('Read the White Paper for more details: https://papers.zold.io/wp.pdf')
     end
 
-    def top_scores(opts)
+    def scores(opts)
       best = []
       @remotes.iterate(@log) do |r|
         @log.debug("Testing #{r}...")
         uri = '/'
         res = r.http(uri).get
         r.assert_code(200, res)
-        json = JsonPage.new(res.body, uri).to_hash
-        score = Score.parse_json(json['score'])
+        score = Score.parse_json(JsonPage.new(res.body, uri).to_hash['score'])
         r.assert_valid_score(score)
         r.assert_score_strength(score) unless opts['ignore-score-weakness']
         r.assert_score_value(score, Tax::EXACT_SCORE) unless opts['ignore-score-size']

@@ -3,11 +3,11 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require_relative '../test__helper'
-require_relative '../fake_home'
 require_relative '../../lib/zold/amount'
-require_relative '../../lib/zold/commands/propagate'
 require_relative '../../lib/zold/commands/pay'
+require_relative '../../lib/zold/commands/propagate'
+require_relative '../fake_home'
+require_relative '../test__helper'
 
 # PROPAGATE test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -22,12 +22,10 @@ class TestPropagate < Zold::Test
       Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: fake_log).run(
         ['pay', wallet.id.to_s, friend.id.to_s, amount.to_zld, '--force', '--private-key=fixtures/id_rsa']
       )
-      Zold::Propagate.new(wallets: home.wallets, log: fake_log).run(
-        ['merge', wallet.id.to_s]
-      )
+      Zold::Propagate.new(wallets: home.wallets, log: fake_log).run(['merge', wallet.id.to_s])
       assert_equal(amount, friend.balance)
       assert_equal(1, friend.txns.count)
-      assert_equal('', friend.txns[0].sign)
+      assert_equal('', friend.txns.first.sign)
     end
   end
 end

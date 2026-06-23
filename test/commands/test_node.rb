@@ -5,16 +5,16 @@
 
 require 'tmpdir'
 require 'webmock/minitest'
-require_relative '../test__helper'
-require_relative '../../lib/zold/wallet'
-require_relative '../../lib/zold/remotes'
-require_relative '../../lib/zold/id'
-require_relative '../../lib/zold/copies'
-require_relative '../../lib/zold/key'
-require_relative '../../lib/zold/commands/node'
 require_relative '../../lib/zold/commands/fetch'
+require_relative '../../lib/zold/commands/node'
 require_relative '../../lib/zold/commands/push'
+require_relative '../../lib/zold/copies'
+require_relative '../../lib/zold/id'
+require_relative '../../lib/zold/key'
+require_relative '../../lib/zold/remotes'
+require_relative '../../lib/zold/wallet'
 require_relative '../node/fake_node'
+require_relative '../test__helper'
 
 # NODE test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -25,7 +25,7 @@ class TestNode < Zold::Test
     FakeHome.new(log: fake_log).run do |home|
       FakeNode.new(log: fake_log).run do |port|
         wallets = home.wallets
-        wallet = home.create_wallet
+        wallet = home.create_wallet # rubocop:disable Elegant/NoRedundantVariable
         remotes = home.remotes
         remotes.add('localhost', port)
         Zold::Push.new(wallets: wallets, remotes: remotes, log: fake_log).run(
@@ -39,7 +39,7 @@ class TestNode < Zold::Test
             remotes: remotes, log: fake_log
           ).run(['fetch', '--ignore-score-weakness', '--tolerate-edges', '--tolerate-quorum=1'])
         rescue StandardError => _e
-          sleep 1
+          sleep(1)
           retry if (retries += 1) < 3
         end
         assert_equal(1, copies.all.count)

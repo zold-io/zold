@@ -5,27 +5,27 @@
 
 $stdout.sync = true
 
-require 'get_process_mem'
-require 'thin'
-require 'haml'
-require 'shellwords'
-require 'json'
-require 'digest'
-require 'sinatra/base'
-require 'concurrent'
 require 'backtrace'
-require 'zache'
+require 'concurrent'
+require 'digest'
+require 'get_process_mem'
+require 'haml'
+require 'json'
+require 'shellwords'
+require 'sinatra/base'
+require 'thin'
 require 'total'
-require_relative '../version'
-require_relative '../size'
-require_relative '../wallet'
+require 'zache'
 require_relative '../age'
 require_relative '../copies'
+require_relative '../size'
+require_relative '../version'
+require_relative '../wallet'
 require 'loog'
 require_relative '../dir_items'
-require_relative '../tax'
-require_relative '../id'
 require_relative '../http'
+require_relative '../id'
+require_relative '../tax'
 require_relative 'soft_error'
 
 # The web front of the node.
@@ -35,8 +35,6 @@ require_relative 'soft_error'
 module Zold
   # Web front
   class Front < Sinatra::Base
-    # The minimum score required in order to recognize a requester
-    # as a valuable node and add it to the list of remotes.
     MIN_SCORE = 4
 
     configure do
@@ -50,27 +48,27 @@ module Zold
       set :show_exceptions, false
       set :raise_errors, false
       set :server, :thin
-      set :opts, nil # to be injected at node.rb
-      set :log, nil # to be injected at node.rb
-      set :ledger, nil # to be injected at node.rb
-      set :trace, nil # to be injected at node.rb
-      set :dump_errors, false # to be injected at node.rb
-      set :protocol, PROTOCOL # to be injected at node.rb
-      set :nohup_log, false # to be injected at node.rb
-      set :home, nil # to be injected at node.rb
-      set :logging, true # to be injected at node.rb
-      set :logger, nil # to be injected at node.rb
-      set :address, nil # to be injected at node.rb
-      set :farm, nil # to be injected at node.rb
-      set :metronome, nil # to be injected at node.rb
-      set :entrance, nil # to be injected at node.rb
-      set :wallets, nil # to be injected at node.rb
-      set :remotes, nil # to be injected at node.rb
-      set :copies, nil # to be injected at node.rb
-      set :node_alias, nil # to be injected at node.rb
-      set :zache, nil # to be injected at node.rb
-      set :async_dir, nil # to be injected at node.rb
-      set :journal_dir, nil # to be injected at node.rb
+      set :opts, nil
+      set :log, nil
+      set :ledger, nil
+      set :trace, nil
+      set :dump_errors, false
+      set :protocol, PROTOCOL
+      set :nohup_log, false
+      set :home, nil
+      set :logging, true
+      set :logger, nil
+      set :address, nil
+      set :farm, nil
+      set :metronome, nil
+      set :entrance, nil
+      set :wallets, nil
+      set :remotes, nil
+      set :copies, nil
+      set :node_alias, nil
+      set :zache, nil
+      set :async_dir, nil
+      set :journal_dir, nil
     end
     use Rack::Deflater
 
@@ -83,22 +81,25 @@ module Zold
       if !settings.opts['halt-code'].empty? && params[:halt] && params[:halt] == settings.opts['halt-code']
         settings.log.info('Halt signal received, shutting the front end down...')
         Thread.start do
-          sleep 0.1 # to let the current request finish and close the socket
+          sleep 0.1
           Front.stop!
         end
       end
-      check_header(Http::NETWORK_HEADER) do |header|
+      check(Http::NETWORK_HEADER) do |header|
         if header != settings.opts['network']
-          error(400, "Network name mismatch at #{request.url}, #{request.ip} is in '#{header}', \
-while #{settings.address} is in '#{settings.opts['network']}'")
+          error(
+            400,
+            "Network name mismatch at #{request.url}, #{request.ip} is in '#{header}', " \
+            "while #{settings.address} is in '#{settings.opts['network']}'"
+          )
         end
       end
-      check_header(Http::PROTOCOL_HEADER) do |header|
+      check(Http::PROTOCOL_HEADER) do |header|
         if header != settings.protocol.to_s
           error(400, "Protocol mismatch, you are in '#{header}', we are in '#{settings.protocol}'")
         end
       end
-      check_header(Http::SCORE_HEADER) do |header|
+      check(Http::SCORE_HEADER) do |header|
         if settings.opts['standalone']
           settings.log.debug("#{request.url}: we are in standalone mode, won't update remotes")
         else
@@ -110,13 +111,12 @@ while #{settings.address} is in '#{settings.opts['network']}'")
           if settings.address == "#{s.host}:#{s.port}" && !settings.opts['ignore-score-weakness']
             error(400, 'Self-requests are prohibited')
           end
-          add_new_remote(s)
+          add(s)
         end
       end
     end
 
     # @todo #357:30min Test that the headers are being set correctly.
-    #  Currently there are no tests at all that would verify the headers.
     after do
       headers['Cache-Control'] = 'no-cache'
       headers['X-Zold-Path'] = request.url
@@ -128,8 +128,10 @@ while #{settings.address} is in '#{settings.opts['network']}'")
       headers['X-Zold-Thread'] = Thread.current.object_id.to_s
       unless @start.nil?
         if Time.now - @start > 1
-          settings.log.debug("Slow response to #{request.request_method} #{request.url} \
-from #{request.ip} in #{Age.new(@start, limit: 1)}")
+          settings.log.debug(
+            "Slow response to #{request.request_method} #{request.url} " \
+            "from #{request.ip} in #{Age.new(@start, limit: 1)}"
+          )
         end
         headers['X-Zold-Milliseconds'] = ((Time.now - @start) * 1000).round.to_s
       end
@@ -166,7 +168,7 @@ from #{request.ip} in #{Age.new(@start, limit: 1)}")
     end
 
     get '/nohup_log' do
-      raise 'Run it with --nohup in order to see this log' if settings.nohup_log.nil?
+      raise(RuntimeError, 'Run it with --nohup in order to see this log') if settings.nohup_log.nil?
       error(400, "Log not found at #{settings.nohup_log}") unless File.exist?(settings.nohup_log)
       response.headers['Content-Type'] = 'text/plain'
       response.headers['Content-Disposition'] = "attachment; filename='#{File.basename(settings.nohup_log)}'"
@@ -193,35 +195,34 @@ from #{request.ip} in #{Age.new(@start, limit: 1)}")
         protocol: settings.protocol,
         score: score.to_h,
         pid: Process.pid,
-        processes: processes_count,
+        processes: procs,
         checksum: checksum,
         cpus: settings.zache.get(:cpus) do
           Concurrent.processor_count
         end,
         memory: settings.zache.get(:memory, lifetime: settings.opts['no-cache'] ? 0 : 60) do
-          mem = GetProcessMem.new.bytes.to_i
+          mem = GetProcessMem.new.bytes.truncate
           if mem > settings.opts['oom-limit'] * 1024 * 1024 &&
             !settings.opts['skip-oom'] && !settings.opts['never-reboot']
-            settings.log.error("We are too big in memory (#{Size.new(mem)}), quitting; \
-use --skip-oom to never quit or --memory-dump to print the entire memory usage summary on exit; \
-this is not a normal behavior, you may want to report a bug to our GitHub repository")
+            settings.log.error(
+              "We are too big in memory (#{Size.new(mem)}), quitting; " \
+              'use --skip-oom to never quit or --memory-dump to print the entire memory usage summary on exit;' \
+              'this is not a normal behavior, you may want to report a bug to our GitHub repository'
+            )
             Front.stop!
           end
           mem
         end,
         platform: RUBY_PLATFORM,
         load: settings.zache.get(:load, lifetime: settings.opts['no-cache'] ? 0 : 60) do
-          # doesn't work with Ruby 3.0+
-          # require 'usagewatch_ext'
-          # Object.const_defined?('Usagewatch') ? Usagewatch.uw_load.to_f : 0.0
           0.0
         end,
-        total_mem: total_mem,
+        total_mem: mem,
         threads: "#{Thread.list.count { |t| t.status == 'run' }}/#{Thread.list.count}",
-        wallets: total_wallets,
+        wallets: count,
         journal: DirItems.new(settings.journal_dir).fetch.count,
-        remotes: all_remotes.count,
-        nscore: all_remotes.sum { |r| r[:score] } || 0,
+        remotes: peers.count,
+        nscore: peers.sum { |r| r[:score] } || 0,
         farm: settings.farm.to_json,
         entrance: settings.entrance.to_json,
         date: Time.now.utc.iso8601,
@@ -243,16 +244,16 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
           size: wallet.size,
           digest: wallet.digest,
           copies: Copies.new(File.join(settings.copies, wallet.id)).all.count,
-          balance: wallet.balance.to_i,
+          balance: wallet.balance.to_zents,
           txns: wallet.txns.count,
-          taxes: Tax.new(wallet).paid.to_i,
-          debt: Tax.new(wallet).debt.to_i
+          taxes: Tax.new(wallet).paid.to_zents,
+          debt: Tax.new(wallet).debt.to_zents
         )
       end
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/balance} do
-      fetch { |w| w.balance.to_i.to_s }
+      fetch { |w| w.balance.to_zents.to_s }
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/key} do
@@ -276,7 +277,7 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/debt} do
-      fetch { |w| Tax.new(w).debt.to_i.to_s }
+      fetch { |w| Tax.new(w).debt.to_zents.to_s }
     end
 
     get %r{/wallet/(?<id>[A-Fa-f0-9]{16})/digest} do
@@ -302,11 +303,11 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
           wallet.txns.map(&:to_text).join("\n"),
           '',
           '--',
-          "Balance: #{wallet.balance.to_zld(8)} ZLD (#{wallet.balance.to_i} zents)",
+          "Balance: #{wallet.balance.to_zld(8)} ZLD (#{wallet.balance.to_zents} zents)",
           "Transactions: #{wallet.txns.count}",
           "Taxes: #{Tax.new(wallet).paid} paid, the debt is #{Tax.new(wallet).debt}",
-          "File size: #{Size.new(wallet.size)}/#{wallet.size}, \
-#{Copies.new(File.join(settings.copies, wallet.id)).all.count} copies",
+          "File size: #{Size.new(wallet.size)}/#{wallet.size}, " \
+          "#{Copies.new(File.join(settings.copies, wallet.id)).all.count} copies",
           "Modified: #{wallet.mtime.utc.iso8601} (#{Age.new(wallet.mtime.utc.iso8601)} ago)",
           "Digest: #{wallet.digest}"
         ].join("\n")
@@ -341,8 +342,8 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
           "\n\n",
           copies.all.map do |c|
             w = Wallet.new(c[:path])
-            "#{c[:name]}: #{c[:score]} #{w.mnemo} \
-#{Size.new(File.size(c[:path]))}/#{Age.new(File.mtime(c[:path]))}"
+            "#{c[:name]}: #{c[:score]} #{w.mnemo} " \
+              "#{Size.new(File.size(c[:path]))}/#{Age.new(File.mtime(c[:path]))}"
           end.join("\n")
         ].join
       end
@@ -367,12 +368,7 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
         status(304)
         return
       end
-      pretty(
-        version: settings.opts['expose-version'],
-        alias: settings.node_alias,
-        score: score.to_h,
-        wallets: total_wallets
-      )
+      pretty(version: settings.opts['expose-version'], alias: settings.node_alias, score: score.to_h, wallets: count)
     end
 
     get '/wallets' do
@@ -387,7 +383,7 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
         repo: Zold::REPO,
         alias: settings.node_alias,
         score: score.to_h,
-        all: all_remotes,
+        all: peers,
         mtime: settings.remotes.mtime.utc.iso8601
       )
     end
@@ -403,12 +399,12 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
         (File.exist?(settings.ledger) ? File.read(settings.ledger).split("\n") : []).map do |t|
           parts = t.split(';')
           {
-            found: parts[0],
-            id: parts[1].to_i,
+            found: parts.first,
+            id: Integer(parts[1], 10),
             date: parts[2],
             source: parts[3],
             target: parts[4],
-            amount: parts[5].to_i,
+            amount: Integer(parts[5], 10),
             prefix: parts[6],
             details: parts[7]
           }
@@ -501,8 +497,10 @@ this is not a normal behavior, you may want to report a bug to our GitHub reposi
         settings.log.error(Backtrace.new(e).to_s)
       end
       if e.is_a?(Errno::ENOMEM) && !settings.opts['skip-oom']
-        settings.log.error("We are running out of memory (#{Size.new(GetProcessMem.new.bytes.to_i)}), \
-time to stop; use --skip-oom to never quit")
+        settings.log.error(
+          "We are running out of memory (#{Size.new(GetProcessMem.new.bytes.truncate)}), " \
+          'time to stop; use --skip-oom to never quit'
+        )
         Front.stop!
       end
       Backtrace.new(e).to_s
@@ -510,15 +508,15 @@ time to stop; use --skip-oom to never quit")
 
     private
 
-    def check_header(name)
+    def check(name)
       name = "HTTP-#{name}".upcase.tr('-', '_')
       header = request.env[name]
       return unless header
-      yield header
+      yield(header)
     end
 
-    def total_mem
-      settings.zache.get(:total_mem, lifetime: settings.opts['no-cache'] ? 0 : 60) do
+    def mem
+      settings.zache.get(:mem, lifetime: settings.opts['no-cache'] ? 0 : 60) do
         Total::Mem.new.bytes
       rescue Total::CantDetect => e
         settings.log.error(e.message)
@@ -526,7 +524,7 @@ time to stop; use --skip-oom to never quit")
       end
     end
 
-    def total_wallets
+    def count
       settings.zache.get(:wallets, lifetime: settings.opts['no-cache'] ? 0 : 60) do
         settings.wallets.count
       end
@@ -543,13 +541,13 @@ time to stop; use --skip-oom to never quit")
       end
     end
 
-    def all_remotes
+    def peers
       settings.zache.get(:remotes, lifetime: settings.opts['no-cache'] ? 0 : 60) do
         settings.remotes.all
       end
     end
 
-    def processes_count
+    def procs
       settings.zache.get(:processes, lifetime: settings.opts['no-cache'] ? 0 : 60) do
         processes.count
       end
@@ -566,8 +564,8 @@ time to stop; use --skip-oom to never quit")
     def score
       settings.zache.get(:score, lifetime: settings.opts['no-cache'] ? 0 : 60) do
         b = settings.farm.best
-        raise 'Score is empty, there is something wrong with the Farm!' if b.empty?
-        b[0]
+        raise(RuntimeError, 'Score is empty, there is something wrong with the Farm!') if b.empty?
+        b.first
       end
     end
 
@@ -583,15 +581,15 @@ time to stop; use --skip-oom to never quit")
       settings.wallets.acq(id) do |wallet|
         error(404, "Wallet ##{id} doesn't exist on the node") unless wallet.exists?
         content_type(type)
-        yield wallet
+        yield(wallet)
       end
     end
 
-    def add_new_remote(score)
+    def add(score)
       all = settings.remotes.all
       return if all.count > Remotes::MAX_NODES && all.none? { |r| r[:errors] > Remotes::TOLERANCE }
       begin
-        require_relative '../commands/remote'
+        require_relative('../commands/remote')
         Remote.new(remotes: settings.remotes, log: settings.log).run(
           [
             'remote', 'add', score.host, score.port.to_s,

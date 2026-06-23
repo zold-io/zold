@@ -8,16 +8,12 @@
 # Copyright:: Copyright (c) 2018-2026 Zerocracy
 # License:: MIT
 class FakeEntrance
-  def initialize
-    # Nothing here
-  end
-
-  def to_json
+  def to_json(*_args)
     {}
   end
 
   def start
-    yield self
+    yield(self)
   end
 
   def push(id, _)

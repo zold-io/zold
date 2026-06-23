@@ -3,15 +3,15 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'tmpdir'
 require 'time'
-require_relative 'fake_home'
-require_relative 'test__helper'
-require_relative '../lib/zold/id'
+require 'tmpdir'
 require_relative '../lib/zold/age'
 require_relative '../lib/zold/copies'
 require_relative '../lib/zold/dir_items'
+require_relative '../lib/zold/id'
 require_relative '../lib/zold/wallet'
+require_relative 'fake_home'
+require_relative 'test__helper'
 
 # Copies test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -118,9 +118,10 @@ class TestCopies < Zold::Test
     id = Zold::Id.new('aaaabbbbccccdddd')
     FakeHome.new(log: fake_log).run do |home|
       wallet = home.create_wallet(id)
-      amount = Zold::Amount.new(zld: 1.99)
-      key = Zold::Key.new(file: 'fixtures/id_rsa')
-      wallet.sub(amount, 'NOPREFIX@0000111122223333', key, text, time: Time.parse('2018-01-01T01:01:01Z'))
+      wallet.sub(
+        Zold::Amount.new(zld: 1.99), 'NOPREFIX@0000111122223333', Zold::Key.new(file: 'fixtures/id_rsa'),
+        text, time: Time.parse('2018-01-01T01:01:01Z')
+      )
       File.read(wallet.path)
     end
   end

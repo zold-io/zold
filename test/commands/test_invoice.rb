@@ -4,12 +4,12 @@
 # SPDX-License-Identifier: MIT
 
 require 'tmpdir'
-require_relative '../test__helper'
-require_relative '../../lib/zold/wallets'
 require_relative '../../lib/zold/amount'
-require_relative '../../lib/zold/key'
-require_relative '../../lib/zold/id'
 require_relative '../../lib/zold/commands/invoice'
+require_relative '../../lib/zold/id'
+require_relative '../../lib/zold/key'
+require_relative '../../lib/zold/wallets'
+require_relative '../test__helper'
 
 # INVOICE test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -22,7 +22,9 @@ class TestInvoice < Zold::Test
       wallets = Zold::Wallets.new(dir)
       wallets.acq(id) do |source|
         source.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+        # rubocop:disable Elegant/NoRedundantVariable
         invoice = Zold::Invoice.new(wallets: wallets, remotes: nil, copies: nil, log: fake_log).run(
+          # rubocop:enable Elegant/NoRedundantVariable
           ['invoice', id.to_s, '--length=16']
         )
         assert_equal(33, invoice.length)

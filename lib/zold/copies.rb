@@ -3,15 +3,15 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'time'
-require 'openssl'
+require 'backtrace'
 require 'csv'
 require 'futex'
-require 'backtrace'
 require 'loog'
+require 'openssl'
+require 'time'
+require_relative 'dir_items'
 require_relative 'size'
 require_relative 'wallet'
-require_relative 'dir_items'
 
 # The list of copies.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -20,7 +20,6 @@ require_relative 'dir_items'
 module Zold
   # All copies
   class Copies
-    # Extension for copy files
     EXT = '.zc'
 
     def initialize(dir, log: Loog::NULL)
@@ -53,7 +52,7 @@ module Zold
         files.each do |f|
           next unless list.find { |s| s[:name] == File.basename(f, Copies::EXT) }.nil?
           file = File.join(@dir, f)
-          size = File.size(file)
+          size = File.size(file) # rubocop:disable Elegant/NoRedundantVariable
           File.delete(file)
           @log.debug("Copy at #{f} deleted: #{Size.new(size)}")
           deleted += 1
@@ -63,7 +62,7 @@ module Zold
           wallet = Wallet.new(cp)
           begin
             wallet.refurbish
-            raise "Invalid protocol #{wallet.protocol} in #{cp}" unless wallet.protocol == Zold::PROTOCOL
+            raise(RuntimeError, "Invalid protocol #{wallet.protocol} in #{cp}") unless wallet.protocol == Zold::PROTOCOL
             true
           rescue StandardError => e
             FileUtils.rm_rf(cp)
@@ -85,26 +84,27 @@ module Zold
 
     # Returns the name of the copy
     def add(content, host, port, score, time: Time.now, master: false)
-      raise "Content can't be empty" if content.empty?
-      raise 'TCP port must be of type Integer' unless port.is_a?(Integer)
-      raise "TCP port can't be negative: #{port}" if port.negative?
-      raise 'Time must be of type Time' unless time.is_a?(Time)
-      raise "Time must be in the past: #{time}" if time > Time.now
-      raise 'Score must be Integer' unless score.is_a?(Integer)
-      raise "Score can't be negative: #{score}" if score.negative?
+      raise(RuntimeError, "Content can't be empty") if content.empty?
+      raise(RuntimeError, 'TCP port must be of type Integer') unless port.is_a?(Integer)
+      raise(RuntimeError, "TCP port can't be negative: #{port}") if port.negative?
+      raise(RuntimeError, 'Time must be of type Time') unless time.is_a?(Time)
+      raise(RuntimeError, "Time must be in the past: #{time}") if time > Time.now
+      raise(RuntimeError, 'Score must be Integer') unless score.is_a?(Integer)
+      raise(RuntimeError, "Score can't be negative: #{score}") if score.negative?
       FileUtils.mkdir_p(@dir)
       Futex.new(file, log: @log).open do
         list = load
-        target = list.find do |s|
-          f = File.join(@dir, "#{s[:name]}#{Copies::EXT}")
-          digest = OpenSSL::Digest::SHA256.new(content).hexdigest
-          File.exist?(f) && OpenSSL::Digest::SHA256.file(f).hexdigest == digest
-        end
+        target =
+          list.find do |s|
+            f = File.join(@dir, "#{s[:name]}#{Copies::EXT}")
+            digest = OpenSSL::Digest::SHA256.new(content).hexdigest
+            File.exist?(f) && OpenSSL::Digest::SHA256.file(f).hexdigest == digest
+          end
         if target.nil?
-          max = DirItems.new(@dir).fetch
-            .select { |f| File.basename(f, Copies::EXT) =~ /^[0-9]+$/ }
-            .map(&:to_i)
-            .max
+          max = DirItems.new(@dir).fetch.filter_map do |f|
+            b = File.basename(f, Copies::EXT)
+            Integer(b, 10) if /^[0-9]+$/.match?(b)
+          end.max
           max = 0 if max.nil?
           name = (max + 1).to_s
           File.write(File.join(@dir, "#{name}#{Copies::EXT}"), content)
@@ -112,14 +112,7 @@ module Zold
           name = target[:name]
         end
         list.reject! { |s| s[:host] == host && s[:port] == port }
-        list << {
-          name: name,
-          host: host,
-          port: port,
-          score: score,
-          time: time,
-          master: master
-        }
+        list << { name: name, host: host, port: port, score: score, time: time, master: master }
         save(list)
         name
       end
@@ -150,10 +143,10 @@ module Zold
       FileUtils.touch(file)
       CSV.read(file).select { |s| s.count == 6 }.map do |s|
         {
-          name: s[0],
+          name: s.first,
           host: s[1],
-          port: s[2].to_i,
-          score: s[3].to_i,
+          port: Integer(s[2], 10),
+          score: Integer(s[3], 10),
           time: Txn.parse_time(s[4]),
           master: s[5] == 'M'
         }

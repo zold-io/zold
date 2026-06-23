@@ -3,15 +3,15 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'slop'
 require 'rainbow'
-require_relative 'thread_badge'
+require 'slop'
 require_relative 'args'
+require_relative 'thread_badge'
 require 'loog'
 require_relative '../age'
+require_relative '../prefixes'
 require_relative '../wallet'
 require_relative '../wallets'
-require_relative '../prefixes'
 
 # PROPAGATE command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -29,11 +29,14 @@ module Zold
 
     # Returns list of Wallet IDs which were affected
     def run(args = [])
-      opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
-        o.banner = "Usage: zold propagate [ID...] [options]
-Available options:"
-        o.bool '--help', 'Print instructions'
-      end
+      opts =
+        Slop.parse(args, help: true, suppress_errors: true) do |o|
+          o.banner = <<~BANNER
+            Usage: zold propagate [ID...] [options]
+            Available options:
+          BANNER
+          o.bool('--help', 'Print instructions')
+        end
       mine = Args.new(opts, @log).take || return
       modified = []
       (mine.empty? ? @wallets.all : mine.map { |i| Id.new(i) }).each do |id|
@@ -46,7 +49,6 @@ Available options:"
 
     # Returns list of Wallet IDs which were affected
     def propagate(id, _)
-      start = Time.now
       modified = []
       total = 0
       network = @wallets.acq(id, &:network)
@@ -76,8 +78,10 @@ Available options:"
         end
       end
       modified.uniq!
-      @log.debug("Wallet #{id} propagated successfully, #{total} txns \
-in #{Age.new(start, limit: 20 + (total * 0.005))}, #{modified.count} wallets affected")
+      @log.debug(
+        "Wallet #{id} propagated successfully, #{total} txns " \
+        "in #{Age.new(Time.now, limit: 20 + (total * 0.005))}, #{modified.count} wallets affected"
+      )
       modified.each do |w|
         @wallets.acq(w, &:refurbish)
       end

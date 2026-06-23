@@ -3,8 +3,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'zache'
 require 'delegate'
+require 'zache'
 require_relative 'endless'
 require_relative 'thread_pool'
 
@@ -21,7 +21,7 @@ module Zold
       @clean = ThreadPool.new('cached-wallets')
       @clean.add do
         Endless.new('cached_wallets').run do
-          sleep 5
+          sleep(5)
           @zache.clean
         end
       end
@@ -31,7 +31,7 @@ module Zold
     def acq(id, exclusive: false)
       @wallets.acq(id, exclusive: exclusive) do |wallet|
         c = @zache.get(id.to_s, lifetime: 15) { wallet }
-        res = yield c
+        res = yield(c) # rubocop:disable Elegant/NoRedundantVariable
         c.flush if exclusive
         res
       end

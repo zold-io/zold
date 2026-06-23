@@ -3,16 +3,16 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require_relative '../fake_home'
-require_relative '../test__helper'
-require_relative '../../lib/zold/wallet'
-require_relative '../../lib/zold/wallets'
-require_relative '../../lib/zold/remotes'
+require_relative '../../lib/zold/commands/pay'
 require_relative '../../lib/zold/id'
 require_relative '../../lib/zold/key'
 require_relative '../../lib/zold/node/entrance'
 require_relative '../../lib/zold/node/pipeline'
-require_relative '../../lib/zold/commands/pay'
+require_relative '../../lib/zold/remotes'
+require_relative '../../lib/zold/wallet'
+require_relative '../../lib/zold/wallets'
+require_relative '../fake_home'
+require_relative '../test__helper'
 
 # ENTRANCE test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -22,22 +22,25 @@ class TestEntrance < Zold::Test
   def test_pushes_wallet
     sid = Zold::Id::ROOT
     tid = Zold::Id.new
-    body = FakeHome.new(log: fake_log).run do |home|
-      source = home.create_wallet(sid)
-      target = home.create_wallet(tid)
-      Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: fake_log).run(
-        [
-          'pay', '--force', '--private-key=fixtures/id_rsa',
-          source.id.to_s, target.id.to_s, '19.99', 'testing'
-        ]
-      )
-      File.read(source.path)
-    end
+    body =
+      FakeHome.new(log: fake_log).run do |home|
+        source = home.create_wallet(sid)
+        target = home.create_wallet(tid)
+        Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: fake_log).run(
+          [
+            'pay', '--force', '--private-key=fixtures/id_rsa',
+            source.id.to_s, target.id.to_s, '19.99', 'testing'
+          ]
+        )
+        File.read(source.path)
+      end
     FakeHome.new(log: fake_log).run do |home|
       source = home.create_wallet(sid)
       target = home.create_wallet(tid)
       ledger = File.join(home.dir, 'ledger.csv')
+      # rubocop:disable Elegant/NoRedundantVariable
       e = Zold::Entrance.new(
+        # rubocop:enable Elegant/NoRedundantVariable
         home.wallets,
         Zold::Pipeline.new(home.remotes, home.copies(source).root, 'x', ledger: ledger),
         log: fake_log

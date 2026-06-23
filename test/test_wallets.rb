@@ -4,12 +4,12 @@
 # SPDX-License-Identifier: MIT
 
 require 'tmpdir'
-require_relative 'test__helper'
-require_relative 'fake_home'
-require_relative '../lib/zold/key'
-require_relative '../lib/zold/id'
-require_relative '../lib/zold/wallets'
 require_relative '../lib/zold/amount'
+require_relative '../lib/zold/id'
+require_relative '../lib/zold/key'
+require_relative '../lib/zold/wallets'
+require_relative 'fake_home'
+require_relative 'test__helper'
 
 # Wallets test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -44,8 +44,7 @@ class TestWallets < Zold::Test
   def test_subtracts_dir_path_from_full_path
     Dir.mktmpdir do |dir|
       Dir.chdir(dir) do
-        wallets = Zold::Wallets.new(Dir.pwd)
-        assert_equal('.', wallets.to_s)
+        assert_equal('.', Zold::Wallets.new(Dir.pwd).to_s)
       end
     end
   end

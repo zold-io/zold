@@ -3,9 +3,9 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
+require 'threads'
 require 'tmpdir'
 require 'webmock/minitest'
-require 'threads'
 require_relative 'test__helper'
 require 'loog'
 require_relative '../lib/zold/age'
@@ -31,8 +31,7 @@ class TestRemotes < Zold::Test
     Dir.mktmpdir do |dir|
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
-      remotes = Zold::Remotes.new(file: file)
-      assert(remotes.master?('b2.zold.io', 4096))
+      assert(Zold::Remotes.new(file: file).master?('b2.zold.io', 4096))
     end
   end
 
@@ -59,7 +58,7 @@ class TestRemotes < Zold::Test
       remotes = Zold::Remotes.new(file: file)
       ips = (0..50)
       ips.each { |i| remotes.add("0.0.0.#{i + 1}", 9999) }
-      remotes.iterate(Loog::NULL) { raise 'Intended' }
+      remotes.iterate(Loog::NULL) { raise(RuntimeError, 'Intended') }
       ips.each { |i| assert_equal(1, remotes.all[i][:errors]) }
     end
   end
@@ -73,7 +72,7 @@ class TestRemotes < Zold::Test
       total = 0
       remotes.iterate(Loog::NULL) do
         total += 1
-        raise 'Intended'
+        raise(RuntimeError, 'Intended')
       end
       assert_equal(5, total)
     end
@@ -87,7 +86,7 @@ class TestRemotes < Zold::Test
       5.times { |i| remotes.add("0.0.0.#{i + 1}", 9999) }
       total = 0
       remotes.iterate(Loog::NULL) do
-        sleep 0.25
+        sleep(0.25)
         total += 1
       end
       assert_equal(5, total)
@@ -101,26 +100,26 @@ class TestRemotes < Zold::Test
       5.times { |i| remotes.add("0.0.0.#{i + 1}", 8080) }
       total = 0
       remotes.iterate(fake_log) do
-        sleep 0.25
+        sleep(0.25)
         total += 1
       end
       assert_equal(5, total)
     end
   end
 
-  def fake_log_msg_of_iterates_when_fail
+  def fake_failing
     Dir.mktmpdir do |dir|
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
       remotes = Zold::Remotes.new(file: file)
       remotes.add('0.0.0.1', 9999)
       log = TestLogger.new
-      remotes.iterate(log) { raise 'Intended' }
+      remotes.iterate(log) { raise(RuntimeError, 'Intended') }
       assert(log.msgs.find { |m| m.include?(' in ') })
     end
   end
 
-  def fake_log_msg_of_iterates_when_take_too_long
+  def fake_timeout
     Dir.mktmpdir do |dir|
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
@@ -170,8 +169,7 @@ class TestRemotes < Zold::Test
 
   def test_tolerates_invalid_requests
     Dir.mktmpdir do |dir|
-      file = File.join(dir, 'remotes')
-      remotes = Zold::Remotes.new(file: file)
+      remotes = Zold::Remotes.new(file: File.join(dir, 'remotes'))
       remotes.error('127.0.0.1', 1024)
       remotes.rescore('127.0.0.1', 1024, 15)
     end
@@ -191,10 +189,10 @@ class TestRemotes < Zold::Test
   end
 
   def test_mtime
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir('test') do |dir|
       file = File.join(dir, 'remotes')
       FileUtils.touch(file)
-      File.stub :mtime, Time.mktime(2018, 1, 1) do
+      File.stub(:mtime, Time.mktime(2018, 1, 1)) do
         remotes = Zold::Remotes.new(file: file)
         remotes.add('127.0.0.1')
         assert_equal(Time.mktime(2018, 1, 1), remotes.mtime)
@@ -203,11 +201,11 @@ class TestRemotes < Zold::Test
   end
 
   def test_read_mtime_from_file
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir('test') do |dir|
       file = File.join(dir, 'a/b/c/remotes')
       remotes = Zold::Remotes.new(file: file)
       remotes.clean
-      assert_equal(File.mtime(file).to_i, remotes.mtime.to_i)
+      assert_equal(File.mtime(file).tv_sec, remotes.mtime.tv_sec)
     end
   end
 
@@ -230,7 +228,6 @@ class TestRemotes < Zold::Test
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'uu-90.csv'))
       remotes.clean
-      start = Time.now
       100.times { |i| remotes.add('192.168.0.1', 8080 + i) }
       Threads.new(4).assert(10) do |t|
         remotes.add('127.0.0.1', 8080 + t)
@@ -239,7 +236,7 @@ class TestRemotes < Zold::Test
         remotes.iterate(fake_log) { remotes.all }
         remotes.remove('127.0.0.1', 8080 + t)
       end
-      fake_log.info("Total time: #{Zold::Age.new(start)}")
+      fake_log.info("Total time: #{Zold::Age.new(Time.now)}")
     end
   end
 
@@ -248,18 +245,17 @@ class TestRemotes < Zold::Test
       remotes = Zold::Remotes.new(file: File.join(dir, 'uu-90.csv'))
       remotes.clean
       remotes.add('192.168.0.1', 8081)
-      assert_equal 0, remotes.all.last[:errors]
+      assert_equal(0, remotes.all.last[:errors])
       remotes.error('192.168.0.1', 8081)
-      assert_equal 1, remotes.all.last[:errors]
+      assert_equal(1, remotes.all.last[:errors])
       remotes.unerror('192.168.0.1', 8081)
-      assert_equal 0, remotes.all.last[:errors]
+      assert_equal(0, remotes.all.last[:errors])
     end
   end
 
   def test_empty_remotes
-    Time.stub :now, Time.mktime(2018, 1, 1) do
-      remotes = Zold::Remotes::Empty.new
-      assert_equal(Time.mktime(2018, 1, 1), remotes.mtime)
+    Time.stub(:now, Time.mktime(2018, 1, 1)) do
+      assert_equal(Time.mktime(2018, 1, 1), Zold::Remotes::Empty.new.mtime)
     end
   end
 
@@ -277,7 +273,7 @@ class TestRemotes < Zold::Test
       stub_request(:get, 'http://11a-example.org:8080/').to_return(
         status: 500,
         headers: {
-          'X-Zold-Error': 'hey you'
+          'X-Zold-Error' => 'hey you'
         }
       )
       remotes.iterate(fake_log) do |r|

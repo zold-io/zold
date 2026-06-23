@@ -23,12 +23,12 @@ module Zold
       @log = log
     end
 
-    def to_json
+    def to_json(*_args)
       @entrance.to_json
     end
 
     def start
-      raise 'Block must be given to start()' unless block_given?
+      raise(RuntimeError, 'Block must be given to start()') unless block_given?
       if File.exist?(@dir)
         FileUtils.rm_rf(@dir)
         @log.info("Directory #{@dir} deleted")

@@ -15,14 +15,13 @@ require_relative 'zold/signature'
 require_relative 'zold/size'
 require_relative 'zold/tax'
 require_relative 'zold/txn'
+require_relative 'zold/version'
 require_relative 'zold/wallet'
 require_relative 'zold/wallets'
-require_relative 'zold/version'
 
 # Zold main module.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018-2026 Zerocracy
 # License:: MIT
 module Zold
-  # to be implemented...
 end

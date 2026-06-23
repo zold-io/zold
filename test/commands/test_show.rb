@@ -4,12 +4,12 @@
 # SPDX-License-Identifier: MIT
 
 require 'tmpdir'
-require_relative '../test__helper'
-require_relative '../../lib/zold/wallets'
-require_relative '../../lib/zold/wallet'
-require_relative '../../lib/zold/key'
-require_relative '../../lib/zold/id'
 require_relative '../../lib/zold/commands/show'
+require_relative '../../lib/zold/id'
+require_relative '../../lib/zold/key'
+require_relative '../../lib/zold/wallet'
+require_relative '../../lib/zold/wallets'
+require_relative '../test__helper'
 
 # SHOW test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -22,8 +22,10 @@ class TestShow < Zold::Test
       wallets = Zold::Wallets.new(dir)
       wallets.acq(id) do |wallet|
         wallet.init(Zold::Id.new, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-        balance = Zold::Show.new(wallets: wallets, copies: File.join(dir, 'c'), log: fake_log).run(['show', id.to_s])
-        assert_equal(Zold::Amount::ZERO, balance)
+        assert_equal(
+          Zold::Amount::ZERO,
+          Zold::Show.new(wallets: wallets, copies: File.join(dir, 'c'), log: fake_log).run(['show', id.to_s])
+        )
       end
     end
   end

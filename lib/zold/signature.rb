@@ -3,9 +3,9 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require_relative 'key'
-require_relative 'id'
 require_relative 'amount'
+require_relative 'id'
+require_relative 'key'
 require_relative 'txn'
 
 # The signature of a transaction.
@@ -25,9 +25,9 @@ module Zold
     # +id+:: Paying wallet ID
     # +txn+:: The transaction
     def sign(pvt, id, txn)
-      raise 'pvt must be of type Key' unless pvt.is_a?(Key)
-      raise 'id must be of type Id' unless id.is_a?(Id)
-      raise 'txn must be of type Txn' unless txn.is_a?(Txn)
+      raise(RuntimeError, 'pvt must be of type Key') unless pvt.is_a?(Key)
+      raise(RuntimeError, 'id must be of type Id') unless id.is_a?(Id)
+      raise(RuntimeError, 'txn must be of type Txn') unless txn.is_a?(Txn)
       pvt.sign(body(id, txn))
     end
 
@@ -36,9 +36,9 @@ module Zold
     # +id+:: Paying wallet ID
     # +txn+: Transaction to validate
     def valid?(pub, id, txn)
-      raise 'pub must be of type Key' unless pub.is_a?(Key)
-      raise 'id must be of type Id' unless id.is_a?(Id)
-      raise 'txn must be of type Txn' unless txn.is_a?(Txn)
+      raise(RuntimeError, 'pub must be of type Key') unless pub.is_a?(Key)
+      raise(RuntimeError, 'id must be of type Id') unless id.is_a?(Id)
+      raise(RuntimeError, 'txn must be of type Txn') unless txn.is_a?(Txn)
       pub.verify(txn.sign, body(id, txn)) && (@network != Wallet::MAINET || !id.root? || pub.root?)
     end
 
@@ -48,7 +48,7 @@ module Zold
     # +id+:: The paying wallet ID
     # +t+:: Transaction, instance of Txn
     def body(id, t)
-      [id, t.id, t.date.utc.iso8601, t.amount.to_i, t.prefix, t.bnf, t.details].join(' ')
+      [id, t.id, t.date.utc.iso8601, t.amount.to_zents, t.prefix, t.bnf, t.details].join(' ')
     end
   end
 end

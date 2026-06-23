@@ -3,10 +3,10 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'tmpdir'
 require 'openssl'
-require_relative 'test__helper'
+require 'tmpdir'
 require_relative '../lib/zold/key'
+require_relative 'test__helper'
 
 # Key test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -34,11 +34,8 @@ class TestKey < Zold::Test
   end
 
   def test_signs_and_verifies
-    pub = Zold::Key.new(file: 'fixtures/id_rsa.pub')
-    pvt = Zold::Key.new(file: 'fixtures/id_rsa')
     text = 'How are you, my friend?'
-    signature = pvt.sign(text)
-    assert(pub.verify(signature, text))
+    assert(Zold::Key.new(file: 'fixtures/id_rsa.pub').verify(Zold::Key.new(file: 'fixtures/id_rsa').sign(text), text))
   end
 
   def test_signs_and_verifies_with_random_key
@@ -46,30 +43,27 @@ class TestKey < Zold::Test
       key = OpenSSL::PKey::RSA.new(2048)
       file = File.join(dir, 'temp')
       File.write(file, key.public_key.to_s)
-      pub = Zold::Key.new(file: file)
       File.write(file, key.to_s)
-      pvt = Zold::Key.new(file: file)
       text = 'How are you doing, dude?'
-      signature = pvt.sign(text)
-      assert(pub.verify(signature, text))
+      assert(Zold::Key.new(file: file).verify(Zold::Key.new(file: file).sign(text), text))
     end
   end
 
   def test_read_public_keys
     Dir.new('fixtures/keys').grep(/\.pub$/).each do |f|
-      path = "fixtures/keys/#{f}"
-      pub = Zold::Key.new(file: path)
-      assert_operator(pub.to_pub.length, :>, 100)
+      assert_operator(Zold::Key.new(file: "fixtures/keys/#{f}").to_pub.length, :>, 100)
     end
   end
 
   def test_signs_with_real_keys
     Dir.new('fixtures/keys').grep(/[0-9]+$/).each do |f|
-      pvt = Zold::Key.new(file: "fixtures/keys/#{f}")
-      pub = Zold::Key.new(file: "fixtures/keys/#{f}.pub")
       text = 'How are you doing, my friend?'
-      signature = pvt.sign(text)
-      assert(pub.verify(signature, text))
+      assert(
+        Zold::Key.new(file: "fixtures/keys/#{f}.pub").verify(
+          Zold::Key.new(file: "fixtures/keys/#{f}").sign(text),
+          text
+        )
+      )
     end
   end
 

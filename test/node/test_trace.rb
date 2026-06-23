@@ -3,8 +3,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require_relative '../test__helper'
 require_relative '../../lib/zold/node/trace'
+require_relative '../test__helper'
 
 class TraceTest < Zold::Test
   def test_records_log_lines

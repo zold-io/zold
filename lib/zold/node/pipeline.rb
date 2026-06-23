@@ -3,17 +3,17 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'tempfile'
-require 'shellwords'
 require 'loog'
-require_relative '../remotes'
-require_relative '../copies'
-require_relative '../tax'
+require 'shellwords'
+require 'tempfile'
 require_relative '../age'
 require_relative '../commands/clean'
-require_relative '../commands/merge'
 require_relative '../commands/fetch'
+require_relative '../commands/merge'
 require_relative '../commands/push'
+require_relative '../copies'
+require_relative '../remotes'
+require_relative '../tax'
 
 # The pipeline that accepts new wallets and merges them.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -34,7 +34,7 @@ module Zold
     end
 
     # Show its internals.
-    def to_json
+    def to_json(*_args)
       {
         ledger: File.exist?(@ledger) ? File.read(@ledger).split("\n").count : 0
       }
@@ -52,9 +52,7 @@ module Zold
         ).run(['fetch', id.to_s, "--ignore-node=#{@address}", "--network=#{@network}", '--quiet-if-absent'])
       end
       modified = merge(id, copies, wallets, log)
-      Clean.new(wallets: wallets, copies: copies.root, log: log).run(
-        ['clean', id.to_s, '--max-age=1']
-      )
+      Clean.new(wallets: wallets, copies: copies.root, log: log).run(['clean', id.to_s, '--max-age=1'])
       copies.remove(host, Remotes::PORT)
       if modified.empty?
         log.info("Accepted #{id} in #{Age.new(start, limit: 1)} and not modified anything")
@@ -69,15 +67,18 @@ module Zold
 
     def merge(id, copies, wallets, log)
       Tempfile.open do |f|
-        modified = Tempfile.open do |t|
-          host, port = @address.split(':')
-          Merge.new(wallets: wallets, remotes: @remotes, copies: copies.root, log: log).run(
-            ['merge', id.to_s, "--ledger=#{Shellwords.escape(f.path)}"] +
-            ["--trusted=#{Shellwords.escape(t.path)}"] +
-            ["--network=#{Shellwords.escape(@network)}"] +
-            (@remotes.master?(host, port.to_i) ? ['--no-baseline', '--depth=4'] : [])
-          )
-        end
+        modified = # rubocop:disable Elegant/NoRedundantVariable
+          Tempfile.open do |t|
+            host, port = @address.split(':')
+            Merge.new(wallets: wallets, remotes: @remotes, copies: copies.root, log: log).run(
+              ['merge', id.to_s, "--ledger=#{Shellwords.escape(f.path)}"] +
+              ["--trusted=#{Shellwords.escape(t.path)}"] +
+              ["--network=#{Shellwords.escape(@network)}"] +
+              # rubocop:disable Lint/NumberConversion
+              (@remotes.master?(host, port.to_i) ? ['--no-baseline', '--depth=4'] : [])
+              # rubocop:enable Lint/NumberConversion
+            )
+          end
         @mutex.synchronize do
           txns = File.exist?(@ledger) ? File.read(@ledger).strip.split("\n") : []
           txns += File.read(f.path).strip.split("\n")
@@ -85,7 +86,7 @@ module Zold
             @ledger,
             txns.map { |t| t.split(';') }
               .uniq { |t| "#{t[1]}-#{t[3]}" }
-              .reject { |t| Txn.parse_time(t[0]) < Time.now - (24 * 60 * 60) }
+              .reject { |t| Txn.parse_time(t.first) < Time.now - (24 * 60 * 60) }
               .map { |t| t.join(';') }
               .join("\n")
               .strip

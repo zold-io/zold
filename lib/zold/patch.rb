@@ -3,10 +3,10 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'openssl'
 require 'loog'
-require_relative 'wallet'
+require 'openssl'
 require_relative 'signature'
+require_relative 'wallet'
 
 # Patch.
 #
@@ -32,7 +32,7 @@ module Zold
     # legacy negative transactions to the patch before everything else. They
     # are not supposed to be disputed, ever.
     def legacy(wallet, hours: 24)
-      raise 'You can\'t add legacy to a non-empty patch' unless @id.nil?
+      raise(RuntimeError, 'You can\'t add legacy to a non-empty patch') unless @id.nil?
       wallet.txns.each do |txn|
         @txns << txn if txn.amount.negative? && txn.date < Time.now - (hours * 60 * 60)
       end
@@ -82,13 +82,17 @@ module Zold
         if txn.amount.negative?
           dup = @txns.find { |t| t.id == txn.id && t.amount.negative? }
           if dup && !master
-            @log.error("An attempt to overwrite existing transaction #{dup.to_text.inspect} \
-with a new one #{txn.to_text.inspect} from #{wallet.mnemo}")
+            @log.error(
+              "An attempt to overwrite existing transaction #{dup.to_text.inspect} " \
+              "with a new one #{txn.to_text.inspect} from #{wallet.mnemo}"
+            )
             next
           end
           if dup && master
-            @log.debug("An overwrite to the existing transaction #{dup.to_text.inspect} \
-is coming from a master node: #{txn.to_text.inspect} from #{wallet.mnemo}")
+            @log.debug(
+              "An overwrite to the existing transaction #{dup.to_text.inspect} " \
+              "is coming from a master node: #{txn.to_text.inspect} from #{wallet.mnemo}"
+            )
             @txns.reject! { |t| t.id == txn.id && t.amount.negative? }
           end
           unless Signature.new(@network).valid?(@key, wallet.id, txn)
@@ -102,8 +106,10 @@ is coming from a master node: #{txn.to_text.inspect} from #{wallet.mnemo}")
           end
           dup = @txns.find { |t| t.id == txn.id && t.bnf == txn.bnf && t.amount.positive? }
           if dup
-            @log.error("Overwriting #{dup.to_text.inspect} with #{txn.to_text.inspect} \
-from #{wallet.mnemo} (same ID/BNF)")
+            @log.error(
+              "Overwriting #{dup.to_text.inspect} with #{txn.to_text.inspect} " \
+              "from #{wallet.mnemo} (same ID/BNF)"
+            )
             next
           end
           if !txn.sign.nil? && !txn.sign.empty?
@@ -111,14 +117,15 @@ from #{wallet.mnemo} (same ID/BNF)")
             next
           end
           unless wallet.prefix?(txn.prefix)
-            @log.debug("Payment prefix '#{txn.prefix}' doesn't match \
-with the key of #{wallet.id}: #{txn.to_text.inspect}")
+            @log.debug(
+              "Payment prefix '#{txn.prefix}' doesn't match " \
+              "with the key of #{wallet.id}: #{txn.to_text.inspect}"
+            )
             next
           end
           unless @wallets.acq(txn.bnf, &:exists?)
             if baseline
-              @log.debug("Paying wallet #{txn.bnf} is absent, \
-but the txn in in the baseline: #{txn.to_text.inspect}")
+              @log.debug("Paying wallet #{txn.bnf} is absent, but the txn in in the baseline: #{txn.to_text.inspect}")
             else
               next if pulled.include?(txn.bnf)
               pulled << txn.bnf
@@ -131,19 +138,25 @@ but the txn in in the baseline: #{txn.to_text.inspect}")
           if @wallets.acq(txn.bnf, &:exists?) &&
             !@wallets.acq(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
             if baseline
-              @log.debug("The beneficiary #{@wallets.acq(txn.bnf, &:mnemo)} of #{@id} \
-doesn't have this transaction, but we trust it, since it's a baseline: #{txn.to_text.inspect}")
+              @log.debug(
+                "The beneficiary #{@wallets.acq(txn.bnf, &:mnemo)} of #{@id} " \
+                "doesn't have this transaction, but we trust it, since it's a baseline: #{txn.to_text.inspect}"
+              )
             else
               if pulled.include?(txn.bnf)
-                @log.debug("The beneficiary #{@wallets.acq(txn.bnf, &:mnemo)} of #{@id} \
-doesn't have this transaction: #{txn.to_text.inspect}")
+                @log.debug(
+                  "The beneficiary #{@wallets.acq(txn.bnf, &:mnemo)} of #{@id} " \
+                  "doesn't have this transaction: #{txn.to_text.inspect}"
+                )
                 next
               end
               pulled << txn.bnf
               yield(txn)
               unless @wallets.acq(txn.bnf) { |p| p.includes_negative?(txn.id, wallet.id) }
-                @log.debug("The beneficiary #{@wallets.acq(txn.bnf, &:mnemo)} of #{@id} \
-doesn't have this transaction: #{txn.to_text.inspect}")
+                @log.debug(
+                  "The beneficiary #{@wallets.acq(txn.bnf, &:mnemo)} of #{@id} " \
+                  "doesn't have this transaction: #{txn.to_text.inspect}"
+                )
                 next
               end
             end
@@ -153,17 +166,12 @@ doesn't have this transaction: #{txn.to_text.inspect}")
         added += 1
         next unless txn.amount.negative?
         File.open(ledger, 'a') do |f|
-          msg = [
-            Time.now.utc.iso8601,
-            txn.id,
-            txn.date.utc.iso8601,
-            wallet.id,
-            txn.bnf,
-            txn.amount.to_i * -1,
-            txn.prefix,
-            txn.details
-          ].map(&:to_s).join(';')
-          f.puts("#{msg}\n")
+          f.puts(
+            "#{[
+              Time.now.utc.iso8601, txn.id, txn.date.utc.iso8601, wallet.id,
+              txn.bnf, txn.amount.to_zents * -1, txn.prefix, txn.details
+            ].map(&:to_s).join(';')}\n"
+          )
         end
       end
     end
@@ -174,17 +182,18 @@ doesn't have this transaction: #{txn.to_text.inspect}")
 
     # Returns TRUE if the file was actually modified
     def save(file, overwrite: false, allow_negative_balance: false)
-      raise 'You have to join at least one wallet in' if empty?
-      before = ''
+      raise(RuntimeError, 'You have to join at least one wallet in') if empty?
       wallet = Wallet.new(file)
-      before = wallet.digest if wallet.exists?
+      # rubocop:disable Elegant/NoRedundantVariable
+      before = wallet.exists? ? wallet.digest : ''
+      # rubocop:enable Elegant/NoRedundantVariable
       Tempfile.open([@id, Wallet::EXT]) do |f|
         temp = Wallet.new(f.path)
         temp.init(@id, @key, overwrite: overwrite, network: @network)
         File.open(f.path, 'a') do |t|
           @txns.each do |txn|
             next if Id::BANNED.include?(txn.bnf.to_s)
-            t.print "#{txn}\n"
+            t.print("#{txn}\n")
           end
         end
         temp.refurbish

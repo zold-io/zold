@@ -6,61 +6,80 @@ AllCops:
     - 'bin/**/*'
     - 'assets/**/*'
     - 'vendor/**/*'
+    - 'fixtures/**/*'
   DisplayCopNames: true
   TargetRubyVersion: 2.5
   NewCops: enable
   SuggestExtensions: false
 plugins:
-  - rubocop-rake
   - rubocop-minitest
   - rubocop-performance
-Gemspec/RequireMFA:
+  - rubocop-rake
+  - rubocop-elegant # must be the last one
+# Wallets are required individually, so compact namespaces would need the Zold
+# module pre-loaded everywhere; the nested style is kept on purpose
+Elegant/NoClassInModule:
   Enabled: false
-Lint/ToJSON:
+Elegant/ClassInModule:
   Enabled: false
-Minitest/UnspecifiedException:
+# Conflicts with Elegant/MonotonicIndents on multi-line boolean continuations
+Layout/MultilineOperationIndentation:
   Enabled: false
-Minitest/SkipWithoutReason:
+# Complexity thresholds tuned for this codebase, not style violations
+Metrics/AbcSize:
   Enabled: false
-Naming/PredicateMethod:
-  Enabled: false
-Minitest/MultipleAssertions:
-  Enabled: false
-Minitest/EmptyLineBeforeAssertionMethods:
-  Enabled: false
-Layout/ArgumentAlignment:
-  Enabled: false
-Style/ClassAndModuleChildren:
-  Enabled: false
-Layout/EmptyLineAfterGuardClause:
+Metrics/MethodLength:
   Enabled: false
 Metrics/CyclomaticComplexity:
   Max: 45
-Metrics/MethodLength:
-  Enabled: false
-Layout/MultilineMethodCallIndentation:
-  Enabled: false
-Metrics/AbcSize:
-  Enabled: false
+Metrics/PerceivedComplexity:
+  Max: 45
 Metrics/BlockNesting:
   Max: 4
 Metrics/BlockLength:
-  Max: 130
+  Max: 140
 Metrics/ClassLength:
   Max: 600
-Layout/EndOfLine:
-  EnforcedStyle: lf
-Metrics/ParameterLists:
-  Max: 10
-Layout/ParameterAlignment:
-  Enabled: false
-Metrics/PerceivedComplexity:
-  Max: 45
-Layout/LineLength:
-  Max: 120
-Style/MultilineBlockChain:
-  Enabled: false
-Layout/MultilineOperationIndentation:
-  Enabled: false
+# Single-letter params match the gem's own Elegant/GoodVariableName pattern
 Naming/MethodParameterName:
   MinNameLength: 1
+# save/ping do work and return status; a "?" name would imply a pure query
+Naming/PredicateMethod:
+  Enabled: false
+# Integration tests assert many facets of one expensive node/farm spawn
+Minitest/MultipleAssertions:
+  Enabled: false
+# Readable filter/sort/map chains beat each_with_object loops on these cold paths
+Performance/ChainArrayAllocation:
+  Enabled: false
+# Operators cannot be renamed (rubocop-elegant#... reported); the rest are
+# public API kept stable on purpose, and widely-used test helpers
+Elegant/GoodMethodName:
+  AllowedNames:
+    - '=='
+    - '>'
+    - '<'
+    - '<='
+    - '<=>'
+    - '+'
+    - '-'
+    - '*'
+    - '/'
+    - parse_time
+    - last_version
+    - status_line
+    - get_file
+    - in_debt?
+    - includes_negative?
+    - includes_positive?
+    - generate_id
+    - assert_code
+    - assert_valid_score
+    - assert_score_ownership
+    - assert_score_strength
+    - assert_score_value
+    - assert_wait
+    - assert_equal_wait
+    - assert_equal
+    - create_wallet
+    - create_wallet_json

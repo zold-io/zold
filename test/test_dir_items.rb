@@ -3,12 +3,12 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'tmpdir'
 require 'threads'
-require_relative 'test__helper'
+require 'tmpdir'
 require_relative '../lib/zold/age'
-require_relative '../lib/zold/endless'
 require_relative '../lib/zold/dir_items'
+require_relative '../lib/zold/endless'
+require_relative 'test__helper'
 
 # DirItems test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -18,16 +18,18 @@ class TestDirItems < Zold::Test
   def test_intensive_write_in_threads
     Dir.mktmpdir do |dir|
       file = File.join(dir, 'hey.txt')
-      back = Thread.start do
-        Zold::Endless.new('test-diritems', log: fake_log).run do
-          Zold::DirItems.new(dir).fetch
+      # rubocop:disable Elegant/NoRedundantVariable
+      back =
+        # rubocop:enable Elegant/NoRedundantVariable
+        Thread.start do
+          Zold::Endless.new('test-diritems', log: fake_log).run do
+            Zold::DirItems.new(dir).fetch
+          end
         end
-      end
       Threads.new(100).assert do
-        start = Time.now
         File.write(file, 'test')
-        fake_log.info("Saved in #{Zold::Age.new(start)}")
-        sleep 1
+        fake_log.info("Saved in #{Zold::Age.new(Time.now)}")
+        sleep(1)
       end
       back.kill
     end
@@ -65,8 +67,7 @@ class TestDirItems < Zold::Test
         FileUtils.mkdir_p(File.dirname(path))
         FileUtils.touch(path)
       end
-      found = Zold::DirItems.new(dir).fetch(recursive: false)
-      assert_equal(1, found.count)
+      assert_equal(1, Zold::DirItems.new(dir).fetch(recursive: false).count)
     end
   end
 end

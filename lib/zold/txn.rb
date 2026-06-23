@@ -4,9 +4,9 @@
 # SPDX-License-Identifier: MIT
 
 require 'time'
-require_relative 'id'
-require_relative 'hexnum'
 require_relative 'amount'
+require_relative 'hexnum'
+require_relative 'id'
 require_relative 'signature'
 
 # The transaction.
@@ -20,19 +20,15 @@ module Zold
     # When can't parse them.
     class CantParse < StandardError; end
 
-    # Regular expression for details
     RE_DETAILS = '[a-zA-Z0-9 @\!\?\*_\-\.:,\'/]+'
     private_constant :RE_DETAILS
 
-    # Regular expression for prefix
     RE_PREFIX = '[a-zA-Z0-9]+'
     private_constant :RE_PREFIX
 
-    # To validate the prefix
     REGEX_PREFIX = Regexp.new("^#{RE_PREFIX}$")
     private_constant :REGEX_PREFIX
 
-    # To validate details
     REGEX_DETAILS = Regexp.new("^#{RE_DETAILS}$")
     private_constant :REGEX_DETAILS
 
@@ -49,29 +45,29 @@ module Zold
     # +bnf+:: is the wallet ID of the paying or receiving wallet
     # +details+:: is the details, in plain text
     def initialize(id, date, amount, prefix, bnf, details)
-      raise 'The ID can\'t be NIL' if id.nil?
-      raise "ID of transaction can't be negative: #{id}" if id < 1
+      raise(RuntimeError, 'The ID can\'t be NIL') if id.nil?
+      raise(RuntimeError, "ID of transaction can't be negative: #{id}") if id < 1
       @id = id
-      raise 'The time can\'t be NIL' if date.nil?
-      raise 'Time have to be of type Time' unless date.is_a?(Time)
-      raise "Time can't be in the future: #{date.utc.iso8601}" if date > Time.now
+      raise(RuntimeError, 'The time can\'t be NIL') if date.nil?
+      raise(RuntimeError, 'Time have to be of type Time') unless date.is_a?(Time)
+      raise(RuntimeError, "Time can't be in the future: #{date.utc.iso8601}") if date > Time.now
       @date = date
-      raise 'The amount can\'t be NIL' if amount.nil?
-      raise 'The amount has to be of type Amount' unless amount.is_a?(Amount)
-      raise 'The amount can\'t be zero' if amount.zero?
+      raise(RuntimeError, 'The amount can\'t be NIL') if amount.nil?
+      raise(RuntimeError, 'The amount has to be of type Amount') unless amount.is_a?(Amount)
+      raise(RuntimeError, 'The amount can\'t be zero') if amount.zero?
       @amount = amount
-      raise 'The bnf can\'t be NIL' if bnf.nil?
-      raise 'The bnf has to be of type Id' unless bnf.is_a?(Id)
+      raise(RuntimeError, 'The bnf can\'t be NIL') if bnf.nil?
+      raise(RuntimeError, 'The bnf has to be of type Id') unless bnf.is_a?(Id)
       @bnf = bnf
-      raise 'Prefix can\'t be NIL' if prefix.nil?
-      raise "Prefix is too short: #{prefix.inspect}" if prefix.length < 8
-      raise "Prefix is too long: #{prefix.inspect}" if prefix.length > 32
-      raise "Prefix is wrong: #{prefix.inspect} (#{RE_PREFIX})" unless REGEX_PREFIX.match?(prefix)
+      raise(RuntimeError, 'Prefix can\'t be NIL') if prefix.nil?
+      raise(RuntimeError, "Prefix is too short: #{prefix.inspect}") if prefix.length < 8
+      raise(RuntimeError, "Prefix is too long: #{prefix.inspect}") if prefix.length > 32
+      raise(RuntimeError, "Prefix is wrong: #{prefix.inspect} (#{RE_PREFIX})") unless REGEX_PREFIX.match?(prefix)
       @prefix = prefix
-      raise 'Details can\'t be NIL' if details.nil?
-      raise 'Details can\'t be empty' if details.empty?
-      raise "Details are too long: #{details.inspect}" if details.length > 512
-      raise "Wrong details #{details.inspect} (#{RE_DETAILS})" unless REGEX_DETAILS.match?(details)
+      raise(RuntimeError, 'Details can\'t be NIL') if details.nil?
+      raise(RuntimeError, 'Details can\'t be empty') if details.empty?
+      raise(RuntimeError, "Details are too long: #{details.inspect}") if details.length > 512
+      raise(RuntimeError, "Wrong details #{details.inspect} (#{RE_DETAILS})") unless REGEX_DETAILS.match?(details)
       @details = details
     end
 
@@ -82,7 +78,7 @@ module Zold
     end
 
     def <=>(other)
-      raise 'Can only compare with Txn' unless other.is_a?(Txn)
+      raise(RuntimeError, 'Can only compare with Txn') unless other.is_a?(Txn)
       [date, amount * -1, id, bnf] <=> [other.date, other.amount * -1, other.id, other.bnf]
     end
 
@@ -90,7 +86,7 @@ module Zold
       [
         Hexnum.new(@id, 4).to_s,
         @date.utc.iso8601,
-        Hexnum.new(@amount.to_i, 16),
+        Hexnum.new(@amount.to_zents, 16),
         @prefix,
         @bnf,
         @details,
@@ -98,11 +94,11 @@ module Zold
       ].join(';')
     end
 
-    def to_json
+    def to_json(*_args)
       {
         id: @id,
         date: @date.utc.iso8601,
-        amount: @amount.to_i,
+        amount: @amount.to_zents,
         prefix: @prefix,
         bnf: @bnf.to_s,
         details: @details,
@@ -111,12 +107,11 @@ module Zold
     end
 
     def to_text
-      start = @amount.negative? ? "##{@id}" : "(#{@id})"
-      "#{start} #{@date.utc.iso8601} #{@amount} #{@bnf} #{@details}"
+      "#{@amount.negative? ? "##{@id}" : "(#{@id})"} #{@date.utc.iso8601} #{@amount} #{@bnf} #{@details}"
     end
 
     def inverse(bnf)
-      raise 'You can\'t reverse a positive transaction' unless amount.negative?
+      raise(RuntimeError, 'You can\'t reverse a positive transaction') unless amount.negative?
       t = clone
       t.amount = amount * -1
       t.bnf = bnf
@@ -133,7 +128,6 @@ module Zold
       t
     end
 
-    # Pattern to match the transaction from text
     PTN = Regexp.new(
       [
         '^',
@@ -152,13 +146,12 @@ module Zold
     private_constant :PTN
 
     def self.parse(line, idx = 0)
-      clean = line.strip
-      parts = PTN.match(clean)
-      raise CantParse, "Invalid line ##{idx}: #{line.inspect} (doesn't match #{PTN})" unless parts
+      parts = PTN.match(line.strip)
+      raise(CantParse, "Invalid line ##{idx}: #{line.inspect} (doesn't match #{PTN})") unless parts
       txn = Txn.new(
-        Hexnum.parse(parts[:id]).to_i,
+        Hexnum.parse(parts[:id]).value,
         parse_time(parts[:date]),
-        Amount.new(zents: Hexnum.parse(parts[:amount]).to_i),
+        Amount.new(zents: Hexnum.parse(parts[:amount]).value),
         parts[:prefix],
         Id.new(parts[:bnf]),
         parts[:details]
@@ -187,10 +180,10 @@ module Zold
 
     def self.parse_time(iso)
       parts = ISO8601.match(iso)
-      raise CantParseTime, "Invalid ISO 8601 date \"#{iso}\"" if parts.nil?
+      raise(CantParseTime, "Invalid ISO 8601 date \"#{iso}\"") if parts.nil?
       Time.gm(
-        parts[:year].to_i, parts[:month].to_i, parts[:day].to_i,
-        parts[:hours].to_i, parts[:minutes].to_i, parts[:seconds].to_i
+        Integer(parts[:year], 10), Integer(parts[:month], 10), Integer(parts[:day], 10),
+        Integer(parts[:hours], 10), Integer(parts[:minutes], 10), Integer(parts[:seconds], 10)
       )
     end
   end

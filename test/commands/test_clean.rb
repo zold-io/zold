@@ -3,12 +3,12 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'time'
 require 'threads'
+require 'time'
+require_relative '../../lib/zold/commands/clean'
+require_relative '../../lib/zold/copies'
 require_relative '../fake_home'
 require_relative '../test__helper'
-require_relative '../../lib/zold/copies'
-require_relative '../../lib/zold/commands/clean'
 
 # CLEAN test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -28,8 +28,7 @@ class TestClean < Zold::Test
 
   def test_clean_no_copies
     FakeHome.new(log: fake_log).run do |home|
-      wallet = home.create_wallet
-      copies = home.copies(wallet)
+      copies = home.copies(home.create_wallet)
       Zold::Clean.new(wallets: home.wallets, copies: copies.root, log: fake_log).run(['clean'])
       assert_empty(copies.all)
     end

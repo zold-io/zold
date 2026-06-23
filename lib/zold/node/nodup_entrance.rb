@@ -3,9 +3,9 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'tempfile'
-require 'openssl'
 require 'loog'
+require 'openssl'
+require 'tempfile'
 require_relative '../size'
 require_relative '../wallet'
 
@@ -23,19 +23,17 @@ module Zold
     end
 
     def start
-      raise 'Block must be given to start()' unless block_given?
+      raise(RuntimeError, 'Block must be given to start()') unless block_given?
       @entrance.start { yield(self) }
     end
 
-    def to_json
+    def to_json(*_args)
       @entrance.to_json
     end
 
     # Returns a list of modified wallets (as Zold::Id)
     def push(id, body)
-      before = @wallets.acq(id) { |w| w.exists? ? w.digest : '' }
-      after = OpenSSL::Digest::SHA256.new(body).hexdigest
-      if before == after
+      if @wallets.acq(id) { |w| w.exists? ? w.digest : '' } == OpenSSL::Digest::SHA256.new(body).hexdigest
         @log.debug("Duplicate of #{id} ignored #{Size.new(body.length)}")
         return []
       end

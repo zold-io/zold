@@ -6,15 +6,15 @@
 require 'json'
 require 'time'
 require 'webmock/minitest'
-require_relative '../test__helper'
-require_relative '../fake_home'
-require_relative '../../lib/zold/wallets'
-require_relative '../../lib/zold/wallet'
-require_relative '../../lib/zold/id'
-require_relative '../../lib/zold/copies'
-require_relative '../../lib/zold/key'
-require_relative '../../lib/zold/commands/pay'
 require_relative '../../lib/zold/commands/diff'
+require_relative '../../lib/zold/commands/pay'
+require_relative '../../lib/zold/copies'
+require_relative '../../lib/zold/id'
+require_relative '../../lib/zold/key'
+require_relative '../../lib/zold/wallet'
+require_relative '../../lib/zold/wallets'
+require_relative '../fake_home'
+require_relative '../test__helper'
 
 # DIFF test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -34,9 +34,7 @@ class TestDiff < Zold::Test
       copies = home.copies(wallet)
       copies.add(File.read(first.path), 'host-1', 80, 5)
       copies.add(File.read(second.path), 'host-2', 80, 5)
-      diff = Zold::Diff.new(wallets: home.wallets, copies: copies.root, log: fake_log).run(
-        ['diff', wallet.id.to_s]
-      )
+      diff = Zold::Diff.new(wallets: home.wallets, copies: copies.root, log: fake_log).run(['diff', wallet.id.to_s])
       assert_includes(diff, '-0001;', diff)
     end
   end

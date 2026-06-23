@@ -4,9 +4,9 @@
 # SPDX-License-Identifier: MIT
 
 require 'shellwords'
-require_relative '../routines'
-require_relative '../remote'
 require_relative '../../node/farm'
+require_relative '../remote'
+require_relative '../routines'
 
 # Kill the node if it's too old.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -25,7 +25,7 @@ class Zold::Routines::Retire
     return if step < days * 24 * 60 && Time.now - @start < days * 24 * 60 * 60
     return if @opts['never-reboot']
     @log.info("We are too old, step ##{step}, it's time to retire (use --never-reboot to avoid this)")
-    require_relative '../../node/front'
+    require_relative('../../node/front')
     Zold::Front.stop!
   end
 end

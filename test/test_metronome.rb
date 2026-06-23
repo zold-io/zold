@@ -3,8 +3,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require_relative 'test__helper'
 require_relative '../lib/zold/metronome'
+require_relative 'test__helper'
 
 # Metronome test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -64,7 +64,7 @@ class TestMetronome < Zold::Test
 
     def exec(i)
       @count = i
-      sleep 0.1
+      sleep(0.1)
       raise
     end
   end

@@ -4,13 +4,13 @@
 # SPDX-License-Identifier: MIT
 
 require 'tmpdir'
-require_relative 'test__helper'
-require_relative 'fake_home'
-require_relative '../lib/zold/key'
-require_relative '../lib/zold/id'
-require_relative '../lib/zold/wallets'
-require_relative '../lib/zold/cached_wallets'
 require_relative '../lib/zold/amount'
+require_relative '../lib/zold/cached_wallets'
+require_relative '../lib/zold/id'
+require_relative '../lib/zold/key'
+require_relative '../lib/zold/wallets'
+require_relative 'fake_home'
+require_relative 'test__helper'
 
 # CachedWallets test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -38,10 +38,11 @@ class TestCachedWallets < Zold::Test
       wallets = Zold::CachedWallets.new(Zold::Wallets.new(dir))
       id = Zold::Id.new
       key = Zold::Key.new(file: 'fixtures/id_rsa')
-      body = wallets.acq(id, exclusive: true) do |wallet|
-        wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
-        File.read(wallet.path)
-      end
+      body =
+        wallets.acq(id, exclusive: true) do |wallet|
+          wallet.init(id, Zold::Key.new(file: 'fixtures/id_rsa.pub'))
+          File.read(wallet.path)
+        end
       wallets.acq(id, exclusive: true) do |wallet|
         wallet.sub(Zold::Amount.new(zld: 1.0), "NOPREFIX@#{Zold::Id.new}", key)
       end

@@ -3,21 +3,21 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'tmpdir'
+require 'English'
 require 'time'
+require 'tmpdir'
 require 'webmock/minitest'
 require 'zold/score'
-require 'English'
-require_relative '../test__helper'
-require_relative '../fake_home'
-require_relative '../../lib/zold/wallet'
-require_relative '../../lib/zold/wallets'
-require_relative '../../lib/zold/id'
-require_relative '../../lib/zold/copies'
-require_relative '../../lib/zold/key'
-require_relative '../../lib/zold/patch'
 require_relative '../../lib/zold/commands/merge'
 require_relative '../../lib/zold/commands/pay'
+require_relative '../../lib/zold/copies'
+require_relative '../../lib/zold/id'
+require_relative '../../lib/zold/key'
+require_relative '../../lib/zold/patch'
+require_relative '../../lib/zold/wallet'
+require_relative '../../lib/zold/wallets'
+require_relative '../fake_home'
+require_relative '../test__helper'
 
 # MERGE test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -33,7 +33,9 @@ class TestMerge < Zold::Test
       copies = home.copies(wallet)
       copies.add(File.read(wallet.path), 'host-1', 80, 5)
       copies.add(File.read(wallet.path), 'host-2', 80, 5)
+      # rubocop:disable Elegant/NoRedundantVariable
       modified = Zold::Merge.new(wallets: home.wallets, remotes: home.remotes, copies: copies.root, log: fake_log).run(
+        # rubocop:enable Elegant/NoRedundantVariable
         ['merge', wallet.id.to_s, '--allow-negative-balance']
       )
       assert_empty(modified)
@@ -46,7 +48,9 @@ class TestMerge < Zold::Test
       copies = home.copies(wallet)
       copies.add(File.read(wallet.path), 'good-host', 80, 5)
       copies.add('some garbage', 'bad-host', 80, 5)
+      # rubocop:disable Elegant/NoRedundantVariable
       modified = Zold::Merge.new(wallets: home.wallets, remotes: home.remotes, copies: copies.root, log: fake_log).run(
+        # rubocop:enable Elegant/NoRedundantVariable
         ['merge', wallet.id.to_s]
       )
       assert_empty(modified)
@@ -58,8 +62,7 @@ class TestMerge < Zold::Test
       wallet = home.create_wallet(Zold::Id::ROOT)
       copies = home.copies(wallet)
       copies.add(File.read(wallet.path), 'good-host', 80, 5)
-      key = Zold::Key.new(file: 'fixtures/id_rsa')
-      wallet.sub(Zold::Amount.new(zld: 9.99), "NOPREFIX@#{Zold::Id.new}", key)
+      wallet.sub(Zold::Amount.new(zld: 9.99), "NOPREFIX@#{Zold::Id.new}", Zold::Key.new(file: 'fixtures/id_rsa'))
       Zold::Merge.new(wallets: home.wallets, remotes: home.remotes, copies: copies.root, log: fake_log).run(
         ['merge', wallet.id.to_s]
       )

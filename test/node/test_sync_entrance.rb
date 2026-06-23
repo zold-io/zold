@@ -3,9 +3,9 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
+require_relative '../../lib/zold/node/sync_entrance'
 require_relative '../fake_home'
 require_relative '../test__helper'
-require_relative '../../lib/zold/node/sync_entrance'
 require_relative 'fake_entrance'
 
 # SyncEntrance test.

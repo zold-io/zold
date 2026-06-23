@@ -3,8 +3,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require_relative 'test__helper'
 require_relative '../lib/zold/json_page'
+require_relative 'test__helper'
 
 # JsonPage test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -16,13 +16,13 @@ class TestJsonPage < Zold::Test
   end
 
   def test_parses_broken_json_page
-    assert_raises Zold::JsonPage::CantParse do
+    assert_raises(Zold::JsonPage::CantParse) do
       Zold::JsonPage.new('not json').to_hash
     end
   end
 
   def test_parses_empty_page
-    assert_raises Zold::JsonPage::CantParse do
+    assert_raises(Zold::JsonPage::CantParse) do
       Zold::JsonPage.new('').to_hash
     end
   end

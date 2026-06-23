@@ -19,17 +19,15 @@ module Zold
       @file = file
     end
 
-    def flush
-      # nothing
-    end
+    def flush; end
 
     def fetch
-      raise "Wallet file '#{@file}' is absent" unless File.exist?(@file)
+      raise(RuntimeError, "Wallet file '#{@file}' is absent") unless File.exist?(@file)
       lines = []
       File.open(@file) do |f|
         lines << f.readline.strip while lines.count < 4 && !f.eof?
       end
-      raise CantParse, "Not enough lines in #{@file}, just #{lines.count}" if lines.count < 4
+      raise(CantParse, "Not enough lines in #{@file}, just #{lines.count}") if lines.count < 4
       lines
     end
   end

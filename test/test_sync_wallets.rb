@@ -5,13 +5,13 @@
 
 require 'concurrent'
 require 'threads'
-require_relative 'test__helper'
-require_relative 'fake_home'
-require_relative '../lib/zold/key'
-require_relative '../lib/zold/id'
-require_relative '../lib/zold/wallets'
-require_relative '../lib/zold/sync_wallets'
 require_relative '../lib/zold/amount'
+require_relative '../lib/zold/id'
+require_relative '../lib/zold/key'
+require_relative '../lib/zold/sync_wallets'
+require_relative '../lib/zold/wallets'
+require_relative 'fake_home'
+require_relative 'test__helper'
 
 # SyncWallets test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -31,9 +31,6 @@ class TestSyncWallets < Zold::Test
           wallet.refurbish
         end
       end
-      # assert_equal_wait(amount * -100, max: 4) do
-      #   wallets.acq(id, &:balance)
-      # end
     end
   end
 end

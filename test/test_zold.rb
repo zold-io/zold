@@ -3,12 +3,12 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'tmpdir'
-require 'open3'
 require 'English'
-require_relative 'test__helper'
-require_relative '../lib/zold/version'
+require 'open3'
+require 'tmpdir'
 require_relative '../lib/zold/age'
+require_relative '../lib/zold/version'
+require_relative 'test__helper'
 
 # Zold main module test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -35,45 +35,38 @@ class TestZold < Zold::Test
               fake_log.info(line)
               out << line
             end
-            code = thr.value.to_i
+            code = thr.value.to_i # rubocop:disable Lint/NumberConversion
             assert_equal(0, code, "#{f}\n#{out.join}")
           end
         end
-        sleep 1 # It's a workaround, I can't fix the bug (tests crash sporadically)
+        sleep 1
       end
       fake_log.info("\n\n#{f} done in #{Zold::Age.new(start)}")
     end
   end
 
   def test_help
-    stdout = exec('--help')
-    assert_includes(stdout, 'Usage: zold')
+    assert_includes(exec('--help'), 'Usage: zold')
   end
 
   def test_show_version
-    stdout = exec('--version')
-    assert_includes(stdout, Zold::VERSION)
+    assert_includes(exec('--version'), Zold::VERSION)
   end
 
   def test_create_new_wallet
     Dir.mktmpdir do |dir|
       FileUtils.cp('fixtures/id_rsa.pub', dir)
       FileUtils.cp('fixtures/id_rsa', dir)
-      stdout = exec(
-        '--verbose --trace create --public-key=id_rsa.pub',
-        dir
-      )
-      assert_includes(stdout, 'created at')
+      assert_includes(exec('--verbose --trace create --public-key=id_rsa.pub', dir), 'created at')
     end
   end
 
   private
 
   def exec(tail, dir = Dir.pwd)
-    bin = File.expand_path(File.join(Dir.pwd, 'bin/zold'))
-    stdout = `cd #{dir} && #{bin} #{tail} 2>&1`
-    unless $CHILD_STATUS.exitstatus.zero?
-      puts stdout
+    stdout = `cd #{dir} && #{File.expand_path(File.join(Dir.pwd, 'bin/zold'))} #{tail} 2>&1`
+    if $CHILD_STATUS.exitstatus.nonzero?
+      puts(stdout)
       assert_equal(0, $CHILD_STATUS.exitstatus)
     end
     stdout

@@ -22,8 +22,10 @@ module Zold
         f = File.join(@home, path)
         wallet = Wallet.new(f)
         next if wallet.network == @network
-        @log.info("Wallet #{wallet.id} #{Rainbow('renamed').red}, \
-since it's in \"#{wallet.network}\", while we are in \"#{@network}\" network")
+        @log.info(
+          "Wallet #{wallet.id} #{Rainbow('renamed').red}, " \
+          "since it's in \"#{wallet.network}\", while we are in \"#{@network}\" network"
+        )
         File.rename(f, "#{f}-old")
       end
     end

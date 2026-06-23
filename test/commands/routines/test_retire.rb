@@ -5,9 +5,9 @@
 
 require 'tmpdir'
 require 'webmock/minitest'
-require_relative '../../test__helper'
-require_relative '../../../lib/zold/remotes'
 require_relative '../../../lib/zold/commands/routines/retire'
+require_relative '../../../lib/zold/remotes'
+require_relative '../../test__helper'
 
 # Retire test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -15,8 +15,9 @@ require_relative '../../../lib/zold/commands/routines/retire'
 # License:: MIT
 class TestRetire < Zold::Test
   def test_retires
-    opts = { 'never-reboot' => false, 'routine-immediately' => true }
-    routine = Zold::Routines::Retire.new(opts, log: fake_log)
-    routine.exec(10 * 24 * 60)
+    Zold::Routines::Retire.new(
+      { 'never-reboot' => false, 'routine-immediately' => true },
+      log: fake_log
+    ).exec(10 * 24 * 60)
   end
 end

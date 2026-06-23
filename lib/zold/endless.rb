@@ -4,8 +4,8 @@
 # SPDX-License-Identifier: MIT
 
 require 'loog'
-require_relative 'verbose_thread'
 require_relative 'age'
+require_relative 'verbose_thread'
 
 # Endless loop.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

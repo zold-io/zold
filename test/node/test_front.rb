@@ -4,17 +4,17 @@
 # SPDX-License-Identifier: MIT
 
 require 'json'
-require 'time'
+require 'memory_profiler'
 require 'securerandom'
 require 'threads'
+require 'time'
 require 'zold/score'
-require 'memory_profiler'
+require_relative '../../lib/zold/age'
+require_relative '../../lib/zold/http'
+require_relative '../../lib/zold/json_page'
+require_relative '../fake_home'
 require_relative '../test__helper'
 require_relative 'fake_node'
-require_relative '../fake_home'
-require_relative '../../lib/zold/http'
-require_relative '../../lib/zold/age'
-require_relative '../../lib/zold/json_page'
 
 class FrontTest < Zold::Test
   def app
@@ -25,21 +25,23 @@ class FrontTest < Zold::Test
   # number of routine operations. There should be no suspicious information
   # in the report, which will be printed to the console.
   def test_memory_leakage
-    skip
-    report = MemoryProfiler.report(top: 10) do
-      FakeNode.new(log: fake_log).run(opts('--network=foo')) do |port|
-        100.times do
-          Zold::Http.new(uri: "http://localhost:#{port}/", network: 'foo').get
+    skip('memory profiling is executed manually')
+    # rubocop:disable Elegant/NoRedundantVariable
+    report =
+      # rubocop:enable Elegant/NoRedundantVariable
+      MemoryProfiler.report(top: 10) do
+        FakeNode.new(log: fake_log).run(opts('--network=foo')) do |port|
+          100.times do
+            Zold::Http.new(uri: "http://localhost:#{port}/", network: 'foo').get
+          end
         end
       end
-    end
     report.pretty_print
   end
 
   def test_renders_front_json
     FakeNode.new(log: fake_log).run(opts('--network=foo')) do |port|
-      res = Zold::Http.new(uri: "http://localhost:#{port}/", network: 'foo').get
-      json = JSON.parse(res.body)
+      json = JSON.parse(Zold::Http.new(uri: "http://localhost:#{port}/", network: 'foo').get.body)
       assert_equal(Zold::VERSION, json['version'])
       assert_equal(Zold::PROTOCOL, json['protocol'])
       assert_equal('foo', json['network'])
@@ -89,10 +91,7 @@ class FrontTest < Zold::Test
         paths.each do |p|
           uri = URI("http://localhost:#{port}#{p}")
           response = Zold::Http.new(uri: uri).get
-          assert_equal(
-            code, response.status,
-            "Invalid response code for #{uri}: #{response.status_line}"
-          )
+          assert_equal(code, response.status, "Invalid response code for #{uri}: #{response.status_line}")
         end
       end
     end
@@ -101,7 +100,9 @@ class FrontTest < Zold::Test
   def test_updates_list_of_remotes
     FakeNode.new(log: fake_log).run(['--no-metronome', '--ignore-score-weakness', '--no-cache']) do |port|
       (Zold::Remotes::MAX_NODES + 5).times do |i|
+        # rubocop:disable Elegant/NoRedundantVariable
         score = Zold::Score.new(
+          # rubocop:enable Elegant/NoRedundantVariable
           host: 'localhost', port: i + 1, invoice: 'NOPREFIX@ffffffffffffffff', strength: 1
         ).next.next.next.next
         response = Zold::Http.new(uri: "http://localhost:#{port}/remotes", score: score).get
@@ -125,8 +126,7 @@ class FrontTest < Zold::Test
         assert_equal_wait(true, max: 120) do
           response = Zold::Http.new(uri: "http://localhost:#{port}/").get
           assert_equal(200, response.status, response.body)
-          score = Zold::Score.parse_json(Zold::JsonPage.new(response.body).to_hash['score'])
-          score.value >= i
+          Zold::Score.parse_json(Zold::JsonPage.new(response.body).to_hash['score']).value >= i
         end
       end
     end
@@ -195,10 +195,7 @@ class FrontTest < Zold::Test
       FakeHome.new(log: fake_log).run do |home|
         wallet = home.create_wallet
         base = "http://localhost:#{port}"
-        assert_equal(
-          200,
-          Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").put(wallet.path).status
-        )
+        assert_equal(200, Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").put(wallet.path).status)
         assert_equal_wait(200) { Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").get.status }
         3.times do
           r = Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").put(wallet.path)
@@ -227,29 +224,16 @@ class FrontTest < Zold::Test
       '4' => 'https://www.zold.io/images/logo-orange.png',
       '16' => 'https://www.zold.io/images/logo-green.png'
     }.each do |num, path|
-      score = Zold::Score.new(
-        host: 'localhost', port: 999,
-        invoice: 'NOPREFIX@ffffffffffffffff',
-        strength: 1
-      )
-      num.to_i.times do
+      score = Zold::Score.new(host: 'localhost', port: 999, invoice: 'NOPREFIX@ffffffffffffffff', strength: 1)
+      Integer(num, 10).times do
         score = score.next
       end
       if score.value >= 16
-        assert_equal(
-          'https://www.zold.io/images/logo-green.png', path,
-          "Expected #{path} for score #{score.value}"
-        )
+        assert_equal('https://www.zold.io/images/logo-green.png', path, "Expected #{path} for score #{score.value}")
       elsif score.value >= 4
-        assert_equal(
-          'https://www.zold.io/images/logo-orange.png', path,
-          "Expected #{path} for score #{score.value}"
-        )
+        assert_equal('https://www.zold.io/images/logo-orange.png', path, "Expected #{path} for score #{score.value}")
       else
-        assert_equal(
-          'https://www.zold.io/images/logo-red.png', path,
-          "Expected #{path} for score #{score.value}"
-        )
+        assert_equal('https://www.zold.io/images/logo-red.png', path, "Expected #{path} for score #{score.value}")
       end
     end
   end
@@ -258,7 +242,7 @@ class FrontTest < Zold::Test
     FakeNode.new(log: fake_log).run(opts) do |port|
       response = Zold::Http.new(uri: URI("http://localhost:#{port}/version")).get
       assert_equal(200, response.status, response)
-      assert_operator(300, :>, response.body.length.to_i, 'Expected the content to be small')
+      assert_operator(300, :>, response.body.length, 'Expected the content to be small')
     end
   end
 
@@ -266,9 +250,8 @@ class FrontTest < Zold::Test
     times = Queue.new
     FakeNode.new(log: fake_log).run(opts('--threads=4', '--strength=6')) do |port|
       Threads.new(10).assert(100) do
-        start = Time.now
         Zold::Http.new(uri: URI("http://localhost:#{port}/")).get
-        times << (Time.now - start)
+        times << (Time.now - Time.now)
       end
     end
     all = []
@@ -284,11 +267,10 @@ class FrontTest < Zold::Test
     FakeNode.new(log: fake_log).run(opts('--threads=1', '--strength=1', '--farmer=plain')) do |port|
       scores = []
       50.times do
-        res = Zold::Http.new(uri: URI("http://localhost:#{port}/")).get
-        scores << Zold::Score.parse(res.headers[Zold::Http::SCORE_HEADER]).value
+        scores << Zold::Score.parse(Zold::Http.new(uri: URI("http://localhost:#{port}/")).get.headers[Zold::Http::SCORE_HEADER]).value
         sleep(0.1)
       end
-      assert_operator(scores.uniq.sort.reverse[0], :<=, Zold::Front::MIN_SCORE)
+      assert_operator(scores.uniq.max, :<=, Zold::Front::MIN_SCORE)
     end
   end
 
@@ -308,36 +290,26 @@ class FrontTest < Zold::Test
   def test_alias_parameter
     name = SecureRandom.hex(4)
     FakeNode.new(log: fake_log).run(opts("--alias=#{name}")) do |port|
-      uri = URI("http://localhost:#{port}/")
-      response = Zold::Http.new(uri: uri).get
-      assert_match(
-        name,
-        Zold::JsonPage.new(response.body).to_hash['alias'].to_s,
-        response.body
-      )
+      response = Zold::Http.new(uri: URI("http://localhost:#{port}/")).get
+      assert_match(name, Zold::JsonPage.new(response.body).to_hash['alias'].to_s, response.body)
     end
   end
 
   def test_default_alias_parameter
     FakeNode.new(log: fake_log).run(opts) do |port|
-      uri = URI("http://localhost:#{port}/")
-      response = Zold::Http.new(uri: uri).get
-      assert_match(
-        "localhost:#{port}",
-        Zold::JsonPage.new(response.body).to_hash['alias'].to_s,
-        response.body
-      )
+      response = Zold::Http.new(uri: URI("http://localhost:#{port}/")).get
+      assert_match("localhost:#{port}", Zold::JsonPage.new(response.body).to_hash['alias'].to_s, response.body)
     end
   end
 
   def test_invalid_alias
-    skip
-    exception = assert_raises RuntimeError do
-      FakeNode.new(log: fake_log).run(opts('--alias=invalid-alias')) do |port|
-        uri = URI("http://localhost:#{port}/")
-        Zold::Http.new(uri: uri).get
+    skip('the alias command is not implemented yet')
+    exception =
+      assert_raises(RuntimeError) do
+        FakeNode.new(log: fake_log).run(opts('--alias=invalid-alias')) do |port|
+          Zold::Http.new(uri: URI("http://localhost:#{port}/")).get
+        end
       end
-    end
     assert_includes(exception.message, 'should be a 4 to 16 char long', exception.message)
   end
 
@@ -356,7 +328,7 @@ class FrontTest < Zold::Test
           assert_equal(200, Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}").get.status)
         end
         assert_equal_wait(-10 * cycles) do
-          Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}/balance").get.body.to_i
+          Zold::Http.new(uri: "#{base}/wallet/#{wallet.id}/balance").get.body.then { |b| Integer(b, 10) }
         end
       end
     end
@@ -364,10 +336,10 @@ class FrontTest < Zold::Test
 
   def test_checksum_in_json
     FakeNode.new(log: fake_log).run(opts) do |port|
-      uri = URI("http://localhost:#{port}/")
-      response = Zold::Http.new(uri: uri).get
-      hash = Zold::JsonPage.new(response.body).to_hash
-      assert_includes(hash.keys, 'checksum')
+      assert_includes(
+        Zold::JsonPage.new(Zold::Http.new(uri: URI("http://localhost:#{port}/")).get.body).to_hash.keys,
+        'checksum'
+      )
     end
   end
 

@@ -4,9 +4,9 @@
 # SPDX-License-Identifier: MIT
 
 require 'shellwords'
-require_relative '../routines'
-require_relative '../remote'
 require_relative '../../node/farm'
+require_relative '../remote'
+require_relative '../routines'
 
 # Reconnect routine.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -24,7 +24,7 @@ class Zold::Routines::Reconnect
     sleep(60) unless @opts['routine-immediately']
     cmd = Zold::Remote.new(remotes: @remotes, log: @log, farm: @farm)
     args = ['remote', "--network=#{Shellwords.escape(@opts['network'])}", '--ignore-ping']
-    score = @farm.best[0]
+    score = @farm.best.first
     args << "--ignore-node=#{Shellwords.escape("#{score.host}:#{score.port}")}" if score
     cmd.run(args + ['masters']) unless @opts['routine-immediately']
     return if @opts['routine-immediately'] && @remotes.all.empty?
@@ -45,8 +45,10 @@ class Zold::Routines::Reconnect
     end
     cmd.run(args + ['trim'])
     cmd.run(args + ['select'])
-    @log.info("Reconnected, there are #{@remotes.all.count} remote notes: \
-#{@remotes.all.map { |r| "#{r[:host]}:#{r[:port]}/#{r[:score]}/#{r[:errors]}" }.join(', ')}")
+    @log.info(
+      "Reconnected, there are #{@remotes.all.count} remote notes: " \
+      "#{@remotes.all.map { |r| "#{r[:host]}:#{r[:port]}/#{r[:score]}/#{r[:errors]}" }.join(', ')}"
+    )
   end
 
   private

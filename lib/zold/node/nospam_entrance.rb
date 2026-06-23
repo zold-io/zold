@@ -3,12 +3,12 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'tempfile'
-require 'openssl'
-require 'zache'
 require 'loog'
-require_relative '../size'
+require 'openssl'
+require 'tempfile'
+require 'zache'
 require_relative '../age'
+require_relative '../size'
 
 # The entrance that ignores something we've seen already.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -25,21 +25,22 @@ module Zold
     end
 
     def start
-      raise 'Block must be given to start()' unless block_given?
+      raise(RuntimeError, 'Block must be given to start()') unless block_given?
       @entrance.start { yield(self) }
     end
 
-    def to_json
+    def to_json(*_args)
       @entrance.to_json
     end
 
     # Returns a list of modified wallets (as Zold::Id)
     def push(id, body)
-      before = @zache.get(id.to_s, lifetime: @period) { '' }
       after = hash(id, body)
-      if before == after
-        @log.debug("Spam of #{id} ignored; the wallet content of #{Size.new(body.length)} \
-and '#{after[0..8]}' hash has already been seen #{Age.new(@zache.mtime(id.to_s))} ago")
+      if @zache.get(id.to_s, lifetime: @period) { '' } == after
+        @log.debug(
+          "Spam of #{id} ignored; the wallet content of #{Size.new(body.length)} " \
+          "and '#{after[0..8]}' hash has already been seen #{Age.new(@zache.mtime(id.to_s))} ago"
+        )
         return []
       end
       @zache.put(id.to_s, after)

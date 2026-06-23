@@ -4,8 +4,8 @@
 # SPDX-License-Identifier: MIT
 
 gem 'openssl'
-require 'openssl'
 require 'base64'
+require 'openssl'
 require 'tempfile'
 
 # The RSA key (either private or public).
@@ -16,25 +16,25 @@ module Zold
   # A key
   class Key
     def initialize(file: nil, text: nil)
-      @body = lambda do
-        unless file.nil?
-          path = File.expand_path(file)
-          raise "Can't find RSA key at #{file} (#{path})" unless File.exist?(path)
-          return File.read(path)
+      @body =
+        lambda do
+          unless file.nil?
+            path = File.expand_path(file)
+            raise(RuntimeError, "Can't find RSA key at #{file} (#{path})") unless File.exist?(path)
+            return File.read(path)
+          end
+          unless text.nil?
+            return text if text.start_with?('-----')
+            return [
+              '-----BEGIN PUBLIC KEY-----',
+              text.gsub(/(?<=\G.{64})/, "\n"),
+              '-----END PUBLIC KEY-----'
+            ].join("\n")
+          end
+          raise(RuntimeError, 'Either file or text must be set')
         end
-        unless text.nil?
-          return text if text.start_with?('-----')
-          return [
-            '-----BEGIN PUBLIC KEY-----',
-            text.gsub(/(?<=\G.{64})/, "\n"),
-            '-----END PUBLIC KEY-----'
-          ].join("\n")
-        end
-        raise 'Either file or text must be set'
-      end
     end
 
-    # Public key of the root wallet
     ROOT = Key.new(file: File.expand_path(File.join(File.dirname(__FILE__), '../../resources/root.pub')))
 
     def root?
@@ -74,7 +74,7 @@ module Zold
       begin
         OpenSSL::PKey::RSA.new(text)
       rescue OpenSSL::PKey::RSAError => e
-        raise "Can't read RSA key (#{e.message}): #{text}"
+        raise(RuntimeError, "Can't read RSA key (#{e.message}): #{text}")
       end
     end
   end

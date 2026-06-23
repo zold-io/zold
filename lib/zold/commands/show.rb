@@ -3,17 +3,17 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'slop'
 require 'rainbow'
-require_relative 'thread_badge'
+require 'slop'
 require_relative 'args'
+require_relative 'thread_badge'
 require 'loog'
-require_relative '../id'
-require_relative '../amount'
-require_relative '../wallet'
-require_relative '../tax'
-require_relative '../size'
 require_relative '../age'
+require_relative '../amount'
+require_relative '../id'
+require_relative '../size'
+require_relative '../tax'
+require_relative '../wallet'
 
 # SHOW command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -31,14 +31,17 @@ module Zold
     end
 
     def run(args = [])
-      opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
-        o.banner = "Usage: zold show [ID...] [options]
-Available options:"
-        o.bool '--help', 'Print instructions'
-      end
+      opts =
+        Slop.parse(args, help: true, suppress_errors: true) do |o|
+          o.banner = <<~BANNER
+            Usage: zold show [ID...] [options]
+            Available options:
+          BANNER
+          o.bool('--help', 'Print instructions')
+        end
       mine = Args.new(opts, @log).take || return
       if mine.empty?
-        require_relative 'list'
+        require_relative('list')
         List.new(wallets: @wallets, copies: @copies, log: @log).run(args)
       else
         total = Amount::ZERO
@@ -61,7 +64,7 @@ Available options:"
       @log.info(
         [
           '',
-          "The balance of #{wallet}: #{balance} (#{balance.to_i} zents)",
+          "The balance of #{wallet}: #{balance} (#{balance.to_zents} zents)",
           "Network: #{wallet.network}",
           "Transactions: #{wallet.txns.count}",
           "Taxes: #{Tax.new(wallet).paid} paid, the debt is #{Tax.new(wallet).debt}",
@@ -70,7 +73,7 @@ Available options:"
           "Digest: #{wallet.digest}"
         ].join("\n")
       )
-      msg = Copies.new(File.join(@copies, wallet.id)).all.map do |c|
+      msg = Copies.new(File.join(@copies, wallet.id)).all.map do |c| # rubocop:disable Elegant/NoRedundantVariable
         "##{c[:name]}: #{c[:score]} #{Wallet.new(c[:path]).mnemo}"
       end.join("\n")
       @log.info("\n#{msg}")

@@ -4,12 +4,12 @@
 # SPDX-License-Identifier: MIT
 
 require 'tmpdir'
-require_relative '../test__helper'
+require_relative '../../lib/zold/commands/list'
+require_relative '../../lib/zold/id'
+require_relative '../../lib/zold/key'
 require_relative '../../lib/zold/wallet'
 require_relative '../../lib/zold/wallets'
-require_relative '../../lib/zold/key'
-require_relative '../../lib/zold/id'
-require_relative '../../lib/zold/commands/list'
+require_relative '../test__helper'
 
 # LIST test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

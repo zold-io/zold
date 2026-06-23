@@ -3,13 +3,13 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'slop'
 require 'rainbow'
 require 'shellwords'
-require_relative 'thread_badge'
-require_relative 'args'
-require_relative '../id'
+require 'slop'
 require_relative '../amount'
+require_relative '../id'
+require_relative 'args'
+require_relative 'thread_badge'
 require 'loog'
 
 # PAY command.
@@ -31,78 +31,80 @@ module Zold
     # Sends a payment and returns the transaction just created in the
     # paying wallet, an instance of Zold::Txn
     def run(args = [])
-      opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
-        o.banner = "Usage: zold pay wallet target amount [details] [options]
-Where:
-    'wallet' is the sender's wallet ID
-    'target' is the beneficiary (either wallet ID or invoice number)'
-    'amount' is the amount to pay, for example: '14.95Z' (in ZLD) or '12345z' (in zents)
-    'details' is the optional text to attach to the payment
-Available options:"
-        o.string '--private-key',
-          'The location of RSA private key (default: ~/.ssh/id_rsa)',
-          require: true,
-          default: File.expand_path('~/.ssh/id_rsa')
-        o.string '--network',
-          'The name of the network we work in',
-          default: 'test'
-        o.bool '--force',
-          'Ignore all validations',
-          default: false
-        o.string '--time',
-          "Time of transaction (default: #{Time.now.utc.iso8601})",
-          default: Time.now.utc.iso8601
-        o.string '--keygap',
-          'Keygap, if the private RSA key is not complete',
-          default: ''
-        o.bool '--tolerate-edges',
-          'Don\'t fail if only "edge" (not "master" ones) nodes have the wallet',
-          default: false
-        o.integer '--tolerate-quorum',
-          'The minimum number of nodes required for a successful fetch (default: 4)',
-          default: 4
-        o.bool '--ignore-nodes-absence',
-          'Don\'t complain if there are not enough nodes in the network to pay taxes',
-          default: false
-        o.bool '--ignore-score-weakness',
-          'Don\'t complain when their score is too weak (when paying taxes)',
-          default: false
-        o.bool '--ignore-score-size',
-          'Don\'t complain when their score is too small (when paying taxes)',
-          default: false
-        o.bool '--dont-pay-taxes',
-          'Don\'t pay taxes even if the wallet is in debt',
-          default: false
-        o.bool '--pay-taxes-anyway',
-          'Pay taxes even if the wallet is not in debt',
-          default: false
-        o.bool '--skip-propagate',
-          'Don\'t propagate the paying wallet after successful pay',
-          default: false
-        o.bool '--help', 'Print instructions'
-      end
+      opts =
+        Slop.parse(args, help: true, suppress_errors: true) do |o|
+          o.banner = <<~BANNER
+            Usage: zold pay wallet target amount [details] [options]
+            Where:
+                'wallet' is the sender's wallet ID
+                'target' is the beneficiary (either wallet ID or invoice number)'
+                'amount' is the amount to pay, for example: '14.95Z' (in ZLD) or '12345z' (in zents)
+                'details' is the optional text to attach to the payment
+            Available options:
+          BANNER
+          o.string(
+            '--private-key',
+            'The location of RSA private key (default: ~/.ssh/id_rsa)',
+            require: true,
+            default: File.expand_path('~/.ssh/id_rsa')
+          )
+          o.string('--network', 'The name of the network we work in', default: 'test')
+          o.bool('--force', 'Ignore all validations', default: false)
+          o.string('--time', "Time of transaction (default: #{Time.now.utc.iso8601})", default: Time.now.utc.iso8601)
+          o.string('--keygap', 'Keygap, if the private RSA key is not complete', default: '')
+          o.bool(
+            '--tolerate-edges',
+            'Don\'t fail if only "edge" (not "master" ones) nodes have the wallet',
+            default: false
+          )
+          o.integer(
+            '--tolerate-quorum',
+            'The minimum number of nodes required for a successful fetch (default: 4)',
+            default: 4
+          )
+          o.bool(
+            '--ignore-nodes-absence',
+            'Don\'t complain if there are not enough nodes in the network to pay taxes',
+            default: false
+          )
+          o.bool(
+            '--ignore-score-weakness',
+            'Don\'t complain when their score is too weak (when paying taxes)',
+            default: false
+          )
+          o.bool(
+            '--ignore-score-size',
+            'Don\'t complain when their score is too small (when paying taxes)',
+            default: false
+          )
+          o.bool('--dont-pay-taxes', 'Don\'t pay taxes even if the wallet is in debt', default: false)
+          o.bool('--pay-taxes-anyway', 'Pay taxes even if the wallet is not in debt', default: false)
+          o.bool('--skip-propagate', 'Don\'t propagate the paying wallet after successful pay', default: false)
+          o.bool('--help', 'Print instructions')
+        end
       mine = Args.new(opts, @log).take || return
-      raise 'Payer wallet ID is required as the first argument' if mine[0].nil?
-      id = Id.new(mine[0])
-      raise 'Recipient\'s invoice or wallet ID is required as the second argument' if mine[1].nil?
+      raise(RuntimeError, 'Payer wallet ID is required as the first argument') if mine.first.nil?
+      id = Id.new(mine.first)
+      raise(RuntimeError, 'Recipient\'s invoice or wallet ID is required as the second argument') if mine[1].nil?
       invoice = mine[1]
       unless invoice.include?('@')
-        require_relative 'invoice'
+        require_relative('invoice')
         invoice = Invoice.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
           ['invoice', invoice, "--tolerate-quorum=#{Shellwords.escape(opts['tolerate-quorum'])}"] +
           ["--network=#{Shellwords.escape(opts['network'])}"] +
           (opts['tolerate-edges'] ? ['--tolerate-edges'] : [])
         )
       end
-      raise 'Amount is required (in ZLD) as the third argument' if mine[2].nil?
+      raise(RuntimeError, 'Amount is required (in ZLD) as the third argument') if mine[2].nil?
       amount = amount(mine[2].strip)
       details = mine[3] || '-'
       taxes(id, opts)
-      txn = @wallets.acq(id, exclusive: true) do |from|
-        pay(from, invoice, amount, details, opts)
-      end
+      txn = # rubocop:disable Elegant/NoRedundantVariable
+        @wallets.acq(id, exclusive: true) do |from|
+          pay(from, invoice, amount, details, opts)
+        end
       return if opts['skip-propagate']
-      require_relative 'propagate'
+      require_relative('propagate')
       Propagate.new(wallets: @wallets, log: @log).run(['propagate', id.to_s])
       txn
     end
@@ -110,18 +112,19 @@ Available options:"
     private
 
     def amount(txt)
-      return Amount.new(zents: txt.gsub(/z$/, '').to_i) if txt.end_with?('z')
-      return Amount.new(zld: txt.gsub(/Z$/, '').to_f) if txt.end_with?('Z')
-      Amount.new(zld: txt.to_f)
+      return Amount.new(zents: Integer(txt.gsub(/z$/, ''), 10)) if txt.end_with?('z')
+      return Amount.new(zld: Float(txt.gsub(/Z$/, ''))) if txt.end_with?('Z')
+      Amount.new(zld: Float(txt))
     end
 
     def taxes(id, opts)
-      debt = @wallets.acq(id) do |wallet|
-        raise "Wallet #{id} doesn't exist, do 'zold pull' first" unless wallet.exists?
-        Tax.new(wallet).in_debt? && !opts['dont-pay-taxes']
-      end
+      debt = # rubocop:disable Elegant/NoRedundantVariable
+        @wallets.acq(id) do |wallet|
+          raise(RuntimeError, "Wallet #{id} doesn't exist, do 'zold pull' first") unless wallet.exists?
+          Tax.new(wallet).in_debt? && !opts['dont-pay-taxes']
+        end
       return unless debt || opts['pay-taxes-anyway']
-      require_relative 'taxes'
+      require_relative('taxes')
       Taxes.new(wallets: @wallets, remotes: @remotes, log: @log).run(
         [
           'taxes',
@@ -139,11 +142,14 @@ Available options:"
 
     def pay(from, invoice, amount, details, opts)
       unless opts.force?
-        raise 'The amount can\'t be zero' if amount.zero?
-        raise "The amount can't be negative: #{amount}" if amount.negative?
+        raise(RuntimeError, 'The amount can\'t be zero') if amount.zero?
+        raise(RuntimeError, "The amount can't be negative: #{amount}") if amount.negative?
         if !from.root? && from.balance < amount
-          raise "There is not enough funds in #{from} to send #{amount}, only #{from.balance} left; \
-the difference is #{(amount - from.balance).to_i} zents"
+          raise(
+            RuntimeError,
+            "There is not enough funds in #{from} to send #{amount}, only #{from.balance} left; " \
+            "the difference is #{(amount - from.balance).to_zents} zents"
+          )
         end
       end
       pem = File.read(opts['private-key'])
@@ -151,15 +157,16 @@ the difference is #{(amount - from.balance).to_i} zents"
         pem = pem.sub('*' * opts['keygap'].length, opts['keygap'])
         @log.debug("Keygap \"#{'*' * opts['keygap'].length}\" injected into the RSA private key")
       end
-      key = Zold::Key.new(text: pem)
       from.refurbish
-      txn = from.sub(amount, invoice, key, details, time: Txn.parse_time(opts['time']))
+      txn = from.sub(amount, invoice, Zold::Key.new(text: pem), details, time: Txn.parse_time(opts['time']))
       @log.debug("#{amount} sent from #{from} to #{txn.bnf}: #{details}")
       @log.debug("Don't forget to do 'zold push #{from}'")
       @log.info(txn.id)
       tax = Tax.new(from)
-      @log.info("The tax debt of #{from.mnemo} is #{tax.debt} \
-(#{tax.in_debt? ? 'too high' : 'still acceptable'})")
+      @log.info(
+        "The tax debt of #{from.mnemo} is #{tax.debt} " \
+        "(#{tax.in_debt? ? 'too high' : 'still acceptable'})"
+      )
       txn
     end
   end

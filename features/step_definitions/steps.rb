@@ -3,9 +3,9 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'tmpdir'
-require 'slop'
 require 'English'
+require 'slop'
+require 'tmpdir'
 require_relative '../../lib/zold'
 
 Before do
@@ -43,19 +43,19 @@ When(/^I have "([^"]*)" file with content:$/) do |file, text|
 end
 
 Then(/^Stdout contains "([^"]*)"$/) do |txt|
-  raise "STDOUT doesn't contain '#{txt}':\n#{@stdout}" unless @stdout.include?(txt)
+  raise(RuntimeError, "STDOUT doesn't contain '#{txt}':\n#{@stdout}") unless @stdout.include?(txt)
 end
 
 Then(/^Stdout is empty$/) do
-  raise "STDOUT is not empty:\n#{@stdout}" unless @stdout == ''
+  raise(RuntimeError, "STDOUT is not empty:\n#{@stdout}") unless @stdout == ''
 end
 
 Then(/^Exit code is zero$/) do
-  raise "Non-zero exit #{@exitstatus}:\n#{@stdout}" unless @exitstatus.zero?
+  raise(RuntimeError, "Non-zero exit #{@exitstatus}:\n#{@stdout}") if @exitstatus.nonzero?
 end
 
 Then(/^Exit code is not zero$/) do
-  raise 'Zero exit code' if @exitstatus.zero?
+  raise(RuntimeError, 'Zero exit code') if @exitstatus.zero?
 end
 
 Given(/^It is Unix$/) do

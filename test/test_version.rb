@@ -8,10 +8,10 @@ require 'zold/version'
 
 class TestVersion < Zold::Test
   def test_has_version
-    assert Semantic::Version.new(Zold::VERSION)
+    assert(Semantic::Version.new(Zold::VERSION))
   end
 
   def test_has_protocol
-    assert Zold::PROTOCOL
+    assert(Zold::PROTOCOL)
   end
 end

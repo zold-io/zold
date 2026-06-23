@@ -4,11 +4,11 @@
 # SPDX-License-Identifier: MIT
 
 require 'tmpdir'
-require_relative 'fake_home'
-require_relative '../lib/zold/key'
 require_relative '../lib/zold/id'
-require_relative '../lib/zold/wallet'
+require_relative '../lib/zold/key'
 require_relative '../lib/zold/prefixes'
+require_relative '../lib/zold/wallet'
+require_relative 'fake_home'
 
 # Prefixes test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

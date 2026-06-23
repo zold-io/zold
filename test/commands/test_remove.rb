@@ -3,9 +3,9 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
+require_relative '../../lib/zold/commands/remove'
 require_relative '../fake_home'
 require_relative '../test__helper'
-require_relative '../../lib/zold/commands/remove'
 
 # REMOVE test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -14,7 +14,7 @@ require_relative '../../lib/zold/commands/remove'
 class TestRemove < Zold::Test
   def test_removes_one_wallet
     FakeHome.new(log: fake_log).run do |home|
-      wallet = home.create_wallet
+      wallet = home.create_wallet # rubocop:disable Elegant/NoRedundantVariable
       assert_equal(1, home.wallets.all.count)
       Zold::Remove.new(wallets: home.wallets, log: fake_log).run(['remove', wallet.id.to_s])
       assert_empty(home.wallets.all)
@@ -39,9 +39,7 @@ class TestRemove < Zold::Test
 
   def test_removes_absent_wallets
     FakeHome.new(log: fake_log).run do |home|
-      Zold::Remove.new(wallets: home.wallets, log: fake_log).run(
-        ['remove', '7654321076543210', '--force']
-      )
+      Zold::Remove.new(wallets: home.wallets, log: fake_log).run(['remove', '7654321076543210', '--force'])
       assert_empty(home.wallets.all)
     end
   end

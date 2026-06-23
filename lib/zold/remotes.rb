@@ -3,21 +3,21 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
+require 'backtrace'
 require 'concurrent'
 require 'csv'
-require 'uri'
+require 'fileutils'
+require 'futex'
 require 'net/http'
 require 'time'
-require 'futex'
-require 'fileutils'
-require 'backtrace'
+require 'uri'
 require 'zold/score'
 require_relative 'age'
-require_relative 'http'
-require_relative 'hands'
-require_relative 'thread_pool'
-require_relative 'node/farm'
 require_relative 'commands/fetch'
+require_relative 'hands'
+require_relative 'http'
+require_relative 'node/farm'
+require_relative 'thread_pool'
 
 # The list of remotes.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -61,64 +61,65 @@ module Zold
 
     def assert_code(code, response)
       msg = response.status_line.strip
-      return if response.status.to_i == code
+      return if response.status == code
       if response.headers && response.headers['X-Zold-Error']
-        raise CantAssert, "Error ##{response.status} \"#{response.headers['X-Zold-Error']}\" \
-at #{response.headers['X-Zold-Path']}"
+        raise(
+          CantAssert,
+          "Error ##{response.status} \"#{response.headers['X-Zold-Error']}\" " \
+          "at #{response.headers['X-Zold-Path']}"
+        )
       end
-      raise CantAssert, "Unexpected HTTP code #{response.status}, instead of #{code}" if msg.empty?
-      raise CantAssert, "#{msg} (HTTP code #{response.status}, instead of #{code})"
+      raise(CantAssert, "Unexpected HTTP code #{response.status}, instead of #{code}") if msg.empty?
+      raise(CantAssert, "#{msg} (HTTP code #{response.status}, instead of #{code})")
     end
 
     def assert_valid_score(score)
-      raise CantAssert, "Invalid score #{score.reduced(4)}" unless score.valid?
-      raise CantAssert, "Expired score (#{Age.new(score.time)}) #{score.reduced(4)}" if score.expired?
+      raise(CantAssert, "Invalid score #{score.reduced(4)}") unless score.valid?
+      raise(CantAssert, "Expired score (#{Age.new(score.time)}) #{score.reduced(4)}") if score.expired?
     end
 
     def assert_score_ownership(score)
-      raise CantAssert, "Masqueraded host #{@host} as #{score.host}: #{score.reduced(4)}" if @host != score.host
-      raise CantAssert, "Masqueraded port #{@port} as #{score.port}: #{score.reduced(4)}" if @port != score.port
+      raise(CantAssert, "Masqueraded host #{@host} as #{score.host}: #{score.reduced(4)}") if @host != score.host
+      raise(CantAssert, "Masqueraded port #{@port} as #{score.port}: #{score.reduced(4)}") if @port != score.port
     end
 
     def assert_score_strength(score)
       return if score.strength >= Score::STRENGTH
-      raise CantAssert, "Score #{score.strength} is too weak (<#{Score::STRENGTH}): #{score.reduced(4)}
-(use --ignore-score-strength to suppress this check)"
+      raise(
+        CantAssert,
+        "Score #{score.strength} is too weak (<#{Score::STRENGTH}): #{score.reduced(4)}\n" \
+        '(use --ignore-score-strength to suppress this check)'
+      )
     end
 
     def assert_score_value(score, min)
       return if score.value >= min
-      raise CantAssert, "Score #{score.value} is too small (<#{min}): #{score.reduced(4)}
-(use --ignore-score-size to suppress this check)"
+      raise(
+        CantAssert,
+        "Score #{score.value} is too small (<#{min}): #{score.reduced(4)}\n" \
+        '(use --ignore-score-size to suppress this check)'
+      )
     end
   end
 
   # All remotes
   class Remotes
-    # The default TCP port all nodes are supposed to use.
     PORT = 4096
 
-    # At what amount of errors we delete the remote automatically
     TOLERANCE = 8
 
-    # Default number of nodes to fetch.
     MAX_NODES = 16
 
-    # Default nodes and their ports
     MASTERS = CSV.read(File.expand_path(File.join(File.dirname(__FILE__), '../../resources/masters'))).map do |r|
       {
-        host: r[0].strip,
-        port: r[1].to_i
+        host: r.first.strip,
+        port: Integer(r[1], 10)
       }
     end.freeze
     private_constant :MASTERS
 
     # Empty, for standalone mode
     class Empty
-      def initialize
-        # Nothing to init here
-      end
-
       def all
         []
       end
@@ -127,9 +128,7 @@ at #{response.headers['X-Zold-Path']}"
         true
       end
 
-      def iterate(_)
-        # Nothing to do here
-      end
+      def iterate(_); end
 
       def mtime
         Time.now
@@ -144,12 +143,12 @@ at #{response.headers['X-Zold-Path']}"
 
     def all
       list = Futex.new(@file).open(false) { load }
-      max_score = list.empty? ? 0 : list.max_by { |r| r[:score] }[:score]
-      max_score = 1 if max_score.zero?
-      max_errors = list.empty? ? 0 : list.max_by { |r| r[:errors] }[:errors]
-      max_errors = 1 if max_errors.zero?
+      score = list.empty? ? 0 : list.max_by { |r| r[:score] }[:score]
+      score = 1 if score.zero?
+      errors = list.empty? ? 0 : list.max_by { |r| r[:errors] }[:errors]
+      errors = 1 if errors.zero?
       list.sort_by do |r|
-        ((1 - (r[:errors] / max_errors)) * 5) + (r[:score] / max_score)
+        ((1 - (r[:errors] / errors)) * 5) + (r[:score] / score)
       end.reverse
     end
 
@@ -165,13 +164,13 @@ at #{response.headers['X-Zold-Path']}"
     end
 
     def exists?(host, port = PORT)
-      assert_host_info(host, port)
+      validate(host, port)
       list = Futex.new(@file).open(false) { load }
       !list.find { |r| r[:host] == host.downcase && r[:port] == port }.nil?
     end
 
     def add(host, port = PORT)
-      assert_host_info(host, port)
+      validate(host, port)
       modify do |list|
         list + [{ host: host.downcase, port: port, score: 0, errors: 0 }]
       end
@@ -179,7 +178,7 @@ at #{response.headers['X-Zold-Path']}"
     end
 
     def remove(host, port = PORT)
-      assert_host_info(host, port)
+      validate(host, port)
       modify do |list|
         list.reject { |r| r[:host] == host.downcase && r[:port] == port }
       end
@@ -188,12 +187,12 @@ at #{response.headers['X-Zold-Path']}"
     # Go through the list of remotes and call a provided block for each
     # of them. See how it's used, for example, in fetch.rb.
     def iterate(log, farm: Farm::Empty.new, threads: 1)
-      raise 'Log can\'t be nil' if log.nil?
-      raise 'Farm can\'t be nil' if farm.nil?
+      raise(RuntimeError, 'Log can\'t be nil') if log.nil?
+      raise(RuntimeError, 'Farm can\'t be nil') if farm.nil?
       Hands.exec(threads, all) do |r, idx|
         Thread.current.name = "remotes-#{idx}@#{r[:host]}:#{r[:port]}"
         start = Time.now
-        best = farm.best[0]
+        best = farm.best.first
         node = RemoteNode.new(
           host: r[:host],
           port: r[:port],
@@ -204,8 +203,8 @@ at #{response.headers['X-Zold-Path']}"
           network: @network
         )
         begin
-          yield node
-          raise 'Took too long to execute' if (Time.now - start).round > @timeout
+          yield(node)
+          raise(RuntimeError, 'Took too long to execute') if (Time.now - start).round > @timeout
           unerror(r[:host], r[:port]) if node.touched
         rescue StandardError => e
           error(r[:host], r[:port])
@@ -221,22 +220,22 @@ at #{response.headers['X-Zold-Path']}"
     end
 
     def error(host, port = PORT)
-      assert_host_info(host, port)
-      if_present(host, port) { |r| r[:errors] += 1 }
+      validate(host, port)
+      present(host, port) { |r| r[:errors] += 1 }
     end
 
     def unerror(host, port = PORT)
-      assert_host_info(host, port)
-      if_present(host, port) do |remote|
+      validate(host, port)
+      present(host, port) do |remote|
         remote[:errors] -= 1 if remote[:errors].positive?
       end
     end
 
     def rescore(host, port, score)
-      assert_host_info(host, port)
-      raise 'Score can\'t be nil' if score.nil?
-      raise 'Score has to be of type Integer' unless score.is_a?(Integer)
-      if_present(host, port) { |r| r[:score] = score }
+      validate(host, port)
+      raise(RuntimeError, 'Score can\'t be nil') if score.nil?
+      raise(RuntimeError, 'Score has to be of type Integer') unless score.is_a?(Integer)
+      present(host, port) { |r| r[:score] = score }
       unerror(host, port)
     end
 
@@ -257,37 +256,35 @@ at #{response.headers['X-Zold-Path']}"
         File.write(
           @file,
           list.uniq { |r| "#{r[:host]}:#{r[:port]}" }.map do |r|
-            [
-              r[:host],
-              r[:port],
-              r[:score],
-              r[:errors]
-            ].join(',')
+            [r[:host], r[:port], r[:score], r[:errors]].join(',')
           end.join("\n")
         )
       end
     end
 
-    def if_present(host, port)
+    def present(host, port)
       modify do |list|
         remote = list.find { |r| r[:host] == host.downcase && r[:port] == port }
         return unless remote
-        yield remote
+        yield(remote)
         list
       end
     end
 
     def load
       if File.exist?(@file)
-        raw = CSV.read(@file).map do |row|
-          {
-            host: row[0],
-            port: row[1].to_i,
-            score: row[2].to_i,
-            errors: row[3].to_i,
-            master: master?(row[0], row[1].to_i)
-          }
-        end
+        # rubocop:disable Lint/NumberConversion
+        raw =
+          CSV.read(@file).map do |row|
+            {
+              host: row.first,
+              port: row[1].to_i,
+              score: row[2].to_i,
+              errors: row[3].to_i,
+              master: master?(row.first, row[1].to_i)
+            }
+          end
+        # rubocop:enable Lint/NumberConversion
         raw.reject { |r| !r[:host] || r[:port].zero? || r[:host] == '0.0.0.0' }.map do |r|
           r[:home] = URI("http://#{r[:host]}:#{r[:port]}/")
           r
@@ -297,15 +294,15 @@ at #{response.headers['X-Zold-Path']}"
       end
     end
 
-    def assert_host_info(host, port)
-      raise 'Host can\'t be nil' if host.nil?
-      raise 'Host can\'t be empty' if host.empty?
-      raise 'Host IP is wrong, can\'t be all zeros' if host == '0.0.0.0'
-      raise 'Port can\'t be nil' if port.nil?
-      raise 'Port has to be of type Integer' unless port.is_a?(Integer)
-      raise 'Port can\'t be zero' if port.zero?
-      raise 'Port can\'t be negative' if port.negative?
-      raise 'Port can\'t be over 65536' if port > 0xffff
+    def validate(host, port)
+      raise(RuntimeError, 'Host can\'t be nil') if host.nil?
+      raise(RuntimeError, 'Host can\'t be empty') if host.empty?
+      raise(RuntimeError, 'Host IP is wrong, can\'t be all zeros') if host == '0.0.0.0'
+      raise(RuntimeError, 'Port can\'t be nil') if port.nil?
+      raise(RuntimeError, 'Port has to be of type Integer') unless port.is_a?(Integer)
+      raise(RuntimeError, 'Port can\'t be zero') if port.zero?
+      raise(RuntimeError, 'Port can\'t be negative') if port.negative?
+      raise(RuntimeError, 'Port can\'t be over 65536') if port > 0xffff
     end
   end
 end

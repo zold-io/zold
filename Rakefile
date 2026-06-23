@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
+require 'date'
+require 'rake'
+require 'rake/clean'
+require 'rdoc'
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
 require 'rubygems'
-require 'rake'
-require 'date'
-require 'rdoc'
-require 'rake/clean'
 
 def name
   @name ||= File.basename(Dir['*.gemspec'].first, '.*')

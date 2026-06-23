@@ -4,9 +4,9 @@
 # SPDX-License-Identifier: MIT
 
 gem 'openssl'
-require 'openssl'
-require 'minitest/hooks/test'
 require 'concurrent'
+require 'minitest/hooks/test'
+require 'openssl'
 require 'timeout'
 
 $stdout.sync = true
@@ -22,8 +22,8 @@ unless SimpleCov.running || ENV['PICKS']
       SimpleCov::Formatter::CoberturaFormatter
     ]
   )
-  SimpleCov.minimum_coverage 85
-  SimpleCov.minimum_coverage_by_file 50
+  SimpleCov.minimum_coverage(85)
+  SimpleCov.minimum_coverage_by_file(50)
   SimpleCov.start do
     add_filter 'test/'
     add_filter 'vendor/'
@@ -37,8 +37,8 @@ require 'minitest/autorun'
 require 'minitest/mock'
 require 'minitest/reporters'
 require 'webmock/minitest'
-Minitest::Reporters.use! [Minitest::Reporters::SpecReporter.new]
-Minitest.load :minitest_reporter
+Minitest::Reporters.use!([Minitest::Reporters::SpecReporter.new])
+Minitest.load(:minitest_reporter)
 
 require_relative '../lib/zold/hands'
 Zold::Hands.start
@@ -74,15 +74,16 @@ module Zold
         rescue StandardError => e
           fake_log.debug(e.message)
         end
-        sleep 1
-        sec = Time.now - start
-        require_relative '../lib/zold/age'
-        raise "'#{actual}' is not equal to '#{expected}' even after #{Zold::Age.new(start)} of waiting" if sec > max
+        sleep(1)
+        require_relative('../lib/zold/age')
+        if (Time.now - start) > max
+          raise(RuntimeError, "'#{actual}' is not equal to '#{expected}' even after #{Zold::Age.new(start)} of waiting")
+        end
       end
     end
 
     def fake_log
-      require 'loog'
+      require('loog')
       @fake_log ||= ENV['TEST_QUIET_LOG'] == 'true' ? Loog::NULL : Loog::VERBOSE
     end
 

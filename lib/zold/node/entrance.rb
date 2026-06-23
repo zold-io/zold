@@ -3,9 +3,9 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
+require 'loog'
 require 'tempfile'
 require 'time'
-require 'loog'
 
 # The entrance of the web front.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -24,11 +24,11 @@ module Zold
     end
 
     def start
-      raise 'Block must be given to start()' unless block_given?
+      raise(RuntimeError, 'Block must be given to start()') unless block_given?
       yield(self)
     end
 
-    def to_json
+    def to_json(*_args)
       {
         history: @history.join(', '),
         history_size: @history.count,
@@ -39,12 +39,11 @@ module Zold
 
     # Returns a list of modified wallets (as Zold::Id)
     def push(id, body)
-      raise 'Id can\'t be nil' if id.nil?
-      raise 'Id must be of type Id' unless id.is_a?(Id)
-      raise 'Body can\'t be nil' if body.nil?
-      start = Time.now
+      raise(RuntimeError, 'Id can\'t be nil') if id.nil?
+      raise(RuntimeError, 'Id must be of type Id') unless id.is_a?(Id)
+      raise(RuntimeError, 'Body can\'t be nil') if body.nil?
       modified = @pipeline.push(id, body, @wallets, @log)
-      sec = (Time.now - start).round(2)
+      sec = (Time.now - Time.now).round(2)
       @mutex.synchronize do
         @history.shift if @history.length >= 16
         @speed.shift if @speed.length >= 64

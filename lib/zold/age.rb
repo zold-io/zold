@@ -3,8 +3,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'time'
 require 'rainbow'
+require 'time'
 require_relative 'txn'
 
 # Age in seconds.

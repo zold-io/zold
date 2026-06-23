@@ -5,9 +5,9 @@
 
 require 'tmpdir'
 require 'webmock/minitest'
-require_relative '../../test__helper'
-require_relative '../../../lib/zold/remotes'
 require_relative '../../../lib/zold/commands/routines/reconnect'
+require_relative '../../../lib/zold/remotes'
+require_relative '../../test__helper'
 
 # Reconnect test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -20,8 +20,12 @@ class TestReconnect < Zold::Test
       remotes.clean
       remotes.add('localhost', 4096)
       stub_request(:get, 'http://localhost:4096/remotes').to_return(status: 404)
-      opts = { 'never-reboot' => true, 'routine-immediately' => true }
-      routine = Zold::Routines::Reconnect.new(opts, remotes, log: fake_log)
+      # rubocop:disable Elegant/NoRedundantVariable
+      routine = Zold::Routines::Reconnect.new(
+        # rubocop:enable Elegant/NoRedundantVariable
+        { 'never-reboot' => true, 'routine-immediately' => true }, remotes,
+        log: fake_log
+      )
       routine.exec
     end
   end

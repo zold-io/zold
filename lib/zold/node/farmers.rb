@@ -3,11 +3,11 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'open3'
 require 'backtrace'
-require 'zold/score'
-require 'shellwords'
 require 'loog'
+require 'open3'
+require 'shellwords'
+require 'zold/score'
 require_relative '../age'
 
 # Farmers.
@@ -45,18 +45,21 @@ module Zold
       def up(score)
         start = Time.now
         stdout, stdin = IO.pipe
-        pid = Process.fork do
-          stdin.puts(score.next)
-        end
+        pid =
+          Process.fork do
+            stdin.puts(score.next)
+          end
         at_exit { Farmers.kill(@log, pid, start) }
         Process.wait
         stdin.close
         text = stdout.read.strip
         stdout.close
-        raise "No score was calculated in the process ##{pid} in #{Age.new(start)}" if text.empty?
+        raise(RuntimeError, "No score was calculated in the process ##{pid} in #{Age.new(start)}") if text.empty?
         after = Score.parse(text)
-        @log.debug("Next score #{after.value}/#{after.strength} found in proc ##{pid} \
-for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}")
+        @log.debug(
+          "Next score #{after.value}/#{after.strength} found in proc ##{pid} " \
+          "for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}"
+        )
         after
       end
     end
@@ -70,7 +73,7 @@ for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}")
       def up(score)
         start = Time.now
         bin = File.expand_path(File.join(File.dirname(__FILE__), '../../../bin/zold'))
-        raise "Zold binary not found at #{bin}" unless File.exist?(bin)
+        raise(RuntimeError, "Zold binary not found at #{bin}") unless File.exist?(bin)
         cmd = [
           'ruby',
           Shellwords.escape(bin),
@@ -85,8 +88,10 @@ for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}")
         Open3.popen2e(cmd) do |stdin, stdout, thread|
           Thread.current.thread_variable_set(:pid, thread.pid.to_s)
           at_exit { Farmers.kill(@log, thread.pid, start) }
-          @log.debug("Scoring started in proc ##{thread.pid} \
-for #{score.value}/#{score.strength} at #{score.host}:#{score.port}")
+          @log.debug(
+            "Scoring started in proc ##{thread.pid} " \
+            "for #{score.value}/#{score.strength} at #{score.host}:#{score.port}"
+          )
           begin
             stdin.close
             buffer = +''
@@ -94,22 +99,28 @@ for #{score.value}/#{score.strength} at #{score.host}:#{score.port}")
               begin
                 buffer << stdout.read_nonblock(16 * 1024)
               rescue IO::WaitReadable
-              # nothing to do here
+                stdout.wait_readable(1)
               rescue StandardError => e
                 @log.error(buffer)
-                raise e
+                raise(e)
               end
+              # rubocop:disable Lint/NumberConversion
               break if buffer.end_with?("\n") && thread.value.to_i.zero?
               if stdout.closed?
-                raise "Failed to calculate the score (##{thread.value}): #{buffer}" unless thread.value.to_i.zero?
+                if thread.value.to_i.nonzero?
+                  # rubocop:enable Lint/NumberConversion
+                  raise(RuntimeError, "Failed to calculate the score (##{thread.value}): #{buffer}")
+                end
                 break
               end
               sleep(1)
               Thread.current.thread_variable_set(:buffer, buffer.length.to_s)
             end
             after = Score.parse(buffer.strip)
-            @log.debug("Next score #{after.value}/#{after.strength} found in proc ##{thread.pid} \
-for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}")
+            @log.debug(
+              "Next score #{after.value}/#{after.strength} found in proc ##{thread.pid} " \
+              "for #{after.host}:#{after.port} in #{Age.new(start)}: #{after.suffixes}"
+            )
             after
           ensure
             Farmers.kill(@log, thread.pid, start)

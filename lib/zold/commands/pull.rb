@@ -5,9 +5,9 @@
 
 require_relative 'thread_badge'
 require 'loog'
+require_relative 'clean'
 require_relative 'fetch'
 require_relative 'merge'
-require_relative 'clean'
 
 # PULL command.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

@@ -3,17 +3,17 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'webmock/minitest'
-require 'threads'
 require 'shellwords'
-require_relative '../test__helper'
-require_relative '../fake_home'
-require_relative '../../lib/zold/wallets'
-require_relative '../../lib/zold/json_page'
+require 'threads'
+require 'webmock/minitest'
 require_relative '../../lib/zold/amount'
-require_relative '../../lib/zold/key'
-require_relative '../../lib/zold/id'
 require_relative '../../lib/zold/commands/pay'
+require_relative '../../lib/zold/id'
+require_relative '../../lib/zold/json_page'
+require_relative '../../lib/zold/key'
+require_relative '../../lib/zold/wallets'
+require_relative '../fake_home'
+require_relative '../test__helper'
 
 # PAY test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -105,12 +105,11 @@ class TestPay < Zold::Test
   def test_sends_from_root_wallet
     FakeHome.new(log: fake_log).run do |home|
       source = home.create_wallet(Zold::Id::ROOT)
-      target = home.create_wallet
       amount = Zold::Amount.new(zld: 14.95)
       Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: fake_log).run(
         [
           'pay', '--private-key=fixtures/id_rsa',
-          source.id.to_s, target.id.to_s, amount.to_zld, 'For the car'
+          source.id.to_s, home.create_wallet.id.to_s, amount.to_zld, 'For the car'
         ]
       )
       assert_equal(amount * -1, source.balance)
@@ -120,18 +119,12 @@ class TestPay < Zold::Test
   def test_sends_from_normal_wallet
     FakeHome.new(log: fake_log).run do |home|
       source = home.create_wallet
-      target = home.create_wallet
       amount = Zold::Amount.new(zld: 14.95)
-      source.add(
-        Zold::Txn.new(
-          1, Time.now, amount,
-          'NOPREFIX', Zold::Id.new, '-'
-        )
-      )
+      source.add(Zold::Txn.new(1, Time.now, amount, 'NOPREFIX', Zold::Id.new, '-'))
       Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: fake_log).run(
         [
           'pay', '--private-key=fixtures/id_rsa',
-          source.id.to_s, target.id.to_s, amount.to_zld, 'here is the refund'
+          source.id.to_s, home.create_wallet.id.to_s, amount.to_zld, 'here is the refund'
         ]
       )
       assert_equal(Zold::Amount::ZERO, source.balance)
@@ -140,26 +133,21 @@ class TestPay < Zold::Test
 
   def test_notifies_about_tax_status
     FakeHome.new(log: fake_log).run do |home|
-      source = home.create_wallet
-      target = home.create_wallet
-      amount = Zold::Amount.new(zld: 14.95)
-      accumulating_log = fake_log.dup
-      class << accumulating_log
-        attr_accessor :info_messages
-
+      log = fake_log.dup
+      class << log
         def info(message)
-          (@info_messages ||= []) << message
+          (@infos ||= []) << message
         end
+        attr_accessor :infos
       end
-      Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: accumulating_log).run(
+      Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: home.remotes, log: log).run(
         [
           'pay', '--force', '--private-key=fixtures/id_rsa',
           '--ignore-score-weakness', '--pay-taxes-anyway',
-          source.id.to_s, target.id.to_s, amount.to_zld, 'For the car'
+          home.create_wallet.id.to_s, home.create_wallet.id.to_s, Zold::Amount.new(zld: 14.95).to_zld, 'For the car'
         ]
       )
-      assert_equal 1, accumulating_log.info_messages.grep(/^The tax debt/).size,
-        'No info_messages notified user of tax debt'
+      assert_equal(1, log.infos.grep(/^The tax debt/).size, 'No infos notified user of tax debt')
     end
   end
 
@@ -168,14 +156,7 @@ class TestPay < Zold::Test
       wallet = home.create_wallet
       fund = Zold::Amount.new(zld: 19.99)
       10.times do |i|
-        wallet.add(
-          Zold::Txn.new(
-            i + 1,
-            Time.now - (24 * 60 * 60 * 365 * 300),
-            fund,
-            'NOPREFIX', Zold::Id.new, '-'
-          )
-        )
+        wallet.add(Zold::Txn.new(i + 1, Time.now - (24 * 60 * 60 * 365 * 300), fund, 'NOPREFIX', Zold::Id.new, '-'))
       end
       score = Zold::Score.new(host: 'localhost', port: 80, strength: 1, invoice: 'NOPREFIX@0000000000000000')
       10.times { score = score.next }
@@ -183,17 +164,14 @@ class TestPay < Zold::Test
       remotes.add(score.host, score.port)
       stub_request(:get, "http://#{score.host}:#{score.port}/").to_return(
         status: 200,
-        body: {
-          score: score.to_h
-        }.to_json
+        body: { score: score.to_h }.to_json
       )
-      before = wallet.balance
-      target = home.create_wallet
+      before = wallet.balance # rubocop:disable Elegant/NoRedundantVariable
       Zold::Pay.new(wallets: home.wallets, copies: home.dir, remotes: remotes, log: fake_log).run(
         [
           'pay', '--force', '--private-key=fixtures/id_rsa',
           '--ignore-score-weakness',
-          wallet.id.to_s, target.id.to_s, fund.to_zld, 'For the car'
+          wallet.id.to_s, home.create_wallet.id.to_s, fund.to_zld, 'For the car'
         ]
       )
       wallet.flush

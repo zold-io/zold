@@ -24,12 +24,14 @@ module Zold
       yield
     rescue Errno::ENOMEM => e
       @log.error(Backtrace.new(e).to_s)
-      @log.error("We are too big in memory (#{Size.new(GetProcessMem.new.bytes.to_i)}), quitting; \
-this is not a normal behavior, you may want to report a bug to our GitHub repository")
+      @log.error(
+        "We are too big in memory (#{Size.new(GetProcessMem.new.bytes.truncate)}), quitting; " \
+        'this is not a normal behavior, you may want to report a bug to our GitHub repository'
+      )
       abort
     rescue StandardError => e
       @log.error(Backtrace.new(e).to_s)
-      raise e unless safe
+      raise(e) unless safe
     end
   end
 end

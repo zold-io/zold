@@ -14,7 +14,7 @@ class FarmTest < Zold::Test
     Dir.mktmpdir do |dir|
       farm = Zold::Farm.new('NOPREFIX6@ffffffffffffffff', File.join(dir, 'f'), log: fake_log, strength: 2)
       farm.start('localhost', 80, threads: 2) do
-        assert_wait { !farm.best.empty? && !farm.best[0].value.zero? }
+        assert_wait { !farm.best.empty? && !farm.best.first.value.zero? }
         count = 0
         100.times { count += farm.to_json[:best].length }
         assert_predicate(count, :positive?)
@@ -33,8 +33,10 @@ class FarmTest < Zold::Test
 
   def test_makes_many_scores
     Dir.mktmpdir do |dir|
-      farm = Zold::Farm.new('NOPREFIX6@ffffffffffffffff', File.join(dir, 'f'),
-        log: fake_log, lifetime: 10, farmer: Zold::Farmers::Plain.new, strength: 1)
+      farm = Zold::Farm.new(
+        'NOPREFIX6@ffffffffffffffff', File.join(dir, 'f'),
+        log: fake_log, lifetime: 10, farmer: Zold::Farmers::Plain.new, strength: 1
+      )
       farm.start('localhost', 80, threads: 4) do
         assert_wait { farm.best.length == 4 }
       end
@@ -51,12 +53,13 @@ class FarmTest < Zold::Test
     Dir.mktmpdir do |dir|
       farm = Zold::Farm.new('NOPREFIX6@ffffffffffffffff', File.join(dir, 'f'), log: fake_log, strength: 4)
       farm.start('localhost', 80, threads: 4) do
-        assert_wait { !farm.best.empty? && !farm.best[0].value.zero? }
+        assert_wait { !farm.best.empty? && !farm.best.first.value.zero? }
         cycles = 100
+        # rubocop:disable Elegant/NoRedundantVariable
         speed = (0..(cycles - 1)).sum do
-          start = Time.now
+          # rubocop:enable Elegant/NoRedundantVariable
           farm.best
-          Time.now - start
+          Time.now - Time.now
         end / cycles
         fake_log.info("Average speed is #{(speed * 1000).round(2)}ms in #{cycles} cycles")
       end
@@ -67,8 +70,8 @@ class FarmTest < Zold::Test
     Dir.mktmpdir do |dir|
       farm = Zold::Farm.new('NOPREFIX1@ffffffffffffffff', File.join(dir, 'f'), log: fake_log, strength: 3)
       farm.start('localhost', 80, threads: 1) do
-        assert_wait { !farm.best.empty? && farm.best[0].value >= 3 }
-        score = farm.best[0]
+        assert_wait { !farm.best.empty? && farm.best.first.value >= 3 }
+        score = farm.best.first
         refute_predicate(score, :expired?)
         assert_operator(score.value, :>=, 3)
       end
@@ -79,7 +82,7 @@ class FarmTest < Zold::Test
     Dir.mktmpdir do |dir|
       farm = Zold::Farm.new('NOPREFIX2@cccccccccccccccc', File.join(dir, 'f'), log: fake_log, strength: 1)
       farm.start('example.com', 8080, threads: 0) do
-        score = farm.best[0]
+        score = farm.best.first
         refute_predicate(score, :expired?)
         assert_equal(0, score.value)
         assert_equal('example.com', score.host)
@@ -93,7 +96,7 @@ class FarmTest < Zold::Test
       cache = File.join(dir, 'a/b/c/cache')
       farm = Zold::Farm.new('NOPREFIX3@cccccccccccccccc', cache, log: fake_log, strength: 1)
       farm.start('example.com', 8080, threads: 0) do
-        score = farm.best[0]
+        score = farm.best.first
         refute_nil(score, 'The list of best scores can\'t be empty!')
         assert_path_exists(cache, 'The cache file has to be created!')
         assert_equal(0, score.value)
@@ -118,11 +121,11 @@ class FarmTest < Zold::Test
       farm.start(score.host, score.port, threads: 1) do
         100.times do
           sleep(0.1)
-          b = farm.best[0]
+          b = farm.best.first
           refute_nil(b)
           break if b.value.zero?
         end
-        assert_equal(0, farm.best[0].value)
+        assert_equal(0, farm.best.first.value)
       end
     end
   end
@@ -135,17 +138,16 @@ class FarmTest < Zold::Test
         'some garbage',
         'some other garbage'
       ].each do |score_garbage_line|
-        valid_score = Zold::Score.new(
+        score = Zold::Score.new(
           time: Time.parse('2017-07-19T21:24:51Z'),
           host: 'some-host', port: 9999, invoice: 'NOPREFIX5@ffffffffffffffff',
           suffixes: %w[13f7f01 b2b32b 4ade7e], strength: 6
         )
         File.open(file, 'w') do |f|
           f.puts(score_garbage_line)
-          f.puts(valid_score)
+          f.puts(score)
         end
-        farm = Zold::Farm.new('NOPREFIX5@ffffffffffffffff', file, log: log)
-        assert_equal(1, farm.best.count)
+        assert_equal(1, Zold::Farm.new('NOPREFIX5@ffffffffffffffff', file, log: log).best.count)
         refute_nil(log.msgs.find { |m| m.include?('Invalid score') })
       end
     end
@@ -153,7 +155,7 @@ class FarmTest < Zold::Test
 
   def test_terminates_farm_entirely
     Zold::Farm.new('NOPREFIX4@ffffffffffffffff', log: fake_log, strength: 10).start('localhost', 4096, threads: 1) do
-      sleep 1
+      sleep(1)
     end
   end
 end

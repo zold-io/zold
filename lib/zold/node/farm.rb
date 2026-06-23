@@ -3,17 +3,17 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'time'
-require 'open3'
 require 'backtrace'
-require 'futex'
 require 'concurrent'
+require 'futex'
 require 'json'
-require 'zold/score'
 require 'loog'
-require_relative '../thread_pool'
+require 'open3'
+require 'time'
+require 'zold/score'
 require_relative '../age'
 require_relative '../endless'
+require_relative '../thread_pool'
 require_relative 'farmers'
 
 # The farm of scores.
@@ -41,8 +41,10 @@ module Zold
     # <tt>lifetime</tt> is the amount of seconds for a score to live in the farm, by default
     # it's the entire day, since the Score expires in 24 hours; can be decreased for the
     # purpose of unit testing.
-    def initialize(invoice, cache = File.join(Dir.pwd, 'farm'), log: Loog::NULL,
-      farmer: Farmers::Plain.new, lifetime: 24 * 60 * 60, strength: Score::STRENGTH)
+    def initialize(
+      invoice, cache = File.join(Dir.pwd, 'farm'), log: Loog::NULL,
+      farmer: Farmers::Plain.new, lifetime: 24 * 60 * 60, strength: Score::STRENGTH
+    )
       @log = log
       @cache = File.expand_path(cache)
       @invoice = invoice
@@ -71,7 +73,7 @@ module Zold
     end
 
     # Renders the Farm into JSON to show for the end-user in front.rb.
-    def to_json
+    def to_json(*_args)
       {
         threads: @threads.to_json,
         pipeline: @pipeline.size,
@@ -91,12 +93,12 @@ module Zold
     # The farm will stop all its threads and close all resources safely
     # right after the block provided exists.
     def start(host, port, threads: Concurrent.processor_count)
-      raise 'Block is required for the farm to start' unless block_given?
+      raise(RuntimeError, 'Block is required for the farm to start') unless block_given?
       @log.info('Zero-threads farm won\'t score anything!') if threads.zero?
       if best.empty?
         @log.info("No scores found in the cache at #{@cache}")
       else
-        @log.info("#{best.size} scores pre-loaded from #{@cache}, the best is: #{best[0]}")
+        @log.info("#{best.size} scores pre-loaded from #{@cache}, the best is: #{best.first}")
       end
       (1..threads).map do |t|
         @threads.add do
@@ -106,7 +108,7 @@ module Zold
           end
         end
       end
-      unless threads.zero?
+      if threads.nonzero?
         ready = false
         @threads.add do
           Endless.new('cleanup', log: @log).run do
@@ -121,8 +123,10 @@ module Zold
         cleanup(host, port, threads)
         @log.info("Farm started with no threads (there will be no score) at #{host}:#{port}")
       else
-        @log.info("Farm started with #{@threads.count} threads (one for cleanup) \
-at #{host}:#{port}, strength is #{@strength}")
+        @log.info(
+          "Farm started with #{@threads.count} threads (one for cleanup) " \
+          "at #{host}:#{port}, strength is #{@strength}"
+        )
       end
       begin
         yield(self)
@@ -134,15 +138,14 @@ at #{host}:#{port}, strength is #{@strength}")
     private
 
     def cleanup(host, port, threads)
-      scores = load
-      before = scores.map(&:value).max.to_i
+      before = load.map(&:value).max || 0 # rubocop:disable Elegant/NoRedundantVariable
       save(host, port, threads, [Score.new(host: host, port: port, invoice: @invoice, strength: @strength)])
       scores = load
       free = scores.reject { |s| @threads.exists?(s.to_mnemo) }
-      @pipeline << free[0] if @pipeline.empty? && !free.empty?
-      after = scores.map(&:value).max.to_i
-      return unless before != after && !after.zero?
-      @log.debug("#{Thread.current.name}: best score of #{scores.count} is #{scores[0].reduced(4)}")
+      @pipeline << free.first if @pipeline.empty? && !free.empty?
+      after = scores.map(&:value).max || 0
+      return if before == after || after.zero?
+      @log.debug("#{Thread.current.name}: best score of #{scores.count} is #{scores.first.reduced(4)}")
     end
 
     def cycle(host, port, threads)
@@ -156,11 +159,11 @@ at #{host}:#{port}, strength is #{@strength}")
         s.compact!
         break unless s.empty?
       end
-      s = s[0]
+      s = s.first
       return unless s.valid?
       return unless s.host == host
       return unless s.port == port
-      return unless s.strength >= @strength
+      return if s.strength < @strength
       Thread.current.name = s.to_mnemo
       Thread.current.thread_variable_set(:start, Time.now.utc.iso8601)
       score = @farmer.up(s)

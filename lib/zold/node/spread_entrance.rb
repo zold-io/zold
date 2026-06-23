@@ -4,18 +4,18 @@
 # SPDX-License-Identifier: MIT
 
 require 'concurrent'
-require 'tempfile'
-require 'shellwords'
 require 'loog'
-require_relative '../remotes'
+require 'shellwords'
+require 'tempfile'
+require_relative '../commands/clean'
+require_relative '../commands/fetch'
+require_relative '../commands/merge'
+require_relative '../commands/push'
 require_relative '../copies'
 require_relative '../endless'
+require_relative '../remotes'
 require_relative '../tax'
 require_relative '../thread_pool'
-require_relative '../commands/merge'
-require_relative '../commands/fetch'
-require_relative '../commands/push'
-require_relative '../commands/clean'
 
 # The entrance that spreads what's been modified.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -24,28 +24,27 @@ require_relative '../commands/clean'
 module Zold
   # The entrance
   class SpreadEntrance
-    def initialize(entrance, wallets, remotes, address, log: Loog::NULL,
-      ignore_score_weakeness: false, tolerate_edges: false)
+    def initialize(
+      entrance, wallets, remotes, address, log: Loog::NULL,
+      ignore_score_weakeness: false, tolerate_edges: false
+    )
       @entrance = entrance
       @wallets = wallets
       @remotes = remotes
       @address = address
       @log = log
-      @ignore_score_weakeness = ignore_score_weakeness
-      @tolerate_edges = tolerate_edges
+      @ignore = ignore_score_weakeness
+      @edges = tolerate_edges
       @mutex = Mutex.new
       @push = ThreadPool.new('spread-entrance')
     end
 
-    def to_json
-      @entrance.to_json.merge(
-        modified: @modified.size,
-        push: @push.to_json
-      )
+    def to_json(*_args)
+      @entrance.to_json.merge(modified: @modified.size, push: @push.to_json)
     end
 
     def start
-      raise 'Block must be given to start()' unless block_given?
+      raise(RuntimeError, 'Block must be given to start()') unless block_given?
       @entrance.start do
         @seen = Set.new
         @modified = Queue.new
@@ -60,8 +59,8 @@ module Zold
               Thread.current.thread_variable_set(:wallet, id.to_s)
               Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
                 ['push', "--ignore-node=#{Shellwords.escape(@address)}", id.to_s, '--tolerate-quorum=1'] +
-                (@ignore_score_weakeness ? ['--ignore-score-weakness'] : []) +
-                (@tolerate_edges ? ['--tolerate-edges'] : [])
+                (@ignore ? ['--ignore-score-weakness'] : []) +
+                (@edges ? ['--tolerate-edges'] : [])
               )
             end
             @mutex.synchronize { @seen.delete(id) }

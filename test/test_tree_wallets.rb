@@ -4,11 +4,11 @@
 # SPDX-License-Identifier: MIT
 
 require 'tmpdir'
-require_relative 'test__helper'
-require_relative '../lib/zold/wallet'
-require_relative '../lib/zold/key'
 require_relative '../lib/zold/id'
+require_relative '../lib/zold/key'
 require_relative '../lib/zold/tree_wallets'
+require_relative '../lib/zold/wallet'
+require_relative 'test__helper'
 
 # TreeWallets test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -24,7 +24,7 @@ class TestTreeWallets < Zold::Test
         assert(wallet.path.end_with?('/a/b/c/d/abcd0123abcd0123.z'))
       end
       assert_equal(1, wallets.all.count)
-      assert_equal(id, wallets.all[0])
+      assert_equal(id, wallets.all.first)
     end
   end
 
@@ -47,19 +47,14 @@ class TestTreeWallets < Zold::Test
       "a/b/d/e/0000111122223333#{Zold::Wallet::EXT}",
       "a/b/0000111122223333#{Zold::Wallet::EXT}"
     ]
-    garbage = [
-      '0000111122223333',
-      '0000111122223333.lock',
-      'a/b/c-0000111122223333'
-    ]
+    garbage = ['0000111122223333', '0000111122223333.lock', 'a/b/c-0000111122223333']
     Dir.mktmpdir do |dir|
       (files + garbage).each do |f|
         path = File.join(dir, f)
         FileUtils.mkdir_p(File.dirname(path))
         FileUtils.touch(path)
       end
-      wallets = Zold::TreeWallets.new(dir)
-      assert_equal(files.count, wallets.count)
+      assert_equal(files.count, Zold::TreeWallets.new(dir).count)
     end
   end
 end

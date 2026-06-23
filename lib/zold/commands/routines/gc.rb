@@ -31,6 +31,6 @@ class Zold::Routines::Gc
       cmd.run(args + [id.to_s])
       removed += 1
     end
-    @log.info("Removed #{removed} empty+old wallets out of #{seen} total") unless removed.zero?
+    @log.info("Removed #{removed} empty+old wallets out of #{seen} total") if removed.nonzero?
   end
 end

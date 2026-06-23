@@ -3,12 +3,12 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'slop'
 require 'json'
-require 'net/http'
 require 'loog'
-require_relative '../id'
+require 'net/http'
+require 'slop'
 require_relative '../http'
+require_relative '../id'
 
 # Args.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -28,7 +28,7 @@ module Zold
         return
       end
       args = @opts.arguments.reject { |a| a.start_with?('-') }
-      raise 'Try --help' if args.empty?
+      raise(RuntimeError, 'Try --help') if args.empty?
       args[1..-1]
     end
   end

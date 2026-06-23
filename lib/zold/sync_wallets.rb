@@ -3,8 +3,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'futex'
 require 'delegate'
+require 'futex'
 require 'loog'
 
 # Synchronized collection of wallets.
@@ -27,7 +27,7 @@ module Zold
     def acq(id, exclusive: false)
       @wallets.acq(id, exclusive: exclusive) do |wallet|
         Futex.new(wallet.path, log: @log, lock: File.join(@dir, "#{id}.lock")).open(exclusive) do
-          yield wallet
+          yield(wallet)
         end
       end
     end

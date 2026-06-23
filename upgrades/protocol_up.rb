@@ -19,7 +19,7 @@ module Zold
         next unless /^[a-f0-9]{16}#{Wallet::EXT}$/o.match?(path)
         f = File.join(@home, path)
         lines = File.read(f).split("\n")
-        next if lines[1].to_i == Zold::PROTOCOL
+        next if Integer(lines[1], 10) == Zold::PROTOCOL
         lines[1] = Zold::PROTOCOL
         File.write(f, lines.join("\n"))
         @log.info("Protocol set to #{Zold::PROTOCOL} in #{f}")

@@ -4,8 +4,8 @@
 # SPDX-License-Identifier: MIT
 
 require 'concurrent'
-require_relative 'test__helper'
 require_relative '../lib/zold/thread_pool'
+require_relative 'test__helper'
 
 # ThreadPool test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -28,7 +28,7 @@ class TestThreadPool < Zold::Test
   def test_adds_and_stops
     pool = Zold::ThreadPool.new('test', log: fake_log)
     pool.add do
-      sleep 60 * 60
+      sleep(60 * 60)
     end
     pool.kill
   end
@@ -36,25 +36,20 @@ class TestThreadPool < Zold::Test
   def test_stops_stuck_threads
     pool = Zold::ThreadPool.new('test', log: fake_log)
     pool.add do
-      loop do
-        # forever
-      end
+      loop { Thread.pass }
     end
     pool.kill
   end
 
   def test_stops_empty_pool
-    pool = Zold::ThreadPool.new('test', log: fake_log)
-    pool.kill
+    Zold::ThreadPool.new('test', log: fake_log).kill
   end
 
   def test_prints_to_json
     pool = Zold::ThreadPool.new('test', log: fake_log)
     pool.add do
       Thread.current.thread_variable_set(:foo, 1)
-      loop do
-        # forever
-      end
+      loop { Thread.pass }
     end
     assert_kind_of(Array, pool.to_json)
     assert_equal('test', pool.to_json[0][:name])
@@ -65,7 +60,6 @@ class TestThreadPool < Zold::Test
   end
 
   def test_prints_to_text
-    pool = Zold::ThreadPool.new('test', log: fake_log)
-    refute_nil(pool.to_s)
+    refute_nil(Zold::ThreadPool.new('test', log: fake_log).to_s)
   end
 end

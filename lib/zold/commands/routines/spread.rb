@@ -6,8 +6,8 @@
 require 'shellwords'
 require_relative '../routines'
 require 'loog'
-require_relative '../../id'
 require_relative '../../copies'
+require_relative '../../id'
 require_relative '../push'
 
 # Spread random wallets to the network.

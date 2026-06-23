@@ -3,17 +3,17 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'zold/score'
 require 'time'
-require_relative 'test__helper'
-require_relative 'fake_home'
+require 'zold/score'
+require_relative '../lib/zold/amount'
 require_relative '../lib/zold/id'
+require_relative '../lib/zold/key'
+require_relative '../lib/zold/prefixes'
+require_relative '../lib/zold/tax'
 require_relative '../lib/zold/txn'
 require_relative '../lib/zold/wallet'
-require_relative '../lib/zold/tax'
-require_relative '../lib/zold/key'
-require_relative '../lib/zold/amount'
-require_relative '../lib/zold/prefixes'
+require_relative 'fake_home'
+require_relative 'test__helper'
 
 # Tax test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -21,7 +21,7 @@ require_relative '../lib/zold/prefixes'
 # License:: MIT
 class TestTax < Zold::Test
   def test_print_fee
-    fake_log.info("Fee in zents: #{Zold::Tax::FEE.to_i}")
+    fake_log.info("Fee in zents: #{Zold::Tax::FEE.to_zents}")
   end
 
   def test_calculates_tax_for_one_year
@@ -49,27 +49,25 @@ class TestTax < Zold::Test
           Zold::Txn.new(
             i + 1,
             Time.now - (24 * 60 * 60 * 365 * 10),
-            Zold::Amount.new(zld: i.to_f),
+            Zold::Amount.new(zld: Float(i)),
             'NOPREFIX', Zold::Id.new, '-'
           )
         )
       end
+      # rubocop:disable Elegant/NoRedundantVariable
       score = Zold::Score.new(
+        # rubocop:enable Elegant/NoRedundantVariable
         host: 'localhost', port: 80, invoice: 'NOPREFIX@cccccccccccccccc',
         suffixes: %w[A B C D E F G H I J K L M N O P Q R S T U V]
       )
       tax = Zold::Tax.new(wallet)
-      debt = tax.debt
-      txn = tax.pay(Zold::Key.new(file: 'fixtures/id_rsa'), score)
-      assert_equal(debt, txn.amount * -1)
+      assert_equal(tax.debt, tax.pay(Zold::Key.new(file: 'fixtures/id_rsa'), score).amount * -1)
     end
   end
 
   def test_prints_tax_formula
     FakeHome.new(log: fake_log).run do |home|
-      wallet = home.create_wallet
-      tax = Zold::Tax.new(wallet)
-      refute_nil(tax.to_text)
+      refute_nil(Zold::Tax.new(home.create_wallet).to_text)
     end
   end
 
@@ -83,8 +81,8 @@ class TestTax < Zold::Test
           Time.now,
           amount * -1,
           'NOPREFIX', Zold::Id.new('912ecc24b32dbe74'),
-          "TAXES 6 5b5a21a9 b2.zold.io 1000 DCexx0hG 912ecc24b32dbe74 \
-386d4a ec9eae 306e3d 119d073 1c00dba 1376703 203589 5b55f7"
+          'TAXES 6 5b5a21a9 b2.zold.io 1000 DCexx0hG 912ecc24b32dbe74 ' \
+          '386d4a ec9eae 306e3d 119d073 1c00dba 1376703 203589 5b55f7'
         )
       )
       tax = Zold::Tax.new(wallet, strength: 6)
@@ -97,33 +95,24 @@ class TestTax < Zold::Test
     FakeHome.new(log: fake_log).run do |home|
       wallet = home.create_wallet
       amount = Zold::Amount.new(zents: 95_596_800)
-      prefix = Zold::Prefixes.new(wallet).create(8)
+      # rubocop:disable Elegant/NoRedundantVariable
       score = Zold::Score.new(
+        # rubocop:enable Elegant/NoRedundantVariable
         time: Time.now, host: 'localhost', port: 4096,
-        invoice: "#{prefix}@#{wallet.id}", strength: 1
+        invoice: "#{Zold::Prefixes.new(wallet).create(8)}@#{wallet.id}", strength: 1
       )
-      wallet.add(
-        Zold::Txn.new(
-          1,
-          Time.now,
-          amount,
-          'NOPREFIX', Zold::Id.new('0000111122223333'),
-          "TAXES #{score}"
-        )
-      )
+      wallet.add(Zold::Txn.new(1, Time.now, amount, 'NOPREFIX', Zold::Id.new('0000111122223333'), "TAXES #{score}"))
       wallet.add(
         Zold::Txn.new(
           2,
           Time.now,
           amount * -1,
           'NOPREFIX', Zold::Id.new('912ecc24b32dbe74'),
-          "TAXES 6 5b5a21a9 b2.zold.io 1000 DCexx0hG 912ecc24b32dbe74 \
-386d4a ec9eae 306e3d 119d073 1c00dba 1376703 203589 5b55f7"
+          'TAXES 6 5b5a21a9 b2.zold.io 1000 DCexx0hG 912ecc24b32dbe74 ' \
+          '386d4a ec9eae 306e3d 119d073 1c00dba 1376703 203589 5b55f7'
         )
       )
-      tax = Zold::Tax.new(wallet, strength: 6, ignore_score_weakness: true)
-      assert_equal(amount, tax.paid)
-      # assert(tax.debt < Zold::Amount::ZERO, tax.debt)
+      assert_equal(amount, Zold::Tax.new(wallet, strength: 6, ignore_score_weakness: true).paid)
     end
   end
 
@@ -139,10 +128,9 @@ class TestTax < Zold::Test
         )
       )
       target = home.create_wallet
-      invoice = "#{Zold::Prefixes.new(target).create}@#{target.id}"
       tax = Zold::Tax.new(wallet)
       score = Zold::Score.new(
-        host: 'localhost', port: 80, invoice: invoice,
+        host: 'localhost', port: 80, invoice: "#{Zold::Prefixes.new(target).create}@#{target.id}",
         suffixes: %w[A B C D E F G H I J K L M N O P Q R S T U V]
       )
       tax.pay(Zold::Key.new(file: 'fixtures/id_rsa'), score)

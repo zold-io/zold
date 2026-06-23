@@ -4,8 +4,8 @@
 # SPDX-License-Identifier: MIT
 
 require 'tmpdir'
-require_relative 'test__helper'
 require_relative '../lib/zold/id'
+require_relative 'test__helper'
 
 # ID test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -14,8 +14,7 @@ require_relative '../lib/zold/id'
 class TestId < Zold::Test
   def test_generates_new_id
     50.times do
-      id = Zold::Id.new
-      assert_equal 16, id.to_s.length
+      assert_equal(16, Zold::Id.new.to_s.length)
     end
   end
 
@@ -23,7 +22,7 @@ class TestId < Zold::Test
     before = ''
     500.times do
       id = Zold::Id.new
-      refute_equal id.to_s, before.to_s
+      refute_equal(id.to_s, before.to_s)
       before = id
     end
   end
@@ -40,7 +39,7 @@ class TestId < Zold::Test
     id = Zold::Id.new
     before = id.to_s
     5.times do
-      assert_equal id.to_s, before
+      assert_equal(id.to_s, before)
     end
   end
 
@@ -56,6 +55,6 @@ class TestId < Zold::Test
   end
 
   def test_compares_two_ids
-    assert_equal Zold::Id.new(Zold::Id::ROOT.to_s), Zold::Id.new('0000000000000000')
+    assert_equal(Zold::Id.new(Zold::Id::ROOT.to_s), Zold::Id.new('0000000000000000'))
   end
 end

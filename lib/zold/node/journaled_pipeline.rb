@@ -3,13 +3,13 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'tempfile'
 require 'diffy'
 require 'fileutils'
+require 'tempfile'
 require_relative 'pipeline'
+require 'logger'
 require 'loog'
 require 'loog/tee'
-require 'logger'
 require_relative '../age'
 
 # The pipeline with journals.
@@ -29,13 +29,17 @@ module Zold
 
       def acq(id, exclusive: false)
         @wallets.acq(id, exclusive: exclusive) do |wallet|
-          return yield wallet unless exclusive
+          return yield(wallet) unless exclusive
           before = wallet.exists? ? File.read(wallet.path) : ''
-          res = yield wallet
+          res = yield(wallet) # rubocop:disable Elegant/NoRedundantVariable
           after = wallet.exists? ? File.read(wallet.path) : ''
           unless before == after
-            diff = Diffy::Diff.new(before, after, context: 0).to_s
-            @log.info("The wallet #{id} was modified:\n  #{diff.gsub("\n", "\n  ")}")
+            @log.info(
+              "The wallet #{id} was modified:\n  #{Diffy::Diff.new(before, after, context: 0).to_s.gsub(
+                "\n",
+                "\n  "
+              )}"
+            )
           end
           res
         end
@@ -48,15 +52,13 @@ module Zold
     end
 
     def start
-      raise 'Block must be given to start()' unless block_given?
+      raise(RuntimeError, 'Block must be given to start()') unless block_given?
       FileUtils.mkdir_p(@dir)
       yield(self)
     end
 
-    def to_json
-      @pipeline.to_json.merge(
-        dir: @dir
-      )
+    def to_json(*_args)
+      @pipeline.to_json.merge(dir: @dir)
     end
 
     # Returns a list of modified wallets (as Zold::Id)
@@ -70,7 +72,9 @@ module Zold
       jlog.info("push(#{id}, #{body.length} bytes): starting...")
       jlog.info("Time: #{Time.now.utc.iso8601}")
       jlog.info("Zold gem version: #{Zold::VERSION}")
+      # rubocop:disable Elegant/NoRedundantVariable
       modified = @pipeline.push(id, body, JournaledPipeline::Wallets.new(wallets, jlog), Loog::Tee.new(log, jlog))
+      # rubocop:enable Elegant/NoRedundantVariable
       jlog.info("push(#{id}): done")
       FileUtils.mv(journal, "#{journal}-done")
       modified

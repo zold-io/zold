@@ -4,11 +4,11 @@
 # SPDX-License-Identifier: MIT
 
 require 'webmock/minitest'
-require_relative '../fake_home'
-require_relative '../test__helper'
+require_relative '../../lib/zold/commands/pull'
 require_relative '../../lib/zold/id'
 require_relative '../../lib/zold/json_page'
-require_relative '../../lib/zold/commands/pull'
+require_relative '../fake_home'
+require_relative '../test__helper'
 
 # PUSH test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -42,7 +42,7 @@ class TestPull < Zold::Test
       id = hash['id']
       stub_request(:get, "http://localhost:4096/wallet/#{id}").to_return(status: 200, body: json)
       stub_request(:get, "http://localhost:4096/wallet/#{id}.bin").to_return(status: 200, body: hash['body'])
-      assert_raises Zold::Fetch::EdgesOnly do
+      assert_raises(Zold::Fetch::EdgesOnly) do
         Zold::Pull.new(wallets: home.wallets, remotes: remotes, copies: home.copies.root.to_s, log: fake_log).run(
           ['--ignore-this-stupid-option', 'pull', id.to_s]
         )

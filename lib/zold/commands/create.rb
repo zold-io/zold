@@ -3,11 +3,11 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'slop'
 require 'rainbow'
-require_relative 'thread_badge'
-require_relative 'args'
+require 'slop'
 require_relative '../wallet'
+require_relative 'args'
+require_relative 'thread_badge'
 require 'loog'
 require_relative '../id'
 
@@ -27,29 +27,34 @@ module Zold
     end
 
     def run(args = [])
-      opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
-        o.banner = "Usage: zold create [options]
-Available options:"
-        o.string '--public-key',
-          'The location of RSA public key (default: ~/.ssh/id_rsa.pub)',
-          require: true,
-          default: File.expand_path('~/.ssh/id_rsa.pub')
-        o.bool '--skip-test',
-          'Don\'t check whether this wallet ID is available',
-          default: false
-        o.string '--network',
-          "The name of the network (default: #{Wallet::MAINET}",
-          require: true,
-          default: Wallet::MAINET
-        o.bool '--help', 'Print instructions'
-      end
+      opts =
+        Slop.parse(args, help: true, suppress_errors: true) do |o|
+          o.banner = <<~BANNER
+            Usage: zold create [options]
+            Available options:
+          BANNER
+          o.string(
+            '--public-key',
+            'The location of RSA public key (default: ~/.ssh/id_rsa.pub)',
+            require: true,
+            default: File.expand_path('~/.ssh/id_rsa.pub')
+          )
+          o.bool('--skip-test', 'Don\'t check whether this wallet ID is available', default: false)
+          o.string(
+            '--network',
+            "The name of the network (default: #{Wallet::MAINET}",
+            require: true,
+            default: Wallet::MAINET
+          )
+          o.bool('--help', 'Print instructions')
+        end
       mine = Args.new(opts, @log).take || return
-      create(mine.empty? ? create_id(opts) : Id.new(mine[0]), opts)
+      create(mine.empty? ? generate(opts) : Id.new(mine.first), opts)
     end
 
     private
 
-    def create_id(opts)
+    def generate(opts)
       loop do
         id = Id.new
         return id if opts['skip-test']
@@ -59,8 +64,7 @@ Available options:"
           next
         end
         @remotes.iterate(@log) do |r|
-          head = r.http("/wallet/#{id}/digest").get
-          found = true if head.status == 200
+          found = true if r.http("/wallet/#{id}/digest").get.status == 200
         end
         return id unless found
         @log.info("Wallet ID #{id} is already occupied, will try another one...")
@@ -70,7 +74,7 @@ Available options:"
     def create(id, opts)
       key = Zold::Key.new(file: opts['public-key'])
       @wallets.acq(id, exclusive: true) do |wallet|
-        raise "Wallet #{id} already exists" if wallet.exists?
+        raise(RuntimeError, "Wallet #{id} already exists") if wallet.exists?
         wallet.init(id, key, network: opts['network'])
         @log.debug("Wallet #{Rainbow(wallet).green} created at #{@wallets.path}")
       end

@@ -3,20 +3,20 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'time'
 require 'openssl'
-require_relative 'version'
-require_relative 'key'
-require_relative 'id'
-require_relative 'txn'
-require_relative 'tax'
-require_relative 'copies'
+require 'time'
 require_relative 'amount'
-require_relative 'hexnum'
-require_relative 'signature'
-require_relative 'txns'
-require_relative 'size'
+require_relative 'copies'
 require_relative 'head'
+require_relative 'hexnum'
+require_relative 'id'
+require_relative 'key'
+require_relative 'signature'
+require_relative 'size'
+require_relative 'tax'
+require_relative 'txn'
+require_relative 'txns'
+require_relative 'version'
 
 # The wallet.
 #
@@ -30,11 +30,8 @@ require_relative 'head'
 module Zold
   # A single wallet
   class Wallet
-    # The name of the main production network. All other networks
-    # must have different names.
     MAINET = 'zold'
 
-    # The extension of the wallet files
     EXT = '.z'
 
     # The constructor of the wallet, from the file. The file may be
@@ -42,7 +39,7 @@ module Zold
     # call init() in order to initialize the wallet, if it's absent.
     def initialize(file)
       unless file.end_with?(Wallet::EXT, Copies::EXT)
-        raise "Wallet file must end with #{Wallet::EXT} or #{Copies::EXT}: #{file}"
+        raise(RuntimeError, "Wallet file must end with #{Wallet::EXT} or #{Copies::EXT}: #{file}")
       end
       @file = File.absolute_path(file)
       @txns = CachedTxns.new(Txns.new(@file))
@@ -70,16 +67,16 @@ module Zold
 
     # Returns the network ID of the wallet.
     def network
-      n = @head.fetch[0]
-      raise "Invalid network name '#{n}'" unless /^[a-z]{4,16}$/.match?(n)
+      n = @head.fetch.first
+      raise(RuntimeError, "Invalid network name '#{n}'") unless /^[a-z]{4,16}$/.match?(n)
       n
     end
 
     # Returns the protocol ID of the wallet file.
     def protocol
       v = @head.fetch[1]
-      raise "Invalid protocol version name '#{v}'" unless /^[0-9]+$/.match?(v)
-      v.to_i
+      raise(RuntimeError, "Invalid protocol version name '#{v}'") unless /^[0-9]+$/.match?(v)
+      Integer(v, 10)
     end
 
     # Returns TRUE if the wallet file exists.
@@ -94,8 +91,8 @@ module Zold
 
     # Creates an empty wallet with the specified ID and public key.
     def init(id, pubkey, overwrite: false, network: 'test')
-      raise "File '#{path}' already exists" if File.exist?(path) && !overwrite
-      raise "Invalid network name '#{network}'" unless /^[a-z]{4,16}$/.match?(network)
+      raise(RuntimeError, "File '#{path}' already exists") if File.exist?(path) && !overwrite
+      raise(RuntimeError, "Invalid network name '#{network}'") unless /^[a-z]{4,16}$/.match?(network)
       FileUtils.mkdir_p(File.dirname(path))
       File.write(path, "#{network}\n#{PROTOCOL}\n#{id}\n#{pubkey.to_pub}\n\n")
       @txns.flush
@@ -114,59 +111,54 @@ module Zold
 
     # Returns current wallet balance.
     def balance
-      txns.inject(Amount::ZERO) { |sum, t| sum + t.amount }
+      txns.reduce(Amount::ZERO) { |sum, t| sum + t.amount }
     end
 
     # Add a payment transaction to the wallet.
     def sub(amount, invoice, pvt, details = '-', time: Time.now)
-      raise 'The amount has to be of type Amount' unless amount.is_a?(Amount)
-      raise "The amount can't be negative: #{amount}" if amount.negative?
-      raise 'The pvt has to be of type Key' unless pvt.is_a?(Key)
+      raise(RuntimeError, 'The amount has to be of type Amount') unless amount.is_a?(Amount)
+      raise(RuntimeError, "The amount can't be negative: #{amount}") if amount.negative?
+      raise(RuntimeError, 'The pvt has to be of type Key') unless pvt.is_a?(Key)
       prefix, target = invoice.split('@')
-      tid = max + 1
-      raise 'Too many transactions already, can\'t add more' if max > 0xffff
-      txn = Txn.new(
-        tid,
-        time,
-        amount * -1,
-        prefix,
-        Id.new(target),
-        details
-      )
+      raise(RuntimeError, 'Too many transactions already, can\'t add more') if max > 0xffff
+      txn = Txn.new(max + 1, time, amount * -1, prefix, Id.new(target), details)
       txn = txn.signed(pvt, id)
-      raise "Invalid private key for the wallet #{id}" unless Signature.new(network).valid?(key, id, txn)
+      raise(RuntimeError, "Invalid private key for the wallet #{id}") unless Signature.new(network).valid?(key, id, txn)
       add(txn)
       txn
     end
 
     # Add a transaction to the wallet.
     def add(txn)
-      raise 'The txn has to be of type Txn' unless txn.is_a?(Txn)
-      raise "Wallet #{id} can't pay itself: #{txn}" if txn.bnf == id
-      raise "The amount can't be zero in #{id}: #{txn}" if txn.amount.zero?
+      raise(RuntimeError, 'The txn has to be of type Txn') unless txn.is_a?(Txn)
+      raise(RuntimeError, "Wallet #{id} can't pay itself: #{txn}") if txn.bnf == id
+      raise(RuntimeError, "The amount can't be zero in #{id}: #{txn}") if txn.amount.zero?
       if txn.amount.negative? && includes_negative?(txn.id)
-        raise "Negative transaction with the same ID #{txn.id} already exists in #{id}"
+        raise(RuntimeError, "Negative transaction with the same ID #{txn.id} already exists in #{id}")
       end
       if txn.amount.positive? && includes_positive?(txn.id, txn.bnf)
-        raise "Positive transaction with the same ID #{txn.id} and BNF #{txn.bnf} already exists in #{id}"
+        raise(
+          RuntimeError,
+          "Positive transaction with the same ID #{txn.id} and BNF #{txn.bnf} already exists in #{id}"
+        )
       end
-      raise "The tax payment already exists in #{id}: #{txn}" if Tax.new(self).exists?(txn.details)
-      File.open(path, 'a') { |f| f.print "#{txn}\n" }
+      raise(RuntimeError, "The tax payment already exists in #{id}: #{txn}") if Tax.new(self).exists?(txn.details)
+      File.open(path, 'a') { |f| f.print("#{txn}\n") }
       @txns.flush
     end
 
     # Returns TRUE if the wallet contains a payment sent with the specified
     # ID, which was sent to the specified beneficiary.
     def includes_negative?(id, bnf = nil)
-      raise 'The txn ID has to be of type Integer' unless id.is_a?(Integer)
+      raise(RuntimeError, 'The txn ID has to be of type Integer') unless id.is_a?(Integer)
       !txns.find { |t| t.id == id && (bnf.nil? || t.bnf == bnf) && t.amount.negative? }.nil?
     end
 
     # Returns TRUE if the wallet contains a payment received with the specified
     # ID, which was sent by the specified beneficiary.
     def includes_positive?(id, bnf)
-      raise 'The txn ID has to be of type Integer' unless id.is_a?(Integer)
-      raise 'The bnf has to be of type Id' unless bnf.is_a?(Id)
+      raise(RuntimeError, 'The txn ID has to be of type Integer') unless id.is_a?(Integer)
+      raise(RuntimeError, 'The bnf has to be of type Id') unless bnf.is_a?(Id)
       !txns.find { |t| t.id == id && t.bnf == bnf && !t.amount.negative? }.nil?
     end
 
@@ -200,7 +192,7 @@ module Zold
     # Size of the wallet file in bytes. If the file doesn't exist
     # an exception will be raised.
     def size
-      raise "The wallet file #{path} doesn't exist" unless File.exist?(path)
+      raise(RuntimeError, "The wallet file #{path} doesn't exist") unless File.exist?(path)
       File.size(path)
     end
 

@@ -3,8 +3,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require_relative 'test__helper'
 require_relative '../lib/zold/age'
+require_relative 'test__helper'
 
 # Age test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

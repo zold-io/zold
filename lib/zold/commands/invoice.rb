@@ -3,10 +3,10 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'slop'
 require 'shellwords'
-require_relative 'thread_badge'
+require 'slop'
 require_relative 'args'
+require_relative 'thread_badge'
 require 'loog'
 require_relative '../prefixes'
 
@@ -27,44 +27,48 @@ module Zold
     end
 
     def run(args = [])
-      opts = Slop.parse(args, help: true, suppress_errors: true) do |o|
-        o.banner = "Usage: zold invoice ID [options]
-Where:
-    'ID' is the wallet ID of the money receiver
-Available options:"
-        o.integer '--length',
-          'The length of the invoice prefix (default: 8)',
-          default: 8
-        o.bool '--tolerate-edges',
-          'Don\'t fail if only "edge" (not "master" ones) nodes have the wallet',
-          default: false
-        o.integer '--tolerate-quorum',
-          'The minimum number of nodes required for a successful fetch (default: 4)',
-          default: 4
-        o.string '--network',
-          'The name of the network we work in',
-          default: 'test'
-        o.bool '--help', 'Print instructions'
-      end
+      opts =
+        Slop.parse(args, help: true, suppress_errors: true) do |o|
+          o.banner = <<~BANNER
+            Usage: zold invoice ID [options]
+            Where:
+                'ID' is the wallet ID of the money receiver
+            Available options:
+          BANNER
+          o.integer('--length', 'The length of the invoice prefix (default: 8)', default: 8)
+          o.bool(
+            '--tolerate-edges',
+            'Don\'t fail if only "edge" (not "master" ones) nodes have the wallet',
+            default: false
+          )
+          o.integer(
+            '--tolerate-quorum',
+            'The minimum number of nodes required for a successful fetch (default: 4)',
+            default: 4
+          )
+          o.string('--network', 'The name of the network we work in', default: 'test')
+          o.bool('--help', 'Print instructions')
+        end
       mine = Args.new(opts, @log).take || return
-      raise 'Receiver wallet ID is required' if mine[0].nil?
-      invoice(Id.new(mine[0]), opts)
+      raise(RuntimeError, 'Receiver wallet ID is required') if mine.first.nil?
+      invoice(Id.new(mine.first), opts)
     end
 
     private
 
     def invoice(id, opts)
       unless @wallets.acq(id, &:exists?)
-        require_relative 'pull'
+        require_relative('pull')
         Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
           ['pull', id.to_s, "--network=#{Shellwords.escape(opts['network'])}"] +
           ["--tolerate-quorum=#{Shellwords.escape(opts['tolerate-quorum'])}"] +
           (opts['tolerate-edges'] ? ['--tolerate-edges'] : [])
         )
       end
-      inv = @wallets.acq(id) do |wallet|
-        "#{Prefixes.new(wallet).create(opts[:length])}@#{wallet.id}"
-      end
+      inv =
+        @wallets.acq(id) do |wallet|
+          "#{Prefixes.new(wallet).create(opts[:length])}@#{wallet.id}"
+        end
       @log.info(inv)
       inv
     end

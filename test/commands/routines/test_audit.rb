@@ -5,8 +5,8 @@
 
 require 'tmpdir'
 require 'webmock/minitest'
-require_relative '../../test__helper'
 require_relative '../../../lib/zold/commands/routines/audit'
+require_relative '../../test__helper'
 
 # Audit test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -15,9 +15,7 @@ require_relative '../../../lib/zold/commands/routines/audit'
 class TestAudit < Zold::Test
   def test_audits
     FakeHome.new(log: fake_log).run do |home|
-      opts = { 'routine-immediately' => true }
-      routine = Zold::Routines::Audit.new(opts, home.wallets, log: fake_log)
-      routine.exec
+      Zold::Routines::Audit.new({ 'routine-immediately' => true }, home.wallets, log: fake_log).exec
     end
   end
 end

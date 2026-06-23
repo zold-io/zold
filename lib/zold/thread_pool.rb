@@ -23,20 +23,18 @@ module Zold
 
     # Add a new thread
     def add
-      raise 'Block must be given to start()' unless block_given?
+      raise(RuntimeError, 'Block must be given to start()') unless block_given?
       latch = Concurrent::CountDownLatch.new(1)
-      thread = Thread.start do
-        Thread.current.name = @title
-        VerboseThread.new(@log).run do
-          latch.count_down
-          yield
+      thread =
+        Thread.start do
+          Thread.current.name = @title
+          VerboseThread.new(@log).run do
+            latch.count_down
+            yield
+          end
         end
-      end
       latch.wait
-      Thread.current.thread_variable_set(
-        :kids,
-        (Thread.current.thread_variable_get(:kids) || []) + [thread]
-      )
+      Thread.current.thread_variable_set(:kids, (Thread.current.thread_variable_get(:kids) || []) + [thread])
       @threads << thread
     end
 
@@ -50,8 +48,10 @@ module Zold
         @log.debug("Thread pool \"#{@title}\" terminated with no threads")
         return
       end
-      @log.debug("Stopping \"#{@title}\" thread pool with #{@threads.count} threads: \
-#{@threads.map { |t| "#{t.name}/#{t.status}" }.join(', ')}...")
+      @log.debug(
+        "Stopping \"#{@title}\" thread pool with #{@threads.count} threads: " \
+        "#{@threads.map { |t| "#{t.name}/#{t.status}" }.join(', ')}..."
+      )
       start = Time.new
       begin
         join(0.1)
@@ -59,14 +59,13 @@ module Zold
         @threads.each do |t|
           (t.thread_variable_get(:kids) || []).each(&:kill)
           t.kill
-          sleep(0.001) while t.alive? # I believe it's a bug in Ruby, this line fixes it
-          Thread.current.thread_variable_set(
-            :kids,
-            (Thread.current.thread_variable_get(:kids) || []) - [t]
-          )
+          sleep(0.001) while t.alive?
+          Thread.current.thread_variable_set(:kids, (Thread.current.thread_variable_get(:kids) || []) - [t])
         end
-        @log.debug("Thread pool \"#{@title}\" terminated all threads in #{Age.new(start)}, \
-it was alive for #{Age.new(@start)}: #{@threads.map { |t| "#{t.name}/#{t.status}" }.join(', ')}")
+        @log.debug(
+          "Thread pool \"#{@title}\" terminated all threads in #{Age.new(start)}, " \
+          "it was alive for #{Age.new(@start)}: #{@threads.map { |t| "#{t.name}/#{t.status}" }.join(', ')}"
+        )
         @threads.clear
       end
     end
@@ -87,7 +86,7 @@ it was alive for #{Age.new(@start)}: #{@threads.map { |t| "#{t.name}/#{t.status}
     end
 
     # As a hash map
-    def to_json
+    def to_json(*_args)
       @threads.map do |t|
         {
           name: t.name,

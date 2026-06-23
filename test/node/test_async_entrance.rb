@@ -4,10 +4,10 @@
 # SPDX-License-Identifier: MIT
 
 require 'threads'
-require_relative '../fake_home'
-require_relative '../test__helper'
 require_relative '../../lib/zold/id'
 require_relative '../../lib/zold/node/async_entrance'
+require_relative '../fake_home'
+require_relative '../test__helper'
 require_relative 'fake_entrance'
 
 # AsyncEntrance test.
@@ -26,9 +26,7 @@ class TestAsyncEntrance < Zold::Test
   def test_sends_through_once
     FakeHome.new(log: fake_log).run do |home|
       wallet = home.create_wallet
-      amount = Zold::Amount.new(zld: 39.99)
-      key = Zold::Key.new(file: 'fixtures/id_rsa')
-      wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
+      wallet.sub(Zold::Amount.new(zld: 39.99), "NOPREFIX@#{Zold::Id.new}", Zold::Key.new(file: 'fixtures/id_rsa'))
       basic = CountingEntrance.new
       Zold::AsyncEntrance.new(basic, File.join(home.dir, 'a/b/c'), log: fake_log).start do |e|
         e.push(wallet.id, File.read(wallet.path))
@@ -43,9 +41,7 @@ class TestAsyncEntrance < Zold::Test
       Zold::AsyncEntrance.new(basic, File.join(home.dir, 'a/b/c'), log: fake_log, queue_limit: 1000).start do |e|
         Threads.new(20).assert do
           wallet = home.create_wallet
-          amount = Zold::Amount.new(zld: 39.99)
-          key = Zold::Key.new(file: 'fixtures/id_rsa')
-          wallet.sub(amount, "NOPREFIX@#{Zold::Id.new}", key)
+          wallet.sub(Zold::Amount.new(zld: 39.99), "NOPREFIX@#{Zold::Id.new}", Zold::Key.new(file: 'fixtures/id_rsa'))
           5.times { e.push(wallet.id, File.read(wallet.path)) }
         end
         assert_equal_wait(true) { basic.count >= 20 }
@@ -79,7 +75,7 @@ class TestAsyncEntrance < Zold::Test
 
   class BrokenEntrance < FakeEntrance
     def push(_, _)
-      raise 'It intentionally crashes'
+      raise(RuntimeError, 'It intentionally crashes')
     end
   end
 end
