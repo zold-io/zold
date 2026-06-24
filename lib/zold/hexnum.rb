@@ -21,7 +21,7 @@ module Zold
     end
 
     def to_s
-      format("%0#{@length}x", @num).gsub(/^\.{2}/, 'ff')
+      format("%0#{@length}x", @num & ((1 << (@length * 4)) - 1))
     end
 
     def self.parse(txt)
