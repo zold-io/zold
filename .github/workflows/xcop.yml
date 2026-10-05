@@ -5,7 +5,21 @@
 name: xcop
 'on':
   push:
+    paths:
+      - '**.xsl'
+      - '**.xml'
+      - '**.xhtml'
+      - '**.html'
+      - '**.xsd'
+      - '.github/workflows/xcop.yml'
   pull_request:
+    paths:
+      - '**.xsl'
+      - '**.xml'
+      - '**.xhtml'
+      - '**.html'
+      - '**.xsd'
+      - '.github/workflows/xcop.yml'
 jobs:
   xcop:
     timeout-minutes: 15
