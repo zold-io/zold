@@ -23,7 +23,7 @@ gem 'rubocop-minitest', '>0', require: false
 gem 'rubocop-performance', '>0', require: false
 gem 'rubocop-rake', '>0', require: false
 gem 'rubocop-rspec', '~>3.0', require: false
-gem 'simplecov', '~>0.22', require: false
+gem 'simplecov', '~>1.0', require: false
 gem 'simplecov-cobertura', '~>3.0', require: false
 gem 'webmock', '~>3.23', require: false
 gem 'xcop', '>=0.6', require: false
