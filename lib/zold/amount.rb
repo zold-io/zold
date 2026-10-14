@@ -109,7 +109,7 @@ module Zold
     def *(other)
       raise(RuntimeError, '* may only work with a number') unless other.is_a?(Integer) || other.is_a?(Float)
       c = (@zents * other).truncate
-      raise(RuntimeError, "Overflow, can't multiply #{@zents} by #{m}") if c > MAX
+      raise(RuntimeError, "Overflow, can't multiply #{@zents} by #{other}") if c > MAX
       Amount.new(zents: c)
     end
 

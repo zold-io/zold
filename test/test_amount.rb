@@ -46,6 +46,14 @@ class TestAmount < Zold::Test
     assert_equal(Zold::Amount.new(zld: 2.4), Zold::Amount.new(zld: 1.2) * 2)
   end
 
+  def test_reports_multiplication_overflow
+    error =
+      assert_raises(RuntimeError) do
+        Zold::Amount.new(zents: Zold::Amount::MAX) * 2
+      end
+    assert_equal("Overflow, can't multiply #{Zold::Amount::MAX} by 2", error.message, error.message)
+  end
+
   def test_divides
     assert_equal(Zold::Amount.new(zld: 4.1), Zold::Amount.new(zld: 8.2) / 2)
   end
