@@ -15,7 +15,7 @@ plugins:
   - rubocop-minitest
   - rubocop-performance
   - rubocop-rake
-  - rubocop-elegant # must be the last one
+  - rubocop-elegant  # must be the last one
 # Wallets are required individually, so compact namespaces would need the Zold
 # module pre-loaded everywhere; the nested style is kept on purpose
 Elegant/NoClassInModule:
@@ -49,7 +49,8 @@ Naming/PredicateMethod:
 # Integration tests assert many facets of one expensive node/farm spawn
 Minitest/MultipleAssertions:
   Enabled: false
-# Readable filter/sort/map chains beat each_with_object loops on these cold paths
+# Readable filter/sort/map chains beat each_with_object loops
+# on these cold paths
 Performance/ChainArrayAllocation:
   Enabled: false
 # Operators cannot be renamed (rubocop-elegant#... reported); the rest are
