@@ -17,8 +17,9 @@ module Zold
     end
 
     def run
-      Dir.glob("#{@directory}/*.rb").grep(/^(\d+)\.rb$/).sort.each do |script|
-        @version.apply(script)
+      versions = Dir.glob("#{@directory}/*.rb").map { |f| File.basename(f, '.rb') }.grep(/^\d+(\.\d+)*$/)
+      versions.sort_by { |v| ::Gem::Version.new(v) }.each do |v|
+        @version.apply(v) { load(File.join(@directory, "#{v}.rb")) }
       end
       require_relative('../../upgrades/delete_banned_wallets')
       DeleteBannedWallets.new(Dir.pwd, @log).exec
