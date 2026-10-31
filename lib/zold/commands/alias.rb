@@ -37,7 +37,7 @@ module Zold
       unless (Args.new(opts, @log).take || return).first
         raise(RuntimeError, "A command is required, try 'zold alias --help'")
       end
-      # @todo #279:30min Implement command handling. As in other commands,
+      # @todo #279:30min Use a case/when loop as all the other commands do, and make each of them a method of its own.
       raise(NotImplementedError, 'This is not yet implemented')
     end
   end

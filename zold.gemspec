@@ -52,6 +52,7 @@ and suggests a different architecture for digital wallet maintenance."
   s.add_dependency('memory_profiler', '~>1.0')
   s.add_dependency('mimic', '~>0.4')
   s.add_dependency('openssl', '>=1.0')
+  s.add_dependency('ostruct', '~>0.6')
   s.add_dependency('rainbow', '~>3.0')
   s.add_dependency('semantic', '~>1.6')
   s.add_dependency('sinatra', '~>3.0')
