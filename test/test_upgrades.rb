@@ -12,10 +12,7 @@ require_relative 'test__helper'
 # Copyright:: Copyright (c) 2018-2026 Zerocracy
 # License:: MIT
 class TestUpgrades < Zold::Test
-  # @todo #327:30min Uncomment, when you're ready to work on upgrade manager's
-  #  test case of absent version file. Start with running the test first.
   def test_no_version_file_is_ok
-    skip('the absent-version-file case is not implemented yet')
     Dir.mktmpdir do |dir|
       version = '0.0.1'
       script(dir, version)
@@ -25,11 +22,7 @@ class TestUpgrades < Zold::Test
     end
   end
 
-  # @todo #327:30min Uncomment, when you're ready to work on upgrade manager's
-  #  test case of running only pending upgrade scripts (i.e. the scripts with
-  #  versions greater than those in the version file).
   def test_pending_scripts_run
-    skip('pending upgrade scripts are not implemented yet')
     Dir.mktmpdir do |dir|
       %w[1 2].each do |version|
         script(dir, version)
