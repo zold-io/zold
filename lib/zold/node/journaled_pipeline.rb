@@ -72,9 +72,7 @@ module Zold
       jlog.info("push(#{id}, #{body.length} bytes): starting...")
       jlog.info("Time: #{Time.now.utc.iso8601}")
       jlog.info("Zold gem version: #{Zold::VERSION}")
-      # rubocop:disable Elegant/NoRedundantVariable
-      modified = @pipeline.push(id, body, JournaledPipeline::Wallets.new(wallets, jlog), Loog::Tee.new(log, jlog))
-      # rubocop:enable Elegant/NoRedundantVariable
+      modified = @pipeline.push(id, body, JournaledPipeline::Wallets.new(wallets, jlog), Loog::Tee.new(log, jlog)) # rubocop:disable Elegant/NoRedundantVariable
       jlog.info("push(#{id}): done")
       FileUtils.mv(journal, "#{journal}-done")
       modified

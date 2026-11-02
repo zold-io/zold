@@ -160,9 +160,7 @@ module Zold
             if wallet.balance.negative? && !wallet.root?
               raise(FetchError, "The balance of #{id} is #{wallet.balance} and it's not a root wallet")
             end
-            # rubocop:disable Elegant/NoRedundantVariable
-            copy = cps.add(File.read(f), score.host, score.port, score.value, master: r.master?)
-            # rubocop:enable Elegant/NoRedundantVariable
+            copy = cps.add(File.read(f), score.host, score.port, score.value, master: r.master?) # rubocop:disable Elegant/NoRedundantVariable
             @log.debug(
               "#{r} returned #{wallet.mnemo} #{Age.new(json['mtime'])}/#{json['copies']}c " \
               "as copy ##{copy}/#{cps.all.count} in #{Age.new(start, limit: 4)}: " \
@@ -197,9 +195,7 @@ module Zold
       cps.all.each do |c|
         next unless json['digest'] == OpenSSL::Digest::SHA256.file(c[:path]).hexdigest &&
           json['size'] == File.size(c[:path])
-        # rubocop:disable Elegant/NoRedundantVariable
-        copy = cps.add(File.read(c[:path]), score.host, score.port, score.value, master: r.master?)
-        # rubocop:enable Elegant/NoRedundantVariable
+        copy = cps.add(File.read(c[:path]), score.host, score.port, score.value, master: r.master?) # rubocop:disable Elegant/NoRedundantVariable
         @log.debug("No need to fetch #{id} from #{r}, it's the same content as copy ##{copy}")
         return true
       end
