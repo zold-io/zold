@@ -14,7 +14,7 @@ $stdout.sync = true
 ENV['RACK_ENV'] = 'test'
 require 'simplecov'
 require 'simplecov-cobertura'
-unless SimpleCov.running || ENV['PICKS']
+unless Coverage.running? || ENV['PICKS']
   SimpleCov.command_name('test')
   SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new(
     [
