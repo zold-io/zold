@@ -7,5 +7,5 @@ thr = "thr"
 dbe = "dbe"
 
 [files]
-# Hex wallet IDs contain letter sequences that look like typos
-extend-exclude = ["resources/banned-wallets.*", "fixtures/*"]
+# Hex wallet IDs and Base64 keys contain letter sequences that look like typos
+extend-exclude = ["resources/banned-wallets.*", "resources/*.pub", "fixtures/*"]
