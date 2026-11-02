@@ -273,18 +273,16 @@ module Zold
 
     def load
       if File.exist?(@file)
-        # rubocop:disable Lint/NumberConversion
         raw =
           CSV.read(@file).map do |row|
             {
               host: row.first,
-              port: row[1].to_i,
-              score: row[2].to_i,
-              errors: row[3].to_i,
-              master: master?(row.first, row[1].to_i)
+              port: row[1].to_i, # rubocop:disable Lint/NumberConversion
+              score: row[2].to_i, # rubocop:disable Lint/NumberConversion
+              errors: row[3].to_i, # rubocop:disable Lint/NumberConversion
+              master: master?(row.first, row[1].to_i) # rubocop:disable Lint/NumberConversion
             }
           end
-        # rubocop:enable Lint/NumberConversion
         raw.reject { |r| !r[:host] || r[:port].zero? || r[:host] == '0.0.0.0' }.map do |r|
           r[:home] = URI("http://#{r[:host]}:#{r[:port]}/")
           r

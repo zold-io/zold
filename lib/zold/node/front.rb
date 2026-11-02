@@ -373,7 +373,7 @@ module Zold
 
     get '/wallets' do
       content_type('text/plain')
-      settings.wallets.all.map(&:to_s).join("\n")
+      settings.wallets.all.join("\n")
     end
 
     get '/remotes' do

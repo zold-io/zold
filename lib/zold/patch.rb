@@ -170,7 +170,7 @@ module Zold
             "#{[
               Time.now.utc.iso8601, txn.id, txn.date.utc.iso8601, wallet.id,
               txn.bnf, txn.amount.to_zents * -1, txn.prefix, txn.details
-            ].map(&:to_s).join(';')}\n"
+            ].join(';')}\n"
           )
         end
       end
@@ -184,9 +184,7 @@ module Zold
     def save(file, overwrite: false, allow_negative_balance: false)
       raise(RuntimeError, 'You have to join at least one wallet in') if empty?
       wallet = Wallet.new(file)
-      # rubocop:disable Elegant/NoRedundantVariable
-      before = wallet.exists? ? wallet.digest : ''
-      # rubocop:enable Elegant/NoRedundantVariable
+      before = wallet.exists? ? wallet.digest : '' # rubocop:disable Elegant/NoRedundantVariable
       Tempfile.open([@id, Wallet::EXT]) do |f|
         temp = Wallet.new(f.path)
         temp.init(@id, @key, overwrite: overwrite, network: @network)

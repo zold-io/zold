@@ -31,9 +31,10 @@ class Zold::Routines::Reconcile
       next if r.to_mnemo == @address
       res = r.http('/wallets').get
       r.assert_code(200, res)
-      missing = res.body.strip.split("\n").compact
-        .grep(/^[a-f0-9]{16}$/)
-        .reject { |i| @wallets.acq(Zold::Id.new(i), &:exists?) }
+      missing =
+        res.body.strip.split("\n").compact
+          .grep(/^[a-f0-9]{16}$/)
+          .reject { |i| @wallets.acq(Zold::Id.new(i), &:exists?) }
       missing.each { |i| pull(i) }
       if missing.empty?
         log.info("Nothing to reconcile with #{r}, we are good at #{@address}")
