@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: MIT
 
 require 'loog'
-require 'semantic'
 
 module Zold
   # Read and write .zoldata/version.
@@ -14,11 +13,16 @@ module Zold
       @log = log
     end
 
-    # @todo #285:30min Replace this stub with functionality.
-    #  We need to run the script (`yield`) if the version of
-    #  the script is between the saved version and the current one.
+    # Run the block if the version is newer than the saved one,
+    # and save the version afterwards.
     def apply(version)
-      @log.info("Version #{version} doesn't need to be applied.")
+      if File.exist?(@path) && ::Gem::Version.new(version) <= ::Gem::Version.new(File.read(@path).strip)
+        @log.info("Version #{version} doesn't need to be applied")
+        return
+      end
+      yield
+      File.write(@path, version)
+      @log.info("Version #{version} applied")
     end
   end
 end
