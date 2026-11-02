@@ -26,6 +26,7 @@ require_relative '../dir_items'
 require_relative '../host'
 require_relative '../http'
 require_relative '../id'
+require_relative '../load'
 require_relative '../tax'
 require_relative 'soft_error'
 
@@ -217,6 +218,9 @@ module Zold
         end,
         platform: RUBY_PLATFORM,
         load: settings.zache.get(:load, lifetime: settings.opts['no-cache'] ? 0 : 60) do
+          Load.new.value
+        rescue Load::CantDetect => e
+          settings.log.error(e.message)
           0.0
         end,
         total_mem: mem,
