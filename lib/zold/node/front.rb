@@ -116,7 +116,7 @@ module Zold
       end
     end
 
-    # @todo #357:30min Test that the headers are being set correctly.
+    # @todo #357:30min Test that all the headers are set right, as now no test at all checks them in any reply we send.
     after do
       headers['Cache-Control'] = 'no-cache'
       headers['X-Zold-Path'] = request.url

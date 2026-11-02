@@ -109,7 +109,7 @@ module Zold
             default: Wallet::MAINET
           )
           o.bool('--reboot', 'Exit if any node reports version higher than we have', default: false)
-          # @todo #292:30min Group options by subcommands
+          # @todo #292:30min Group options by command, as most fit just one of them, so the help is a mess to read now.
           o.integer(
             '--max-nodes',
             "Number of nodes to limit to (default: #{Remotes::MAX_NODES})",

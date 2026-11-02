@@ -85,8 +85,9 @@ module Zold
           'next',
           Shellwords.escape(score)
         ].join(' ')
-        Open3.popen2e(cmd) do |stdin, stdout, thread|
+        Open3.popen3(cmd) do |stdin, stdout, stderr, thread|
           Thread.current.thread_variable_set(:pid, thread.pid.to_s)
+          warns = Thread.new { stderr.each_line { |line| @log.debug("Proc ##{thread.pid} warns: #{line.strip}") } }
           at_exit { Farmers.kill(@log, thread.pid, start) }
           @log.debug(
             "Scoring started in proc ##{thread.pid} " \
@@ -124,6 +125,7 @@ module Zold
             after
           ensure
             Farmers.kill(@log, thread.pid, start)
+            warns.kill.join
           end
         end
       end
