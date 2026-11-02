@@ -518,7 +518,7 @@ module Zold
       def copy(source, target, start = 0)
         total = 0
         File.open(target, 'w') do |t|
-          File.open(source, 'r').each do |line|
+          File.foreach(source) do |line|
             next if total < start
             t.print(line)
             total += 1
