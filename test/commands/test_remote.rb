@@ -118,16 +118,16 @@ class TestRemote < Zold::Test
     Dir.mktmpdir do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.txt'))
       score = Zold::Score.new(host: 'aa1.example.org', port: 9999, invoice: 'NOPREFIX4@ffffffffffffffff')
-      stub_request(:get, 'http://localhost:8883/version').to_return(status: 200, body: '0.0.0')
+      stub_request(:get, 'http://aa2.example.org:8883/version').to_return(status: 200, body: '0.0.0')
       stub_request(:get, "http://#{score.host}:#{score.port}/remotes").to_return(
         status: 200,
-        body: { version: Zold::VERSION, score: score.to_h, all: [{ host: 'localhost', port: 8883 }] }.to_json
+        body: { version: Zold::VERSION, score: score.to_h, all: [{ host: 'aa2.example.org', port: 8883 }] }.to_json
       )
       stub_request(:get, 'https://rubygems.org/api/v1/versions/zold/latest.json').to_return(
         status: 200,
         body: '{"version": "0.0.0"}'
       )
-      stub_request(:get, 'http://localhost:8883/remotes').to_return(status: 404)
+      stub_request(:get, 'http://aa2.example.org:8883/remotes').to_return(status: 404)
       cmd = Zold::Remote.new(remotes: remotes, log: fake_log)
       cmd.run(%w[remote clean])
       assert_empty(remotes.all)
@@ -193,6 +193,25 @@ class TestRemote < Zold::Test
       cmd.run(%w[remote masters])
       cmd.run(%w[remote select --max-nodes=0])
       refute_empty(remotes.all)
+    end
+  end
+
+  def test_ignores_loopback_hosts_of_remote_neighbours
+    Dir.mktmpdir do |dir|
+      remotes = Zold::Remotes.new(file: File.join(dir, 'remotes'))
+      stub_request(:get, 'http://172.217.16.78:4096/remotes').to_return(
+        status: 200,
+        headers: {},
+        body: {
+          version: Zold::VERSION,
+          score: Zold::Score.new(host: '172.217.16.78', port: 4096, invoice: 'NOPREFIX@ffffffffffffffff').to_h,
+          all: [{ host: '127.0.0.1', port: 4096 }]
+        }.to_json
+      )
+      cmd = Zold::Remote.new(remotes: remotes, log: fake_log)
+      cmd.run(%w[remote add 172.217.16.78 4096 --skip-ping])
+      cmd.run(%w[remote update --ignore-score-weakness --skip-ping])
+      refute(remotes.exists?('127.0.0.1', 4096), 'A loopback host of a remote neighbour was added')
     end
   end
 

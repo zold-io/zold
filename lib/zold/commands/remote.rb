@@ -16,6 +16,7 @@ require_relative 'thread_badge'
 require 'loog'
 require_relative '../age'
 require_relative '../gem'
+require_relative '../host'
 require_relative '../http'
 require_relative '../json_page'
 require_relative '../remotes'
@@ -261,6 +262,7 @@ module Zold
             reboot(r, json, opts)
             json['all'].each do |s|
               next if @remotes.exists?(s['host'], s['port'])
+              next if Host.new(s['host']).loopback? && !Host.new(score.host).loopback?
               add(s['host'], s['port'], opts)
             end
             capacity << { host: score.host, port: score.port, count: json['all'].count }

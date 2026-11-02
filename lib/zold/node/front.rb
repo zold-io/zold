@@ -23,6 +23,7 @@ require_relative '../version'
 require_relative '../wallet'
 require 'loog'
 require_relative '../dir_items'
+require_relative '../host'
 require_relative '../http'
 require_relative '../id'
 require_relative '../tax'
@@ -111,6 +112,7 @@ module Zold
           if settings.address == "#{s.host}:#{s.port}" && !settings.opts['ignore-score-weakness']
             error(400, 'Self-requests are prohibited')
           end
+          return if Host.new(s.host).loopback? && !Host.new(request.ip).loopback?
           add(s)
         end
       end
