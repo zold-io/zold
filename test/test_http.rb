@@ -93,12 +93,10 @@ class TestHttp < Zold::Test
     WebMock.allow_net_connect!
     body = ''
     RandomPort::Pool::SINGLETON.acquire do |port|
-      latch = Concurrent::CountDownLatch.new(1)
       thread =
-        Thread.start do
+        Thread.start(TCPServer.new('127.0.0.1', port)) do |server|
           Zold::VerboseThread.new(fake_log).run do
-            latch.count_down
-            socket = TCPServer.new('127.0.0.1', port).accept
+            socket = server.accept
             loop do
               line = socket.gets
               break if line.eql?("\r\n")
@@ -112,7 +110,6 @@ class TestHttp < Zold::Test
             socket.close
           end
         end
-      latch.wait
       res =
         Tempfile.open do |f|
           File.write(f, 'How are you?')
@@ -138,12 +135,10 @@ class TestHttp < Zold::Test
   def test_uploads_file
     WebMock.allow_net_connect!
     RandomPort::Pool::SINGLETON.acquire do |port|
-      latch = Concurrent::CountDownLatch.new(1)
       thread =
-        Thread.start do
+        Thread.start(TCPServer.new(port)) do |server|
           Zold::VerboseThread.new(fake_log).run do
-            latch.count_down
-            socket = TCPServer.new(port).accept
+            socket = server.accept
             body = ''
             stops = 0
             loop do
@@ -162,7 +157,6 @@ class TestHttp < Zold::Test
             socket.close_write
           end
         end
-      latch.wait
       content = "how are you\nmy friend"
       res =
         Tempfile.open do |f|
@@ -180,17 +174,14 @@ class TestHttp < Zold::Test
     WebMock.allow_net_connect!
     RandomPort::Pool::SINGLETON.acquire do |port|
       content = "how are you\nmy friend" * 1000
-      latch = Concurrent::CountDownLatch.new(1)
       thread =
-        Thread.start do
+        Thread.start(TCPServer.new(port)) do |server|
           Zold::VerboseThread.new(fake_log).run do
-            latch.count_down
-            socket = TCPServer.new(port).accept
+            socket = server.accept
             socket.print("HTTP/1.1 200 OK\nContent-Length: #{content.length}\n\n#{content}")
             socket.close_write
           end
         end
-      latch.wait
       body =
         Tempfile.open do |f|
           Zold::Http.new(uri: "http://localhost:#{port}/").get_file(f)
