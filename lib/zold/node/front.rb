@@ -568,11 +568,9 @@ module Zold
     end
 
     def score
-      settings.zache.get(:score, lifetime: settings.opts['no-cache'] ? 0 : 60) do
-        b = settings.farm.best
-        raise(RuntimeError, 'Score is empty, there is something wrong with the Farm!') if b.empty?
-        b.first
-      end
+      b = settings.farm.best
+      raise(RuntimeError, 'Score is empty, there is something wrong with the Farm!') if b.empty?
+      b.first
     end
 
     def ban(id)
