@@ -52,7 +52,7 @@ module Zold
         "Stopping \"#{@title}\" thread pool with #{@threads.count} threads: " \
         "#{@threads.map { |t| "#{t.name}/#{t.status}" }.join(', ')}..."
       )
-      start = Time.new
+      start = Time.now
       begin
         join(0.1)
       ensure

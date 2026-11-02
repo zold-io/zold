@@ -74,9 +74,7 @@ module Zold
               ['merge', id.to_s, "--ledger=#{Shellwords.escape(f.path)}"] +
               ["--trusted=#{Shellwords.escape(t.path)}"] +
               ["--network=#{Shellwords.escape(@network)}"] +
-              # rubocop:disable Lint/NumberConversion
-              (@remotes.master?(host, port.to_i) ? ['--no-baseline', '--depth=4'] : [])
-              # rubocop:enable Lint/NumberConversion
+              (@remotes.master?(host, port.to_i) ? ['--no-baseline', '--depth=4'] : []) # rubocop:disable Lint/NumberConversion
             )
           end
         @mutex.synchronize do

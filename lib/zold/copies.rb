@@ -120,15 +120,16 @@ module Zold
 
     def all(masters_first: true)
       Futex.new(file, log: @log).open(false) do
-        list = load.group_by { |s| s[:name] }.map do |name, scores|
-          {
-            name: name,
-            path: File.join(@dir, "#{name}#{Copies::EXT}"),
-            total: scores.count,
-            master: scores.any? { |s| s[:master] },
-            score: scores.select { |s| s[:time] > Time.now - (24 * 60 * 60) }.sum { |s| s[:score] } || 0
-          }
-        end.select { |c| File.exist?(c[:path]) }
+        list =
+          load.group_by { |s| s[:name] }.map do |name, scores|
+            {
+              name: name,
+              path: File.join(@dir, "#{name}#{Copies::EXT}"),
+              total: scores.count,
+              master: scores.any? { |s| s[:master] },
+              score: scores.select { |s| s[:time] > Time.now - (24 * 60 * 60) }.sum { |s| s[:score] } || 0
+            }
+          end.select { |c| File.exist?(c[:path]) }
         if masters_first
           list.sort_by! { |c| [c[:master] ? 1 : 0, c[:score].to_s.rjust(5, '0')] }
         else
