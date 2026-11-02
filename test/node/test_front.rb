@@ -259,6 +259,21 @@ class FrontTest < Zold::Test
     fake_log.info("Average response time is #{all.sum / all.count}")
   end
 
+  def test_exposes_fresh_score_from_farm
+    FakeNode.new(log: fake_log).run(opts) do |port|
+      uri = "http://localhost:#{port}/"
+      Zold::Http.new(uri: uri).get
+      score = Zold::Score.new(host: 'localhost', port: port, invoice: 'NOPREFIX@ffffffffffffffff', strength: 1)
+      3.times { score = score.next }
+      File.write(File.join(Zold::Front.settings.root, 'farm'), score.to_s)
+      assert_equal(
+        3,
+        Zold::Score.parse_json(Zold::JsonPage.new(Zold::Http.new(uri: uri).get.body).to_hash['score']).value,
+        'The front must not expose a stale score when the farm has a better one'
+      )
+    end
+  end
+
   # The score exposed via the HTTP header must be reduced to the value of 16.
   # We need this in order to optimize the amount of data we transfer in each
   # HTTP request. This value is enough to identify a valuable node, and filter
