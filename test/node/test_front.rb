@@ -8,6 +8,7 @@ require 'memory_profiler'
 require 'securerandom'
 require 'threads'
 require 'time'
+require 'typhoeus'
 require 'zold/score'
 require_relative '../../lib/zold/age'
 require_relative '../../lib/zold/http'
@@ -299,6 +300,16 @@ class FrontTest < Zold::Test
       assert_equal('*', response.headers['Access-Control-Allow-Origin'])
       assert(response.headers['X-Zold-Milliseconds'])
       refute_nil(response.headers[Zold::Http::SCORE_HEADER])
+    end
+  end
+
+  def test_accepts_request_with_foreign_referer
+    FakeNode.new(log: fake_log).run(opts) do |port|
+      response = Typhoeus::Request.get(
+        "http://localhost:#{port}/",
+        headers: { Referer: "http://#{SecureRandom.hex(5)}.example.com/" }
+      )
+      assert_equal(200, response.code, "The node must not reject a request with a foreign Referer: #{response.body}")
     end
   end
 

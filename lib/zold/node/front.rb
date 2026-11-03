@@ -71,6 +71,7 @@ module Zold
       set :zache, nil
       set :async_dir, nil
       set :journal_dir, nil
+      set :protection, except: [:json_csrf]
     end
     use Rack::Deflater
 
