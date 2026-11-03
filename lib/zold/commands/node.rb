@@ -101,8 +101,8 @@ module Zold
           )
           o.string(
             '--nohup-command',
-            'The command to run in server "nohup" mode (default: "gem install zold")',
-            default: 'gem install zold'
+            'The command to run in server "nohup" mode (default: "gem install zold && gem cleanup zold")',
+            default: 'gem install zold && gem cleanup zold'
           )
           o.string('--nohup-log', 'The file to log output into (default: zold.log)', default: 'zold.log')
           o.integer(
