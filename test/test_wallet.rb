@@ -58,6 +58,31 @@ class TestWallet < Zold::Test
     end
   end
 
+  def test_rejects_transaction_that_overflows_balance
+    FakeHome.new(log: fake_log).run do |home|
+      wallet = home.create_wallet
+      amount = Zold::Amount.new(zents: (2**62) + rand(1..1000))
+      wallet.add(Zold::Txn.new(1, Time.now, amount, 'NOPREFIX', Zold::Id.new, '-'))
+      assert_raises(RuntimeError, 'overflowing transaction was accepted') do
+        wallet.add(Zold::Txn.new(2, Time.now, amount, 'NOPREFIX', Zold::Id.new, '-'))
+      end
+    end
+  end
+
+  def test_keeps_balance_after_overflow
+    FakeHome.new(log: fake_log).run do |home|
+      wallet = home.create_wallet
+      amount = Zold::Amount.new(zents: (2**62) + rand(1..1000))
+      wallet.add(Zold::Txn.new(1, Time.now, amount, 'NOPREFIX', Zold::Id.new, '-'))
+      begin
+        wallet.add(Zold::Txn.new(2, Time.now, amount, 'NOPREFIX', Zold::Id.new, '-'))
+      rescue RuntimeError
+        nil
+      end
+      assert_equal(amount, wallet.balance, 'balance was broken by the overflowing transaction')
+    end
+  end
+
   def test_adds_similar_transaction
     FakeHome.new(log: fake_log).run do |home|
       wallet = home.create_wallet

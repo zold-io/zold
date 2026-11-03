@@ -143,6 +143,9 @@ module Zold
         )
       end
       raise(RuntimeError, "The tax payment already exists in #{id}: #{txn}") if Tax.new(self).exists?(txn.details)
+      if (balance.to_zents + txn.amount.to_zents).abs > Amount::MAX
+        raise(RuntimeError, "The balance of #{id} would overflow after adding #{txn}")
+      end
       File.open(path, 'a') { |f| f.print("#{txn}\n") }
       @txns.flush
     end
