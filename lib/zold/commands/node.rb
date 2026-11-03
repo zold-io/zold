@@ -26,6 +26,7 @@ require_relative '../node/pipeline'
 require_relative '../node/safe_entrance'
 require_relative '../node/spread_entrance'
 require_relative '../node/sync_entrance'
+require_relative '../node/thin_log'
 require_relative '../node/trace'
 require_relative '../remotes'
 require_relative '../thread_pool'
@@ -218,6 +219,7 @@ module Zold
       Front.set(:log, @log)
       Front.set(:logger, @log)
       Front.set(:trace, @log)
+      Thin::Logging.logger = ThinLog.new(@log)
       Front.set(:nohup_log, opts['nohup-log']) if opts['nohup-log']
       Front.set(:protocol, Zold::PROTOCOL)
       Front.set(:logging, @log.debug?)

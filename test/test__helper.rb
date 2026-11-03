@@ -109,6 +109,14 @@ module Zold
         @log.error(msg)
         @msgs << msg
       end
+
+      def debug?
+        true
+      end
+
+      def info?
+        true
+      end
     end
   end
 end

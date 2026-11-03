@@ -47,4 +47,10 @@ class TestNode < Zold::Test
       end
     end
   end
+
+  def test_sends_thin_messages_to_zold_log
+    log = Zold::Test::TestLogger.new(fake_log)
+    FakeNode.new(log: log).run { |port| fake_log.debug("Node is up at port #{port}") }
+    assert(log.msgs.any? { |m| m.to_s.include?('Listening on') }, 'Thin messages did not reach the Zold log')
+  end
 end
