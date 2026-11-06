@@ -118,13 +118,7 @@ class FarmTest < Zold::Test
       )
       File.write(cache, score.to_s)
       farm = Zold::Farm.new('NOPREFIX4@ffffffffffffffff', cache, log: fake_log, strength: score.strength)
-      farm.start(score.host, score.port, threads: 1) do
-        100.times do
-          sleep(0.1)
-          b = farm.best.first
-          refute_nil(b)
-          break if b.value.zero?
-        end
+      farm.start(score.host, score.port, threads: 0) do
         assert_equal(0, farm.best.first.value)
       end
     end
