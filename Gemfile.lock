@@ -170,9 +170,9 @@ GEM
       sinatra
       thin
     mini_mime (1.1.5)
-    minitest (6.0.6)
+    minitest (6.1.0)
       drb (~> 2.0)
-      prism (~> 1.5)
+      prism (>= 1.5, < 3)
     minitest-hooks (1.5.4)
       minitest (> 5.3)
     minitest-mock (5.27.0)
