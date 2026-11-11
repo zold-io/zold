@@ -188,12 +188,16 @@ module Zold
         .map(&:to_s)
         .uniq
         .join("\n")
-      Futex.new(@cache).open { |f| File.write(f, body) }
+      Futex.new(@cache).open do |f|
+        temp = "#{f}.#{Process.pid}.tmp"
+        File.write(temp, body)
+        File.rename(temp, f)
+      end
     end
 
     def load
       return [] unless File.exist?(@cache)
-      Futex.new(@cache).open(false) { |f| File.readlines(f, "\n") }.reject(&:empty?).map do |t|
+      File.readlines(@cache, "\n").reject(&:empty?).map do |t|
         Score.parse(t)
       rescue StandardError => e
         @log.error(Backtrace.new(e).to_s)

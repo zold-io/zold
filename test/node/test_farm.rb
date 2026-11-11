@@ -3,6 +3,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
+require 'benchmark'
 require 'rack/test'
 require 'tmpdir'
 require_relative '../test__helper'
@@ -43,25 +44,15 @@ class FarmTest < Zold::Test
     end
   end
 
-  # @todo #527:30min This test takes too long. The speed should be less than
-  #  a few milliseconds, however, if you run it a few times, you will see
-  #  that it is over 100ms sometimes. This is way too slow. I can't understand
-  #  what's going on. It seems that IO.read() is taking too long sometimes.
-  #  Try to measure its time of execution in Farm.load() and you will see
-  #  that it's usually a few microseconds, but sometimes over 200ms.
   def test_reads_scores_at_high_speed
     Dir.mktmpdir do |dir|
       farm = Zold::Farm.new('NOPREFIX6@ffffffffffffffff', File.join(dir, 'f'), log: fake_log, strength: 4)
       farm.start('localhost', 80, threads: 4) do
         assert_wait { !farm.best.empty? && !farm.best.first.value.zero? }
         cycles = 100
-        # rubocop:disable Elegant/NoRedundantVariable
-        speed = (0..(cycles - 1)).sum do
-          # rubocop:enable Elegant/NoRedundantVariable
-          farm.best
-          Time.now - Time.now
-        end / cycles
+        speed = Benchmark.realtime { cycles.times { farm.best } } / cycles
         fake_log.info("Average speed is #{(speed * 1000).round(2)}ms in #{cycles} cycles")
+        assert_operator(speed, :<, 0.0001, "Reading scores takes #{(speed * 1000).round(2)}ms on average")
       end
     end
   end
