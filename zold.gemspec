@@ -58,7 +58,7 @@ and suggests a different architecture for digital wallet maintenance."
   s.add_dependency('sinatra', '~>3.0')
   s.add_dependency('slop', '~>4.6')
   s.add_dependency('sys-proctable', '~>1.2')
-  s.add_dependency('thin', '~>1.7')
+  s.add_dependency('thin', '~>2.0')
   s.add_dependency('threads', '~>0.3')
   s.add_dependency('total', '~>0.3')
   s.add_dependency('typhoeus', '~>1.3')
