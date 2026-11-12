@@ -109,6 +109,7 @@ GEM
     differ (0.1.2)
     diffy (3.4.4)
     drb (2.2.3)
+    ellipsized (0.3.0)
     erb (6.0.7)
     erubi (1.13.1)
     ethon (0.19.1)
@@ -159,7 +160,8 @@ GEM
     loofah (2.25.3)
       crass (~> 1.0.2)
       nokogiri (>= 1.19.5)
-    loog (0.6.1)
+    loog (0.8.0)
+      ellipsized
       logger (~> 1.0)
     lumberjack (1.4.2)
     memoist3 (1.0.0)
