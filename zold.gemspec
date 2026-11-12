@@ -45,7 +45,7 @@ and suggests a different architecture for digital wallet maintenance."
   s.add_dependency('concurrent-ruby', '~>1.1')
   s.add_dependency('diffy', '~>3.3')
   s.add_dependency('futex', '~>0.8')
-  s.add_dependency('get_process_mem', '~>0.2')
+  s.add_dependency('get_process_mem', '~>1.0')
   s.add_dependency('haml', '~>5.0')
   s.add_dependency('json', '~>3.0')
   s.add_dependency('loog', '>0')
