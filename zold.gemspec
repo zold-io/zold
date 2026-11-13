@@ -55,7 +55,7 @@ and suggests a different architecture for digital wallet maintenance."
   s.add_dependency('ostruct', '~>0.6')
   s.add_dependency('rainbow', '~>3.0')
   s.add_dependency('semantic', '~>1.6')
-  s.add_dependency('sinatra', '~>3.0')
+  s.add_dependency('sinatra', '~>4.0')
   s.add_dependency('slop', '~>4.6')
   s.add_dependency('sys-proctable', '~>1.2')
   s.add_dependency('thin', '~>2.0')
